@@ -44,7 +44,7 @@
         <!-- Signal & Market Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- AI Signal Card -->
+            <!-- AI Signal Card (Occupies 2 Columns) -->
             <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
                 <div>
                     <span class="text-xs text-gray-400 uppercase tracking-wider">AI Signal Recommendation</span>
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <!-- Economic News Feed -->
+            <!-- Major News / Economic Events Feed (1 Column) -->
             <div class="bg-gray-800 border border-gray-700 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
                 <div>
                     <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center justify-between">
@@ -89,52 +89,8 @@
         </div>
 
         <!-- TradingView Chart Section -->
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-2 shadow-xl overflow-hidden h-[450px]">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-2 shadow-xl overflow-hidden h-[500px]">
             <div id="chartContainer" style="height:100%; width:100%;"></div>
-        </div>
-
-        <!-- AI Signal History Table (New Professional Feature) -->
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl">
-            <h3 class="text-base font-bold text-white mb-4 flex items-center justify-between">
-                <span>📊 ប្រវត្តិសញ្ញា AI Signal ថ្មីៗ (History Performance)</span>
-                <span class="text-xs text-green-400 bg-green-950 px-2.5 py-1 rounded-full border border-green-800">Win Rate: 94.2%</span>
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-300">
-                    <thead class="bg-gray-900 text-xs uppercase text-gray-400 border-b border-gray-700">
-                        <tr>
-                            <th class="px-4 py-3">เวลา / Time</th>
-                            <th class="px-4 py-3">Asset Pair</th>
-                            <th class="px-4 py-3">Signal</th>
-                            <th class="px-4 py-3">Confidence</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-700 text-xs">
-                        <tr class="hover:bg-gray-750 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ១២:៣០</td>
-                            <td class="px-4 py-3 font-bold text-white">BTC/USD</td>
-                            <td class="px-4 py-3 text-green-400 font-bold">STRONG BUY</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">95.8%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/60 text-green-300 px-2 py-0.5 rounded border border-green-700">กำไร / TP Hit (+120 pips)</span></td>
-                        </tr>
-                        <tr class="hover:bg-gray-750 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ១០:១៥</td>
-                            <td class="px-4 py-3 font-bold text-white">XAU/USD</td>
-                            <td class="px-4 py-3 text-green-400 font-bold">BUY</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">91.4%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/60 text-green-300 px-2 py-0.5 rounded border border-green-700">กำไร / TP Hit (+85 pips)</span></td>
-                        </tr>
-                        <tr class="hover:bg-gray-750 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ០៨:០០</td>
-                            <td class="px-4 py-3 font-bold text-white">EUR/USD</td>
-                            <td class="px-4 py-3 text-red-400 font-bold">SELL</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">89.2%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/60 text-green-300 px-2 py-0.5 rounded border border-green-700">กำไร / TP Hit (+45 pips)</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
 
     </main>
@@ -148,13 +104,16 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         function changeSymbol(symbol, btn) {
+            // Remove active class from all buttons
             document.querySelectorAll('.asset-btn').forEach(b => {
                 b.classList.remove('bg-blue-600', 'text-white', 'shadow');
                 b.classList.add('bg-gray-700', 'text-gray-300');
             });
+            // Add active class to clicked button
             btn.classList.remove('bg-gray-700', 'text-gray-300');
             btn.classList.add('bg-blue-600', 'text-white', 'shadow');
 
+            // Re-render TradingView Chart
             document.getElementById('chartContainer').innerHTML = '<div id="tradingview_chart" style="height:100%;width:100%"></div>';
             new TradingView.widget({
                 "autosize": true,
@@ -171,6 +130,7 @@
             });
         }
         
+        // Load default chart on startup (BTC)
         changeSymbol('BINANCE:BTCUSDT', document.querySelector('.asset-btn'));
 
         function sendToTelegram() {
