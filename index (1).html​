@@ -1,71 +1,37 @@
-async function runAutoCycle() {
-            if (!isAutoBotRunning) return;
-            const market = document.getElementById('marketSelect').value;
-            const logs = document.getElementById('chatLogs');
-            
-            // ពិនិត្យ News Filter
-            const newsFilterOn = document.getElementById('newsFilterToggle').checked;
-            if (newsFilterOn) {
-                logs.innerHTML += `<div class="bg-blue-950/40 p-2.5 rounded-lg border border-blue-800/50 mt-2 text-blue-300">📰 News Filter: គ្មានព័ត៌មាន High-Impact ទេ។ បន្តវិភាគទីផ្សារ ${market}...</div>`;
+function switchAuthMode(mode) {
+            authMode = mode;
+            const loginBtn = document.getElementById('authTabLogin');
+            const regBtn = document.getElementById('authTabRegister');
+            const nameContainer = document.getElementById('nameFieldContainer');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            if (mode === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                regBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.add('hidden');
+                submitBtn.innerText = "Sign In";
+            } else {
+                regBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                loginBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.remove('hidden');
+                submitBtn.innerText = "Register";
             }
-
-            // ចៃដន្យសញ្ញា BUY ឬ SELL តាមគោលការណ៍ ICT
-            const actionType = Math.random() > 0.5 ? "🟢 BUY SIGNAL" : "🔴 SELL SIGNAL";
-            const price = (Math.random() * 1000 + 60000).toFixed(2);
-            
-            const message = `🚨 <b>V Trade AI - Auto Bot Alert</b>\n\nAsset: <b>${market}</b>\nAction: <b>${actionType}</b>\nEntry Price: <b>$${price}</b>\nConfluence: 15m/1h/4h Order Block & FVG matched.`;
-
-            // បញ្ជូនទៅកាន់ Telegram
-            await sendToTelegram(message);
-
-            // បង្ហាញក្នុង Chat Logs
-            logs.innerHTML += `<div class="bg-gray-900 p-2.5 rounded-lg border border-gray-800 mt-2"><span class="text-yellow-400 font-bold">[Auto Bot 5M]:</span> ${message.replace(/\n/g, '<br>')}</div>`;
-            logs.scrollTop = logs.scrollHeight;
-
-            // បង្កើនចំនួន Trade សរុប
-            tradeCount++;
-            document.getElementById('dashTradeCount').innerText = tradeCount + " Trades";
         }
 
-        async function triggerAction(type) {
-            const logs = document.getElementById('chatLogs');
-            const market = document.getElementById('marketSelect').value;
-            signalCounter++;
-            
-            let colorClass = type === 'BUY' ? 'text-green-400' : (type === 'SELL' ? 'text-red-400' : 'text-blue-400');
-            let textMsg = `📊 Matrix Analysis for ${market}: <b>${type}</b> setup detected based on ICT Order Block structure.`;
-            
-            if(type === 'BUY' || type === 'SELL') {
-                textMsg = `⚡ Manual Trigger: <b>${type}</b> executed on ${market}! Confluence confirmed.`;
-                tradeCount++;
-                document.getElementById('dashTradeCount').innerText = tradeCount + " Trades";
-                await sendToTelegram(`🚨 <b>Manual Trade Alert</b>\nAsset: ${market}\nSignal: ${type}`);
-            }
-
-            logs.innerHTML += `<div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2"><span class="${colorClass} font-bold block mb-1">🤖 Matrix #${signalCounter}:</span> ${textMsg}</div>`;
-            logs.scrollTop = logs.scrollHeight;
-        }
-
-        function openForgotPasswordModal(e) {
-            e.preventDefault();
-            document.getElementById('forgotModal').classList.remove('hidden');
-            document.getElementById('forgotModal').classList.add('flex');
-        }
-
-        function closeForgotModal() {
-            document.getElementById('forgotModal').classList.add('hidden');
-            document.getElementById('forgotModal').classList.remove('flex');
-        }
-
-        function submitForgotPassword() {
-            const email = document.getElementById('forgotEmail').value.trim();
+        function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
             if(!email) {
-                alert("⚠️ សូមបញ្ចូលអ៊ីមែលរបស់អ្នក!");
+                alert("⚠️ សូមបំពេញអ៊ីមែលរបស់អ្នក!");
                 return;
             }
-            alert("✅ តំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ត្រូវបានបញ្ជូនទៅកាន់ " + email + " ហើយ!");
-            closeForgotModal();
+            if(authMode === 'register') {
+                const name = document.getElementById('regName').value.trim() || "User";
+                localStorage.setItem('vet_user_name', name);
+                document.getElementById('profileName').innerText = name;
+                alert("✅ ចុះឈ្មោះជោគជ័យ!");
+            }
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appWrapper').classList.remove('hidden');
+            switchTab('landing');
+            loadChart("BTCUSDT");
         }
-    </script>
-</body>
-</html>
