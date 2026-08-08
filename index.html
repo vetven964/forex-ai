@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V TRADE - All-in-One Trading System v3.0 (Fixed)</title>
+    <title>V TRADE - All-in-One Trading System v3.0</title>
     <style>
         :root {
             --bg-color: #0b0e14;
@@ -257,19 +257,19 @@
             </div>
         </div>
         <div class="nav-menu">
-            <span id="menu-dash">ផ្ទាំងគ្រប់គ្រង</span>
-            <span id="menu-scanner">ស្កែនទីផ្សារ</span>
-            <span id="menu-signals">សញ្ញា AI</span>
-            <span id="menu-vip">កញ្ចប់ VIP</span>
-            <span id="menu-settings">ការកំណត់</span>
+            <span onclick="showPopup('📊 ផ្ទាំងគ្រប់គ្រង (Dashboard)', 'ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យទីផ្សារ និងផលប័ត្ររបស់អ្នកកំពុងដំណើរការជាប្រក្រតី។')">ផ្ទាំងគ្រប់គ្រង</span>
+            <span onclick="showPopup('📈 ស្កែនទីផ្សារ (Market Scanner)', 'ប្រព័ន្ធ AI កំពុងវិភាគនិន្នាការតម្លៃកាក់ និងមាសយ៉ាងសកម្ម Real-time។')">ស្កែនទីផ្សារ</span>
+            <span onclick="showPopup('⚡ សញ្ញា AI (AI Signals)', 'សញ្ញាទិញ/លក់ ត្រូវបានបង្កើតឡើងតាមក្បួនដោះស្រាយកម្រិតខ្ពស់។')">សញ្ញា AI</span>
+            <span onclick="showPopup('👑 កញ្ចប់ VIP (VIP Packages)', 'សូមធ្វើការទូទាត់ប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោររាល់មុខងារ។')">កញ្ចប់ VIP</span>
+            <span onclick="showPopup('⚙️ ការកំណត់ (Settings)', 'ការកំណត់សុវត្ថិភាពគណនី និងប្រព័ន្ធការពារ (Secure Mode Activated)។')">ការកំណត់</span>
         </div>
         <div class="user-status">
-            <button class="login-btn" id="btn-login">Sign In</button>
+            <button class="login-btn" onclick="showPopup('🔑 ចូលគណនី (Sign In)', 'ប្រព័ន្ធផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ Secure Mode កំពុងដំណើរការ។')">Sign In</button>
             <div>
                 <div style="font-size: 11px; color: var(--text-secondary);">V Trade User (Private)</div>
                 <div style="font-size: 13px; font-weight: bold;">Balance: $10 USD</div>
             </div>
-            <button class="upgrade-btn" id="btn-upgrade">Upgrade VIP</button>
+            <button class="upgrade-btn" onclick="showPopup('⚡ ដោះសោ VIP', 'សូមផ្ទេរប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោ Full Speed 100%។')">Upgrade VIP</button>
         </div>
     </div>
 
@@ -290,7 +290,7 @@
             <div class="stat-value text-green">92.4%</div>
             <div style="font-size: 11px; color: var(--text-secondary);">28 trades analyzed</div>
         </div>
-        <div class="stat-box" id="box-vip-status" style="cursor: pointer;">
+        <div class="stat-box" style="cursor: pointer;" onclick="showPopup('👑 ដោះសោ VIP', 'ABA Pay ID: 002145481\nទូទាត់ប្រាក់ដើម្បីដោះសោ full speed ភ្លាមៗ។')">
             <div class="stat-label">VIP Status 👑</div>
             <div class="stat-value" style="font-size: 14px;">Free Tier (Limited)</div>
             <div style="font-size: 11px; color: var(--accent-color);">ទិញ VIP ដើម្បីដោះសោ full speed →</div>
@@ -378,7 +378,7 @@
                         <div style="font-weight: bold; font-size: 13px;">BTC/USDT <span class="text-green">BUY / LONG</span></div>
                         <div style="font-size: 11px; color: var(--text-secondary);">Entry: 64,100 | TP: 66,500</div>
                     </div>
-                    <button class="trade-btn" id="btn-trade-btc">Trade</button>
+                    <button class="trade-btn" onclick="showPopup('📈 ប្រតិបត្តិការ BTC/USDT', 'បានបញ្ជូនសំណើ Trade (BUY/LONG) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
                 </div>
 
                 <div class="trade-item">
@@ -386,10 +386,10 @@
                         <div style="font-weight: bold; font-size: 13px;">XAU/USD <span class="text-green">BUY / LONG</span></div>
                         <div style="font-size: 11px; color: var(--text-secondary);">Entry: 2,380 | TP: 2,410</div>
                     </div>
-                    <button class="trade-btn" id="btn-trade-xau">Trade</button>
+                    <button class="trade-btn" onclick="showPopup('🪙 ប្រតិបត្តិការ XAU/USD', 'បានបញ្ជូនសំណើ Trade មាស (Gold) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
                 </div>
 
-                <div class="vip-banner" id="banner-vip">
+                <div class="vip-banner" onclick="showPopup('👑 ទូទាត់ប្រាក់ VIP', 'ABA Pay ID: 002145481\nសូមធ្វើការស្កេន ឬផ្ទេរប្រាក់តាមលេខកូដនេះ ដើម្បីដោះសោររាល់សញ្ញាណ 100% ភ្លាមៗ។')">
                     👑 ដោះសោ VIP ដើម្បីទទួលសញ្ញាណ 100%
                 </div>
             </div>
@@ -408,69 +408,20 @@
         <div class="modal-content">
             <h3 id="modalTitle">ប្រព័ន្ធដំណឹង</h3>
             <p id="modalDesc">សេចក្តីលម្អិត...</p>
-            <button class="modal-close" id="modalCloseBtn">បិទ (Close)</button>
+            <button class="modal-close" onclick="closePopup()">បិទ (Close)</button>
         </div>
     </div>
 
-    <!-- JavaScript Event Listeners (Guaranteed Fix for Click Actions) -->
+    <!-- JavaScript Functionality -->
     <script>
-        const modal = document.getElementById('customModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDesc = document.getElementById('modalDesc');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-
         function showPopup(title, desc) {
-            modalTitle.innerText = title;
-            modalDesc.innerText = desc;
-            modal.style.display = 'flex';
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('customModal').style.display = 'flex';
         }
-
-        modalCloseBtn.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-
-        // Close modal when clicking outside the box
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-
-        // Safely attaching click events to all items
-        document.getElementById('menu-dash').addEventListener('click', () => {
-            showPopup('📊 ផ្ទាំងគ្រប់គ្រង (Dashboard)', 'ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យទីផ្សារ និងផលប័ត្ររបស់អ្នកកំពុងដំណើរការជាប្រក្រតី។');
-        });
-        document.getElementById('menu-scanner').addEventListener('click', () => {
-            showPopup('📈 ស្កែនទីផ្សារ (Market Scanner)', 'ប្រព័ន្ធ AI កំពុងវិភាគនិន្នាការតម្លៃកាក់ និងមាសយ៉ាងសកម្ម Real-time។');
-        });
-        document.getElementById('menu-signals').addEventListener('click', () => {
-            showPopup('⚡ សញ្ញា AI (AI Signals)', 'សញ្ញាទិញ/លក់ ត្រូវបានបង្កើតឡើងតាមក្បួនដោះស្រាយកម្រិតខ្ពស់។');
-        });
-        document.getElementById('menu-vip').addEventListener('click', () => {
-            showPopup('👑 កញ្ចប់ VIP (VIP Packages)', 'សូមធ្វើការទូទាត់ប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោររាល់មុខងារ។');
-        });
-        document.getElementById('menu-settings').addEventListener('click', () => {
-            showPopup('⚙️ ការកំណត់ (Settings)', 'ការកំណត់សុវត្ថិភាពគណនី និងប្រព័ន្ធការពារ (Secure Mode Activated)។');
-        });
-
-        document.getElementById('btn-login').addEventListener('click', () => {
-            showPopup('🔑 ចូលគណនី (Sign In)', 'ប្រព័ន្ធផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ Secure Mode កំពុងដំណើរការ។');
-        });
-        document.getElementById('btn-upgrade').addEventListener('click', () => {
-            showPopup('⚡ ដោះសោ VIP', 'សូមផ្ទេរប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោ Full Speed 100%។');
-        });
-        document.getElementById('box-vip-status').addEventListener('click', () => {
-            showPopup('👑 ដោះសោ VIP', 'ABA Pay ID: 002145481\nទូទាត់ប្រាក់ដើម្បីដោះសោ full speed ភ្លាមៗ។');
-        });
-        document.getElementById('btn-trade-btc').addEventListener('click', () => {
-            showPopup('📈 ប្រតិបត្តិការ BTC/USDT', 'បានបញ្ជូនសំណើ Trade (BUY/LONG) ទៅកាន់ប្រព័ន្ធជោគជ័យ!');
-        });
-        document.getElementById('btn-trade-xau').addEventListener('click', () => {
-            showPopup('🪙 ប្រតិបត្តិការ XAU/USD', 'បានបញ្ជូនសំណើ Trade មាស (Gold) ទៅកាន់ប្រព័ន្ធជោគជ័យ!');
-        });
-        document.getElementById('banner-vip').addEventListener('click', () => {
-            showPopup('👑 ទូទាត់ប្រាក់ VIP', 'ABA Pay ID: 002145481\nសូមធ្វើការស្កេន ឬផ្ទេរប្រាក់តាមលេខកូដនេះ ដើម្បីដោះសោររាល់សញ្ញាណ 100% ភ្លាមៗ។');
-        });
+        function closePopup() {
+            document.getElementById('customModal').style.display = 'none';
+        }
     </script>
 
 </body>
