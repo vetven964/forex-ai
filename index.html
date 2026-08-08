@@ -1,56 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forex AI Pro - Advanced Trading Suite</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Battambang', sans-serif; }
+    </style>
 </head>
-<body>
-    <div class="app-container">
-        <!-- Top Navigation Bar -->
-        <header class="top-nav">
-            <div class="brand">
-                <h1>Forex AI <span>Pro</span></h1>
-            </div>
-            
-            <div class="controls-group">
-                <div class="switcher-group">
-                    <button class="asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'Bitcoin')">BTC/USD</button>
-                    <button class="asset-btn" onclick="changeAsset('FX:EURUSD', 'EUR/USD')">EUR/USD</button>
-                    <button class="asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBP/USD')">GBP/USD</button>
-                    <button class="asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'Gold')">XAU/USD</button>
-                </div>
-            </div>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between">
 
-            <!-- ប៊ូតុងចូលទៅកាន់ Profile -->
-            <div style="margin-left: 20px;">
-                <a href="profile.html" style="background-color: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-family: sans-serif;">Profile របស់ខ្ញុំ</a>
-            </div>
-        </header>
-
-        <!-- TradingView Advanced Widget Container (Clean & Large) -->
-        <div class="tradingview-widget-container">
-            <div id="tradingview_widget"></div>
+    <!-- Top Navigation Bar -->
+    <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap justify-between items-center shadow-md">
+        <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
+        </div>
+        
+        <!-- Asset Switcher Buttons -->
+        <div class="flex items-center space-x-2 my-2 sm:my-0">
+            <button class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition">BTC/USD</button>
+            <button class="bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-600 transition">EUR/USD</button>
+            <button class="bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-600 transition">GBP/USD</button>
+            <button class="bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-600 transition">XAU/USD</button>
         </div>
 
-        <!-- AI Signal Dashboard -->
-        <div class="ai-signal-box">
-            <div class="signal-header">
-                <h2 id="ai-signal-text">STRONG BUY</h2>
-                <span class="confidence" id="ai-confidence">AI Confidence: 95.8%</span>
+        <!-- Link to Profile Page -->
+        <div>
+            <a href="profile.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-lg shadow-blue-600/30">
+                Profile របស់ខ្ញុំ
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- AI Signal Dashboard Card -->
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="text-xs text-gray-400 uppercase tracking-wider">AI Signal Recommendation</span>
+                <h2 class="text-3xl font-extrabold text-green-400 mt-1">STRONG BUY</h2>
             </div>
-            <div class="signal-details">
-                <div class="detail-item">
-                    <span class="label">AI Trend Status</span>
-                    <span class="value bullish" id="ai-trend">Bullish</span>
+            <div class="flex flex-wrap gap-6 text-center md:text-right">
+                <div>
+                    <p class="text-xs text-gray-400">AI Confidence</p>
+                    <p class="text-lg font-bold text-blue-400">95.8%</p>
                 </div>
-                <div class="detail-item">
-                    <span class="label">Data Feed</span>
-                    <span class="value" id="data-feed">TradingView Live</span>
+                <div>
+                    <p class="text-xs text-gray-400">AI Trend Status</p>
+                    <p class="text-lg font-bold text-green-400">Bullish</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Data Feed</p>
+                    <p class="text-lg font-bold text-gray-200">TradingView Live</p>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- TradingView Chart Container -->
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-4 shadow-xl min-h-[500px]">
+            <div id="tradingview_widget" class="w-full h-full min-h-[480px] flex items-center justify-center text-gray-500">
+                <!-- TradingView Widget Widget Here -->
+                <span>TradingView Chart Display</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-gray-500 text-xs border-t border-gray-800">
+        &copy; 2026 Forex AI. All rights reserved.
+    </footer>
+
 </body>
 </html>
