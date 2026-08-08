@@ -1,95 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Multi-Page Dashboard</title>
+    <title>Forex AI Pro - Bootstrap Version</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="app-container">
-        <!-- Top Navigation Bar & Page Switcher Tabs -->
-        <header class="top-nav">
-            <div class="brand">
-                <h1>Forex AI <span>Pro</span></h1>
-            </div>
+<body class="bg-body-tertiary">
+    <div class="container py-3">
+        <!-- Top Navigation -->
+        <header class="navbar navbar-expand-lg navbar-dark bg-dark px-3 rounded-4 mb-3 border border-secondary border-opacity-25 shadow-sm">
+            <a class="navbar-brand fw-bold fs-5 text-white" href="#">Forex AI <span class="text-success">Pro</span></a>
             
-            <!-- Page Switcher Buttons -->
-            <div class="page-tabs">
-                <button class="tab-btn active" onclick="switchPage('dashboard')">📈 Live Terminal</button>
-                <button class="tab-btn" onclick="switchPage('analytics')">📊 AI Analytics</button>
-            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                <!-- Page Tabs -->
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-primary active" id="tab-dashboard-btn" onclick="switchPage('dashboard')">📈 Live Terminal</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="tab-analytics-btn" onclick="switchPage('analytics')">📊 AI Analytics</button>
+                </div>
 
-            <!-- Asset Switcher -->
-            <div class="switcher-group">
-                <button class="asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', this)">BTC</button>
-                <button class="asset-btn" onclick="changeAsset('FX:EURUSD', this)">EUR</button>
-                <button class="asset-btn" onclick="changeAsset('FX:GBPUSD', this)">GBP</button>
-                <button class="asset-btn" onclick="changeAsset('OANDA:XAUUSD', this)">GOLD</button>
+                <!-- Asset Switcher -->
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-success asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', this)">BTC</button>
+                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('FX:EURUSD', this)">EUR</button>
+                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('FX:GBPUSD', this)">GBP</button>
+                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('OANDA:XAUUSD', this)">GOLD</button>
+                </div>
             </div>
         </header>
 
-        <!-- PAGE 1: LIVE TERMINAL & DASHBOARD -->
-        <div id="page-dashboard" class="page-content active-page">
-            <div class="tradingview-widget-container">
-                <div id="tradingview_widget"></div>
-            </div>
-
-            <div class="ai-signal-box">
-                <div class="signal-header">
-                    <h2 id="ai-signal-text">STRONG BUY</h2>
-                    <span class="confidence" id="ai-confidence">Confidence: 99.4%</span>
-                </div>
-                <div class="signal-details">
-                    <div class="detail-item"><span class="label">Trend</span><span class="value bullish" id="ai-trend">Bullish</span></div>
-                    <div class="detail-item"><span class="label">Session</span><span class="value" id="active-session">Loading...</span></div>
+        <!-- PAGE 1: DASHBOARD -->
+        <div id="page-dashboard" class="page-content">
+            <!-- Chart Container -->
+            <div class="card bg-dark border-secondary border-opacity-25 mb-3 shadow">
+                <div class="card-body p-0 overflow-hidden rounded-4">
+                    <div id="tradingview_widget" class="w-100"></div>
                 </div>
             </div>
 
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3>🎯 Strategy</h3>
-                    <div class="row"><span>Action:</span> <span class="green">Long Position</span></div>
-                    <div class="row"><span>Risk/Reward:</span> <span>1:2.5</span></div>
+            <!-- AI Signal Box -->
+            <div class="card bg-dark border-success border-opacity-50 mb-3 shadow signal-card">
+                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-success fw-bold mb-1 fs-3" id="ai-signal-text">STRONG BUY</h2>
+                        <p class="text-muted mb-0 small" id="ai-confidence">Confidence: 99.4%</p>
+                    </div>
+                    <div class="d-flex gap-4">
+                        <div class="text-end">
+                            <span class="d-block text-muted small">Trend</span>
+                            <span class="fw-bold text-success" id="ai-trend">Bullish</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="d-block text-muted small">Session</span>
+                            <span class="fw-bold text-light" id="active-session">Loading...</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>📊 Confluence</h3>
-                    <div class="row"><span>RSI (14):</span> <span>58.2</span></div>
-                    <div class="row"><span>MACD:</span> <span class="green">Bullish</span></div>
+            </div>
+
+            <!-- Grid Strategy & Confluence -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary border-opacity-25 h-100 shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-light fs-6 border-bottom border-secondary border-opacity-25 pb-2 mb-3">🎯 Strategy</h5>
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>Action:</span> <span class="text-success fw-semibold">Long Position</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Risk/Reward:</span> <span class="text-light fw-semibold">1:2.5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary border-opacity-25 h-100 shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-light fs-6 border-bottom border-secondary border-opacity-25 pb-2 mb-3">📊 Confluence</h5>
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>RSI (14):</span> <span class="text-light fw-semibold">58.2</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>MACD:</span> <span class="text-success fw-semibold">Bullish</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- PAGE 2: AI ANALYTICS & HISTORY -->
-        <div id="page-analytics" class="page-content">
-            <div class="card full-card">
-                <h3>🔍 Advanced Market Intelligence & Deep AI Metrics</h3>
-                <p class="analytics-desc">ផ្ទាំងនេះបង្ហាញពីទិន្នន័យវិភាគស៊ីជម្រៅរបស់ប្រព័ន្ធ AI លើគូរូបិយវត្ថុ និងរាល់សញ្ញាប្រវត្តិសាស្ត្រ (Signal History) កន្លងមក។</p>
-                <div class="analytics-grid">
-                    <div class="sub-card">
-                        <h4>Win Rate Accuracy</h4>
-                        <div class="big-number green">94.2%</div>
-                        <p>ផ្អែកលើទិន្នន័យប្រតិបត្តិការ ៣០ថ្ងៃចុងក្រោយ</p>
+        <!-- PAGE 2: ANALYTICS -->
+        <div id="page-analytics" class="page-content d-none">
+            <div class="card bg-dark border-secondary border-opacity-25 shadow p-4">
+                <h3 class="text-light fs-5 border-bottom border-secondary border-opacity-25 pb-2 mb-3">🔍 Advanced Market Intelligence & Deep AI Metrics</h3>
+                <p class="text-muted small mb-4">ផ្ទាំងនេះបង្ហាញពីទិន្នន័យវិភាគស៊ីជម្រៅរបស់ប្រព័ន្ធ AI លើគូរូបិយវត្ថុ និងរាល់សញ្ញាប្រវត្តិសាស្ត្រ (Signal History) កន្លងមក។</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
+                            <h6 class="text-muted small mb-2">Win Rate Accuracy</h6>
+                            <div class="fs-4 fw-bold text-success mb-1">94.2%</div>
+                            <p class="text-secondary small mb-0">ផ្អែកលើទិន្នន័យប្រតិបត្តិការ ៣០ថ្ងៃចុងក្រោយ</p>
+                        </div>
                     </div>
-                    <div class="sub-card">
-                        <h4>Average Risk Reward</h4>
-                        <div class="big-number">1 : 2.8</div>
-                        <p>កម្រិតសមាមាត្រហានិភ័យ និងប្រាក់ចំណេញ</p>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
+                            <h6 class="text-muted small mb-2">Average Risk Reward</h6>
+                            <div class="fs-4 fw-bold text-light mb-1">1 : 2.8</div>
+                            <p class="text-secondary small mb-0">កម្រិតសមាមាត្រហានិភ័យ និងប្រាក់ចំណេញ</p>
+                        </div>
                     </div>
-                    <div class="sub-card">
-                        <h4>Market Sentiment</h4>
-                        <div class="big-number bullish">Bullish Dominated</div>
-                        <p>ទិសដៅទីផ្សារសរុបអន្តរជាតិ</p>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
+                            <h6 class="text-muted small mb-2">Market Sentiment</h6>
+                            <div class="fs-4 fw-bold text-success mb-1">Bullish Dominated</div>
+                            <p class="text-secondary small mb-0">ទិសដៅទីផ្សារសរុបអន្តរជាតិ</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <footer>
+        <!-- Footer -->
+        <footer class="text-center text-muted small mt-4 pb-2">
             <p>© 2026 ForexAI Pro. All Rights Reserved.</p>
         </footer>
     </div>
 
+    <!-- Bootstrap 5 JS Bundle CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script.logics.js"></script>
 </body>
