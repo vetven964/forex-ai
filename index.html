@@ -3,44 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Terminal</title>
+    <title>Forex AI Pro - Advanced Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Battambang', sans-serif; background-color: #0b0e14; color: #e4e4e7; }
-        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        /* ធានាថា Content មិនបាត់ */
-        #chartContainer { min-height: 400px; width: 100%; }
+        body { background-color: #0b0e14; color: #e4e4e7; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <!-- Header -->
-    <div class="bg-gray-950 p-4 border-b border-gray-800">
-        <header class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
-            <div class="flex space-x-3">
-                <a href="admin-dashboard.html" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-xs font-bold">Dashboard</a>
-                <a href="profile.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold">Profile</a>
-            </div>
-        </header>
+    <!-- 1. Live Market Ticker -->
+    <div class="bg-black text-xs py-2 px-6 border-b border-gray-800 flex space-x-6 text-gray-400">
+        <span>🔴 LIVE MARKET:</span>
+        <span>BTC/USD: <strong id="tickerBtc" class="text-green-400">Loading...</strong></span>
+        <span>ETH/USD: <strong id="tickerEth" class="text-green-400">Loading...</strong></span>
     </div>
 
+    <!-- 2. Main Header -->
+    <header class="max-w-7xl mx-auto p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
+        <div class="space-x-2">
+            <a href="admin-dashboard.html" class="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold text-white">Dashboard</a>
+            <a href="profile.html" class="bg-blue-600 px-4 py-2 rounded-lg text-xs font-bold text-white">Profile</a>
+        </div>
+    </header>
+
     <main class="max-w-7xl mx-auto p-4 space-y-6">
-        <!-- Asset Ticker -->
-        <div class="flex space-x-2">
-            <button onclick="changeSymbol('BINANCE:BTCUSDT', this)" class="asset-btn bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold">BTC</button>
-            <button onclick="changeSymbol('BINANCE:ETHUSDT', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold">ETH</button>
+        <!-- Asset Switcher -->
+        <div class="space-x-2">
+            <button onclick="changeSymbol('BINANCE:BTCUSDT', this)" class="asset-btn bg-blue-600 px-4 py-1 rounded-lg text-xs font-bold text-white">BTC</button>
+            <button onclick="changeSymbol('BINANCE:ETHUSDT', this)" class="asset-btn bg-gray-800 px-4 py-1 rounded-lg text-xs font-bold text-gray-300">ETH</button>
         </div>
 
-        <!-- Grid -->
+        <!-- AI Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 glass rounded-2xl p-6 border-l-4 border-green-500">
-                <h2 class="text-3xl font-black text-green-400">STRONG BUY</h2>
+                <h2 class="text-2xl font-black text-green-400">STRONG BUY</h2>
+                <p class="text-gray-400 text-xs mt-2">AI Confidence: 95.8% | Trend: Bullish</p>
             </div>
             <div class="glass rounded-2xl p-4 h-[250px] flex flex-col">
                 <h3 class="text-xs font-bold mb-2">🤖 AI TERMINAL HUB</h3>
-                <div id="terminalLogs" class="flex-1 bg-gray-900 rounded-lg p-2 overflow-y-auto text-xs space-y-2"></div>
+                <div id="terminalLogs" class="flex-1 bg-gray-950 rounded-lg p-2 overflow-y-auto text-[10px] space-y-1"></div>
                 <div class="mt-2 flex gap-2">
                     <input type="text" id="terminalInput" class="flex-1 bg-gray-800 rounded p-1.5 text-xs text-white" placeholder="Analysis...">
                     <button onclick="runRealTimeAnalysis()" class="bg-blue-600 px-3 py-1.5 rounded text-white text-xs">Send</button>
@@ -48,34 +51,18 @@
             </div>
         </div>
 
-        <!-- Chart Section -->
+        <!-- 3. Chart Section -->
         <div class="glass rounded-2xl p-2 h-[450px]">
-            <div id="chartContainer"></div>
+            <div id="chartContainer" class="w-full h-full"></div>
         </div>
 
-        <!-- History Table (កុំឱ្យបាត់) -->
+        <!-- 4. History Table -->
         <div class="glass rounded-2xl p-6">
             <h3 class="text-sm font-bold text-white mb-4">📊 ប្រវត្តិសញ្ញា AI Signal</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-gray-300">
-                    <thead class="bg-gray-900 text-gray-400">
-                        <tr>
-                            <th class="p-3">ពេលវេលា</th>
-                            <th class="p-3">Asset</th>
-                            <th class="p-3">Signal</th>
-                            <th class="p-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-t border-gray-800">
-                            <td class="p-3">០៨/០៨/២០២៦</td>
-                            <td class="p-3 font-bold">BTC/USD</td>
-                            <td class="p-3 text-green-400">STRONG BUY</td>
-                            <td class="p-3 text-green-300">TP Hit (+120 pips)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <table class="w-full text-left text-xs text-gray-400">
+                <tr class="border-b border-gray-800"><th class="p-2">Time</th><th class="p-2">Asset</th><th class="p-2">Signal</th></tr>
+                <tr class="border-b border-gray-800"><td class="p-2">០៨/០៨/២០២៦</td><td class="p-2 font-bold text-white">BTC/USD</td><td class="p-2 text-green-400">STRONG BUY</td></tr>
+            </table>
         </div>
     </main>
 
