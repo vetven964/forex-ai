@@ -1,20 +1,55 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-body { background: #0b0e14; color: #fff; padding: 10px; }
-.app-container { max-width: 1000px; margin: 0 auto; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: #0b0e14; color: #fff; padding: 15px; }
+.app-container { max-width: 1200px; margin: 0 auto; }
 
-.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #121824; border-radius: 8px; margin-bottom: 10px; }
+.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #121824; border-radius: 12px; margin-bottom: 15px; border: 1px solid #1f293d; flex-wrap: wrap; gap: 10px; }
+.brand h1 { font-size: 20px; font-weight: bold; }
+.brand h1 span { color: #22c55e; }
+
+/* Page Switcher Tabs Styling */
+.page-tabs { display: flex; gap: 8px; }
+.tab-btn { background: #1f293d; color: #94a3b8; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; }
+.tab-btn.active, .tab-btn:hover { background: #3b82f6; color: #fff; }
+
 .switcher-group { display: flex; gap: 5px; }
-button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; background: #1f293d; color: #fff; }
-button.active { background: #22c55e; }
+button.asset-btn { background: #1f293d; color: #94a3b8; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+button.asset-btn.active { background: #22c55e; color: #0b0e14; }
 
-.tradingview-widget-container { height: 400px; width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
-.ai-signal-box { background: #121824; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; margin-bottom: 10px; }
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.card { background: #121824; padding: 15px; border-radius: 8px; }
+/* Page Display Management */
+.page-content { display: none; }
+.page-content.active-page { display: block; }
+
+.tradingview-widget-container { height: 480px; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; border: 1px solid #1f293d; }
+#tradingview_widget { width: 100%; height: 100%; }
+
+.ai-signal-box { background: #121824; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; margin-bottom: 15px; border: 1px solid #1f293d; border-left: 5px solid #22c55e; flex-wrap: wrap; gap: 10px; }
+.signal-header h2 { color: #22c55e; font-size: 24px; }
+.confidence { color: #94a3b8; font-size: 14px; }
+.signal-details { display: flex; gap: 20px; }
+.detail-item .label { display: block; font-size: 12px; color: #94a3b8; }
+.detail-item .value { font-size: 15px; font-weight: bold; }
+.value.bullish, .green { color: #22c55e; }
+
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.card, .full-card { background: #121824; padding: 20px; border-radius: 12px; border: 1px solid #1f293d; }
+.card h3, .full-card h3 { font-size: 16px; margin-bottom: 12px; color: #cbd5e1; border-bottom: 1px solid #1f293d; padding-bottom: 8px; }
+.row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #94a3b8; }
+.row span:last-child { color: #fff; font-weight: 500; }
+
+/* Analytics Page CSS */
+.analytics-desc { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+.analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.sub-card { background: #0b0e14; padding: 15px; border-radius: 8px; border: 1px solid #1f293d; text-align: center; }
+.sub-card h4 { font-size: 14px; color: #94a3b8; margin-bottom: 10px; }
+.big-number { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+.sub-card p { font-size: 12px; color: #64748b; }
+
+footer { text-align: center; color: #64748b; font-size: 13px; margin-top: 25px; }
 
 /* Responsive Media Queries */
-@media (max-width: 600px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
-    .tradingview-widget-container { height: 300px; }
-    .top-nav { flex-direction: column; gap: 10px; }
+@media (max-width: 768px) {
+    .dashboard-grid, .analytics-grid { grid-template-columns: 1fr; }
+    .top-nav { flex-direction: column; align-items: stretch; }
+    .page-tabs, .switcher-group { justify-content: center; }
+    .tradingview-widget-container { height: 350px; }
 }
