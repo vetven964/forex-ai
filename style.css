@@ -1,12 +1,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 body { background: #0b0e14; color: #fff; padding: 15px; }
-.app-container { max-width: 1200px; margin: 0 auto; }
+.app-container { max-width: 1300px; margin: 0 auto; }
 
 .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #121824; border-radius: 12px; margin-bottom: 15px; border: 1px solid #1f293d; flex-wrap: wrap; gap: 10px; }
 .brand h1 { font-size: 20px; font-weight: bold; }
 .brand h1 span { color: #22c55e; }
 
-/* Page Switcher Tabs Styling */
 .page-tabs { display: flex; gap: 8px; }
 .tab-btn { background: #1f293d; color: #94a3b8; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; }
 .tab-btn.active, .tab-btn:hover { background: #3b82f6; color: #fff; }
@@ -15,11 +14,19 @@ body { background: #0b0e14; color: #fff; padding: 15px; }
 button.asset-btn { background: #1f293d; color: #94a3b8; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
 button.asset-btn.active { background: #22c55e; color: #0b0e14; }
 
-/* Page Display Management */
 .page-content { display: none; }
 .page-content.active-page { display: block; }
 
-.tradingview-widget-container { height: 80vh; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; border: 1px solid #1f293d; }
+/* ពង្រីកប្រវែងក្រាហ្វឱ្យធំទូលាយចុះក្រោមពេញចិត្ត */
+.tradingview-widget-container { 
+    height: 80vh !important; 
+    width: 100%; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    margin-bottom: 15px; 
+    border: 1px solid #1f293d; 
+}
+
 #tradingview_widget { width: 100%; height: 100%; }
 
 .ai-signal-box { background: #121824; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; margin-bottom: 15px; border: 1px solid #1f293d; border-left: 5px solid #22c55e; flex-wrap: wrap; gap: 10px; }
@@ -36,7 +43,6 @@ button.asset-btn.active { background: #22c55e; color: #0b0e14; }
 .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #94a3b8; }
 .row span:last-child { color: #fff; font-weight: 500; }
 
-/* Analytics Page CSS */
 .analytics-desc { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
 .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
 .sub-card { background: #0b0e14; padding: 15px; border-radius: 8px; border: 1px solid #1f293d; text-align: center; }
@@ -46,10 +52,9 @@ button.asset-btn.active { background: #22c55e; color: #0b0e14; }
 
 footer { text-align: center; color: #64748b; font-size: 13px; margin-top: 25px; }
 
-/* Responsive Media Queries */
 @media (max-width: 768px) {
     .dashboard-grid, .analytics-grid { grid-template-columns: 1fr; }
     .top-nav { flex-direction: column; align-items: stretch; }
     .page-tabs, .switcher-group { justify-content: center; }
-    .tradingview-widget-container { height: 350px; }
+    .tradingview-widget-container { height: 50vh !important; }
 }
