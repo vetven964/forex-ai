@@ -12,7 +12,7 @@ body {
 }
 
 .app-container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
 }
 
@@ -21,7 +21,7 @@ body {
     justify-content: space-between;
     align-items: center;
     background: #121824;
-    padding: 12px 20px;
+    padding: 15px 25px;
     border-radius: 12px;
     border: 1px solid #1f293d;
     margin-bottom: 15px;
@@ -30,8 +30,9 @@ body {
 }
 
 .brand h1 {
-    font-size: 20px;
+    font-size: 22px;
     color: #ffffff;
+    font-weight: 700;
 }
 
 .brand h1 span {
@@ -41,7 +42,6 @@ body {
 .controls-group {
     display: flex;
     gap: 15px;
-    flex-wrap: wrap;
 }
 
 .switcher-group {
@@ -50,35 +50,38 @@ body {
     border-radius: 8px;
     padding: 4px;
     border: 1px solid #1f293d;
+    gap: 4px;
 }
 
-button.asset-btn, button.tf-btn {
+button.asset-btn {
     background: transparent;
     border: none;
     color: #94a3b8;
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: 8px 16px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-button.asset-btn.active, button.tf-btn.active {
+button.asset-btn.active {
     background: #22c55e;
     color: #0b0e14;
 }
 
-button.asset-btn:hover, button.tf-btn:hover {
+button.asset-btn:hover {
     color: #ffffff;
 }
 
+/* Make Chart Larger and Clearer */
 .tradingview-widget-container {
     margin-bottom: 20px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #1f293d;
-    height: 500px;
+    height: 600px; 
+    background: #121824;
 }
 
 #tradingview_widget {
@@ -89,8 +92,8 @@ button.asset-btn:hover, button.tf-btn:hover {
 .ai-signal-box {
     background: linear-gradient(135deg, #131b2e 0%, #0d1424 100%);
     border: 1px solid #22c55e33;
-    border-left: 5px solid #22c55e;
-    padding: 20px;
+    border-left: 6px solid #22c55e;
+    padding: 22px;
     border-radius: 12px;
     margin-bottom: 20px;
     display: flex;
@@ -102,18 +105,18 @@ button.asset-btn:hover, button.tf-btn:hover {
 
 .signal-header h2 {
     color: #22c55e;
-    font-size: 26px;
+    font-size: 28px;
     letter-spacing: 1px;
 }
 
 .confidence {
     color: #94a3b8;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .signal-details {
     display: flex;
-    gap: 30px;
+    gap: 35px;
 }
 
 .detail-item {
@@ -122,12 +125,12 @@ button.asset-btn:hover, button.tf-btn:hover {
 
 .detail-item .label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     color: #94a3b8;
 }
 
 .detail-item .value {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: bold;
 }
 
@@ -146,11 +149,11 @@ button.asset-btn:hover, button.tf-btn:hover {
     background: #121824;
     border: 1px solid #1f293d;
     border-radius: 12px;
-    padding: 20px;
+    padding: 22px;
 }
 
 .card h3 {
-    font-size: 16px;
+    font-size: 17px;
     margin-bottom: 15px;
     color: #cbd5e1;
     border-bottom: 1px solid #1f293d;
@@ -160,8 +163,8 @@ button.asset-btn:hover, button.tf-btn:hover {
 .row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 12px;
-    font-size: 14px;
+    margin-bottom: 14px;
+    font-size: 15px;
     color: #94a3b8;
 }
 
@@ -213,6 +216,9 @@ footer {
         align-items: stretch;
     }
     .controls-group {
-        justify-content: space-between;
+        justify-content: center;
+    }
+    .tradingview-widget-container {
+        height: 450px;
     }
 }

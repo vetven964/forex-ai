@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Top Navigation Bar / Asset & Timeframe Switcher -->
+        <!-- Top Navigation Bar (Asset Switcher Only) -->
         <header class="top-nav">
             <div class="brand">
                 <h1>Forex AI <span>Pro</span></h1>
@@ -20,16 +20,10 @@
                     <button class="asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBP/USD')">GBP/USD</button>
                     <button class="asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'Gold')">XAU/USD</button>
                 </div>
-                <div class="switcher-group timeframe-group">
-                    <button class="tf-btn" onclick="changeTimeframe('1')">1m</button>
-                    <button class="tf-btn" onclick="changeTimeframe('5')">5m</button>
-                    <button class="tf-btn active" onclick="changeTimeframe('15')">15m</button>
-                    <button class="tf-btn" onclick="changeTimeframe('60')">1h</button>
-                </div>
             </div>
         </header>
 
-        <!-- TradingView Advanced Widget Container -->
+        <!-- TradingView Advanced Widget Container (Clean & Large) -->
         <div class="tradingview-widget-container">
             <div id="tradingview_widget"></div>
         </div>
