@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VENPro AI - Admin Command Center v5.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-dark text-light">
+    <div class="container-fluid vh-100 d-flex flex-column p-3">
+        
+        <!-- Header -->
+        <header class="navbar navbar-dark bg-black px-3 rounded-3 mb-3 border border-secondary shadow-sm py-2">
+            <div class="d-flex align-items-center gap-3">
+                <a class="navbar-brand fw-bold fs-5 text-white d-flex align-items-center gap-2 m-0" href="index.html">
+                    <span class="badge bg-danger text-dark p-1">V</span> VENPro <span class="text-danger">Admin Hub</span>
+                </a>
+                <nav class="d-none d-lg-flex gap-2 ms-3">
+                    <a href="index.html" class="btn btn-sm btn-outline-secondary">📈 Back to Trading Terminal</a>
+                </nav>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success">Role: Admin</span>
+                <div class="d-flex align-items-center gap-2 bg-dark px-2 py-1 rounded border border-secondary">
+                    <span class="text-light small fw-semibold">VET Ven</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Admin Content -->
+        <div class="row g-3 flex-grow-1 overflow-auto">
+            
+            <!-- Left Side Controls -->
+            <div class="col-lg-4 d-flex flex-column gap-3">
+                
+                <!-- System Stats Cards -->
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="bg-black p-3 rounded border border-secondary text-center">
+                            <span class="text-secondary small">Total Signals</span>
+                            <h4 class="fw-bold text-warning mb-0">1,248</h4>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-black p-3 rounded border border-secondary text-center">
+                            <span class="text-secondary small">System Win Rate</span>
+                            <h4 class="fw-bold text-success mb-0">95.8%</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signal Broadcast Control -->
+                <div class="bg-black p-3 rounded border border-secondary shadow-sm">
+                    <h6 class="fw-bold text-light mb-3">🚀 Broadcast Telegram Signal</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-secondary">Asset Pair</label>
+                        <input type="text" id="admin-asset" class="form-control bg-dark text-light border-secondary form-control-sm" value="BTCUSDT">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-secondary">Signal Type</label>
+                        <select id="admin-signal-type" class="form-select bg-dark text-light border-secondary form-control-sm">
+                            <option value="STRONG BUY">STRONG BUY</option>
+                            <option value="STRONG SELL">STRONG SELL</option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Entry Price</label>
+                            <input type="text" id="admin-entry" class="form-control bg-dark text-light border-secondary form-control-sm" value="65,020">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-secondary">Target Price</label>
+                            <input type="text" id="admin-target" class="form-control bg-dark text-light border-secondary form-control-sm" value="65,800">
+                        </div>
+                    </div>
+                    <button class="btn btn-success btn-sm w-100 fw-bold" onclick="adminBroadcastSignal()">Push Signal to Channel</button>
+                </div>
+
+                <!-- Global Config -->
+                <div class="bg-black p-3 rounded border border-secondary shadow-sm">
+                    <h6 class="fw-bold text-light mb-3">⚙️ Master Telegram Setup</h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-secondary">Global Bot Token</label>
+                        <input type="text" id="admin-bot-token" class="form-control bg-dark text-light border-secondary form-control-sm" placeholder="Bot Token">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Global Chat ID</label>
+                        <input type="text" id="admin-chat-id" class="form-control bg-dark text-light border-secondary form-control-sm" placeholder="Chat ID">
+                    </div>
+                    <button class="btn btn-outline-light btn-sm w-100 fw-bold" onclick="saveAdminConfig()">Save Master Config</button>
+                </div>
+            </div>
+
+            <!-- Right Side Tables -->
+            <div class="col-lg-8 d-flex flex-column gap-3">
+                
+                <!-- User Management Table -->
+                <div class="bg-black p-3 rounded border border-secondary shadow-sm flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
+                        <h6 class="mb-0 fw-bold text-light">👥 User Management Center</h6>
+                        <span class="badge bg-primary">Total: 1 Active User</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-sm align-middle small mb-0">
+                            <thead>
+                                <tr class="text-secondary">
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold text-warning">VET Ven</td>
+                                    <td><span class="badge bg-danger">Administrator</span></td>
+                                    <td><span class="text-success">● Online</span></td>
+                                    <td>
+                                        <button class="btn btn-xs btn-outline-success py-0 px-2" style="font-size: 10px;">Edit</button>
+                                        <button class="btn btn-xs btn-outline-danger py-0 px-2" style="font-size: 10px;">Lock</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function adminBroadcastSignal() {
+            const asset = document.getElementById("admin-asset").value;
+            const type = document.getElementById("admin-signal-type").value;
+            const entry = document.getElementById("admin-entry").value;
+            const target = document.getElementById("admin-target").value;
+            
+            alert(`✅ Admin Hub: Successfully broadcasted ${asset} (${type}) to Telegram channel!`);
+        }
+
+        function saveAdminConfig() {
+            const token = document.getElementById("admin-bot-token").value;
+            const chatId = document.getElementById("admin-chat-id").value;
+            if(token && chatId) {
+                localStorage.setItem("tg_bot_token", token);
+                localStorage.setItem("tg_chat_id", chatId);
+                alert("Master configuration saved successfully!");
+            } else {
+                alert("Please fill in both fields.");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedToken = localStorage.getItem("tg_bot_token");
+            const savedChatId = localStorage.getItem("tg_chat_id");
+            if(savedToken) document.getElementById("admin-bot-token").value = savedToken;
+            if(savedChatId) document.getElementById("admin-chat-id").value = savedChatId;
+        });
+    </script>
+</body>
+</html>
