@@ -10,14 +10,12 @@
         .news-ticker { overflow: hidden; white-space: nowrap; position: relative; }
         .news-track { display: inline-block; white-space: nowrap; animation: marquee 50s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .tab-content, .auth-container { display: none; }
-        .tab-content.active, .auth-container.active { display: block; }
     </style>
 </head>
 <body class="p-4 space-y-6 max-w-6xl mx-auto">
 
     <!-- ================= AUTHENTICATION WRAPPER (LOGIN / REGISTER) ================= -->
-    <div id="authWrapper" class="auth-container active min-h-[80vh] flex items-center justify-center">
+    <div id="authWrapper" class="min-h-[80vh] flex items-center justify-center">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
                 <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
@@ -28,8 +26,8 @@
 
             <!-- Tabs Switcher for Auth -->
             <div class="flex bg-black p-1 rounded-lg border border-gray-800 text-xs font-semibold">
-                <button onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2 rounded-md bg-blue-600 text-white transition">ចូលគណនី (Login)</button>
-                <button onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2 rounded-md text-gray-400 hover:text-white transition">ចុះឈ្មោះ (Register)</button>
+                <button type="button" onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2 rounded-md bg-blue-600 text-white transition">ចូលគណនី (Login)</button>
+                <button type="button" onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2 rounded-md text-gray-400 hover:text-white transition">ចុះឈ្មោះ (Register)</button>
             </div>
 
             <!-- Form -->
@@ -49,7 +47,7 @@
                     <input type="password" id="authPass" placeholder="••••••••" class="w-full bg-black text-xs text-white px-3 py-2.5 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
                 </div>
 
-                <button onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 rounded-lg transition shadow-lg">
+                <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
                     ចូលប្រព័ន្ធ (Sign In)
                 </button>
             </div>
@@ -67,9 +65,9 @@
             
             <div class="flex items-center gap-3">
                 <div class="space-x-1">
-                    <button onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
-                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
-                    <button onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
+                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
+                    <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
+                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
                 </div>
                 <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
                     🔴 LIVE BTC/USD: <span id="btcPrice" class="text-green-400 font-bold">$65,002.00</span>
@@ -90,7 +88,7 @@
         </div>
 
         <!-- TAB 1: TERMINAL & CHART & AI CHAT -->
-        <div id="tab-terminal" class="tab-content active space-y-6">
+        <div id="tab-terminal" class="tab-content space-y-6">
             <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
                 <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
                 <div id="chartContainer" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
@@ -113,26 +111,26 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2 pt-1">
-                    <button onclick="runAnalysis('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">📊 Analyze Chart</button>
-                    <button onclick="runAnalysis('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">⚡ Best Setup</button>
-                    <button onclick="runAnalysis('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">🔮 Market Outlook</button>
+                    <button type="button" onclick="runAnalysis('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">📊 Analyze Chart</button>
+                    <button type="button" onclick="runAnalysis('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">⚡ Best Setup</button>
+                    <button type="button" onclick="runAnalysis('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">🔮 Market Outlook</button>
                 </div>
 
                 <div class="flex gap-2 pt-1">
                     <input type="text" id="userInput" placeholder="សួរសំណួរទាក់ទងនឹងទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3.5 py-2.5 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500">
-                    <button onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg transition font-bold">➤</button>
+                    <button type="button" onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg transition font-bold">➤</button>
                 </div>
             </section>
         </div>
 
         <!-- TAB 2: ADVANCED ADMIN DASHBOARD -->
-        <div id="tab-dashboard" class="tab-content space-y-6">
+        <div id="tab-dashboard" class="tab-content space-y-6 hidden">
             <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
                 <div class="flex justify-between items-center border-b border-gray-800 pb-4">
                     <h2 class="text-lg font-bold text-purple-400 flex items-center gap-2">📊 Advanced Admin Analytics Dashboard</h2>
                     <div class="space-x-2">
-                        <button onclick="alert('System Cache Cleared Successfully!')" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded transition">🧹 Clear Cache</button>
-                        <button onclick="alert('AI Engine Restarted!')" class="bg-purple-600 hover:bg-purple-500 text-xs text-white px-3 py-1.5 rounded transition font-semibold">⚡ Restart AI</button>
+                        <button type="button" onclick="alert('System Cache Cleared Successfully!')" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded transition">🧹 Clear Cache</button>
+                        <button type="button" onclick="alert('AI Engine Restarted!')" class="bg-purple-600 hover:bg-purple-500 text-xs text-white px-3 py-1.5 rounded transition font-semibold">⚡ Restart AI</button>
                     </div>
                 </div>
 
@@ -162,7 +160,7 @@
         </div>
 
         <!-- TAB 3: PROFILE & LOGOUT -->
-        <div id="tab-profile" class="tab-content space-y-6">
+        <div id="tab-profile" class="tab-content space-y-6 hidden">
             <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
                 <h2 class="text-lg font-bold text-blue-400">👤 User Profile Settings</h2>
                 <div class="bg-black p-4 rounded-lg border border-gray-800 space-y-3 text-sm">
@@ -172,7 +170,7 @@
                     <div><span class="text-gray-400">API Status:</span> <span class="text-green-400 font-medium">Connected & Verified</span></div>
                 </div>
                 <div class="pt-2">
-                    <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition">
+                    <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
                         🚪 ចាកចេញពីគណនី (Logout)
                     </button>
                 </div>
@@ -210,7 +208,8 @@
         function handleAuthSubmit() {
             const email = document.getElementById('authEmail').value.trim();
             const pass = document.getElementById('authPass').value.trim();
-            const name = document.getElementById('regName').value.trim() || "VET Ven";
+            const nameInput = document.getElementById('regName').value.trim();
+            const name = nameInput !== "" ? nameInput : "VET Ven";
 
             if(!email || !pass) {
                 alert('សូមបំពេញអ៊ីមែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!');
@@ -221,40 +220,41 @@
                 alert('ចុះឈ្មោះបានជោគជ័យ! សូមចូលប្រើប្រាស់។');
                 switchAuthMode('login');
             } else {
-                // Success Login
-                document.getElementById('authWrapper').classList.remove('active');
-                document.getElementById('appWrapper').classList.add('active');
+                // Hide Auth Wrapper, Show App Wrapper
+                document.getElementById('authWrapper').style.display = 'none';
+                document.getElementById('appWrapper').classList.remove('hidden');
+                
                 document.getElementById('profileName').innerText = name;
                 document.getElementById('profileEmail').innerText = email;
+                
+                // Load TradingView chart properly after showing wrapper
                 loadChart();
             }
         }
 
         function handleLogout() {
-            document.getElementById('appWrapper').classList.remove('active');
-            document.getElementById('authWrapper').classList.add('active');
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('authWrapper').style.display = 'flex';
         }
 
         function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('header button').forEach(el => {
-                if(el.id.startsWith('btn-')) {
-                    el.classList.remove('bg-blue-600', 'font-semibold');
-                    el.classList.add('bg-gray-800');
-                }
-            });
+            // Hide all tabs
+            document.getElementById('tab-terminal').classList.add('hidden');
+            document.getElementById('tab-dashboard').classList.add('hidden');
+            document.getElementById('tab-profile').classList.add('hidden');
 
-            document.getElementById('tab-' + tabName).classList.add('active');
-            const activeBtn = document.getElementById('btn-' + tabName);
-            activeBtn.classList.remove('bg-gray-800');
-            activeBtn.classList.add('bg-blue-600', 'font-semibold');
+            // Remove active classes from buttons
+            document.getElementById('btn-terminal').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
+            document.getElementById('btn-dashboard').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
+            document.getElementById('btn-profile').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
 
-            if(tabName === 'terminal' && !window.tvWidgetLoaded) {
-                loadChart();
-            }
+            // Show selected tab & highlight button
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('btn-' + tabName).className = "bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold";
         }
 
         function loadChart() {
+            if(window.tvWidgetLoaded) return;
             window.tvWidgetLoaded = true;
             setTimeout(() => {
                 new TradingView.widget({
