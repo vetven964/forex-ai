@@ -16,11 +16,74 @@ body {
     margin: 0 auto;
 }
 
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #121824;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid #1f293d;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.brand h1 {
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.brand h1 span {
+    color: #22c55e;
+}
+
+.controls-group {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.switcher-group {
+    display: flex;
+    background: #0b0e14;
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid #1f293d;
+}
+
+button.asset-btn, button.tf-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button.asset-btn.active, button.tf-btn.active {
+    background: #22c55e;
+    color: #0b0e14;
+}
+
+button.asset-btn:hover, button.tf-btn:hover {
+    color: #ffffff;
+}
+
 .tradingview-widget-container {
     margin-bottom: 20px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #1f293d;
+    height: 500px;
+}
+
+#tradingview_widget {
+    width: 100%;
+    height: 100%;
 }
 
 .ai-signal-box {
@@ -144,5 +207,12 @@ footer {
     }
     .signal-details {
         gap: 15px;
+    }
+    .top-nav {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .controls-group {
+        justify-content: space-between;
     }
 }

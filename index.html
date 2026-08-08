@@ -3,31 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - TradingView Live</title>
+    <title>Forex AI Pro - Advanced Trading Suite</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- TradingView Widget BEGIN -->
+        <!-- Top Navigation Bar / Asset & Timeframe Switcher -->
+        <header class="top-nav">
+            <div class="brand">
+                <h1>Forex AI <span>Pro</span></h1>
+            </div>
+            <div class="controls-group">
+                <div class="switcher-group">
+                    <button class="asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'Bitcoin')">BTC/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('FX:EURUSD', 'EUR/USD')">EUR/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBP/USD')">GBP/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'Gold')">XAU/USD</button>
+                </div>
+                <div class="switcher-group timeframe-group">
+                    <button class="tf-btn" onclick="changeTimeframe('1')">1m</button>
+                    <button class="tf-btn" onclick="changeTimeframe('5')">5m</button>
+                    <button class="tf-btn active" onclick="changeTimeframe('15')">15m</button>
+                    <button class="tf-btn" onclick="changeTimeframe('60')">1h</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- TradingView Advanced Widget Container -->
         <div class="tradingview-widget-container">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-            {
-                "width": "100%",
-                "height": "500",
-                "symbol": "BINANCE:BTCUSD",
-                "interval": "15",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "support_host": "https://www.tradingview.com"
-            }
-            </script>
+            <div id="tradingview_widget"></div>
         </div>
-        <!-- TradingView Widget END -->
 
         <!-- AI Signal Dashboard -->
         <div class="ai-signal-box">
@@ -70,10 +75,12 @@
         </div>
 
         <footer>
-            <p>© 2026 ForexAI Pro. TradingView Integrated Version.</p>
+            <p>© 2026 ForexAI Pro. Advanced TradingView Integrated Version.</p>
         </footer>
     </div>
 
+    <!-- TradingView External Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script.logics.js"></script>
 </body>
 </html>
