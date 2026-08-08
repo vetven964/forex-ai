@@ -7,9 +7,9 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body { background-color: #0b0e14; color: white; font-family: sans-serif; }
-        .news-ticker { overflow: hidden; white-space: nowrap; }
-        .news-track { display: inline-block; animation: marquee 25s linear infinite; }
-        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
+        .news-ticker { overflow: hidden; white-space: nowrap; position: relative; }
+        .news-track { display: inline-block; white-space: nowrap; animation: marquee 35s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
@@ -35,15 +35,16 @@
         </div>
     </header>
 
-    <!-- World News & Fed News Ticker Bar -->
+    <!-- World News & Fed News Ticker Bar (Fixed Display) -->
     <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 flex items-center overflow-hidden text-xs">
-        <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 World News</span>
+        <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 WORLD NEWS</span>
         <div class="news-ticker w-full text-gray-300">
-            <div class="news-track space-x-8">
-                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady rates.</span>
-                <span class="text-green-400 font-semibold">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
-                <span class="text-blue-400 font-semibold">🌍 [Global]: Global equity and forex markets react positively to latest central bank updates.</span>
-                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady rates.</span>
+            <div class="news-track">
+                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady interest rates.</span>
+                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
+                <span class="text-blue-400 font-semibold mx-6">🌍 [Global]: Global equity and forex markets react positively to latest central bank updates.</span>
+                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady interest rates.</span>
+                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
             </div>
         </div>
     </div>
@@ -58,7 +59,7 @@
 
         <!-- AI Assistant Panel -->
         <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center mb-2">
                 <span class="text-sm font-bold text-gray-300">💬 AI Assistant Panel</span>
                 <select class="bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700">
                     <option>BTCUSDT (Bitcoin)</option>
@@ -66,11 +67,12 @@
                 </select>
             </div>
 
-            <div id="chatLogs" class="bg-black h-48 rounded p-3 overflow-y-auto text-xs text-gray-300 space-y-2 border border-gray-800">
-                <div><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តី! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានពិភពលោកជូនបងប្រុស។</div>
+            <!-- Chat History Box with proper padding-top -->
+            <div id="chatLogs" class="bg-black h-48 rounded p-3 pt-4 overflow-y-auto text-xs text-gray-300 space-y-3 border border-gray-800">
+                <div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តីបងប្រុស! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានពិភពលោកជូនបង។</div>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex gap-2 pt-1">
                 <button onclick="sendAction('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition">Analyze Chart</button>
                 <button onclick="sendAction('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Best Setup</button>
                 <button onclick="sendAction('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Outlook</button>
@@ -130,7 +132,6 @@
             activeBtn.classList.remove('bg-gray-800');
             activeBtn.classList.add('bg-blue-600', 'font-semibold');
 
-            // Refresh TradingView widget if switching back to terminal
             if(tabName === 'terminal' && !window.tvWidgetLoaded) {
                 loadChart();
             }
@@ -163,9 +164,9 @@
         // Chat Logic
         function sendAction(actionType) {
             const logs = document.getElementById('chatLogs');
-            logs.innerHTML += `<div><span class="text-purple-400 font-bold">You:</span> ${actionType}</div>`;
+            logs.innerHTML += `<div class="pt-1"><span class="text-purple-400 font-bold">You:</span> ${actionType}</div>`;
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} alongside latest Fed & World news updates... Market looks strong!</div>`;
+                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} alongside latest Fed & World news updates... Market looks strong!</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 500);
             logs.scrollTop = logs.scrollHeight;
@@ -176,10 +177,10 @@
             const val = input.value.trim();
             if(!val) return;
             const logs = document.getElementById('chatLogs');
-            logs.innerHTML += `<div><span class="text-purple-400 font-bold">You:</span> ${val}</div>`;
+            logs.innerHTML += `<div class="pt-1"><span class="text-purple-400 font-bold">You:</span> ${val}</div>`;
             input.value = '';
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Processing query: "${val}". AI Engine active.</div>`;
+                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> Processing query: "${val}". AI Engine active.</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 600);
             logs.scrollTop = logs.scrollHeight;
