@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forex AI Pro - Advanced Trading Suite</title>
-    <!-- ទាញយក Tailwind CSS ដើម្បីឱ្យមាន Style ស្អាតភ្លាមៗ -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -13,7 +13,7 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between">
 
-    <!-- Header Navigation -->
+    <!-- Top Navigation Bar -->
     <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap justify-between items-center shadow-md">
         <div class="flex items-center space-x-2">
             <h1 class="text-xl font-bold text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
@@ -62,29 +62,25 @@
 
         <!-- TradingView Chart Section -->
         <div class="bg-gray-800 border border-gray-700 rounded-2xl p-2 shadow-xl overflow-hidden h-[500px]">
-            <!-- TradingView Widget BEGIN -->
             <div class="tradingview-widget-container" style="height:100%;width:100%">
               <div id="tradingview_chart" style="height:calc(100% - 32px);width:100%"></div>
               <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
               <script type="text/javascript">
-              new TradingView.widget(
-              {
-              "autosize": true,
-              "symbol": "BINANCE:BTCUSDT",
-              "interval": "15",
-              "timezone": "Etc/UTC",
-              "theme": "dark",
-              "style": "1",
-              "locale": "en",
-              "enable_publishing": false,
-              "hide_side_toolbar": false,
-              "allow_symbol_change": true,
-              "container_id": "tradingview_chart"
-            }
-              );
+              new TradingView.widget({
+                  "autosize": true,
+                  "symbol": "BINANCE:BTCUSDT",
+                  "interval": "15",
+                  "timezone": "Etc/UTC",
+                  "theme": "dark",
+                  "style": "1",
+                  "locale": "en",
+                  "enable_publishing": false,
+                  "hide_side_toolbar": false,
+                  "allow_symbol_change": true,
+                  "container_id": "tradingview_chart"
+              });
               </script>
             </div>
-            <!-- TradingView Widget END -->
         </div>
 
     </main>
