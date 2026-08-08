@@ -26,12 +26,14 @@
                 <button class="btn btn-sm btn-outline-info fw-bold py-1 px-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
                     <span>⚙️ Telegram Setup</span>
                 </button>
-                <div class="d-flex align-items-center gap-2 bg-dark px-2 py-1 rounded border border-secondary">
-                    <span class="rounded-circle bg-success text-black d-inline-flex justify-content-center align-items-center fw-bold" style="width: 22px; height: 22px; font-size: 10px;">V</span>
-                    <span class="text-light small fw-semibold" id="logged-user-display">VET Ven</span>
-                </div>
-                <!-- Fixed Account Button with Modal Target -->
-                <button class="btn btn-sm btn-outline-light px-2" data-bs-toggle="modal" data-bs-target="#authModal" id="auth-btn-text">Account</button>
+                
+                <!-- Clickable Admin Profile Box linking to Admin Dashboard -->
+                <a href="admin-dashboard.html" class="d-flex align-items-center gap-2 bg-dark px-2 py-1 rounded border border-secondary text-decoration-none shadow-sm hover-effect" title="Go to Admin Dashboard">
+                    <span class="rounded-circle bg-danger text-black d-inline-flex justify-content-center align-items-center fw-bold" style="width: 22px; height: 22px; font-size: 10px;">V</span>
+                    <span class="text-warning small fw-bold" id="logged-user-display">admin</span>
+                </a>
+
+                <button class="btn btn-sm btn-outline-light px-2" data-bs-toggle="modal" data-bs-target="#authModal">Account</button>
             </div>
         </header>
 
@@ -120,7 +122,7 @@
                 <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-dark rounded border border-secondary mb-3 d-flex flex-column gap-2" id="chat-feed">
                     <div class="p-2 bg-black rounded border border-secondary text-light">
                         <span class="text-warning fw-bold d-block mb-1">System v5.0:</span>
-                        Initialized successfully for VET Ven. Ready to execute automation tasks.
+                        Initialized successfully. Ready to execute automation tasks.
                     </div>
                 </div>
                 <div class="input-group input-group-sm">
@@ -163,7 +165,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" id="login-user" class="form-control bg-black text-light border-secondary mb-2" value="VET Ven" placeholder="Username">
+                    <input type="text" id="login-user" class="form-control bg-black text-light border-secondary mb-2" value="admin" placeholder="Username">
                     <input type="password" class="form-control bg-black text-light border-secondary mb-3" placeholder="Password">
                     <button class="btn btn-success w-100 fw-bold" onclick="performLogin()">Update Profile Session</button>
                 </div>
