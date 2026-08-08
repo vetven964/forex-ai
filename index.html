@@ -195,12 +195,13 @@
             color: var(--text-secondary);
         }
 
-        /* Custom Modal Popup for Interactive Clicks */
+        /* Modern Modal Popup */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
             justify-content: center;
             align-items: center;
             z-index: 9999;
@@ -208,23 +209,26 @@
         .modal-content {
             background: var(--card-bg);
             border: 1px solid var(--accent-color);
-            padding: 25px;
-            border-radius: 12px;
-            width: 350px;
+            padding: 30px;
+            border-radius: 16px;
+            width: 400px;
             text-align: center;
             color: var(--text-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .modal-content h3 { margin-bottom: 10px; color: var(--accent-color); }
-        .modal-content p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-content h3 { margin-bottom: 12px; color: var(--accent-color); font-size: 20px; }
+        .modal-content p { font-size: 14px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5; white-space: pre-line; }
         .modal-close {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 6px;
+            padding: 10px 25px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            transition: opacity 0.2s;
         }
+        .modal-close:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -239,19 +243,19 @@
             </div>
         </div>
         <div class="nav-menu">
-            <span onclick="showPopup('ផ្ទាំងគ្រប់គ្រង (Dashboard)', 'ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យទីផ្សារ និងផលប័ត្ររបស់អ្នកកំពុងដំណើរការជាប្រក្រតី។')">📊 ផ្ទាំងគ្រប់គ្រង</span>
-            <span onclick="showPopup('ស្កែនទីផ្សារ (Market Scanner)', 'ระบบ AI กำลังวิเคราะห์แนวโน้มราคาเหรียญและทองคำแบบ Real-time។')">📈 ស្កែនទីផ្សារ</span>
-            <span onclick="showPopup('សញ្ញា AI (AI Signals)', 'សញ្ញា خرید/លក់ ត្រូវបានបង្កើតឡើងដោយក្បួនដោះស្រាយ AI កម្រិតខ្ពស់។')">⚡ សញ្ញា AI</span>
-            <span onclick="showPopup('កញ្ចប់ VIP (VIP Packages)', 'សូមធ្វើការទូទាត់ប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោ VIP។')">👑 កញ្ចប់ VIP</span>
-            <span onclick="showPopup('ការកំណត់ (Settings)', 'ការកំណត់ប្រព័ន្ធសុវត្ថិភាព និងគណនីส่วนตัว (Secure Mode Activated)។')">⚙️ ការកំណត់</span>
+            <span onclick="showPopup('📊 ផ្ទាំងគ្រប់គ្រង (Dashboard)', 'ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យទីផ្សារ និងផលប័ត្ររបស់អ្នកកំពុងដំណើរការជាប្រក្រតី។')">ផ្ទាំងគ្រប់គ្រង</span>
+            <span onclick="showPopup('📈 ស្កែនទីផ្សារ (Market Scanner)', 'ប្រព័ន្ធ AI កំពុងវិភាគនិន្នាការតម្លៃកាក់ និងមាសយ៉ាងសកម្ម Real-time។')">ស្កែនទីផ្សារ</span>
+            <span onclick="showPopup('⚡ សញ្ញា AI (AI Signals)', 'សញ្ញាទិញ/លក់ ត្រូវបានបង្កើតឡើងតាមក្បួនដោះស្រាយកម្រិតខ្ពស់។')">សញ្ញា AI</span>
+            <span onclick="showPopup('👑 កញ្ចប់ VIP (VIP Packages)', 'សូមធ្វើការទូទាត់ប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោររាល់មុខងារ។')">កញ្ចប់ VIP</span>
+            <span onclick="showPopup('⚙️ ការកំណត់ (Settings)', 'ការកំណត់សុវត្ថិភាពគណនី និងប្រព័ន្ធការពារ (Secure Mode Activated)។')">ការកំណត់</span>
         </div>
         <div class="user-status">
-            <button class="login-btn" onclick="showPopup('ចូលគណនី (Sign In)', 'ប្រព័ន្ធផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ Secure Mode កំពុងដំណើរការ។')">🔑 Sign In</button>
+            <button class="login-btn" onclick="showPopup('🔑 ចូលគណនី (Sign In)', 'ប្រព័ន្ធផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ Secure Mode កំពុងដំណើរការ។')">Sign In</button>
             <div>
                 <div style="font-size: 11px; color: var(--text-secondary);">V Trade User (Private)</div>
                 <div style="font-size: 13px; font-weight: bold;">Balance: $10 USD</div>
             </div>
-            <button class="upgrade-btn" onclick="showPopup('ដោះសោ VIP', 'សូមផ្ទេរប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោ Full Speed 100%។')">⚡ Upgrade VIP</button>
+            <button class="upgrade-btn" onclick="showPopup('⚡ ដោះសោ VIP', 'សូមផ្ទេរប្រាក់តាម ABA Pay ID: 002145481 ដើម្បីដោះសោ Full Speed 100%។')">Upgrade VIP</button>
         </div>
     </div>
 
@@ -275,7 +279,7 @@
         <div class="stat-box">
             <div class="stat-label">VIP Status 👑</div>
             <div class="stat-value" style="font-size: 14px;">Free Tier (Limited)</div>
-            <div style="font-size: 11px; color: var(--accent-color);">ទិញ VIP ដើម្បីដោះសោ full speed →</div>
+            <div style="font-size: 11px; color: var(--accent-color);" onclick="showPopup('👑 ដោះសោ VIP', 'ABA Pay ID: 002145481\nទូទាត់ប្រាក់ដើម្បីដោះសោ Full Speed ភ្លាមៗ។')" style="cursor: pointer;">ទិញ VIP เพื่อដោះសោ full speed →</div>
         </div>
     </div>
 
@@ -360,7 +364,7 @@
                         <div style="font-weight: bold; font-size: 13px;">BTC/USDT <span class="text-green">BUY / LONG</span></div>
                         <div style="font-size: 11px; color: var(--text-secondary);">Entry: 64,100 | TP: 66,500</div>
                     </div>
-                    <button class="trade-btn" onclick="showPopup('ប្រតិបត្តិការ BTC/USDT', 'បានបញ្ជូនសំណើ Trade (BUY/LONG) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
+                    <button class="trade-btn" onclick="showPopup('📈 ប្រតិបត្តិការ BTC/USDT', 'បានបញ្ជូនសំណើ Trade (BUY/LONG) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
                 </div>
 
                 <div class="trade-item">
@@ -368,10 +372,10 @@
                         <div style="font-weight: bold; font-size: 13px;">XAU/USD <span class="text-green">BUY / LONG</span></div>
                         <div style="font-size: 11px; color: var(--text-secondary);">Entry: 2,380 | TP: 2,410</div>
                     </div>
-                    <button class="trade-btn" onclick="showPopup('ប្រតិបត្តិការ XAU/USD', 'បានបញ្ជូនសំណើ Trade មាស (Gold) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
+                    <button class="trade-btn" onclick="showPopup('🪙 ប្រតិបត្តិការ XAU/USD', 'បានបញ្ជូនសំណើ Trade មាស (Gold) ទៅកាន់ប្រព័ន្ធជោគជ័យ!')">Trade</button>
                 </div>
 
-                <div class="vip-banner" onclick="showPopup('ទូទាត់ប្រាក់ VIP', 'ABA Pay ID: 002145481\nសូមធ្វើការស្កេន ឬផ្ទេរប្រាក់ដើម្បីដោះសោររាល់សញ្ញាណ 100% ភ្លាមៗ។')">
+                <div class="vip-banner" onclick="showPopup('👑 ទូទាត់ប្រាក់ VIP', 'ABA Pay ID: 002145481\nសូមធ្វើការស្កេន ឬផ្ទេរប្រាក់តាមលេខកូដនេះ ដើម្បីដោះសោររាល់សញ្ញាណ 100% ភ្លាមៗ។')">
                     👑 ដោះសោ VIP ដើម្បីទទួលសញ្ញាណ 100%
                 </div>
             </div>
@@ -396,6 +400,7 @@
 
     <script>
         function showPopup(title, desc) {
+            document.getElementById('modalTitleinnerText' || 'modalTitle').innerText = title;
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalDesc').innerText = desc;
             document.getElementById('customModal').style.display = 'flex';
