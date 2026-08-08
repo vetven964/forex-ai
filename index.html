@@ -7,9 +7,6 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body { background-color: #0b0e14; color: white; font-family: sans-serif; }
-        .news-ticker { overflow: hidden; white-space: nowrap; position: relative; }
-        .news-track { display: inline-block; white-space: nowrap; animation: marquee 50s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
@@ -24,12 +21,11 @@
                 <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
                     🤖 <span class="text-blue-500">VET Trade AI</span>
                 </h1>
-                <p id="authSubtitle" class="text-xs text-gray-400">សូមចូលគណនីរបស់អ្នកដើម្បីចាប់ផ្តើមប្រព័ន្ធ Trading & Telegram Bot</p>
+                <p class="text-xs text-gray-400">សូមចូលគណនីរបស់អ្នកដើម្បីចាប់ផ្តើមប្រព័ន្ធ Trading & Telegram Bot</p>
             </div>
             <div class="space-y-4 pt-4">
-                <input type="text" id="regName" placeholder="VET Ven" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500 hidden" value="VET Ven">
-                <input type="email" id="authEmail" placeholder="vet.ven@vettarde.ai" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="vet.ven@vettarde.ai">
-                <input type="password" id="authPass" placeholder="••••••••" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
+                <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="vet.ven@vettarde.ai">
+                <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
                 <button type="button" onclick="handleAuthSubmit()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
                     ចូលប្រព័ន្ធ (Sign In)
                 </button>
@@ -40,7 +36,7 @@
     <!-- ================= MAIN APP WRAPPER ================= -->
     <div id="appWrapper" class="space-y-6 hidden">
         
-        <!-- Header & Navigation with Tabs Restored -->
+        <!-- Header & Navigation -->
         <header class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-3 gap-3">
             <h1 class="text-xl font-bold flex items-center gap-2">
                 🤖 <span class="text-blue-500">VET Trade AI</span> Terminal
@@ -62,7 +58,7 @@
         <div id="tab-terminal" class="tab-content space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
-                <!-- LEFT: CHART & AI (3 Columns) -->
+                <!-- LEFT: CHART & AI -->
                 <div class="lg:col-span-3 space-y-6">
                     <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
                         <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
@@ -82,7 +78,7 @@
                         <div id="chatLogs" class="bg-black h-56 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                             <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                                 <span class="text-blue-400 font-bold block mb-1">🤖 VET Bot:</span> 
-                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI ត្រៀមរួចរាល់ហើយ។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីវិភាគ ឬផ្ញើសញ្ញាទៅ Telegram Bot!
+                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) ភ្ជាប់ដំណើរការជោគជ័យ។
                             </div>
                         </div>
 
@@ -94,23 +90,25 @@
                     </section>
                 </div>
 
-                <!-- RIGHT: CONFIG & ALERTS (1 Column) -->
+                <!-- RIGHT: CONFIG & ALERTS -->
                 <div class="space-y-6">
-                    <!-- Telegram Bot Config -->
                     <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
                         <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
                             📱 Telegram Bot Setup
                         </h3>
-                        <p class="text-[11px] text-gray-400">បញ្ចូល Token & Chat ID ដើម្បីឱ្យ Bot ផ្ញើសញ្ញាស្វ័យប្រវត្តិ។</p>
+                        <p class="text-[11px] text-gray-400">ប្រព័ន្ធភ្ជាប់ជាមួយ @ai_pro_auto_bot រួចរាល់។</p>
                         
                         <div class="space-y-3 text-xs pt-2">
                             <div>
                                 <label class="text-[10px] text-gray-400">Bot Token</label>
-                                <input type="text" id="tgToken" placeholder="ឧ: 8470430528:AAG..." class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1" value="8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc">
+                                <input type="text" id="tgToken" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1" value="8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc">
                             </div>
                             <div>
-                                <label class="text-[10px] text-gray-400">Chat ID / Channel ID</label>
-                                <input type="text" id="tgChatId" placeholder="ឧ: 12345678" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] text-gray-400">Chat ID / Channel ID</label>
+                                    <a href="https://t.me/userinfobot" target="_blank" class="text-[9px] text-blue-400 underline">រក Chat ID</a>
+                                </div>
+                                <input type="text" id="tgChatId" placeholder="ឧ: 192837465" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1">
                             </div>
                             <button type="button" onclick="testTelegramConnection()" class="w-full bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2.5 rounded-lg transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
                                 🚀 Test Connection
@@ -118,7 +116,6 @@
                         </div>
                     </div>
 
-                    <!-- Order Book Simulation -->
                     <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
                         <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">📊 Live Order Book</h3>
                         <div class="space-y-1 text-[11px] font-mono">
@@ -137,33 +134,24 @@
         <!-- ================= TAB 2: DASHBOARD ================= -->
         <div id="tab-dashboard" class="tab-content space-y-6 hidden">
             <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
-                <div class="flex justify-between items-center border-b border-gray-800 pb-4">
-                    <h2 class="text-lg font-bold text-purple-400 flex items-center gap-2">📊 Advanced System Analytics Dashboard</h2>
-                    <div class="space-x-2">
-                        <button type="button" onclick="alert('System Cache Cleared Successfully!')" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded transition cursor-pointer">🧹 Clear Cache</button>
-                    </div>
-                </div>
-
+                <h2 class="text-lg font-bold text-purple-400">📊 Advanced System Analytics Dashboard</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">Total Active Bots</div>
-                        <div class="text-2xl font-bold text-white mt-1">1 AI PRO AUTO</div>
+                        <div class="text-2xl font-bold text-white mt-1">@ai_pro_auto_bot</div>
                         <div class="text-[10px] text-green-400 mt-1">🟢 Status: Online</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">Telegram Signals Sent</div>
                         <div class="text-2xl font-bold text-sky-400 mt-1" id="signalCount">24 Signals</div>
-                        <div class="text-[10px] text-blue-400 mt-1">⚡ API Connected</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">System Uptime</div>
                         <div class="text-2xl font-bold text-blue-400 mt-1">99.99%</div>
-                        <div class="text-[10px] text-gray-400 mt-1">Stable Node</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">AI Win Rate Accuracy</div>
                         <div class="text-2xl font-bold text-yellow-400 mt-1">88.5%</div>
-                        <div class="text-[10px] text-green-400 mt-1">↑ High Performance</div>
                     </div>
                 </div>
             </div>
@@ -189,9 +177,15 @@
 
     </div>
 
-    <!-- MAIN JAVASCRIPT -->
+    <!-- SCRIPT LOGIC -->
     <script>
         let signalCounter = 24;
+
+        window.onload = function() {
+            if(localStorage.getItem('vet_chat_id')) {
+                document.getElementById('tgChatId').value = localStorage.getItem('vet_chat_id');
+            }
+        }
 
         function handleAuthSubmit() {
             document.getElementById('authWrapper').style.display = 'none';
@@ -205,14 +199,10 @@
         }
 
         function switchTab(tabName) {
-            document.getElementById('tab-terminal').classList.add('hidden');
-            document.getElementById('tab-dashboard').classList.add('hidden');
-            document.getElementById('tab-profile').classList.add('hidden');
-
-            document.getElementById('btn-terminal').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
-            document.getElementById('btn-dashboard').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
-            document.getElementById('btn-profile').className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
-
+            ['terminal', 'dashboard', 'profile'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('btn-' + t).className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
+            });
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             document.getElementById('btn-' + tabName).className = "bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold";
         }
@@ -238,6 +228,8 @@
             const chatId = document.getElementById('tgChatId').value.trim();
             if(!token || !chatId) return false;
 
+            localStorage.setItem('vet_chat_id', chatId);
+
             const url = `https://api.telegram.org/bot${token}/sendMessage`;
             try {
                 const response = await fetch(url, {
@@ -253,19 +245,30 @@
         }
 
         async function testTelegramConnection() {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
+                return;
+            }
+
             const msg = "✅ <b>VET Trade AI</b>: ប្រព័ន្ធ Telegram Alert ភ្ជាប់ជាមួយ @ai_pro_auto_bot បានជោគជ័យ!";
             const success = await sendToTelegram(msg);
             if(success) {
-                alert('✅ ភ្ជាប់ជោគជ័យ! សូមឆែកមើលក្នុង Telegram Bot របស់អ្នក។');
+                alert('✅ ភ្ជាប់ជោគជ័យ!');
             } else {
-                alert('❌ បរាជ័យ! សូមពិនិត្យមើល Chat ID ម្តងទៀត (ត្រូវធានាថាបានចុច /start ក្នុង Bot រួចរាល់)។');
+                alert('❌ បរាជ័យ! សូមពិនិត្យ Chat ID ឬធានាថាបានចុច /start ក្នុង Bot ហើយ។');
             }
         }
 
         async function triggerAction(actionType) {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
+                return;
+            }
+
             const logs = document.getElementById('chatLogs');
             const market = document.getElementById('marketSelect').value;
-            const chatId = document.getElementById('tgChatId').value.trim();
             
             logs.innerHTML += `
                 <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50 mt-2">
@@ -297,7 +300,7 @@
 
                 let alertStatusHTML = isSent ? 
                     `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ Telegram Alert sent to @ai_pro_auto_bot successfully!</div>` : 
-                    `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert not sent (Check Chat ID / /start bot).</div>`;
+                    `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed (Check Chat ID).</div>`;
 
                 logs.innerHTML += `
                     <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
