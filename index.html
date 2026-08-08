@@ -1,113 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Ultimate Terminal</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Forex AI Pro - Advanced Trading Suite</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-body-tertiary overflow-hidden">
-    <div class="container-fluid vh-100 d-flex flex-column p-2">
-        
-        <!-- Top Status Bar -->
-        <header class="navbar navbar-dark bg-dark px-3 rounded-3 mb-2 border border-secondary border-opacity-25 py-1">
-            <div class="d-flex align-items-center gap-3">
-                <span class="navbar-brand fw-bold fs-6 text-white mb-0">V ⚡ <span class="text-warning">Free plan</span></span>
-                <span class="badge bg-secondary text-light">VOLATILITY Low</span>
-                <span class="badge bg-secondary text-light">REGIME Cautious</span>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="brand">
+                <h1>Forex AI <span>Pro</span></h1>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-success fw-bold px-3">UPGRADE</button>
+            
+            <div class="controls-group">
+                <div class="switcher-group">
+                    <button class="asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'Bitcoin')">BTC/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('FX:EURUSD', 'EUR/USD')">EUR/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBP/USD')">GBP/USD</button>
+                    <button class="asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'Gold')">XAU/USD</button>
+                </div>
+            </div>
+
+            <!-- ប៊ូតុងចូលទៅកាន់ Profile -->
+            <div style="margin-left: 20px;">
+                <a href="profile.html" style="background-color: #2563eb; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-family: sans-serif;">Profile របស់ខ្ញុំ</a>
             </div>
         </header>
 
-        <!-- Main Workspace Layout (Grid 2 Columns: Chart + AI Chat Sidebar) -->
-        <div class="row flex-grow-1 g-2 overflow-hidden">
-            
-            <!-- Left Side: Terminal & Floating Widget -->
-            <div class="col-lg-9 d-flex flex-column h-100 position-relative">
-                
-                <!-- Asset & Timeframe Subbar -->
-                <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded-top border border-secondary border-opacity-25 small">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold text-warning" id="current-asset-label">BTCUSDT</span>
-                        <span class="badge bg-success">Open</span>
-                        <span class="text-success fw-bold">65,054</span>
-                        <span class="text-success small">+1.10%</span>
-                    </div>
-                    <!-- Asset Switcher -->
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-light asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'BTCUSDT', this)">BTC</button>
-                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:EURUSD', 'EURUSD', this)">EUR</button>
-                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBPUSD', this)">GBP</button>
-                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'XAUUSD', this)">GOLD</button>
-                    </div>
+        <!-- TradingView Advanced Widget Container (Clean & Large) -->
+        <div class="tradingview-widget-container">
+            <div id="tradingview_widget"></div>
+        </div>
+
+        <!-- AI Signal Dashboard -->
+        <div class="ai-signal-box">
+            <div class="signal-header">
+                <h2 id="ai-signal-text">STRONG BUY</h2>
+                <span class="confidence" id="ai-confidence">AI Confidence: 95.8%</span>
+            </div>
+            <div class="signal-details">
+                <div class="detail-item">
+                    <span class="label">AI Trend Status</span>
+                    <span class="value bullish" id="ai-trend">Bullish</span>
                 </div>
-
-                <!-- TradingView Chart Container (Full Height) -->
-                <div class="flex-grow-1 bg-dark border border-secondary border-opacity-25 position-relative overflow-hidden">
-                    <div id="tradingview_widget" class="w-100 h-100"></div>
-
-                    <!-- Floating AI Analysis Panel -->
-                    <div class="floating-ai-panel shadow-lg p-2 rounded-3">
-                        <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 pb-1 mb-2">
-                            <button class="btn btn-sm btn-dark text-warning fw-bold active-tab" onclick="switchTab('analysis', this)">Analysis</button>
-                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('bot', this)">Bot</button>
-                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('history', this)">History</button>
-                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('news', this)">News</button>
-                        </div>
-
-                        <div id="tab-content-area">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-light" id="panel-symbol-title">BTCUSDT - 15m</span>
-                                <span class="badge bg-success text-dark fw-bold">● READY</span>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold fs-7">📊 Analyze <span class="text-warning">PRO</span></button>
-                                <button class="btn btn-sm btn-light text-dark flex-grow-1 fw-bold fs-7">⚡ Best setup <span class="text-warning">PRO</span></button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="detail-item">
+                    <span class="label">Data Feed</span>
+                    <span class="value" id="data-feed">TradingView Live</span>
                 </div>
             </div>
-
-            <!-- Right Side: AI Assistant Chat Desk -->
-            <div class="col-lg-3 d-flex flex-column h-100 bg-dark rounded border border-secondary border-opacity-25 p-3">
-                <div class="d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2 mb-3">
-                    <span>🤖</span>
-                    <h6 class="mb-0 fw-bold text-light fs-6">Chat / Trade AI Desk</h6>
-                </div>
-                
-                <!-- Chat Message Box -->
-                <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-black rounded border border-secondary border-opacity-25 mb-3 d-flex flex-column gap-2">
-                    <div class="p-2 bg-dark rounded text-light">
-                        <span class="text-warning fw-bold d-block mb-1">VENPro AI:</span>
-                        Hey, I'm VENPro AI — ask me anything about <b>BTCUSDT</b> or the market.
-                    </div>
-                </div>
-
-                <!-- Quick Action Buttons -->
-                <div class="d-flex flex-wrap gap-1 mb-2">
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Analyze this chart</button>
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Best setups now</button>
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Market outlook</button>
-                </div>
-
-                <!-- Chat Input Box -->
-                <div class="input-group input-group-sm">
-                    <input type="text" class="form-control bg-black text-light border-secondary" placeholder="Analyze BTC, deploy a bot...">
-                    <button class="btn btn-success">➤</button>
-                </div>
-            </div>
-
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS & TradingView -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <script src="script.logics.js"></script>
 </body>
 </html>
