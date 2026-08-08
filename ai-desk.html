@@ -1,0 +1,60 @@
+<style>
+    .ai-desk-container { background: #1a1d23; padding: 15px; border-radius: 10px; color: #fff; font-family: sans-serif; border: 1px solid #333; }
+    .market-selector { margin-bottom: 10px; }
+    .symbol-dropdown { width: 100%; padding: 8px; background: #2c313c; color: #fff; border: none; border-radius: 5px; }
+    .ai-chat-box { height: 200px; overflow-y: auto; background: #0e1014; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; }
+    .ai-btn { background: #4a90e2; color: white; border: none; padding: 8px 12px; margin: 2px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+    .ai-btn:hover { background: #357abd; }
+    .ai-input-area { display: flex; gap: 5px; }
+    #aiInput { flex: 1; padding: 8px; background: #2c313c; border: none; color: #fff; border-radius: 4px; }
+</style>
+
+<div class="ai-desk-container">
+    <h3>🤖 VET Trade AI</h3> <!-- បងអាចដូរឈ្មោះត្រង់នេះ -->
+    <div class="market-selector">
+        <select id="symbolSelect" class="symbol-dropdown">
+            <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
+            <option value="XAUUSD">XAUUSD (Gold / មាស)</option>
+            <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
+            <option value="EURUSD">EURUSD (Euro/USD)</option>
+            <option value="SOLUSDT">SOLUSDT (Solana)</option>
+        </select>
+    </div>
+    <div class="ai-chat-box" id="aiChatBox">
+        <div><strong>VET Bot:</strong> សួស្តី! សូមជ្រើសរើសទីផ្សារដើម្បីចាប់ផ្តើមវិភាគ។</div>
+    </div>
+    <div class="ai-buttons">
+        <button class="ai-btn" onclick="analyze('chart')">Analyze Chart</button>
+        <button class="ai-btn" onclick="analyze('setup')">Best Setup</button>
+        <button class="ai-btn" onclick="analyze('outlook')">Outlook</button>
+    </div>
+    <div class="ai-input-area" style="margin-top: 10px;">
+        <input type="text" id="aiInput" placeholder="វាយឈ្មោះទីផ្សារ...">
+        <button class="ai-btn" onclick="customQuery()">➤</button>
+    </div>
+</div>
+
+<script>
+function analyze(type) {
+    const symbol = document.getElementById('symbolSelect').value;
+    const chatBox = document.getElementById('aiChatBox');
+    let msg = "";
+    
+    if(type === 'chart') msg = `📊 កំពុងវិភាគ ${symbol}... សញ្ញាបច្ចុប្បន្នស្ថិតក្នុងតំបន់គាំទ្ររឹងមាំ។`;
+    if(type === 'setup') msg = `⚡ យុទ្ធសាស្ត្រល្អបំផុតសម្រាប់ ${symbol}: រង់ចាំការ Breakout នៅកម្រិតតម្លៃនេះ។`;
+    if(type === 'outlook') msg = `🌍 និន្នាការ ${symbol}: កម្លាំងទិញនិងលក់កំពុងប្រទាក់ក្រឡាគ្នា។`;
+    
+    chatBox.innerHTML += `<div style="margin-top:8px;"><strong>VET Bot (${symbol}):</strong> ${msg}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function customQuery() {
+    const input = document.getElementById('aiInput').value;
+    if(input) {
+        document.getElementById('aiChatBox').innerHTML += `<div style="margin-top:8px;"><strong>You:</strong> វិភាគលើ ${input}</div>`;
+        document.getElementById('aiChatBox').innerHTML += `<div style="margin-top:8px;"><strong>VET Bot (${input}):</strong> ទិន្នន័យសម្រាប់ ${input} កំពុងដំណើរការធម្មតា។</div>`;
+        document.getElementById('aiInput').value = '';
+        document.getElementById('aiChatBox').scrollTop = document.getElementById('aiChatBox').scrollHeight;
+    }
+}
+</script>
