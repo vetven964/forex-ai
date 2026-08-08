@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI - Master Terminal</title>
+    <title>VET Trade AI - Master Terminal & Advanced Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -35,7 +35,7 @@
         </div>
     </header>
 
-    <!-- World News & Fed News Ticker Bar (Fixed Spacing & Clean Khmer Text) -->
+    <!-- World News & Fed News Ticker Bar -->
     <div class="bg-gray-900 border border-gray-800 rounded-lg p-2.5 flex items-center overflow-hidden text-xs shadow-md">
         <span class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded mr-3 uppercase tracking-wider shrink-0 flex items-center gap-1">🌐 ព័ត៌មានសេដ្ឋកិច្ច</span>
         <div class="news-ticker w-full text-gray-300">
@@ -51,13 +51,11 @@
 
     <!-- TAB 1: TERMINAL & CHART & AI CHAT -->
     <div id="tab-terminal" class="tab-content active space-y-6">
-        <!-- Live Market Chart -->
         <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
             <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
             <div id="chartContainer" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
         </section>
 
-        <!-- AI Assistant Panel -->
         <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
             <div class="flex justify-between items-center mb-1">
                 <span class="text-sm font-bold text-gray-300 flex items-center gap-1.5">💬 AI Assistant Panel</span>
@@ -67,7 +65,6 @@
                 </select>
             </div>
 
-            <!-- Improved Chat History Box with Bubble Styling -->
             <div id="chatLogs" class="bg-black h-60 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                 <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                     <span class="text-blue-400 font-bold block mb-1">🤖 VET Bot:</span> 
@@ -75,14 +72,12 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="flex flex-wrap gap-2 pt-1">
                 <button onclick="runAnalysis('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">📊 Analyze Chart</button>
                 <button onclick="runAnalysis('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">⚡ Best Setup</button>
                 <button onclick="runAnalysis('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex items-center gap-1">🔮 Market Outlook</button>
             </div>
 
-            <!-- Input Box -->
             <div class="flex gap-2 pt-1">
                 <input type="text" id="userInput" placeholder="សួរសំណួរទាក់ទងនឹងទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3.5 py-2.5 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500">
                 <button onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg transition font-bold">➤</button>
@@ -90,22 +85,119 @@
         </section>
     </div>
 
-    <!-- TAB 2: ADMIN DASHBOARD -->
+    <!-- TAB 2: ADVANCED ADMIN DASHBOARD (FULL VERSION) -->
     <div id="tab-dashboard" class="tab-content space-y-6">
-        <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
-            <h2 class="text-lg font-bold text-purple-400">📊 Admin Analytics Dashboard</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+                <h2 class="text-lg font-bold text-purple-400 flex items-center gap-2">📊 Advanced Admin Analytics Dashboard</h2>
+                <div class="space-x-2">
+                    <button onclick="alert('System Cache Cleared Successfully!')" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 px-3 py-1.5 rounded transition">🧹 Clear Cache</button>
+                    <button onclick="alert('AI Engine Restarted!')" class="bg-purple-600 hover:bg-purple-500 text-xs text-white px-3 py-1.5 rounded transition font-semibold">⚡ Restart AI</button>
+                </div>
+            </div>
+
+            <!-- Metric Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-black p-4 rounded-lg border border-gray-800">
                     <div class="text-xs text-gray-400">Total System Users</div>
-                    <div class="text-xl font-bold text-white mt-1">1,245</div>
+                    <div class="text-2xl font-bold text-white mt-1">1,245</div>
+                    <div class="text-[10px] text-green-400 mt-1">↑ +12% from last week</div>
                 </div>
                 <div class="bg-black p-4 rounded-lg border border-gray-800">
                     <div class="text-xs text-gray-400">Active AI Requests</div>
-                    <div class="text-xl font-bold text-green-400 mt-1">384 / min</div>
+                    <div class="text-2xl font-bold text-green-400 mt-1">384 / min</div>
+                    <div class="text-[10px] text-blue-400 mt-1">⚡ Optimal load</div>
                 </div>
                 <div class="bg-black p-4 rounded-lg border border-gray-800">
-                    <div class="text-xs text-gray-400">System Status</div>
-                    <div class="text-xl font-bold text-blue-400 mt-1">Optimal (100%)</div>
+                    <div class="text-xs text-gray-400">System Uptime</div>
+                    <div class="text-2xl font-bold text-blue-400 mt-1">99.98%</div>
+                    <div class="text-[10px] text-gray-400 mt-1">Stable node connection</div>
+                </div>
+                <div class="bg-black p-4 rounded-lg border border-gray-800">
+                    <div class="text-xs text-gray-400">Estimated Revenue</div>
+                    <div class="text-2xl font-bold text-yellow-400 mt-1">$4,850</div>
+                    <div class="text-[10px] text-green-400 mt-1">↑ Active subscriptions</div>
+                </div>
+            </div>
+
+            <!-- Server Health & Performance Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Server Load Bars -->
+                <div class="bg-black p-4 rounded-lg border border-gray-800 space-y-4">
+                    <h3 class="text-sm font-bold text-gray-300">🖥️ Server Resource Utilization</h3>
+                    
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">CPU Usage</span>
+                            <span class="text-green-400 font-semibold">34%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-green-500 h-full w-[34%]"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">RAM Memory</span>
+                            <span class="text-blue-400 font-semibold">62% (6.2 GB / 10 GB)</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full w-[62%]"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Storage SSD</span>
+                            <span class="text-yellow-400 font-semibold">48% (120 GB / 250 GB)</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-yellow-500 h-full w-[48%]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Logs Table -->
+                <div class="bg-black p-4 rounded-lg border border-gray-800 space-y-3">
+                    <h3 class="text-sm font-bold text-gray-300">📜 Recent System Logs</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="text-gray-500 border-b border-gray-800">
+                                    <th class="pb-2">Time</th>
+                                    <th class="pb-2">User</th>
+                                    <th class="pb-2">Action</th>
+                                    <th class="pb-2 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-900 text-gray-300">
+                                <tr>
+                                    <td class="py-2">18:24</td>
+                                    <td class="text-blue-400 font-semibold">VET Ven</td>
+                                    <td>AI Chart Analysis</td>
+                                    <td class="text-right text-green-400 font-medium">Success</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">18:20</td>
+                                    <td class="text-gray-400">System Bot</td>
+                                    <td>Auto Backup Data</td>
+                                    <td class="text-right text-green-400 font-medium">Completed</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">18:15</td>
+                                    <td class="text-purple-400 font-semibold">User_992</td>
+                                    <td>API Token Refresh</td>
+                                    <td class="text-right text-green-400 font-medium">Success</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">18:02</td>
+                                    <td class="text-blue-400 font-semibold">VET Ven</td>
+                                    <td>Terminal Login</td>
+                                    <td class="text-right text-green-400 font-medium">Authorized</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -168,7 +260,7 @@
             document.getElementById('btcPrice').innerText = '$' + (base + random).toLocaleString() + '.00';
         }, 3000);
 
-        // Functional AI Analysis Logic with Clear Bubbles
+        // Functional AI Analysis Logic
         function runAnalysis(type) {
             const logs = document.getElementById('chatLogs');
             const market = document.getElementById('marketSelect').value;
