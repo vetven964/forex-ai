@@ -49,7 +49,7 @@
                     <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
                 </div>
                 <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
-                    🔴 LIVE BTC/USD: <span id="btcPrice" class="text-green-400 font-bold">$65,002.00</span>
+                    🔴 LIVE MARKET FEED: <span id="headerAsset" class="text-green-400 font-bold">BTC/USD</span>
                 </div>
             </div>
         </header>
@@ -62,8 +62,8 @@
                 <div class="lg:col-span-3 space-y-6">
                     <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
                         <div class="text-xs text-gray-400 mb-2 font-semibold flex justify-between items-center">
-                            <span>📈 Live Market Chart</span>
-                            <span class="text-[10px] text-blue-400 font-mono">Binance Feed Active</span>
+                            <span>📈 Live Market Chart (<span id="currentChartTitle">BTCUSDT</span>)</span>
+                            <span class="text-[10px] text-blue-400 font-mono">Real-time Feed Active</span>
                         </div>
                         <div id="chartContainer" style="height: 420px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
                     </section>
@@ -71,18 +71,20 @@
                     <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-sm font-bold text-gray-300 flex items-center gap-1.5">💬 AI Assistant Panel</span>
-                            <select id="marketSelect" class="bg-gray-800 text-xs text-white px-2.5 py-1 rounded border border-gray-700 focus:outline-none">
+                            <!-- Added XAUUSD to Market Selection -->
+                            <select id="marketSelect" onchange="changeMarketSymbol()" class="bg-gray-800 text-xs text-white px-2.5 py-1 rounded border border-gray-700 focus:outline-none cursor-pointer">
                                 <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
                                 <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
                                 <option value="SOLUSDT">SOLUSDT (Solana)</option>
+                                <option value="XAUUSD">XAUUSD (Gold / មាស)</option>
                             </select>
                         </div>
 
-                        <!-- Expanded Chat Logs Height to h-72 for better display -->
+                        <!-- Chat Logs Container -->
                         <div id="chatLogs" class="bg-black h-72 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                             <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                                 <span class="text-blue-400 font-bold block mb-1">🤖 VET Bot:</span> 
-                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) ត្រៀមបញ្ជូនសញ្ញាជោគជ័យ។
+                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) រួចរាល់សម្រាប់ BTC, ETH, SOL និង XAUUSD។
                             </div>
                         </div>
 
@@ -123,11 +125,12 @@
                     <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
                         <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">📊 Live Order Book</h3>
                         <div class="space-y-1 text-[11px] font-mono">
-                            <div class="flex justify-between text-red-400"><span>65,080.00</span><span>0.45 BTC</span></div>
-                            <div class="flex justify-between text-red-400"><span>65,050.00</span><span>1.20 BTC</span></div>
-                            <div class="py-1 text-center font-bold text-yellow-400 border-y border-gray-800">Spread: $1.50</div>
-                            <div class="flex justify-between text-green-400"><span>65,010.00</span><span>0.95 BTC</span></div>
-                            <div class="flex justify-between text-green-400"><span>64,990.00</span><span>3.40 BTC</span></div>
+                            <div class="flex justify-between text-red-400"><span>Spread Ask</span><span>Volume</span></div>
+                            <div class="flex justify-between text-red-400"><span id="orderAsk1">65,080.00</span><span>0.45</span></div>
+                            <div class="flex justify-between text-red-400"><span id="orderAsk2">65,050.00</span><span>1.20</span></div>
+                            <div class="py-1 text-center font-bold text-yellow-400 border-y border-gray-800">Spread Active</div>
+                            <div class="flex justify-between text-green-400"><span id="orderBid1">65,010.00</span><span>0.95</span></div>
+                            <div class="flex justify-between text-green-400"><span id="orderBid2">64,990.00</span><span>3.40</span></div>
                         </div>
                     </div>
                 </div>
@@ -184,6 +187,7 @@
     <!-- SCRIPT LOGIC -->
     <script>
         let signalCounter = 24;
+        let tvWidget = null;
 
         window.onload = function() {
             if(localStorage.getItem('vet_chat_id')) {
@@ -194,7 +198,7 @@
         function handleAuthSubmit() {
             document.getElementById('authWrapper').style.display = 'none';
             document.getElementById('appWrapper').classList.remove('hidden');
-            loadChart();
+            loadChart("BTCUSDT");
         }
 
         function handleLogout() {
@@ -211,20 +215,41 @@
             document.getElementById('btn-' + tabName).className = "bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold";
         }
 
-        function loadChart() {
-            if(window.tvWidgetLoaded) return;
-            window.tvWidgetLoaded = true;
+        function loadChart(symbol) {
+            document.getElementById('currentChartTitle').innerText = symbol;
+            document.getElementById('headerAsset').innerText = symbol.replace('USDT', '/USD');
+            
+            // Map symbols for TradingView format
+            let tvSymbol = "BINANCE:" + symbol;
+            if(symbol === "XAUUSD") {
+                tvSymbol = "OANDA:XAUUSD"; // Standard gold symbol feed
+            }
+
+            document.getElementById('chartContainer').innerHTML = "";
             setTimeout(() => {
-                new TradingView.widget({
+                tvWidget = new TradingView.widget({
                     "container_id": "chartContainer",
-                    "symbol": "BINANCE:BTCUSDT",
+                    "symbol": tvSymbol,
                     "autosize": true,
                     "theme": "dark",
                     "style": "1",
                     "interval": "15",
                     "timezone": "Etc/UTC"
                 });
-            }, 200);
+            }, 100);
+        }
+
+        function changeMarketSymbol() {
+            const selectedSymbol = document.getElementById('marketSelect').value;
+            loadChart(selectedSymbol);
+            
+            const logs = document.getElementById('chatLogs');
+            logs.innerHTML += `
+                <div class="bg-gray-800/40 p-2 rounded-lg border border-gray-700/40 mt-2 text-[11px] text-yellow-400">
+                    🔄 Market switched to <b>${selectedSymbol}</b> successfully. Chart and AI parameters updated.
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
         }
 
         async function sendToTelegram(messageText) {
