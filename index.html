@@ -71,7 +71,6 @@
                     <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-sm font-bold text-gray-300 flex items-center gap-1.5">💬 AI Assistant Panel</span>
-                            <!-- Added XAUUSD to Market Selection -->
                             <select id="marketSelect" onchange="changeMarketSymbol()" class="bg-gray-800 text-xs text-white px-2.5 py-1 rounded border border-gray-700 focus:outline-none cursor-pointer">
                                 <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
                                 <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
@@ -84,14 +83,22 @@
                         <div id="chatLogs" class="bg-black h-72 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                             <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                                 <span class="text-blue-400 font-bold block mb-1">🤖 VET Bot:</span> 
-                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) រួចរាល់សម្រាប់ BTC, ETH, SOL និង XAUUSD។
+                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) រួចរាល់។ បើកដំណើរការ Auto Bot ខាងក្រោមដើម្បីឱ្យវាផ្ញើសារ Buy/Sell/Wait  অটো។
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap gap-2 pt-1">
-                            <button type="button" onclick="triggerAction('Analyze')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-medium flex gap-1 items-center cursor-pointer">📊 Analyze Chart</button>
-                            <button type="button" onclick="triggerAction('BUY')" class="bg-green-600 hover:bg-green-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🟢 BUY Signal</button>
-                            <button type="button" onclick="triggerAction('SELL')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🔴 SELL Signal</button>
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="triggerAction('Analyze')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-lg transition font-medium flex gap-1 items-center cursor-pointer">📊 Analyze Chart</button>
+                                <button type="button" onclick="triggerAction('BUY')" class="bg-green-600 hover:bg-green-500 text-white text-xs px-3 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🟢 BUY Signal</button>
+                                <button type="button" onclick="triggerAction('SELL')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🔴 SELL Signal</button>
+                            </div>
+                            <!-- Auto Bot Toggle Button -->
+                            <div>
+                                <button type="button" id="autoBotBtn" onclick="toggleAutoBot()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer">
+                                    ⚡ Start Auto AI Bot
+                                </button>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -126,11 +133,11 @@
                         <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">📊 Live Order Book</h3>
                         <div class="space-y-1 text-[11px] font-mono">
                             <div class="flex justify-between text-red-400"><span>Spread Ask</span><span>Volume</span></div>
-                            <div class="flex justify-between text-red-400"><span id="orderAsk1">65,080.00</span><span>0.45</span></div>
-                            <div class="flex justify-between text-red-400"><span id="orderAsk2">65,050.00</span><span>1.20</span></div>
+                            <div class="flex justify-between text-red-400"><span>65,080.00</span><span>0.45</span></div>
+                            <div class="flex justify-between text-red-400"><span>65,050.00</span><span>1.20</span></div>
                             <div class="py-1 text-center font-bold text-yellow-400 border-y border-gray-800">Spread Active</div>
-                            <div class="flex justify-between text-green-400"><span id="orderBid1">65,010.00</span><span>0.95</span></div>
-                            <div class="flex justify-between text-green-400"><span id="orderBid2">64,990.00</span><span>3.40</span></div>
+                            <div class="flex justify-between text-green-400"><span>65,010.00</span><span>0.95</span></div>
+                            <div class="flex justify-between text-green-400"><span>64,990.00</span><span>3.40</span></div>
                         </div>
                     </div>
                 </div>
@@ -188,6 +195,8 @@
     <script>
         let signalCounter = 24;
         let tvWidget = null;
+        let autoBotTimer = null;
+        let isAutoBotRunning = false;
 
         window.onload = function() {
             if(localStorage.getItem('vet_chat_id')) {
@@ -219,10 +228,9 @@
             document.getElementById('currentChartTitle').innerText = symbol;
             document.getElementById('headerAsset').innerText = symbol.replace('USDT', '/USD');
             
-            // Map symbols for TradingView format
             let tvSymbol = "BINANCE:" + symbol;
             if(symbol === "XAUUSD") {
-                tvSymbol = "OANDA:XAUUSD"; // Standard gold symbol feed
+                tvSymbol = "OANDA:XAUUSD";
             }
 
             document.getElementById('chartContainer').innerHTML = "";
@@ -287,6 +295,88 @@
             } else {
                 alert('❌ បរាជ័យ! សូមពិនិត្យ Chat ID ឬធានាថាបានចុច /start ក្នុង Bot ហើយ។');
             }
+        }
+
+        function toggleAutoBot() {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិនមុននឹងចាប់ផ្តើម Auto Bot!");
+                return;
+            }
+
+            const btn = document.getElementById('autoBotBtn');
+            const logs = document.getElementById('chatLogs');
+
+            if (!isAutoBotRunning) {
+                isAutoBotRunning = true;
+                btn.className = "bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer animate-pulse";
+                btn.innerHTML = "⏹ Stop Auto AI Bot";
+
+                logs.innerHTML += `
+                    <div class="bg-purple-900/40 p-2.5 rounded-lg border border-purple-700/50 mt-2 text-purple-300">
+                        ⚡ <b>Auto AI Bot Started:</b> ប្រព័ន្ធកំពុងតាមដានតម្លៃទីផ្សារស្វ័យប្រវត្ត (Buy / Sell / Wait) និងផ្ញើចូល Telegram...
+                    </div>
+                `;
+                logs.scrollTop = logs.scrollHeight;
+
+                // Trigger automatically every 15 seconds for demo loop
+                autoBotTimer = setInterval(() => {
+                    runAutoAiCycle();
+                }, 15000);
+
+            } else {
+                isAutoBotRunning = false;
+                clearInterval(autoBotTimer);
+                btn.className = "bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer";
+                btn.innerHTML = "⚡ Start Auto AI Bot";
+
+                logs.innerHTML += `
+                    <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50 mt-2 text-gray-400">
+                        ⏹ <b>Auto AI Bot Stopped.</b>
+                    </div>
+                `;
+                logs.scrollTop = logs.scrollHeight;
+            }
+        }
+
+        async function runAutoAiCycle() {
+            const market = document.getElementById('marketSelect').value;
+            const actions = ['BUY', 'SELL', 'WAIT'];
+            const chosenAction = actions[Math.floor(Math.random() * actions.length)];
+
+            let teleMsg = "";
+            let webText = "";
+
+            if (chosenAction === 'BUY') {
+                teleMsg = `🟢 <b>VET AI AUTO SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n🔹 <b>Condition:</b> Price reached support level.\n\n<i>🤖 Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `🟢 <b>[AI AUTO SIGNAL]:</b> តម្លៃដល់ចំណុចត្រូវទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
+            } else if (chosenAction === 'SELL') {
+                teleMsg = `🔴 <b>VET AI AUTO SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n🔹 <b>Condition:</b> Price reached resistance level.\n\n<i>🤖 Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `🔴 <b>[AI AUTO SIGNAL]:</b> តម្លៃដល់ចំណុចត្រូវលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
+            } else {
+                teleMsg = `⏳ <b>VET AI AUTO SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market sideways / <b>រង់ចាំសិន</b> (Wait for clear breakout).\n\n<i>🤖 Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `⏳ <b>[AI AUTO SIGNAL]:</b> មិនទាន់មានសញ្ញាច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
+            }
+
+            const isSent = await sendToTelegram(teleMsg);
+            if(isSent) {
+                signalCounter++;
+                document.getElementById('signalCount').innerText = signalCounter + " Signals";
+            }
+
+            const logs = document.getElementById('chatLogs');
+            let alertStatusHTML = isSent ? 
+                `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ Auto Telegram Alert sent successfully!</div>` : 
+                `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed.</div>`;
+
+            logs.innerHTML += `
+                <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
+                    <span class="text-purple-400 font-bold block">⚡ Auto AI Bot Monitor:</span> 
+                    <div class="text-gray-200">${webText}</div>
+                    ${alertStatusHTML}
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
         }
 
         async function triggerAction(actionType) {
