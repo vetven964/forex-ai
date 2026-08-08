@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Ultimate Responsive</title>
+    <title>Forex AI Pro - Multi-Page Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
+        <!-- Top Navigation Bar & Page Switcher Tabs -->
         <header class="top-nav">
-            <h1>Forex AI <span>Pro</span></h1>
+            <div class="brand">
+                <h1>Forex AI <span>Pro</span></h1>
+            </div>
+            
+            <!-- Page Switcher Buttons -->
+            <div class="page-tabs">
+                <button class="tab-btn active" onclick="switchPage('dashboard')">📈 Live Terminal</button>
+                <button class="tab-btn" onclick="switchPage('analytics')">📊 AI Analytics</button>
+            </div>
+
+            <!-- Asset Switcher -->
             <div class="switcher-group">
                 <button class="asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', this)">BTC</button>
                 <button class="asset-btn" onclick="changeAsset('FX:EURUSD', this)">EUR</button>
@@ -18,34 +29,67 @@
             </div>
         </header>
 
-        <div class="tradingview-widget-container">
-            <div id="tradingview_widget"></div>
+        <!-- PAGE 1: LIVE TERMINAL & DASHBOARD -->
+        <div id="page-dashboard" class="page-content active-page">
+            <div class="tradingview-widget-container">
+                <div id="tradingview_widget"></div>
+            </div>
+
+            <div class="ai-signal-box">
+                <div class="signal-header">
+                    <h2 id="ai-signal-text">STRONG BUY</h2>
+                    <span class="confidence" id="ai-confidence">Confidence: 99.4%</span>
+                </div>
+                <div class="signal-details">
+                    <div class="detail-item"><span class="label">Trend</span><span class="value bullish" id="ai-trend">Bullish</span></div>
+                    <div class="detail-item"><span class="label">Session</span><span class="value" id="active-session">Loading...</span></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🎯 Strategy</h3>
+                    <div class="row"><span>Action:</span> <span class="green">Long Position</span></div>
+                    <div class="row"><span>Risk/Reward:</span> <span>1:2.5</span></div>
+                </div>
+                <div class="card">
+                    <h3>📊 Confluence</h3>
+                    <div class="row"><span>RSI (14):</span> <span>58.2</span></div>
+                    <div class="row"><span>MACD:</span> <span class="green">Bullish</span></div>
+                </div>
+            </div>
         </div>
 
-        <div class="ai-signal-box">
-            <div class="signal-header">
-                <h2 id="ai-signal-text">STRONG BUY</h2>
-                <span class="confidence" id="ai-confidence">Confidence: 99.4%</span>
-            </div>
-            <div class="signal-details">
-                <div class="detail-item"><span class="label">Trend</span><span class="value bullish" id="ai-trend">Bullish</span></div>
-                <div class="detail-item"><span class="label">Session</span><span class="value" id="active-session">Loading...</span></div>
+        <!-- PAGE 2: AI ANALYTICS & HISTORY -->
+        <div id="page-analytics" class="page-content">
+            <div class="card full-card">
+                <h3>🔍 Advanced Market Intelligence & Deep AI Metrics</h3>
+                <p class="analytics-desc">ផ្ទាំងនេះបង្ហាញពីទិន្នន័យវិភាគស៊ីជម្រៅរបស់ប្រព័ន្ធ AI លើគូរូបិយវត្ថុ និងរាល់សញ្ញាប្រវត្តិសាស្ត្រ (Signal History) កន្លងមក។</p>
+                <div class="analytics-grid">
+                    <div class="sub-card">
+                        <h4>Win Rate Accuracy</h4>
+                        <div class="big-number green">94.2%</div>
+                        <p>ផ្អែកលើទិន្នន័យប្រតិបត្តិការ ៣០ថ្ងៃចុងក្រោយ</p>
+                    </div>
+                    <div class="sub-card">
+                        <h4>Average Risk Reward</h4>
+                        <div class="big-number">1 : 2.8</div>
+                        <p>កម្រិតសមាមាត្រហានិភ័យ និងប្រាក់ចំណេញ</p>
+                    </div>
+                    <div class="sub-card">
+                        <h4>Market Sentiment</h4>
+                        <div class="big-number bullish">Bullish Dominated</div>
+                        <p>ទិសដៅទីផ្សារសរុបអន្តរជាតិ</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <h3>🎯 Strategy</h3>
-                <div class="row"><span>Action:</span> <span class="green">Long Position</span></div>
-                <div class="row"><span>Risk/Reward:</span> <span>1:2.5</span></div>
-            </div>
-            <div class="card">
-                <h3>📊 Confluence</h3>
-                <div class="row"><span>RSI (14):</span> <span>58.2</span></div>
-                <div class="row"><span>MACD:</span> <span class="green">Bullish</span></div>
-            </div>
-        </div>
+        <footer>
+            <p>© 2026 ForexAI Pro. All Rights Reserved.</p>
+        </footer>
     </div>
+
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script.logics.js"></script>
 </body>
