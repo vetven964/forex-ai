@@ -3,146 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - TradingView Real-Time Chart</title>
+    <title>Forex AI Pro - TradingView Live</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="logo">
-            <i class="fa-solid fa-brain-circuit"></i>
-            <span>ForexAI <span>Pro (TradingView Live)</span></span>
+    <div class="app-container">
+        <!-- TradingView Widget BEGIN -->
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+            {
+                "width": "100%",
+                "height": "500",
+                "symbol": "BINANCE:BTCUSD",
+                "interval": "15",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "support_host": "https://www.tradingview.com"
+            }
+            </script>
         </div>
-        <div class="status-badge">
-            <span class="pulse"></span> Market Feed: Active
-        </div>
-    </header>
+        <!-- TradingView Widget END -->
 
-    <!-- Main Container -->
-    <main class="container">
-        <!-- Control Panel -->
-        <section class="control-panel card">
-            <h2><i class="fa-solid fa-sliders"></i> Market & AI Live Parameters</h2>
-            <div class="form-grid">
-                <div class="input-group">
-                    <label for="currencyPair">Select Asset</label>
-                    <select id="currencyPair">
-                        <option value="BINANCE:BTCUSDT" selected>BTC/USD (Bitcoin)</option>
-                        <option value="FX:EURUSD">EUR/USD (Euro)</option>
-                        <option value="FX:GBPUSD">GBP/USD (British Pound)</option>
-                        <option value="OANDA:XAUUSD">XAU/USD (Gold)</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label for="timeframe">Timeframe</label>
-                    <select id="timeframe">
-                        <option value="15">15 Minutes</option>
-                        <option value="60">1 Hour</option>
-                        <option value="240" selected>4 Hours</option>
-                        <option value="D">Daily</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label for="riskLevel">Risk Management Level</label>
-                    <select id="riskLevel">
-                        <option value="low">Conservative (Low Risk)</option>
-                        <option value="medium" selected>Balanced (Medium Risk)</option>
-                        <option value="high">Aggressive (High Risk)</option>
-                    </select>
-                </div>
+        <!-- AI Signal Dashboard -->
+        <div class="ai-signal-box">
+            <div class="signal-header">
+                <h2 id="ai-signal-text">STRONG BUY</h2>
+                <span class="confidence" id="ai-confidence">AI Confidence: 95.8%</span>
             </div>
-            <button id="analyzeBtn" class="btn-primary">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Chart Analysis
-            </button>
-        </section>
-
-        <!-- TradingView Official Real-Time Chart Widget -->
-        <div class="card full-width" style="padding: 0; overflow: hidden;">
-            <div class="tradingview-widget-container" style="height: 500px; width: 100%;">
-              <div class="tradingview-widget-container__widget" id="tradingview_chart" style="height: 100%; width: 100%;"></div>
-              <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-              <script type="text/javascript">
-              function loadTradingViewChart(symbolValue = "BINANCE:BTCUSDT", tf = "240") {
-                  document.getElementById('tradingview_chart').innerHTML = "";
-                  new TradingView.widget({
-                      "width": "100%",
-                      "height": 500,
-                      "symbol": symbolValue,
-                      "interval": tf,
-                      "timezone": "Asia/Bangkok",
-                      "theme": "dark",
-                      "style": "1",
-                      "locale": "en",
-                      "toolbar_bg": "#1e293b",
-                      "enable_publishing": false,
-                      "allow_symbol_change": true,
-                      "container_id": "tradingview_chart"
-                  });
-              }
-              // Load default chart
-              loadTradingViewChart();
-              </script>
+            <div class="signal-details">
+                <div class="detail-item">
+                    <span class="label">AI Trend Status</span>
+                    <span class="value bullish" id="ai-trend">Bullish</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Data Feed</span>
+                    <span class="value" id="data-feed">TradingView Live</span>
+                </div>
             </div>
         </div>
 
-        <!-- Analysis Results Dashboard -->
-        <section id="resultsDashboard" class="dashboard">
-            <div class="card summary-card">
-                <div class="signal-box" id="signalBox">
-                    <h3 id="signalText">BUY SETUP</h3>
-                    <p id="confidenceText">AI Confidence: 95.8%</p>
-                </div>
-                <div class="market-metrics">
-                    <div class="metric">
-                        <span>AI Trend Status</span>
-                        <h4 id="marketTrend" class="text-green">Bullish</h4>
-                    </div>
-                    <div class="metric">
-                        <span>Data Feed</span>
-                        <h4 class="text-green">TradingView Live</h4>
-                    </div>
-                </div>
+        <!-- Strategy & Confluence Grid -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>🎯 AI Suggested Strategy</h3>
+                <div class="row"><span>Suggested Action:</span> <span class="green" id="sug-action">Long Position</span></div>
+                <div class="row"><span>Risk/Reward Ratio:</span> <span id="rr-ratio">1:2.5</span></div>
+                <div class="row"><span>Volatility Index:</span> <span id="vol-index">Moderate</span></div>
+                <div class="row"><span>Active Session:</span> <span id="active-session">Loading...</span></div>
             </div>
 
-            <div class="details-grid">
-                <div class="card">
-                    <h3><i class="fa-solid fa-crosshairs"></i> AI Suggested Strategy</h3>
-                    <ul class="setup-list">
-                        <li><span>Suggested Action:</span> <strong class="text-green">Long Position</strong></li>
-                        <li><span>Risk/Reward Ratio:</span> <strong>1:2.5</strong></li>
-                        <li><span>Volatility Index:</span> <strong>Moderate</strong></li>
-                        <li><span>Active Session:</span> <strong>New York / London</strong></li>
-                    </ul>
+            <div class="card">
+                <h3>📊 Technical Confluence</h3>
+                <div class="row">
+                    <span>RSI (14)</span>
+                    <span id="rsi-val">58.2</span>
                 </div>
-
-                <div class="card">
-                    <h3><i class="fa-solid fa-chart-line"></i> Technical Confluence</h3>
-                    <div class="indicator-bars">
-                        <div class="ind-row">
-                            <span>RSI (14)</span>
-                            <div class="progress-bar"><div id="rsiBar" class="fill" style="width: 58%;"></div></div>
-                            <span id="rsiVal">58.2</span>
-                        </div>
-                        <div class="ind-row">
-                            <span>MACD Status</span>
-                            <strong class="text-green">Bullish Crossover</strong>
-                        </div>
-                        <div class="ind-row">
-                            <span>Order Flow</span>
-                            <strong class="text-green">Institutional Accumulation</strong>
-                        </div>
-                    </div>
-                </div>
+                <div class="bar-container"><div class="bar-fill" id="rsi-bar" style="width: 58.2%;"></div></div>
+                <div class="row"><span>MACD Status:</span> <span class="green">Bullish Crossover</span></div>
+                <div class="row"><span>Order Flow:</span> <span class="green">Institutional Accumulation</span></div>
             </div>
-        </section>
-    </main>
+        </div>
 
-    <footer>
-        <p>&copy; 2026 ForexAI Pro. TradingView Integrated Version.</p>
-    </footer>
+        <footer>
+            <p>© 2026 ForexAI Pro. TradingView Integrated Version.</p>
+        </footer>
+    </div>
 
     <script src="script.logics.js"></script>
 </body>
