@@ -23,6 +23,8 @@ function changeAsset(symbol, labelName, btnElement) {
     currentSymbol = symbol;
     initTradingView(currentSymbol);
     document.getElementById("current-asset-label").innerText = labelName;
+    document.getElementById("panel-symbol-title").innerText = labelName + " - 15m";
+    
     document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
 }
