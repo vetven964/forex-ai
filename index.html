@@ -1,191 +1,162 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Ultimate Advanced Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Battambang', sans-serif; background-color: #0b0e14; color: #e4e4e7; }
-        .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    </style>
+    <title>Forex AI Pro - Ultimate Terminal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between">
-
-    <div>
-        <!-- Live Market Ticker -->
-        <div class="bg-gray-950 text-xs py-2 px-6 border-b border-gray-800 flex overflow-x-auto space-x-6 text-gray-400 whitespace-nowrap">
-            <span>🔴 LIVE MARKET:</span>
-            <span>BTC/USD: <strong class="text-green-400">$65,017</strong></span>
-            <span>EUR/USD: <strong class="text-red-400">1.0850</strong></span>
-            <span>GBP/USD: <strong class="text-green-400">1.2640</strong></span>
-            <span>XAU/USD: <strong class="text-green-400">$2,340</strong></span>
-        </div>
-
-        <!-- Header -->
-        <header class="glass mx-4 mt-4 rounded-2xl px-6 py-4 flex flex-wrap justify-between items-center shadow-xl">
-            <h1 class="text-xl font-black text-white tracking-wider">Forex AI <span class="text-blue-500">Pro</span></h1>
-            
-            <!-- Asset Switcher -->
-            <div class="flex space-x-2 my-2 sm:my-0">
-                <button onclick="changeSymbol('BINANCE:BTCUSDT', this)" class="asset-btn bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition shadow">BTC</button>
-                <button onclick="changeSymbol('FX:EURUSD', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">EUR</button>
-                <button onclick="changeSymbol('FX:GBPUSD', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">GBP</button>
-                <button onclick="changeSymbol('OANDA:XAUUSD', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">GOLD</button>
+<body class="bg-body-tertiary">
+    <div class="container-fluid vh-100 d-flex flex-column p-2 overflow-hidden">
+        
+        <!-- Top Status Bar -->
+        <header class="navbar navbar-dark bg-dark px-3 rounded-3 mb-2 border border-secondary border-opacity-25 py-1">
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-brand fw-bold fs-6 text-white mb-0">V ⚡ <span class="text-warning">Free plan</span></span>
+                <span class="badge bg-secondary text-light">VOLATILITY Low</span>
+                <span class="badge bg-secondary text-light">REGIME Cautious</span>
             </div>
-
-            <div class="flex items-center space-x-3">
-                <button onclick="sendToTelegram()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-1">
-                    <span>📤 Telegram</span>
-                </button>
-                <a href="profile.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow">
-                    Profile
-                </a>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-success fw-bold px-3">UPGRADE</button>
             </div>
         </header>
+
+        <!-- Main Workspace Layout -->
+        <div class="row flex-grow-1 g-2 overflow-hidden">
+            
+            <!-- Left Side: Terminal & Floating Widget & Signal History -->
+            <div class="col-lg-9 d-flex flex-column h-100 position-relative overflow-y-auto">
+                
+                <!-- Asset & Timeframe Subbar -->
+                <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded-top border border-secondary border-opacity-25 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-warning" id="current-asset-label">BTCUSDT</span>
+                        <span class="badge bg-success">Open</span>
+                        <span class="text-success fw-bold">65,054</span>
+                        <span class="text-success small">+1.10%</span>
+                    </div>
+                    <!-- Asset Switcher -->
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-light asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'BTCUSDT', this)">BTC</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:EURUSD', 'EURUSD', this)">EUR</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBPUSD', this)">GBP</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'XAUUSD', this)">GOLD</button>
+                    </div>
+                </div>
+
+                <!-- TradingView Chart Container -->
+                <div class="bg-dark border border-secondary border-opacity-25 position-relative overflow-hidden chart-box">
+                    <div id="tradingview_widget" class="w-100 h-100"></div>
+
+                    <!-- Floating AI Analysis Panel -->
+                    <div class="floating-ai-panel shadow-lg p-2 rounded-3">
+                        <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 pb-1 mb-2">
+                            <button class="btn btn-sm btn-dark text-warning fw-bold active-tab" onclick="switchTab('analysis', this)">Analysis</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('bot', this)">Bot</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('history', this)">History</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('news', this)">News</button>
+                        </div>
+
+                        <div id="tab-content-area">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-light" id="panel-symbol-title">BTCUSDT - 15m</span>
+                                <span class="badge bg-success text-dark fw-bold">● READY</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold fs-7">📊 Analyze <span class="text-warning">PRO</span></button>
+                                <button class="btn btn-sm btn-light text-dark flex-grow-1 fw-bold fs-7">⚡ Best setup <span class="text-warning">PRO</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: AI Signal History & Performance Table (ផ្នែកបន្ថែមថ្មី) -->
+                <div class="card bg-dark border border-secondary border-opacity-25 mt-2 p-3 shadow">
+                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                        <h6 class="mb-0 fw-bold text-light">📋 VENPro AI - Live Signal History & Performance</h6>
+                        <span class="badge bg-success">Win Rate: 94.2%</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover table-sm small mb-0 align-middle">
+                            <thead>
+                                <tr class="text-secondary">
+                                    <th>Time (UTC)</th>
+                                    <th>Asset</th>
+                                    <th>Signal</th>
+                                    <th>Entry Price</th>
+                                    <th>Take Profit</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>14:30:00</td>
+                                    <td class="fw-bold text-warning">BTCUSDT</td>
+                                    <td><span class="badge bg-success">STRONG BUY</span></td>
+                                    <td>65,020.00</td>
+                                    <td>65,800.00</td>
+                                    <td><span class="text-success fw-bold">PROFIT (+1.2%)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>12:15:00</td>
+                                    <td class="fw-bold text-warning">XAUUSD</td>
+                                    <td><span class="badge bg-success">BUY</span></td>
+                                    <td>2,342.10</td>
+                                    <td>2,355.00</td>
+                                    <td><span class="text-success fw-bold">PROFIT (+0.5%)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>10:00:00</td>
+                                    <td class="fw-bold text-warning">EURUSD</td>
+                                    <td><span class="badge bg-danger">SELL</span></td>
+                                    <td>1.1560</td>
+                                    <td>1.1520</td>
+                                    <td><span class="text-success fw-bold">PROFIT (+0.3%)</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side: AI Assistant Chat Desk -->
+            <div class="col-lg-3 d-flex flex-column h-100 bg-dark rounded border border-secondary border-opacity-25 p-3">
+                <div class="d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+                    <span>🤖</span>
+                    <h6 class="mb-0 fw-bold text-light fs-6">Chat / Trade AI Desk</h6>
+                </div>
+                
+                <!-- Chat Message Box -->
+                <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-black rounded border border-secondary border-opacity-25 mb-3 d-flex flex-column gap-2">
+                    <div class="p-2 bg-dark rounded text-light">
+                        <span class="text-warning fw-bold d-block mb-1">VENPro AI:</span>
+                        Hey, I'm VENPro AI — ask me anything about <b>BTCUSDT</b> or the market.
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Analyze this chart</button>
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Best setups now</button>
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Market outlook</button>
+                </div>
+
+                <!-- Chat Input Box -->
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control bg-black text-light border-secondary" placeholder="Analyze BTC, deploy a bot...">
+                    <button class="btn btn-success">➤</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
-        
-        <!-- Signal & Market Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- AI Signal Card -->
-            <div class="lg:col-span-2 glass rounded-2xl p-6 shadow-xl flex flex-col justify-between border-l-4 border-green-500">
-                <div>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest">AI Signal Recommendation</span>
-                    <h2 class="text-3xl font-black text-green-400 mt-1">STRONG BUY</h2>
-                </div>
-                <div class="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-700/50 text-xs">
-                    <div>
-                        <p class="text-gray-400">AI Confidence</p>
-                        <p class="font-bold text-blue-400 text-sm">95.8%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400">Trend Status</p>
-                        <p class="font-bold text-green-400 text-sm">Bullish</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400">Execution Speed</p>
-                        <p class="font-bold text-gray-200 text-sm">&lt; 0.1s</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Economic News Feed -->
-            <div class="glass rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-                <div>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center justify-between">
-                        <span>📰 ព័ត៌មានសេដ្ឋកិច្ចសំខាន់ៗ</span>
-                        <span class="text-[10px] text-blue-400 animate-pulse font-mono">LIVE</span>
-                    </h3>
-                    <div class="space-y-2.5 text-xs">
-                        <div class="p-2.5 bg-gray-900/60 rounded-xl border border-gray-800">
-                            <span class="text-green-400 font-bold">USD - CPI Release</span>
-                            <p class="text-gray-300 mt-0.5 text-[11px]">អតិផរណាសហរដ្ឋអាមេរិករំពឹងថានឹងធ្លាក់ចុះ...</p>
-                        </div>
-                        <div class="p-2.5 bg-gray-900/60 rounded-xl border border-gray-800">
-                            <span class="text-yellow-400 font-bold">GOLD - Demand</span>
-                            <p class="text-gray-300 mt-0.5 text-[11px]">ភាពតានតឹងភូមិសាស្ត្រនយោបាយរុញច្រានតម្លៃ...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- TradingView Chart Section -->
-        <div class="glass rounded-2xl p-2 shadow-xl overflow-hidden h-[480px]">
-            <div id="chartContainer" style="height:100%; width:100%;"></div>
-        </div>
-
-        <!-- AI Signal History Table -->
-        <div class="glass rounded-2xl p-6 shadow-xl">
-            <h3 class="text-sm font-bold text-white mb-4 flex items-center justify-between">
-                <span>📊 ប្រវត្តិសញ្ញា AI Signal ថ្មីៗ (History Performance)</span>
-                <span class="text-[10px] text-green-400 bg-green-950/80 px-3 py-1 rounded-full border border-green-800 font-mono">Win Rate: 94.2%</span>
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-gray-300">
-                    <thead class="bg-gray-900/80 uppercase text-gray-400 border-b border-gray-800">
-                        <tr>
-                            <th class="px-4 py-3">ពេលវេលា / Time</th>
-                            <th class="px-4 py-3">Asset Pair</th>
-                            <th class="px-4 py-3">Signal</th>
-                            <th class="px-4 py-3">Confidence</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-800/60">
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ១២:៣០</td>
-                            <td class="px-4 py-3 font-bold text-white">BTC/USD</td>
-                            <td class="px-4 py-3 text-green-400 font-bold">STRONG BUY</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">95.8%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/50 text-green-300 px-2.5 py-1 rounded border border-green-700 font-medium">กำไร / TP Hit (+120 pips) -> TP Hit (+120 pips)</span></td>
-                        </tr>
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ១០:១៥</td>
-                            <td class="px-4 py-3 font-bold text-white">XAU/USD</td>
-                            <td class="px-4 py-3 text-green-400 font-bold">BUY</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">91.4%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/50 text-green-300 px-2.5 py-1 rounded border border-green-700 font-medium">TP Hit (+85 pips)</span></td>
-                        </tr>
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ០cameraId: ០០</td>
-                            <td class="px-4 py-3 font-bold text-white">EUR/USD</td>
-                            <td class="px-4 py-3 text-red-400 font-bold">SELL</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">89.2%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/50 text-green-300 px-2.5 py-1 rounded border border-green-700 font-medium">TP Hit (+45 pips)</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="text-center py-4 text-gray-500 text-[11px] border-t border-gray-800/60 mt-6">
-        &copy; 2026 Forex AI Pro. All rights reserved.
-    </footer>
-
-    <!-- TradingView Script -->
+    <!-- Bootstrap 5 JS & TradingView -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        function changeSymbol(symbol, btn) {
-            document.querySelectorAll('.asset-btn').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white', 'shadow');
-                b.classList.add('bg-gray-800', 'text-gray-300');
-            });
-            btn.classList.remove('bg-gray-800', 'text-gray-300');
-            btn.classList.add('bg-blue-600', 'text-white', 'shadow');
-
-            document.getElementById('chartContainer').innerHTML = '<div id="tradingview_chart" style="height:100%;width:100%"></div>';
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "15",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_chart"
-            });
-        }
-        
-        changeSymbol('BINANCE:BTCUSDT', document.querySelector('.asset-btn'));
-
-        function sendToTelegram() {
-            window.open('https://t.me/share/url?url=&text=🚨 FOREX AI PRO SIGNAL: STRONG BUY (Confidence 95.8%)', '_blank');
-        }
-    </script>
+    <script src="script.logics.js"></script>
 </body>
 </html>
