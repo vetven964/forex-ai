@@ -2,7 +2,7 @@ let currentSymbol = "BINANCE:BTCUSD";
 let currentTimeframe = "15";
 let tvWidget = null;
 
-// Initialize TradingView Widget dynamically
+// Initialize TradingView Widget
 function initTradingView(symbol, timeframe) {
     document.getElementById("tradingview_widget").innerHTML = "";
     tvWidget = new TradingView.widget({
@@ -14,57 +14,50 @@ function initTradingView(symbol, timeframe) {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "toolbar_bg": "#121824",
-        "enable_publishing": false,
-        "allow_symbol_change": false,
         "container_id": "tradingview_widget"
     });
+    // Update Analysis whenever chart changes
+    analyzeMarket(symbol);
 }
 
-// Switch Asset Function
+// AI Analysis Logic
+function analyzeMarket(symbol) {
+    // ចំលងប្រព័ន្ធ AI វិភាគ (Simulation)
+    const confidence = (Math.random() * (99.9 - 85.5) + 85.5).toFixed(1);
+    const actions = ["STRONG BUY", "BUY", "NEUTRAL", "SELL", "STRONG SELL"];
+    const randomAction = actions[Math.floor(Math.random() * actions.length)];
+    
+    document.getElementById("ai-signal-text").innerText = randomAction;
+    document.getElementById("ai-confidence").innerText = "AI Confidence: " + confidence + "%";
+    
+    // Update Status Color
+    const signalBox = document.querySelector(".ai-signal-box");
+    signalBox.style.borderLeft = randomAction.includes("BUY") ? "5px solid #22c55e" : "5px solid #ef4444";
+    document.getElementById("ai-signal-text").style.color = randomAction.includes("BUY") ? "#22c55e" : "#ef4444";
+}
+
 function changeAsset(symbol, name) {
     currentSymbol = symbol;
     initTradingView(currentSymbol, currentTimeframe);
-    
-    // Update active button UI
     document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 }
 
-// Switch Timeframe Function
 function changeTimeframe(tf) {
     currentTimeframe = tf;
     initTradingView(currentSymbol, currentTimeframe);
-    
-    // Update active button UI
     document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 }
 
-// Calculate Active Session based on strict UTC
 function updateActiveSession() {
-    const now = new Date();
-    const utcHours = now.getUTCHours();
-    
-    let sessionName = "ASIAN Session 🇯🇵";
-    
-    if (utcHours >= 0 && utcHours < 8) {
-        sessionName = "ASIAN Session 🇯🇵";
-    } else if (utcHours >= 8 && utcHours < 13) {
-        sessionName = "London Session 🇬🇧";
-    } else if (utcHours >= 13 && utcHours < 21) {
-        sessionName = "New York / London 🇺🇸🇬🇧";
-    } else {
-        sessionName = "Pacific / Off-Hours 🇦🇺";
-    }
-
-    const sessionElement = document.getElementById("active-session");
-    if (sessionElement) {
-        sessionElement.innerText = sessionName;
-    }
+    const utcHours = new Date().getUTCHours();
+    let sessionName = (utcHours >= 0 && utcHours < 8) ? "ASIAN Session 🇯🇵" : 
+                      (utcHours >= 8 && utcHours < 13) ? "London Session 🇬🇧" : 
+                      (utcHours >= 13 && utcHours < 21) ? "New York / London 🇺🇸🇬🇧" : "Pacific / Off-Hours 🇦🇺";
+    document.getElementById("active-session").innerText = sessionName;
 }
 
-// Run on page load
 document.addEventListener("DOMContentLoaded", () => {
     initTradingView(currentSymbol, currentTimeframe);
     updateActiveSession();
