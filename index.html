@@ -8,7 +8,7 @@
     <style>
         body { background-color: #0b0e14; color: white; font-family: sans-serif; }
         .news-ticker { overflow: hidden; white-space: nowrap; position: relative; }
-        .news-track { display: inline-block; white-space: nowrap; animation: marquee 35s linear infinite; }
+        .news-track { display: inline-block; white-space: nowrap; animation: marquee 40s linear infinite; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -35,16 +35,16 @@
         </div>
     </header>
 
-    <!-- World News & Fed News Ticker Bar (Fixed Display) -->
+    <!-- World News & Fed News Ticker Bar (Khmer Language) -->
     <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 flex items-center overflow-hidden text-xs">
-        <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 WORLD NEWS</span>
+        <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 ព័ត៌មានសេដ្ឋកិច្ច</span>
         <div class="news-ticker w-full text-gray-300">
             <div class="news-track">
-                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady interest rates.</span>
-                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
-                <span class="text-blue-400 font-semibold mx-6">🌍 [Global]: Global equity and forex markets react positively to latest central bank updates.</span>
-                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady interest rates.</span>
-                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
+                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: សហរដ្ឋអាមេរិករក្សាអត្រាការប្រាក់ថេរ ខណៈទីផ្សារការងារមានភាពរឹងមាំ។</span>
+                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin រក្សាបានតំបន់គាំទ្រយ៉ាងរឹងមាំ ενពេលដែលទុនស្ថាប័នហូរចូលកើនឡើង។</span>
+                <span class="text-blue-400 font-semibold mx-6">🌍 [Global]: ទីផ្សារភាគហ៊ុន និងទូរទស្សន៍ហិរញ្ញវត្ថុសកលមានសន្ទុះវិជ្ជមានចំពោះទិន្នន័យអតិផរណាថ្មី។</span>
+                <span class="text-yellow-400 font-semibold mx-6">⚡ [FED]: សហរដ្ឋអាមេរិករក្សាអត្រាការប្រាក់ថេរ ខណៈទីផ្សារការងារមានភាពរឹងមាំ។</span>
+                <span class="text-green-400 font-semibold mx-6">📈 [Crypto]: Bitcoin រក្សាបានតំបន់គាំទ្រយ៉ាងរឹងមាំ ενពេលដែលទុនស្ថាប័នហូរចូលកើនឡើង។</span>
             </div>
         </div>
     </div>
@@ -61,25 +61,27 @@
         <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-sm font-bold text-gray-300">💬 AI Assistant Panel</span>
-                <select class="bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700">
-                    <option>BTCUSDT (Bitcoin)</option>
-                    <option>ETHUSDT (Ethereum)</option>
+                <select id="marketSelect" class="bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700">
+                    <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
+                    <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
                 </select>
             </div>
 
-            <!-- Chat History Box with proper padding-top -->
-            <div id="chatLogs" class="bg-black h-48 rounded p-3 pt-4 overflow-y-auto text-xs text-gray-300 space-y-3 border border-gray-800">
-                <div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តីបងប្រុស! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានពិភពលោកជូនបង។</div>
+            <!-- Chat History Box -->
+            <div id="chatLogs" class="bg-black h-52 rounded p-3 overflow-y-auto text-xs text-gray-300 space-y-3 border border-gray-800">
+                <div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តីបងប្រុស! ខ្ញុំជាប្រព័ន្ធ AI វិភាគទីផ្សារ។ សូមចុចប៊ូតុងបញ្ជាខាងក្រោមដើម្បីចាប់ផ្តើមវិភាគ ឬវាយសួរបាន។</div>
             </div>
 
+            <!-- Action Buttons -->
             <div class="flex gap-2 pt-1">
-                <button onclick="sendAction('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition">Analyze Chart</button>
-                <button onclick="sendAction('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Best Setup</button>
-                <button onclick="sendAction('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Outlook</button>
+                <button onclick="runAnalysis('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition font-semibold">📊 Analyze Chart</button>
+                <button onclick="runAnalysis('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">⚡ Best Setup</button>
+                <button onclick="runAnalysis('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">🔮 Market Outlook</button>
             </div>
 
+            <!-- Input Box -->
             <div class="flex gap-2 mt-2">
-                <input type="text" id="userInput" placeholder="វាយសំណួរ ឬទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500">
+                <input type="text" id="userInput" placeholder="សួរសំណួរទាក់ទងនឹងទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500">
                 <button onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs transition">➤</button>
             </div>
         </section>
@@ -123,8 +125,10 @@
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('header button').forEach(el => {
-                el.classList.remove('bg-blue-600', 'font-semibold');
-                el.classList.add('bg-gray-800');
+                if(el.id.startsWith('btn-')) {
+                    el.classList.remove('bg-blue-600', 'font-semibold');
+                    el.classList.add('bg-gray-800');
+                }
             });
 
             document.getElementById('tab-' + tabName).classList.add('active');
@@ -161,29 +165,43 @@
             document.getElementById('btcPrice').innerText = '$' + (base + random).toLocaleString() + '.00';
         }, 3000);
 
-        // Chat Logic
-        function sendAction(actionType) {
+        // Functional AI Analysis Logic
+        function runAnalysis(type) {
             const logs = document.getElementById('chatLogs');
-            logs.innerHTML += `<div class="pt-1"><span class="text-purple-400 font-bold">You:</span> ${actionType}</div>`;
-            setTimeout(() => {
-                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} alongside latest Fed & World news updates... Market looks strong!</div>`;
-                logs.scrollTop = logs.scrollHeight;
-            }, 500);
+            const market = document.getElementById('marketSelect').value;
+            
+            logs.innerHTML += `<div class="pt-1"><span class="text-purple-400 font-bold">You:</span> ${type} (${market})</div>`;
             logs.scrollTop = logs.scrollHeight;
+
+            setTimeout(() => {
+                let responseText = "";
+                if(type === 'Analyze Chart') {
+                    responseText = `វិភាគលើក្រាហ្វ ${market}: តម្លៃបច្ចុប្បន្នកំពុងធ្វើតេស្តតំបន់ Resistance សំខាន់។ សន្ទុះ Buying Pressure មានកម្រិតខ្ពស់ ប៉ុន្តែត្រូវប្រុងប្រយ័ត្នតំបន់កែតម្រូវរយៈពេលខ្លី (Correction zone)។`;
+                } else if(type === 'Best Setup') {
+                    responseText = `យុទ្ធសាស្ត្រល្អបំផុតសម្រាប់ ${market}: រង់ចាំការ Breakout ហួសកម្រិត High ចុងក្រោយ ឬរកមើលឱកាស Buy នៅតំបន់ Support ជិតបំផុត ជាមួយការកំណត់ Stop Loss ឱ្យបានតឹងរឹង។`;
+                } else {
+                    responseText = `ទស្សនវិស័យទីផ្សារ ${market}: ផ្អែកលើទិន្នន័យសកល និង Fed News ថ្ងៃនេះ แนวโน้ม (Trend) រយៈពេលមធ្យមនៅតែរក្សាទិសដៅ Bullish បន្តទៀត ប្រសិនបើគ្មានព័ត៌មានអវិជ្ជមានថ្មី។`;
+                }
+
+                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET AI Bot:</span> ${responseText}</div>`;
+                logs.scrollTop = logs.scrollHeight;
+            }, 600);
         }
 
         function sendCustomMessage() {
             const input = document.getElementById('userInput');
             const val = input.value.trim();
             if(!val) return;
+
             const logs = document.getElementById('chatLogs');
             logs.innerHTML += `<div class="pt-1"><span class="text-purple-400 font-bold">You:</span> ${val}</div>`;
             input.value = '';
-            setTimeout(() => {
-                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET Bot:</span> Processing query: "${val}". AI Engine active.</div>`;
-                logs.scrollTop = logs.scrollHeight;
-            }, 600);
             logs.scrollTop = logs.scrollHeight;
+
+            setTimeout(() => {
+                logs.innerHTML += `<div class="pt-1"><span class="text-blue-400 font-bold">VET AI Bot:</span> ចំពោះសំណួរ "${val}" នេះ ប្រព័ន្ធ AI បានពិនិត្យលើសន្ទុះបញ្ជាទិញនិងលក់ឃើញថា ទីផ្សារកំពុងស្ថិតក្នុងរង្វង់ Trend ច្បាស់លាស់។ ណែនាំឱ្យតាមដាន Volume បន្ថែមមុននឹងសម្រេចចិត្តបើក პოზიشن (Position)។</div>`;
+                logs.scrollTop = logs.scrollHeight;
+            }, 700);
         }
     </script>
 </body>
