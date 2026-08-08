@@ -3,56 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VENPro AI - Ultimate Advanced Terminal</title>
-    <!-- Bootstrap 5 CSS -->
+    <title>VENPro AI - Ultimate Terminal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom Style -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-dark text-light overflow-hidden">
     <div class="container-fluid vh-100 d-flex flex-column p-2">
         
-        <!-- Top Pro Navbar: Profile & Telegram & Status -->
-        <header class="navbar navbar-dark bg-black px-3 rounded-3 mb-2 border border-secondary border-opacity-25 shadow-sm py-2">
+        <!-- Top Status Bar -->
+        <header class="navbar navbar-dark bg-black px-3 rounded-3 mb-2 border border-secondary border-opacity-25 py-2">
             <div class="d-flex align-items-center gap-3">
-                <a class="navbar-brand fw-bold fs-5 text-white d-flex align-items-center gap-2 m-0" href="#">
-                    <span class="badge bg-success text-dark p-1">V</span> VENPro <span class="text-success">AI v2.5</span>
-                </a>
-                <span class="badge bg-dark border border-success text-success d-none d-md-inline">● SYSTEM LIVE</span>
+                <span class="navbar-brand fw-bold fs-5 text-white mb-0">V ⚡ VENPro <span class="text-success">AI</span></span>
+                <span class="badge bg-success bg-opacity-25 text-success border border-success">LIVE SYSTEM</span>
             </div>
-            
             <div class="d-flex align-items-center gap-2">
-                <!-- Telegram Direct Link -->
-                <a href="https://t.me/your_telegram" target="_blank" class="btn btn-sm btn-outline-info fw-bold py-1 px-3 d-flex align-items-center gap-1">
-                    <span>✈️ Telegram</span>
-                </a>
-                
-                <!-- User Profile Badge -->
-                <div class="d-flex align-items-center gap-2 bg-dark px-2 py-1 rounded border border-secondary border-opacity-50">
+                <a href="https://t.me/vetven" target="_blank" class="btn btn-sm btn-outline-info fw-bold">✈️ Telegram</a>
+                <div class="d-flex align-items-center gap-2 bg-dark px-2 py-1 rounded border border-secondary">
                     <span class="rounded-circle bg-success text-black d-inline-flex justify-content-center align-items-center fw-bold" style="width: 22px; height: 22px; font-size: 10px;">V</span>
                     <span class="text-light small fw-semibold">VET Ven</span>
                 </div>
-
-                <button class="btn btn-sm btn-success fw-bold px-3">PRO PLAN</button>
+                <button class="btn btn-sm btn-success fw-bold px-3">PRO</button>
             </div>
         </header>
 
         <!-- Main Workspace Layout -->
         <div class="row flex-grow-1 g-2 overflow-hidden">
             
-            <!-- Left Side: Terminal, Chart, Floating Panel, Signal History & Global News -->
-            <div class="col-lg-9 d-flex flex-column h-100 position-relative overflow-y-auto">
+            <!-- Left Side: Chart, Floating Panel & Signal History -->
+            <div class="col-lg-9 d-flex flex-column h-100 overflow-y-auto">
                 
-                <!-- Asset & Timeframe Switcher Bar -->
-                <div class="d-flex justify-content-between align-items-center bg-black p-2 rounded-top border border-secondary border-opacity-25 small">
+                <!-- Asset Subbar -->
+                <div class="d-flex justify-content-between align-items-center bg-black p-2 rounded-top border border-secondary small">
                     <div class="d-flex align-items-center gap-3">
                         <span class="fw-bold text-warning fs-6" id="current-asset-label">BTCUSDT</span>
-                        <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-50">REAL-TIME</span>
                         <span class="text-success fw-bold">65,054.00</span>
                         <span class="text-success small">+1.10%</span>
                     </div>
-                    
-                    <!-- Asset Buttons -->
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-secondary asset-btn active text-white" onclick="changeAsset('BINANCE:BTCUSD', 'BTCUSDT', this)">BTC</button>
                         <button class="btn btn-outline-secondary asset-btn text-white" onclick="changeAsset('FX:EURUSD', 'EURUSD', this)">EUR</button>
@@ -61,41 +47,39 @@
                     </div>
                 </div>
 
-                <!-- TradingView Chart Container with Floating AI Panel -->
-                <div class="bg-black border border-secondary border-opacity-25 position-relative overflow-hidden chart-box shadow">
+                <!-- TradingView Chart Container -->
+                <div class="bg-black border border-secondary position-relative overflow-hidden chart-box shadow">
                     <div id="tradingview_widget" class="w-100 h-100"></div>
 
-                    <!-- Floating AI Panel (Analysis, Bot, History, News Tabs) -->
+                    <!-- Floating AI Panel -->
                     <div class="floating-ai-panel shadow-lg p-2 rounded-3">
-                        <div class="d-flex gap-1 border-bottom border-secondary border-opacity-25 pb-1 mb-2">
-                            <button class="btn btn-xs btn-dark text-warning fw-bold active-tab" onclick="switchTab('analysis', this)">Analysis</button>
-                            <button class="btn btn-xs btn-dark text-muted" onclick="switchTab('bot', this)">Bot</button>
-                            <button class="btn btn-xs btn-dark text-muted" onclick="switchTab('history', this)">History</button>
-                            <button class="btn btn-xs btn-dark text-muted" onclick="switchTab('news', this)">News</button>
+                        <div class="d-flex gap-1 border-bottom border-secondary pb-1 mb-2">
+                            <button class="btn btn-xs btn-dark text-warning fw-bold">Analysis</button>
+                            <button class="btn btn-xs btn-dark text-muted">Bot</button>
+                            <button class="btn btn-xs btn-dark text-muted">History</button>
+                            <button class="btn btn-xs btn-dark text-muted">News</button>
                         </div>
-                        <div id="tab-content-area">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small fw-bold text-light" id="panel-symbol-title">BTCUSDT - 15m</span>
-                                <span class="badge bg-success text-black fw-bold" style="font-size: 9px;">● AI READY</span>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold fs-7 py-1">📊 Deep Analyze</button>
-                                <button class="btn btn-sm btn-light text-black flex-grow-1 fw-bold fs-7 py-1">⚡ Smart Setup</button>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-light">BTCUSDT - 15m</span>
+                            <span class="badge bg-success text-black fw-bold" style="font-size: 9px;">● READY</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold fs-7 py-1">📊 Analyze PRO</button>
+                            <button class="btn btn-sm btn-light text-black flex-grow-1 fw-bold fs-7 py-1">⚡ Best Setup</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- AI Signal History & Live Performance Table -->
-                <div class="card bg-black border border-secondary border-opacity-25 mt-2 p-3 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary border-opacity-25 pb-2">
+                <!-- AI Signal History & Performance Table -->
+                <div class="card bg-black border border-secondary mt-2 p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-2">
                         <h6 class="mb-0 fw-bold text-light fs-6">📋 AI Signal History & Performance</h6>
                         <span class="badge bg-success text-black fw-bold">Win Rate: 94.2%</span>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-dark table-striped table-hover table-sm small mb-0 align-middle bg-transparent">
+                        <table class="table table-dark table-striped table-hover table-sm small mb-0 align-middle">
                             <thead>
-                                <tr class="text-secondary border-bottom border-secondary">
+                                <tr class="text-secondary">
                                     <th>Time (UTC)</th>
                                     <th>Asset</th>
                                     <th>Signal</th>
@@ -126,43 +110,20 @@
                     </div>
                 </div>
 
-                <!-- Global Market News Bar -->
-                <div class="bg-black border border-secondary border-opacity-25 rounded p-2 mt-2 small d-flex align-items-center gap-3">
-                    <span class="badge bg-warning text-dark fw-bold">🌍 WORLD NEWS</span>
-                    <marquee class="text-secondary" scrollamount="4">
-                        <span class="text-light me-4">⚡ Fed holds interest rates steady as inflation cools down globally.</span>
-                        <span class="text-light me-4">⚡ Bitcoin breaks resistance level, aiming for new all-time highs in Q3.</span>
-                        <span class="text-light">⚡ Gold prices surge amid geopolitical tensions in Eastern markets.</span>
-                    </marquee>
-                </div>
-
             </div>
 
-            <!-- Right Side: AI Assistant Chat & Command Desk -->
-            <div class="col-lg-3 d-flex flex-column h-100 bg-black rounded border border-secondary border-opacity-25 p-3 shadow">
-                <div class="d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+            <!-- Right Side: AI Assistant Chat Desk -->
+            <div class="col-lg-3 d-flex flex-column h-100 bg-black rounded border border-secondary p-3 shadow">
+                <div class="d-flex align-items-center gap-2 border-bottom border-secondary pb-2 mb-3">
                     <span>🤖</span>
                     <h6 class="mb-0 fw-bold text-light fs-6">VENPro AI Desk</h6>
                 </div>
-                
-                <!-- Chat Feed Box -->
-                <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-dark rounded border border-secondary border-opacity-25 mb-3 d-flex flex-column gap-2">
-                    <div class="p-2 bg-black rounded border border-secondary border-opacity-25 text-light">
-                        <span class="text-warning fw-bold d-block mb-1">VENPro AI:</span>
-                        Hello VET Ven! All neural systems are online. Ask me about trend analysis, risk management, or automated signals.
-                    </div>
+                <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-dark rounded border border-secondary mb-3">
+                    <span class="text-warning fw-bold d-block mb-1">VENPro AI:</span>
+                    Hello VET Ven! Neural networks are fully active. Ask me anything about the market.
                 </div>
-
-                <!-- Quick Prompts Buttons -->
-                <div class="d-flex flex-wrap gap-1 mb-2">
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Analyze this chart</button>
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Best setups now</button>
-                    <button class="btn btn-outline-secondary btn-xs text-xs">Risk check</button>
-                </div>
-
-                <!-- Chat Input Form -->
                 <div class="input-group input-group-sm">
-                    <input type="text" class="form-control bg-dark text-light border-secondary shadow-none" placeholder="Ask AI anything...">
+                    <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Ask AI...">
                     <button class="btn btn-success px-3">➤</button>
                 </div>
             </div>
@@ -170,7 +131,6 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS & TradingView Widget Library -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script.logics.js"></script>
