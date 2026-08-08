@@ -3,132 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Bootstrap Version</title>
-    <!-- Bootstrap 5 CSS CDN -->
+    <title>Forex AI Pro - Ultimate Terminal</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-body-tertiary">
-    <div class="container py-3">
-        <!-- Top Navigation -->
-        <header class="navbar navbar-expand-lg navbar-dark bg-dark px-3 rounded-4 mb-3 border border-secondary border-opacity-25 shadow-sm">
-            <a class="navbar-brand fw-bold fs-5 text-white" href="#">Forex AI <span class="text-success">Pro</span></a>
-            
-            <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
-                <!-- Page Tabs -->
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-primary active" id="tab-dashboard-btn" onclick="switchPage('dashboard')">📈 Live Terminal</button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="tab-analytics-btn" onclick="switchPage('analytics')">📊 AI Analytics</button>
-                </div>
-
-                <!-- Asset Switcher -->
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-success asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', this)">BTC</button>
-                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('FX:EURUSD', this)">EUR</button>
-                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('FX:GBPUSD', this)">GBP</button>
-                    <button type="button" class="btn btn-sm btn-secondary asset-btn" onclick="changeAsset('OANDA:XAUUSD', this)">GOLD</button>
-                </div>
+<body class="bg-body-tertiary overflow-hidden">
+    <div class="container-fluid vh-100 d-flex flex-column p-2">
+        
+        <!-- Top Status Bar -->
+        <header class="navbar navbar-dark bg-dark px-3 rounded-3 mb-2 border border-secondary border-opacity-25 py-1">
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-brand fw-bold fs-6 text-white mb-0">Z ⚡ <span class="text-warning">Free plan</span></span>
+                <span class="badge bg-secondary text-light">VOLATILITY Low</span>
+                <span class="badge bg-secondary text-light">REGIME Cautious</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-success fw-bold px-3">UPGRADE</button>
             </div>
         </header>
 
-        <!-- PAGE 1: DASHBOARD -->
-        <div id="page-dashboard" class="page-content">
-            <!-- Chart Container -->
-            <div class="card bg-dark border-secondary border-opacity-25 mb-3 shadow">
-                <div class="card-body p-0 overflow-hidden rounded-4">
-                    <div id="tradingview_widget" class="w-100"></div>
+        <!-- Main Workspace Layout (Grid 2 Columns: Chart + AI Chat Sidebar) -->
+        <div class="row flex-grow-1 g-2 overflow-hidden">
+            
+            <!-- Left Side: Terminal & Floating Widget -->
+            <div class="col-lg-9 d-flex flex-column h-100 position-relative">
+                
+                <!-- Asset & Timeframe Subbar -->
+                <div class="d-flex justify-content-between align-items-center bg-dark p-2 rounded-top border border-secondary border-opacity-25 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-warning" id="current-asset-label">BTCUSDT</span>
+                        <span class="badge bg-success">Open</span>
+                        <span class="text-success fw-bold">65,054</span>
+                        <span class="text-success small">+1.10%</span>
+                    </div>
+                    <!-- Asset Switcher -->
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-light asset-btn active" onclick="changeAsset('BINANCE:BTCUSD', 'BTCUSDT', this)">BTC</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:EURUSD', 'EURUSD', this)">EUR</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('FX:GBPUSD', 'GBPUSD', this)">GBP</button>
+                        <button class="btn btn-outline-light asset-btn" onclick="changeAsset('OANDA:XAUUSD', 'XAUUSD', this)">GOLD</button>
+                    </div>
+                </div>
+
+                <!-- TradingView Chart Container (Full Height) -->
+                <div class="flex-grow-1 bg-dark border border-secondary border-opacity-25 position-relative overflow-hidden">
+                    <div id="tradingview_widget" class="w-100 h-100"></div>
+
+                    <!-- Floating AI Analysis Panel (ដូចក្នុងរូបភាពរបស់បង) -->
+                    <div class="floating-ai-panel shadow-lg p-2 rounded-3">
+                        <div class="d-flex gap-2 border-bottom border-secondary border-opacity-25 pb-1 mb-2">
+                            <button class="btn btn-sm btn-dark text-warning fw-bold active-tab" onclick="switchTab('analysis', this)">Analysis</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('bot', this)">Bot</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('history', this)">History</button>
+                            <button class="btn btn-sm btn-dark text-muted" onclick="switchTab('news', this)">News</button>
+                        </div>
+
+                        <div id="tab-content-area">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small fw-bold text-light" id="panel-symbol-title">BTCUSDT - 15m</span>
+                                <span class="badge bg-success text-dark fw-bold">● READY</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-light flex-grow-1 fw-bold fs-7">📊 Analyze <span class="text-warning">PRO</span></button>
+                                <button class="btn btn-sm btn-light text-dark flex-grow-1 fw-bold fs-7">⚡ Best setup <span class="text-warning">PRO</span></button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- AI Signal Box -->
-            <div class="card bg-dark border-success border-opacity-50 mb-3 shadow signal-card">
-                <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h2 class="text-success fw-bold mb-1 fs-3" id="ai-signal-text">STRONG BUY</h2>
-                        <p class="text-muted mb-0 small" id="ai-confidence">Confidence: 99.4%</p>
+            <!-- Right Side: AI Assistant Chat Desk (ដូចក្នុងរូបភាព) -->
+            <div class="col-lg-3 d-flex flex-column h-100 bg-dark rounded border border-secondary border-opacity-25 p-3">
+                <div class="d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2 mb-3">
+                    <span>🤖</span>
+                    <h6 class="mb-0 fw-bold text-light fs-6">Chat / Trade AI Desk</h6>
+                </div>
+                
+                <!-- Chat Message Box -->
+                <div class="flex-grow-1 overflow-auto text-secondary small p-2 bg-black rounded border border-secondary border-opacity-25 mb-3 d-flex flex-column gap-2">
+                    <div class="p-2 bg-dark rounded text-light">
+                        <span class="text-warning fw-bold d-block mb-1">Zoqira AI:</span>
+                        Hey, I'm Zoqira AI — ask me anything about <b>BTCUSDT</b> or the market.
                     </div>
-                    <div class="d-flex gap-4">
-                        <div class="text-end">
-                            <span class="d-block text-muted small">Trend</span>
-                            <span class="fw-bold text-success" id="ai-trend">Bullish</span>
-                        </div>
-                        <div class="text-end">
-                            <span class="d-block text-muted small">Session</span>
-                            <span class="fw-bold text-light" id="active-session">Loading...</span>
-                        </div>
-                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Analyze this chart</button>
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Best setups now</button>
+                    <button class="btn btn-outline-secondary btn-xs text-xs">Market outlook</button>
+                </div>
+
+                <!-- Chat Input Box -->
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control bg-black text-light border-secondary" placeholder="Analyze BTC, deploy a bot...">
+                    <button class="btn btn-success">➤</button>
                 </div>
             </div>
 
-            <!-- Grid Strategy & Confluence -->
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <div class="card bg-dark border-secondary border-opacity-25 h-100 shadow">
-                        <div class="card-body">
-                            <h5 class="card-title text-light fs-6 border-bottom border-secondary border-opacity-25 pb-2 mb-3">🎯 Strategy</h5>
-                            <div class="d-flex justify-content-between mb-2 small text-muted">
-                                <span>Action:</span> <span class="text-success fw-semibold">Long Position</span>
-                            </div>
-                            <div class="d-flex justify-content-between small text-muted">
-                                <span>Risk/Reward:</span> <span class="text-light fw-semibold">1:2.5</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card bg-dark border-secondary border-opacity-25 h-100 shadow">
-                        <div class="card-body">
-                            <h5 class="card-title text-light fs-6 border-bottom border-secondary border-opacity-25 pb-2 mb-3">📊 Confluence</h5>
-                            <div class="d-flex justify-content-between mb-2 small text-muted">
-                                <span>RSI (14):</span> <span class="text-light fw-semibold">58.2</span>
-                            </div>
-                            <div class="d-flex justify-content-between small text-muted">
-                                <span>MACD:</span> <span class="text-success fw-semibold">Bullish</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
-        <!-- PAGE 2: ANALYTICS -->
-        <div id="page-analytics" class="page-content d-none">
-            <div class="card bg-dark border-secondary border-opacity-25 shadow p-4">
-                <h3 class="text-light fs-5 border-bottom border-secondary border-opacity-25 pb-2 mb-3">🔍 Advanced Market Intelligence & Deep AI Metrics</h3>
-                <p class="text-muted small mb-4">ផ្ទាំងនេះបង្ហាញពីទិន្នន័យវិភាគស៊ីជម្រៅរបស់ប្រព័ន្ធ AI លើគូរូបិយវត្ថុ និងរាល់សញ្ញាប្រវត្តិសាស្ត្រ (Signal History) កន្លងមក។</p>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
-                            <h6 class="text-muted small mb-2">Win Rate Accuracy</h6>
-                            <div class="fs-4 fw-bold text-success mb-1">94.2%</div>
-                            <p class="text-secondary small mb-0">ផ្អែកលើទិន្នន័យប្រតិបត្តិការ ៣០ថ្ងៃចុងក្រោយ</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
-                            <h6 class="text-muted small mb-2">Average Risk Reward</h6>
-                            <div class="fs-4 fw-bold text-light mb-1">1 : 2.8</div>
-                            <p class="text-secondary small mb-0">កម្រិតសមាមាត្រហានិភ័យ និងប្រាក់ចំណេញ</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 bg-black rounded-3 border border-secondary border-opacity-25 text-center">
-                            <h6 class="text-muted small mb-2">Market Sentiment</h6>
-                            <div class="fs-4 fw-bold text-success mb-1">Bullish Dominated</div>
-                            <p class="text-secondary small mb-0">ទិសដៅទីផ្សារសរុបអន្តរជាតិ</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="text-center text-muted small mt-4 pb-2">
-            <p>© 2026 ForexAI Pro. All Rights Reserved.</p>
-        </footer>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle CDN -->
+    <!-- Bootstrap 5 JS & TradingView -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script.logics.js"></script>
