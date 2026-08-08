@@ -61,9 +61,9 @@
             <div class="flex flex-wrap items-center gap-2">
                 <div class="space-x-1">
                     <button type="button" onclick="switchTab('landing')" id="btn-landing" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Home</button>
-                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
+                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Terminal</button>
                     <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
-                    <button type="button" onclick="switchTab('pricing')" id="btn-pricing" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Pricing</button>
+                    <button type="button" onclick="switchTab('pricing')" id="btn-pricing" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Pricing</button>
                     <button type="button" onclick="switchTab('faq')" id="btn-faq" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">FAQ</button>
                     <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
                 </div>
@@ -110,7 +110,7 @@
             </div>
         </div>
 
-        <div id="tab-terminal" class="tab-content space-y-6">
+        <div id="tab-terminal" class="tab-content space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 <div class="lg:col-span-3 space-y-6">
@@ -241,13 +241,15 @@
             </div>
         </div>
 
-        <div id="tab-pricing" class="tab-content space-y-6 hidden">
+        <!-- PRICING TAB WITH ABA PAYMENT -->
+        <div id="tab-pricing" class="tab-content space-y-6">
             <div class="text-center space-y-2 max-w-xl mx-auto">
                 <h2 class="text-2xl font-bold text-purple-400">💎 កញ្ចប់សេវាកម្ម Enterprise VIP</h2>
-                <p class="text-xs text-gray-400">ជ្រើសរើសកញ្ចប់ដើម្បីប្រើប្រាស់ Auto Trading API និង News Filter ពេញលេញ។</p>
+                <p class="text-xs text-gray-400">ទូទាត់ប្រាក់ងាយស្រួលតាមរយៈ ABA Bank (V TRADE PRO)</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto pt-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto pt-2">
+                <!-- Free Plan -->
                 <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4 flex flex-col justify-between">
                     <div class="space-y-3">
                         <div class="text-sm font-bold text-gray-400">Free Plan</div>
@@ -260,6 +262,7 @@
                     <button type="button" class="w-full bg-gray-800 text-white text-xs font-bold py-3 rounded-lg">Current</button>
                 </div>
 
+                <!-- Enterprise Plan + ABA Payment -->
                 <div class="bg-gray-900 p-6 rounded-2xl border border-emerald-500 shadow-xl space-y-4 flex flex-col justify-between relative">
                     <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg">ENTERPRISE</div>
                     <div class="space-y-3">
@@ -270,9 +273,23 @@
                             <li>✓ Economic News Filter & Auto-Pause</li>
                             <li>✓ Multi-Timeframe ICT Confluence Matrix</li>
                         </ul>
+
+                        <!-- ABA Bank Info Box -->
+                        <div class="bg-black/80 border border-gray-800 p-3.5 rounded-xl space-y-2 mt-3 text-xs">
+                            <div class="flex items-center justify-between font-bold text-blue-400 border-b border-gray-800 pb-1.5">
+                                <span>KHQR / ABA Bank Payment</span>
+                                <span class="text-emerald-400">$59.00</span>
+                            </div>
+                            <div class="space-y-1 text-gray-300">
+                                <div class="flex justify-between"><span>Bank Name:</span> <strong class="text-white">ABA Bank</strong></div>
+                                <div class="flex justify-between"><span>Account Name:</span> <strong class="text-white">V TRADE PRO</strong></div>
+                                <div class="flex justify-between"><span>Account Number:</span> <strong class="text-yellow-400 font-mono text-sm">002145481</strong></div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="button" onclick="alert('សូមទាក់ទង Admin ដើម្បីបើកកញ្ចប់ Enterprise!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg transition cursor-pointer">
-                        ទិញកញ្ចប់ Enterprise ($59)
+
+                    <button type="button" onclick="alert('សូមផ្ទេរប្រាក់មកកាន់ ABA: 002145481 (V TRADE PRO) ចំនួន $59 រួចផ្ញើ Slip មកកាន់ Admin ដើម្បីアクטי베ートកញ្ចប់ Enterprise!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                        💸 ទូទាត់ប្រាក់ឆ្លងកាត់ ABA ($59)
                     </button>
                 </div>
             </div>
@@ -284,6 +301,10 @@
                 <div>
                     <div class="font-bold text-white">១. តើ Auto Trading API ដំណើរការយ៉ាងដូចម្តេច?</div>
                     <div class="text-gray-400 mt-1">នៅពេលប្រព័ន្ធ AI រកឃើញសញ្ញា ICT ស្របតាមកុដិ 15m/1h/4h វានឹងបញ្ជាទិញស្វ័យប្រវត្តិទៅកាន់ Binance ឬ Bybit API Key ដែលអ្នកបានបញ្ចូល។</div>
+                </div>
+                <div>
+                    <div class="font-bold text-white">២. តើត្រូវបង់ប្រាក់តាមណា?</div>
+                    <div class="text-gray-400 mt-1">អ្នកអាចផ្ទេរប្រាក់តាមរយៈគណនី ABA លេខ <strong>002145481</strong> ឈ្មោះ <strong>V TRADE PRO</strong>។</div>
                 </div>
             </div>
         </div>
@@ -320,7 +341,6 @@
         let authMode = 'login';
         let tradeCount = 0;
 
-        // Multi-Language Dictionary
         const translations = {
             km: {
                 home: "ទំព័រដើម", terminal: "ស្ថានីយ៍ (Terminal)", dashboard: "ផ្ទាំងគ្រប់គ្រង", pricing: "តម្លៃសេវាកម្ម", faq: "សំណួរ", profile: "គណនី",
@@ -387,7 +407,7 @@
             const appWrapper = document.getElementById('appWrapper');
             if(authWrapper) authWrapper.style.display = 'none';
             if(appWrapper) appWrapper.classList.remove('hidden');
-            switchTab('landing');
+            switchTab('terminal');
             loadChart("BTCUSDT");
         }
 
@@ -556,7 +576,7 @@
             document.getElementById('forgotModal').classList.add('flex');
         }
 
-        function closeForgotModal() {
+        function closeForgotPasswordModal() {
             document.getElementById('forgotModal').classList.add('hidden');
             document.getElementById('forgotModal').classList.remove('flex');
         }
@@ -568,7 +588,7 @@
                 return;
             }
             alert("✅ តំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ត្រូវបានបញ្ជូនទៅកាន់ " + email + " ហើយ!");
-            closeForgotModal();
+            closeForgotPasswordModal();
         }
     </script>
 </body>
