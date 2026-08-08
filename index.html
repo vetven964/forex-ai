@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI - Master Terminal & ICT Advanced Ultimate</title>
+    <title>V Trade AI - Master Terminal & ICT Advanced Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -18,7 +18,7 @@
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
                 <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
-                    🤖 <span class="text-blue-500">VET Trade AI</span>
+                    🤖 <span class="text-blue-500">V Trade AI</span>
                 </h1>
                 <p id="authSubTitle" class="text-xs text-gray-400">ប្រព័ន្ធវិភាគទីផ្សារ ICT និង Auto Telegram Bot កម្រិតខ្ពស់</p>
             </div>
@@ -130,7 +130,7 @@
 
                         <div id="chatLogs" class="bg-black h-72 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                             <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
-                                <span class="text-blue-400 font-bold block mb-1">🤖 VET ICT Bot:</span> 
+                                <span class="text-blue-400 font-bold block mb-1">🤖 V ICT Bot:</span> 
                                 សួស្តី! ប្រព័ន្ធវិភាគ ICT និង Telegram Bot (@ai_pro_auto_bot) រួចរាល់។ សូមបំពេញ Chat ID រួចចុច Start Auto Bot!
                             </div>
                         </div>
@@ -377,7 +377,7 @@
                     <label class="text-[10px] text-gray-400">លេខកាត ឬ ABA PayWay / KHQR</label>
                     <div class="bg-black p-4 rounded-lg border border-gray-800 text-center space-y-2">
                         <div class="text-blue-400 font-bold">KHQR Scan to Pay</div>
-                        <div class="text-[11px] text-gray-300">ABA Account: <b>000 123 456 (VET TRADE AI)</b></div>
+                        <div class="text-[11px] text-gray-300">ABA Account: <b>000 123 456 (V TRADE AI)</b></div>
                     </div>
                 </div>
                 <button type="button" onclick="confirmPayment()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
@@ -552,7 +552,7 @@
                 return;
             }
 
-            const msg = "✅ <b>VET Trade AI</b>: ប្រព័ន្ធ Telegram Alert ភ្ជាប់ជាមួយ @ai_pro_auto_bot បានជោគជ័យ!";
+            const msg = "✅ <b>V Trade AI</b>: ប្រព័ន្ធ Telegram Alert ភ្ជាប់ជាមួយ @ai_pro_auto_bot បានជោគជ័យ!";
             const success = await sendToTelegram(msg);
             if(success) {
                 alert('✅ ភ្ជាប់ជោគជ័យ!');
@@ -610,13 +610,13 @@
             let webText = "";
 
             if (chosenAction === 'BUY') {
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🟢 <b>V AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
                 webText = `🟢 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
             } else if (chosenAction === 'SELL') {
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🔴 <b>V AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
                 webText = `🔴 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
             } else {
-                teleMsg = `⏳ <b>VET AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `⏳ <b>V AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
                 webText = `⏳ <b>[ICT AUTO SIGNAL]:</b> ទីផ្សារមិនទាន់ច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
             }
 
@@ -663,13 +663,13 @@
 
             if (actionType === 'BUY') {
                 webText = `🟢 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🟢 <b>V AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
             } else if (actionType === 'SELL') {
                 webText = `🔴 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🔴 <b>V AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
             } else {
                 webText = `📊 <b>វិភាគ ICT ${market}:</b> Market Structure ស្ថិតក្នុងតំបន់រង់ចាំ (Order Block & FVG)។`;
-                teleMsg = `📊 <b>VET ICT MARKET ANALYSIS</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Monitoring Order Blocks.\n\n🤖 <i>Generated by VET Trade AI</i>`;
+                teleMsg = `📊 <b>V ICT MARKET ANALYSIS</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Monitoring Order Blocks.\n\n🤖 <i>Generated by V Trade AI</i>`;
             }
 
             setTimeout(async () => {
@@ -685,7 +685,7 @@
 
                 logs.innerHTML += `
                     <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
-                        <span class="text-blue-400 font-bold block">🤖 VET ICT Bot:</span> 
+                        <span class="text-blue-400 font-bold block">🤖 V ICT Bot:</span> 
                         <div class="text-gray-200">${webText}</div>
                         ${alertStatusHTML}
                     </div>
