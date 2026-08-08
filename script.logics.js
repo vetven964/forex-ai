@@ -15,7 +15,12 @@ function initTradingView(symbol, timeframe) {
             "theme": "dark",
             "style": "1",
             "locale": "en",
-            "container_id": "tradingview_widget"
+            "container_id": "tradingview_widget",
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "details": true,
+            "hotlist": true,
+            "calendar": true
         });
     }
 }
@@ -27,6 +32,11 @@ function changeAsset(symbol, labelName, btnElement) {
     const labelEl = document.getElementById("current-asset-label");
     if(labelEl) {
         labelEl.innerText = labelName;
+    }
+
+    const titleEl = document.getElementById("panel-symbol-title");
+    if(titleEl) {
+        titleEl.innerText = labelName + " - 15m";
     }
 
     document.querySelectorAll('.asset-btn').forEach(btn => {
