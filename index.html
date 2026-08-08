@@ -2,11 +2,14 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI - Master Terminal</title>
+    <title>VET Trade AI - Master Terminal & News</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body { background-color: #0b0e14; color: white; font-family: sans-serif; }
+        .news-ticker { overflow: hidden; white-space: nowrap; }
+        .news-track { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
     </style>
 </head>
 <body class="p-4 space-y-6 max-w-6xl mx-auto">
@@ -29,6 +32,20 @@
         </div>
     </header>
 
+    <!-- World News & Market Feeds Ticker Bar -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 flex items-center overflow-hidden text-xs">
+        <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 World News</span>
+        <div class="news-ticker w-full text-gray-300">
+            <div class="news-track space-x-8">
+                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience.</span>
+                <span class="text-green-400 font-semibold">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
+                <span class="text-blue-400 font-semibold">🌍 [Global]: Global equity markets react positively to latest inflation data releases.</span>
+                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience.</span>
+                <span class="text-green-400 font-semibold">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
+            </div>
+        </div>
+    </div>
+
     <!-- 1. TradingView Chart Section -->
     <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
         <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
@@ -47,7 +64,7 @@
 
         <!-- Chat History Box -->
         <div id="chatLogs" class="bg-black h-48 rounded p-3 overflow-y-auto text-xs text-gray-300 space-y-2 border border-gray-800">
-            <div><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តី! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារជូនបងប្រុស។ សូមជ្រើសរើសបញ្ជាខាងក្រោម ឬវាយសួរបាន!</div>
+            <div><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តី! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានអន្តរជាតិជូនបងប្រុស។ សូមជ្រើសរើសបញ្ជាខាងក្រោម ឬវាយសួរបាន!</div>
         </div>
 
         <!-- Action Buttons -->
@@ -91,7 +108,7 @@
             logs.innerHTML += `<div><span class="text-purple-400 font-bold">You:</span> ${actionType}</div>`;
             
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} for BTC/USDT... Market trend looks stable with bullish confirmation zones. Good to go!</div>`;
+                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} for BTC/USDT with current world news feed... Market trend looks stable with bullish confirmation zones. Good to go!</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 500);
             logs.scrollTop = logs.scrollHeight;
@@ -107,7 +124,7 @@
             input.value = '';
 
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Received query regarding "${val}". AI Engine suggests monitoring key support levels.</div>`;
+                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Received query regarding "${val}". AI Engine suggests monitoring key support levels and global updates.</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 600);
             logs.scrollTop = logs.scrollHeight;
