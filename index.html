@@ -6,48 +6,64 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
-        body { background-color: #07090e; color: #f3f4f6; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        body { background-color: #05070b; color: #f3f4f6; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0b0e14; }
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); }
+        }
+        .glow-card { animation: pulseGlow 4s infinite; }
+        
+        .tab-content {
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+<body class="p-4 md:p-6 space-y-6 max-w-7xl mx-auto selection:bg-blue-600 selection:text-white">
 
     <!-- AUTHENTICATION WRAPPER -->
     <div id="authWrapper" class="min-h-[85vh] flex items-center justify-center">
-        <div class="bg-gray-900/90 backdrop-blur-xl border border-gray-800/80 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
-            <div class="text-center space-y-2">
-                <div class="inline-flex p-3 bg-blue-600/10 border border-blue-500/20 rounded-2xl text-2xl mb-1">🤖</div>
+        <div class="bg-gray-900/80 backdrop-blur-2xl border border-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="text-center space-y-2 relative z-10">
+                <div class="inline-flex p-3.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-2xl text-2xl mb-1 shadow-lg">🤖</div>
                 <h1 class="text-2xl font-black tracking-tight text-white">
-                    V <span class="text-blue-500">Trade AI</span>
+                    V <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Trade AI</span>
                 </h1>
-                <p id="authSubTitle" class="text-xs text-gray-400">ប្រព័ន្ធវិភាគទីផ្សារ ICT និង Auto Trading Enterprise</p>
+                <p class="text-xs text-gray-400">ប្រព័ន្ធវិភាគទីផ្សារ ICT និង Auto Trading Enterprise</p>
             </div>
 
-            <div class="flex bg-black/60 p-1.5 rounded-xl border border-gray-800 text-xs font-semibold">
-                <button type="button" onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition shadow-md">Sign In</button>
-                <button type="button" onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition">Register</button>
+            <div class="flex bg-black/60 p-1.5 rounded-xl border border-gray-800/80 text-xs font-semibold relative z-10">
+                <button type="button" onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-md cursor-pointer">Sign In</button>
+                <button type="button" onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition-all cursor-pointer">Register</button>
             </div>
 
-            <div class="space-y-4 pt-2">
-                <div id="nameFieldContainer" class="hidden space-y-1.5">
+            <div class="space-y-4 pt-2 relative z-10">
+                <div id="nameFieldContainer" class="hidden space-y-1.5 transition-all duration-300">
                     <label class="text-[11px] font-medium text-gray-300">Full Name</label>
-                    <input type="text" id="regName" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition" placeholder="ឈ្មោះរបស់អ្នក">
+                    <input type="text" id="regName" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition shadow-inner" placeholder="ឈ្មោះរបស់អ្នក">
                 </div>
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-medium text-gray-300">Email Address</label>
-                    <input type="email" id="authEmail" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition" value="user@vettarde.ai">
+                    <input type="email" id="authEmail" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition shadow-inner" value="user@vettarde.ai">
                 </div>
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center">
                         <label class="text-[11px] font-medium text-gray-300">Password</label>
-                        <a href="#" onclick="openForgotPasswordModal(event)" class="text-[11px] text-blue-400 hover:underline">Forgot?</a>
+                        <a href="#" onclick="openForgotPasswordModal(event)" class="text-[11px] text-blue-400 hover:text-blue-300 transition">Forgot?</a>
                     </div>
-                    <input type="password" id="authPass" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition" value="123456">
+                    <input type="password" id="authPass" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 transition shadow-inner" value="123456">
                 </div>
-                <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/20 cursor-pointer">
+                <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
                     Sign In to Terminal
                 </button>
             </div>
@@ -58,35 +74,35 @@
     <div id="appWrapper" class="space-y-6 hidden">
         
         <!-- HEADER NAVIGATION -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-gray-900/60 backdrop-blur-md border border-gray-800/80 p-4 rounded-2xl gap-4 shadow-xl">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('landing')">
-                <div class="p-2 bg-blue-600/20 border border-blue-500/30 rounded-xl text-lg">🤖</div>
+        <header class="flex flex-col md:flex-row justify-between items-center bg-gray-900/60 backdrop-blur-xl border border-gray-800/80 p-4 rounded-2xl gap-4 shadow-2xl sticky top-4 z-40">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchTab('landing')">
+                <div class="p-2.5 bg-blue-600/20 border border-blue-500/30 rounded-xl text-lg group-hover:scale-110 transition duration-300 shadow-md">🤖</div>
                 <div>
                     <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                        V Trade AI <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">Enterprise</span>
+                        V Trade AI <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-medium shadow-sm">Enterprise</span>
                     </h1>
                 </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-2.5">
-                <div class="flex bg-black/40 p-1 rounded-xl border border-gray-800 gap-1">
-                    <button type="button" onclick="switchTab('landing')" id="btn-landing" class="px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white">Home</button>
-                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="px-3 py-1.5 rounded-lg text-xs transition bg-blue-600 text-white font-semibold shadow-sm">Terminal</button>
-                    <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white">Dashboard</button>
-                    <button type="button" onclick="switchTab('pricing')" id="btn-pricing" class="px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white">Pricing</button>
-                    <button type="button" onclick="switchTab('faq')" id="btn-faq" class="px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white">FAQ</button>
-                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white">Profile</button>
+                <div class="flex bg-black/50 p-1 rounded-xl border border-gray-800 gap-1">
+                    <button type="button" onclick="switchTab('landing')" id="btn-landing" class="px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer">Home</button>
+                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="px-3 py-1.5 rounded-lg text-xs transition-all bg-blue-600 text-white font-semibold shadow-md cursor-pointer">Terminal</button>
+                    <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer">Dashboard</button>
+                    <button type="button" onclick="switchTab('pricing')" id="btn-pricing" class="px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer">Pricing</button>
+                    <button type="button" onclick="switchTab('faq')" id="btn-faq" class="px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer">FAQ</button>
+                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer">Profile</button>
                 </div>
 
-                <select id="langSelector" onchange="changeLanguage()" class="bg-black/60 text-xs text-white px-3 py-2 rounded-xl border border-gray-800 focus:outline-none cursor-pointer">
+                <select id="langSelector" onchange="changeLanguage()" class="bg-black/60 text-xs text-white px-3 py-2 rounded-xl border border-gray-800 focus:outline-none hover:border-gray-700 transition cursor-pointer">
                     <option value="km">🇰🇭 ភាសាខ្មែរ</option>
                     <option value="en">🇬🇧 English</option>
                     <option value="zh">🇨🇳 中文</option>
                     <option value="th">🇹🇭 ไทย</option>
                 </select>
 
-                <div class="text-xs bg-black/60 px-3 py-2 rounded-xl border border-gray-800 font-mono flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <div class="text-xs bg-black/60 px-3 py-2 rounded-xl border border-gray-800 font-mono flex items-center gap-1.5 shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                     <span id="headerAsset" class="text-emerald-400 font-bold">BTC/USD</span>
                 </div>
             </div>
@@ -94,29 +110,30 @@
 
         <!-- LANDING TAB -->
         <div id="tab-landing" class="tab-content space-y-8 hidden">
-            <div class="bg-gradient-to-br from-blue-950/40 via-gray-900 to-purple-950/40 border border-blue-900/40 p-10 rounded-3xl text-center space-y-5 shadow-2xl">
-                <span class="text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full font-bold">Next-Gen ICT Trading AI</span>
-                <h2 id="landTitle" class="text-3xl md:text-4xl font-black text-white max-w-3xl mx-auto leading-tight">ប្រព័ន្ធវិភាគ និង Auto Trading ស្វ័យប្រវត្តិលំដាប់ខ្ពស់ <span class="text-blue-500">ICT & AI</span></h2>
+            <div class="bg-gradient-to-br from-blue-950/40 via-gray-900 to-purple-950/40 border border-blue-900/40 p-10 rounded-3xl text-center space-y-5 shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+                <span class="text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3.5 py-1 rounded-full font-bold inline-block">Next-Gen ICT Trading AI</span>
+                <h2 id="landTitle" class="text-3xl md:text-5xl font-black text-white max-w-3xl mx-auto leading-tight">ប្រព័ន្ធវិភាគ និង Auto Trading ស្វ័យប្រវត្តិលំដាប់ខ្ពស់ <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">ICT & AI</span></h2>
                 <p id="landDesc" class="text-sm text-gray-300 max-w-2xl mx-auto leading-relaxed">វិភាគទីផ្សារគ្រីបតូ និងមាសតាមក្បួនខ្នាត Order Block, FVG ជាមួយមុខងារ Auto Trading API, News Filter និង Telegram Bot រៀងរាល់ ៥នាទីម្តង។</p>
                 <div class="flex justify-center gap-4 pt-3">
-                    <button type="button" onclick="switchTab('terminal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition shadow-lg shadow-blue-600/25 cursor-pointer">🚀 ចាប់ផ្តើម Terminal</button>
-                    <button type="button" onclick="switchTab('pricing')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition shadow-lg shadow-purple-600/25 cursor-pointer">💎 មើលកញ្ចប់សេវាកម្ម</button>
+                    <button type="button" onclick="switchTab('terminal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 cursor-pointer">🚀 ចាប់ផ្តើម Terminal</button>
+                    <button type="button" onclick="switchTab('pricing')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 cursor-pointer">💎 មើលកញ្ចប់សេវាកម្ម</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-blue-500/50 transition">
-                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400">⚡</div>
+                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-blue-500/50 hover:bg-gray-900/80 transition duration-300 shadow-xl group">
+                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400 group-hover:scale-110 transition">⚡</div>
                     <h3 class="text-sm font-bold text-white">Auto Trading API Execution</h3>
                     <p class="text-xs text-gray-400 leading-relaxed">ភ្ជាប់ API ជាមួយ Binance/Bybit ដើម្បីបញ្ជាទិញ-លក់ស្វ័យប្រវត្តិដោយផ្ទាល់ដោយសុវត្ថិភាពខ្ពស់។</p>
                 </div>
-                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-yellow-500/50 transition">
-                    <div class="text-3xl p-3 bg-yellow-500/10 rounded-xl w-fit text-yellow-400">📰</div>
+                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-yellow-500/50 hover:bg-gray-900/80 transition duration-300 shadow-xl group">
+                    <div class="text-3xl p-3 bg-yellow-500/10 rounded-xl w-fit text-yellow-400 group-hover:scale-110 transition">📰</div>
                     <h3 class="text-sm font-bold text-white">Economic News Filter</h3>
                     <p class="text-xs text-gray-400 leading-relaxed">ផ្អាក Bot ដោយស្វ័យប្រវត្តិពេលមានព្រឹត្តិការណ៍ព័ត៌មានសេដ្ឋកិច្ចធំៗ (High-Impact News) ដើម្បីការពារទឹកប្រាក់។</p>
                 </div>
-                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-emerald-500/50 transition">
-                    <div class="text-3xl p-3 bg-emerald-500/10 rounded-xl w-fit text-emerald-400">🌐</div>
+                <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 space-y-3 hover:border-emerald-500/50 hover:bg-gray-900/80 transition duration-300 shadow-xl group">
+                    <div class="text-3xl p-3 bg-emerald-500/10 rounded-xl w-fit text-emerald-400 group-hover:scale-110 transition">🌐</div>
                     <h3 class="text-sm font-bold text-white">Multi-Language Support</h3>
                     <p class="text-xs text-gray-400 leading-relaxed">គាំទ្រភាសាខ្មែរ អង់គ្លេស ចិន និងថៃ ស្របតាមតម្រូវការប្រើប្រាស់អន្តរជាតិយ៉ាងទូលំទូលាយ។</p>
                 </div>
@@ -128,18 +145,18 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 <div class="lg:col-span-3 space-y-6">
-                    <section class="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-gray-800/80 shadow-xl">
+                    <section class="bg-gray-900/60 backdrop-blur-md p-4 rounded-2xl border border-gray-800/80 shadow-2xl relative">
                         <div class="text-xs text-gray-400 mb-3 font-semibold flex justify-between items-center">
                             <span class="flex items-center gap-2">📈 Live TradingView Chart (<span id="currentChartTitle" class="text-white">BTCUSDT</span>)</span>
-                            <span class="text-[10px] text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">15m | 1h | 4h Confluence</span>
+                            <span class="text-[10px] text-blue-400 font-mono bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-500/20 shadow-inner">15m | 1h | 4h Confluence</span>
                         </div>
-                        <div id="chartContainer" style="height: 420px; width: 100%; border-radius: 12px; overflow: hidden;"></div>
+                        <div id="chartContainer" style="height: 440px; width: 100%; border-radius: 12px; overflow: hidden;" class="border border-gray-800/50 shadow-inner"></div>
                     </section>
 
-                    <section class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-xl space-y-4">
+                    <section class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-2xl space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">💬 ICT AI Assistant & Matrix</span>
-                            <select id="marketSelect" onchange="changeMarketSymbol()" class="bg-black/60 text-xs text-white px-3 py-1.5 rounded-xl border border-gray-800 focus:outline-none cursor-pointer">
+                            <select id="marketSelect" onchange="changeMarketSymbol()" class="bg-black/60 text-xs text-white px-3.5 py-2 rounded-xl border border-gray-800 focus:outline-none hover:border-gray-700 transition cursor-pointer shadow-inner">
                                 <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
                                 <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
                                 <option value="SOLUSDT">SOLUSDT (Solana)</option>
@@ -147,21 +164,21 @@
                             </select>
                         </div>
 
-                        <div id="chatLogs" class="bg-black/70 h-64 rounded-xl p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800/80 shadow-inner">
-                            <div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 space-y-1">
-                                <span class="text-blue-400 font-bold block">🤖 VET Enterprise AI:</span> 
+                        <div id="chatLogs" class="bg-black/75 h-64 rounded-xl p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
+                            <div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 space-y-1 shadow-md">
+                                <span class="text-blue-400 font-bold block flex items-center gap-1.5">🤖 VET Enterprise AI:</span> 
                                 ប្រព័ន្ធ Multi-Timeframe ICT និង Auto Trading API ដំណើរការជោគជ័យ។ សូមစတင် Test ឬបើក Auto Bot!
                             </div>
                         </div>
 
                         <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
                             <div class="flex flex-wrap gap-2">
-                                <button type="button" onclick="triggerAction('Analyze')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2.5 rounded-xl transition font-medium cursor-pointer border border-gray-700">📊 Matrix Analysis</button>
-                                <button type="button" onclick="triggerAction('BUY')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-xl transition font-bold shadow-lg shadow-emerald-600/20 cursor-pointer">🟢 BUY Signal</button>
-                                <button type="button" onclick="triggerAction('SELL')" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-2.5 rounded-xl transition font-bold shadow-lg shadow-rose-600/20 cursor-pointer">🔴 SELL Signal</button>
+                                <button type="button" onclick="triggerAction('Analyze')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-2.5 rounded-xl transition-all font-medium cursor-pointer border border-gray-700 shadow-md hover:scale-105 active:scale-95">📊 Matrix Analysis</button>
+                                <button type="button" onclick="triggerAction('BUY')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-emerald-600/25 hover:scale-105 active:scale-95 cursor-pointer">🟢 BUY Signal</button>
+                                <button type="button" onclick="triggerAction('SELL')" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-rose-600/25 hover:scale-105 active:scale-95 cursor-pointer">🔴 SELL Signal</button>
                             </div>
                             <div>
-                                <button type="button" id="autoBotBtn" onclick="toggleAutoBot()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2.5 rounded-xl transition font-bold flex gap-2 items-center shadow-lg shadow-purple-600/25 cursor-pointer">
+                                <button type="button" id="autoBotBtn" onclick="toggleAutoBot()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2.5 rounded-xl transition-all font-bold flex gap-2 items-center shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 cursor-pointer">
                                     ⚡ Start 5M Auto AI Bot
                                 </button>
                             </div>
@@ -171,7 +188,7 @@
 
                 <!-- SIDEBAR CONTROLS -->
                 <div class="space-y-6">
-                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-xl space-y-4">
+                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-2xl space-y-4">
                         <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                             ⚡ Auto Trading API
                         </h3>
@@ -180,30 +197,30 @@
                         <div class="space-y-3 text-xs">
                             <div>
                                 <label class="text-[10px] font-medium text-gray-400">Exchange Platform</label>
-                                <select id="apiExchange" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1">
+                                <select id="apiExchange" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 shadow-inner cursor-pointer">
                                     <option value="Binance">Binance Futures</option>
                                     <option value="Bybit">Bybit Derivatives</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="text-[10px] font-medium text-gray-400">API Key</label>
-                                <input type="text" id="apiKeyInput" placeholder="បញ្ចូល API Key" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 font-mono">
+                                <input type="text" id="apiKeyInput" placeholder="បញ្ចូល API Key" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 font-mono shadow-inner">
                             </div>
                             <div>
                                 <label class="text-[10px] font-medium text-gray-400">Secret Key</label>
-                                <input type="password" id="apiSecretInput" placeholder="បញ្ចូល Secret Key" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 font-mono">
+                                <input type="password" id="apiSecretInput" placeholder="បញ្ចូល Secret Key" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 font-mono shadow-inner">
                             </div>
-                            <div class="flex items-center justify-between pt-1 bg-black/40 p-2.5 rounded-xl border border-gray-800">
+                            <div class="flex items-center justify-between pt-1 bg-black/40 p-3 rounded-xl border border-gray-800">
                                 <span class="text-[11px] text-gray-300 font-medium">Enable Execution</span>
                                 <input type="checkbox" id="enableAutoTrade" class="w-4 h-4 accent-emerald-500 cursor-pointer">
                             </div>
-                            <button type="button" onclick="saveApiCredentials()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">
+                            <button type="button" onclick="saveApiCredentials()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/25 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
                                 🔗 ភ្ជាប់ API ស្វ័យប្រវត្តិ
                             </button>
                         </div>
                     </div>
 
-                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-xl space-y-3">
+                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-2xl space-y-3">
                         <h3 class="text-xs font-bold text-yellow-400 uppercase tracking-wider flex items-center gap-2">
                             📰 Economic News Filter
                         </h3>
@@ -215,16 +232,16 @@
                                 </div>
                                 <input type="checkbox" id="newsFilterToggle" checked class="w-4 h-4 accent-yellow-500 cursor-pointer">
                             </div>
-                            <div id="newsStatusBox" class="bg-emerald-950/30 border border-emerald-800/40 p-2.5 rounded-xl text-emerald-400 text-[10px] leading-relaxed">
+                            <div id="newsStatusBox" class="bg-emerald-950/30 border border-emerald-800/40 p-2.5 rounded-xl text-emerald-400 text-[10px] leading-relaxed shadow-inner">
                                 ✅ Status: គ្មានព័ត៌មានរំខានពេលនេះទេ (Safe to Trade)។
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-xl space-y-3">
+                    <div class="bg-gray-900/60 backdrop-blur-md p-5 rounded-2xl border border-gray-800/80 shadow-2xl space-y-3">
                         <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">📱 Telegram Bot</h3>
-                        <input type="text" id="tgChatId" placeholder="Chat ID ឧ: 192837465" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none font-mono">
-                        <button type="button" onclick="testTelegramConnection()" class="w-full bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2.5 rounded-xl transition shadow-lg shadow-sky-600/20 cursor-pointer">Test Telegram</button>
+                        <input type="text" id="tgChatId" placeholder="Chat ID ឧ: 192837465" class="w-full bg-black/60 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none font-mono shadow-inner">
+                        <button type="button" onclick="testTelegramConnection()" class="w-full bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-sky-600/25 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">Test Telegram</button>
                     </div>
                 </div>
 
@@ -233,23 +250,23 @@
 
         <!-- DASHBOARD TAB -->
         <div id="tab-dashboard" class="tab-content space-y-6 hidden">
-            <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 shadow-xl space-y-6">
+            <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800/80 shadow-2xl space-y-6">
                 <h2 class="text-base font-bold text-purple-400 flex items-center gap-2">📊 Enterprise Analytics & Auto Trading Dashboard</h2>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="text-xs text-gray-400">API Connection Status</div>
                         <div class="text-sm font-bold text-emerald-400" id="dashApiStatus">Not Connected</div>
                     </div>
-                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="text-xs text-gray-400">Total Executed Trades</div>
                         <div class="text-2xl font-black text-sky-400" id="dashTradeCount">0 Trades</div>
                     </div>
-                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="text-xs text-gray-400">System Uptime</div>
                         <div class="text-2xl font-black text-blue-400">99.99%</div>
                     </div>
-                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="text-xs text-gray-400">Matrix Win Rate</div>
                         <div class="text-2xl font-black text-yellow-400">93.4%</div>
                     </div>
@@ -266,7 +283,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto pt-2">
                 <!-- Free Plan -->
-                <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-3xl border border-gray-800/80 space-y-5 flex flex-col justify-between shadow-xl">
+                <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-3xl border border-gray-800/80 space-y-5 flex flex-col justify-between shadow-2xl hover:border-gray-700 transition">
                     <div class="space-y-4">
                         <div class="text-sm font-bold text-gray-400">Free Plan</div>
                         <div class="text-4xl font-black text-white">$0</div>
@@ -275,12 +292,12 @@
                             <li class="flex items-center gap-2">✓ ICT Basic Signals</li>
                         </ul>
                     </div>
-                    <button type="button" class="w-full bg-gray-800 text-white text-xs font-bold py-3.5 rounded-xl">Current Plan</button>
+                    <button type="button" class="w-full bg-gray-800 text-white text-xs font-bold py-3.5 rounded-xl cursor-default">Current Plan</button>
                 </div>
 
                 <!-- Enterprise Plan + ABA Payment -->
-                <div class="bg-gradient-to-b from-gray-900 to-gray-950 backdrop-blur-md p-7 rounded-3xl border border-emerald-500/50 shadow-2xl space-y-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">ENTERPRISE VIP</div>
+                <div class="glow-card bg-gradient-to-b from-gray-900 to-gray-950 backdrop-blur-md p-7 rounded-3xl border border-emerald-500/50 shadow-2xl space-y-5 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider shadow-md">ENTERPRISE VIP</div>
                     
                     <div class="space-y-4">
                         <div class="text-sm font-bold text-emerald-400">Enterprise Auto Trader</div>
@@ -305,7 +322,7 @@
                         </div>
                     </div>
 
-                    <button type="button" onclick="alert('សូមផ្ទេរប្រាក់មកកាន់ ABA: 002145481 (V TRADE PRO) ចំនួន $59 រួចផ្ញើ Slip មកកាន់ Admin ដើម្បីアクטי베ートកញ្ចប់ Enterprise!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 cursor-pointer">
+                    <button type="button" onclick="alert('សូមផ្ទេរប្រាក់មកកាន់ ABA: 002145481 (V TRADE PRO) ចំនួន $59 រួចផ្ញើ Slip មកកាន់ Admin ដើម្បីアクטי베ートកញ្ចប់ Enterprise!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/30 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
                         💸 ទូទាត់ប្រាក់ឆ្លងកាត់ ABA ($59)
                     </button>
                 </div>
@@ -314,14 +331,14 @@
 
         <!-- FAQ TAB -->
         <div id="tab-faq" class="tab-content space-y-6 hidden">
-            <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-2xl border border-gray-800/80 shadow-xl max-w-3xl mx-auto space-y-5 text-xs">
+            <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-2xl border border-gray-800/80 shadow-2xl max-w-3xl mx-auto space-y-5 text-xs">
                 <h2 class="text-base font-bold text-blue-400">❓ សំណួរដែលសួរញឹកញាប់ (FAQ)</h2>
                 <div class="space-y-4">
-                    <div class="bg-black/40 p-4 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/40 p-4 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="font-bold text-white text-sm">១. តើ Auto Trading API ដំណើរការយ៉ាងដូចម្តេច?</div>
                         <div class="text-gray-400 leading-relaxed">នៅពេលប្រព័ន្ធ AI រកឃើញសញ្ញា ICT ស្របតាមកុដិ 15m/1h/4h វានឹងបញ្ជាទិញស្វ័យប្រវត្តិទៅកាន់ Binance ឬ Bybit API Key ដែលអ្នកបានបញ្ចូល។</div>
                     </div>
-                    <div class="bg-black/40 p-4 rounded-xl border border-gray-800 space-y-1">
+                    <div class="bg-black/40 p-4 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="font-bold text-white text-sm">២. តើត្រូវបង់ប្រាក់តាមណា?</div>
                         <div class="text-gray-400 leading-relaxed">អ្នកអាចផ្ទេរប្រាក់តាមរយៈគណនី ABA លេខ <strong>002145481</strong> ឈ្មោះ <strong>V TRADE PRO</strong> ស្របតាមតម្លៃ $59 ក្នុងមួយខែ។</div>
                     </div>
@@ -331,27 +348,27 @@
 
         <!-- PROFILE TAB -->
         <div id="tab-profile" class="tab-content space-y-6 hidden">
-            <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-2xl border border-gray-800/80 shadow-xl max-w-xl mx-auto space-y-5 text-xs">
+            <div class="bg-gray-900/60 backdrop-blur-md p-7 rounded-2xl border border-gray-800/80 shadow-2xl max-w-xl mx-auto space-y-5 text-xs">
                 <h2 class="text-base font-bold text-blue-400">👤 User Profile</h2>
-                <div class="space-y-3 bg-black/40 p-4 rounded-xl border border-gray-800">
+                <div class="space-y-3 bg-black/40 p-4 rounded-xl border border-gray-800 shadow-inner">
                     <div class="flex justify-between"><span>Name:</span> <span id="profileName" class="font-bold text-white">V Trader</span></div>
                     <div class="flex justify-between"><span>Email:</span> <span id="profileEmail" class="text-gray-300">user@vettarde.ai</span></div>
                 </div>
-                <button type="button" onclick="handleLogout()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition cursor-pointer shadow-lg shadow-rose-600/20">Logout</button>
+                <button type="button" onclick="handleLogout()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition-all cursor-pointer shadow-lg shadow-rose-600/30 hover:scale-[1.01] active:scale-[0.99]">Logout</button>
             </div>
         </div>
 
     </div>
 
     <!-- FORGOT PASSWORD MODAL -->
-    <div id="forgotModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div id="forgotModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-gray-900 border border-gray-800 p-7 rounded-3xl w-full max-w-md space-y-5 shadow-2xl">
             <div class="flex justify-between items-center">
                 <h3 class="text-base font-bold text-white flex items-center gap-2">🔑 Reset Password</h3>
-                <button type="button" onclick="closeForgotModal()" class="text-gray-400 hover:text-white text-lg">✕</button>
+                <button type="button" onclick="closeForgotModal()" class="text-gray-400 hover:text-white text-lg cursor-pointer">✕</button>
             </div>
-            <input type="email" id="forgotEmail" placeholder="user@vettarde.ai" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500">
-            <button type="button" onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 rounded-xl transition cursor-pointer shadow-lg">Send Reset Link</button>
+            <input type="email" id="forgotEmail" placeholder="user@vettarde.ai" class="w-full bg-black/60 text-xs text-white px-3.5 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 shadow-inner">
+            <button type="button" onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 rounded-xl transition-all cursor-pointer shadow-lg hover:scale-[1.01] active:scale-[0.99]">Send Reset Link</button>
         </div>
     </div>
 
@@ -401,13 +418,13 @@
             const submitBtn = document.getElementById('authSubmitBtn');
 
             if (mode === 'login') {
-                loginBtn.className = "flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition shadow-md";
-                regBtn.className = "flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition";
+                loginBtn.className = "flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-md cursor-pointer";
+                regBtn.className = "flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition-all cursor-pointer";
                 if(nameContainer) nameContainer.classList.add('hidden');
                 if(submitBtn) submitBtn.innerText = "Sign In to Terminal";
             } else {
-                regBtn.className = "flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition shadow-md";
-                loginBtn.className = "flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition";
+                regBtn.className = "flex-1 py-2.5 rounded-lg bg-blue-600 text-white transition-all shadow-md cursor-pointer";
+                loginBtn.className = "flex-1 py-2.5 rounded-lg text-gray-400 hover:text-white transition-all cursor-pointer";
                 if(nameContainer) nameContainer.classList.remove('hidden');
                 if(submitBtn) submitBtn.innerText = "Register Account";
             }
@@ -446,12 +463,12 @@
                 const el = document.getElementById('tab-' + t);
                 if(el) el.classList.add('hidden');
                 const btn = document.getElementById('btn-' + t);
-                if(btn) btn.className = "px-3 py-1.5 rounded-lg text-xs transition text-gray-300 hover:text-white";
+                if(btn) btn.className = "px-3 py-1.5 rounded-lg text-xs transition-all text-gray-300 hover:text-white hover:bg-white/5 cursor-pointer";
             });
             const target = document.getElementById('tab-' + tabName);
             if(target) target.classList.remove('hidden');
             const btnTarget = document.getElementById('btn-' + tabName);
-            if(btnTarget) btnTarget.className = "px-3 py-1.5 rounded-lg text-xs transition bg-blue-600 text-white font-semibold shadow-sm";
+            if(btnTarget) btnTarget.className = "px-3 py-1.5 rounded-lg text-xs transition-all bg-blue-600 text-white font-semibold shadow-md cursor-pointer";
         }
 
         function changeLanguage() {
@@ -493,7 +510,7 @@
                 return;
             }
             document.getElementById('dashApiStatus').innerText = exchange + " Connected ✅";
-            alert("✅ ភ្ជាប់ Auto Trading API ជាមួយ " + exchange + " ได้ជោគជ័យ!");
+            alert("✅ ភ្ជាប់ Auto Trading API ជាមួយ " + exchange + " បានជោគជ័យ!");
         }
 
         async function sendToTelegram(msg) {
@@ -530,16 +547,16 @@
                 isAutoBotRunning = true;
                 btn.className = "bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex gap-2 items-center shadow-lg animate-pulse cursor-pointer";
                 btn.innerHTML = "⏹ Stop 5M Auto Bot";
-                logs.innerHTML += `<div class="bg-purple-950/40 p-3 rounded-xl border border-purple-800/50 mt-2 text-purple-300">⚡ 5M Auto AI Bot Started (Matrix 15m/1h/4h & News Filter Active).</div>`;
+                logs.innerHTML += `<div class="bg-purple-950/40 p-3 rounded-xl border border-purple-800/50 mt-2 text-purple-300 shadow-md">⚡ 5M Auto AI Bot Started (Matrix 15m/1h/4h & News Filter Active).</div>`;
                 
                 runAutoCycle();
                 autoBotTimer = setInterval(runAutoCycle, 300000);
             } else {
                 isAutoBotRunning = false;
                 clearInterval(autoBotTimer);
-                btn.className = "bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex gap-2 items-center shadow-lg cursor-pointer";
+                btn.className = "bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex gap-2 items-center shadow-lg shadow-purple-600/30 cursor-pointer";
                 btn.innerHTML = "⚡ Start 5M Auto AI Bot";
-                logs.innerHTML += `<div class="bg-gray-900 p-3 rounded-xl mt-2 text-gray-400">⏹ Auto AI Bot Stopped.</div>`;
+                logs.innerHTML += `<div class="bg-gray-900 p-3 rounded-xl mt-2 text-gray-400 shadow-md">⏹ Auto AI Bot Stopped.</div>`;
             }
             logs.scrollTop = logs.scrollHeight;
         }
@@ -551,7 +568,7 @@
             
             const newsFilterOn = document.getElementById('newsFilterToggle').checked;
             if (newsFilterOn) {
-                logs.innerHTML += `<div class="bg-blue-950/30 p-3 rounded-xl border border-blue-900/40 mt-2 text-blue-300">📰 News Filter: គ្មានព័ត៌មាន High-Impact ទេ។ បន្តវិភាគទីផ្សារ ${market}...</div>`;
+                logs.innerHTML += `<div class="bg-blue-950/30 p-3 rounded-xl border border-blue-900/40 mt-2 text-blue-300 shadow-md">📰 News Filter: គ្មានព័ត៌មាន High-Impact ទេ។ បន្តវិភាគទីផ្សារ ${market}...</div>`;
             }
 
             const actionType = Math.random() > 0.5 ? "🟢 BUY SIGNAL" : "🔴 SELL SIGNAL";
@@ -561,7 +578,7 @@
 
             await sendToTelegram(message);
 
-            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2"><span class="text-yellow-400 font-bold block mb-1">[Auto Bot 5M]:</span> ${message.replace(/\n/g, '<br>')}</div>`;
+            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2 shadow-md"><span class="text-yellow-400 font-bold block mb-1">[Auto Bot 5M]:</span> ${message.replace(/\n/g, '<br>')}</div>`;
             logs.scrollTop = logs.scrollHeight;
 
             tradeCount++;
@@ -583,7 +600,7 @@
                 await sendToTelegram(`🚨 <b>Manual Trade Alert</b>\nAsset: ${market}\nSignal: ${type}`);
             }
 
-            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2"><span class="${colorClass} font-bold block mb-1">🤖 Matrix #${signalCounter}:</span> ${textMsg}</div>`;
+            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2 shadow-md"><span class="${colorClass} font-bold block mb-1">🤖 Matrix #${signalCounter}:</span> ${textMsg}</div>`;
             logs.scrollTop = logs.scrollHeight;
         }
 
