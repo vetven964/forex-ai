@@ -8,66 +8,133 @@
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Battambang', sans-serif; }</style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between">
 
-    <!-- Live Ticker -->
-    <div class="bg-gray-950 text-xs py-1.5 px-6 border-b border-gray-800 flex overflow-x-auto space-x-6 text-gray-400 whitespace-nowrap">
-        <span>🔴 LIVE MARKET:</span>
-        <span>BTC/USD: <strong class="text-green-400">$65,017</strong></span>
-        <span>EUR/USD: <strong class="text-red-400">1.0850</strong></span>
-        <span>XAU/USD: <strong class="text-green-400">$2,340</strong></span>
+    <div>
+        <!-- Live Ticker -->
+        <div class="bg-gray-950 text-xs py-1.5 px-6 border-b border-gray-800 flex overflow-x-auto space-x-6 text-gray-400 whitespace-nowrap">
+            <span>🔴 LIVE MARKET:</span>
+            <span>BTC/USD: <strong class="text-green-400">$65,017</strong></span>
+            <span>EUR/USD: <strong class="text-red-400">1.0850</strong></span>
+            <span>XAU/USD: <strong class="text-green-400">$2,340</strong></span>
+        </div>
+
+        <!-- Header -->
+        <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap justify-between items-center shadow-md">
+            <h1 class="text-xl font-bold text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
+            
+            <!-- Asset Switcher -->
+            <div class="flex space-x-2 my-2 sm:my-0">
+                <button onclick="changeSymbol('BINANCE:BTCUSDT', this)" class="asset-btn bg-blue-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium transition shadow">BTC</button>
+                <button onclick="changeSymbol('FX:EURUSD', this)" class="asset-btn bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium transition">EUR</button>
+                <button onclick="changeSymbol('FX:GBPUSD', this)" class="asset-btn bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium transition">GBP</button>
+                <button onclick="changeSymbol('OANDA:XAUUSD', this)" class="asset-btn bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-lg text-sm font-medium transition">GOLD</button>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="sendToTelegram()" class="bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-xl text-sm font-medium transition shadow">📤 ផ្ញើ Telegram</button>
+                <a href="profile.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow">Profile</a>
+            </div>
+        </header>
     </div>
 
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap justify-between items-center">
-        <h1 class="text-xl font-bold text-white">Forex AI <span class="text-blue-500">Pro</span></h1>
+    <!-- Main Container -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
         
-        <!-- Asset Switcher -->
-        <div class="flex space-x-2">
-            <button onclick="changeSymbol('BINANCE:BTCUSDT')" class="bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-sm">BTC</button>
-            <button onclick="changeSymbol('FX:EURUSD')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm">EUR</button>
-            <button onclick="changeSymbol('FX:GBPUSD')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm">GBP</button>
-            <button onclick="changeSymbol('OANDA:XAUUSD')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg text-sm">GOLD</button>
-        </div>
-
-        <a href="profile.html" class="bg-blue-600 px-4 py-2 rounded-xl text-sm font-medium">Profile របស់ខ្ញុំ</a>
-    </header>
-
-    <main class="max-w-7xl mx-auto p-6 space-y-6">
-        <!-- Signal Card -->
-        <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 flex justify-between items-center">
-            <div>
-                <p class="text-xs text-gray-400 uppercase">AI Signal</p>
-                <h2 id="signalLabel" class="text-3xl font-extrabold text-green-400">STRONG BUY</h2>
+        <!-- Signal & Market Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- AI Signal Card (Occupies 2 Columns) -->
+            <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                    <span class="text-xs text-gray-400 uppercase tracking-wider">AI Signal Recommendation</span>
+                    <h2 class="text-3xl font-extrabold text-green-400 mt-1">STRONG BUY</h2>
+                </div>
+                <div class="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-700 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-400">AI Confidence</p>
+                        <p class="font-bold text-blue-400">95.8%</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400">Trend Status</p>
+                        <p class="font-bold text-green-400">Bullish</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400">Execution Speed</p>
+                        <p class="font-bold text-gray-200">&lt; 0.1s</p>
+                    </div>
+                </div>
             </div>
-            <button onclick="sendToTelegram()" class="bg-sky-600 px-4 py-2 rounded-xl text-sm">📤 ផ្ញើទៅ Telegram</button>
+
+            <!-- Major News / Economic Events Feed (1 Column) -->
+            <div class="bg-gray-800 border border-gray-700 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center justify-between">
+                        <span>📰 ព័ត៌មានសេដ្ឋកិច្ចសំខាន់ៗ</span>
+                        <span class="text-xs text-blue-400 animate-pulse">Live</span>
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="p-2.5 bg-gray-900 rounded-xl border border-gray-700">
+                            <span class="text-green-400 font-bold">USD - ដល់ម៉ោងប្រកាស CPI</span>
+                            <p class="text-gray-300 mt-1">អតិផរណាសហរដ្ឋអាមេរិករំពឹងថានឹងធ្លាក់ចុះបន្តិច...</p>
+                        </div>
+                        <div class="p-2.5 bg-gray-900 rounded-xl border border-gray-700">
+                            <span class="text-yellow-400 font-bold">GOLD - តម្លៃមាសបន្តកើនឡើង</span>
+                            <p class="text-gray-300 mt-1">ភាពតានតឹងភូមិសាស្ត្រនយោបាយរុញច្រានតម្រូវការមាស...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Chart Container -->
-        <div id="chartContainer" class="bg-gray-800 rounded-2xl p-2 h-[500px] border border-gray-700">
-            <!-- Chart will be injected here -->
+        <!-- TradingView Chart Section -->
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl p-2 shadow-xl overflow-hidden h-[500px]">
+            <div id="chartContainer" style="height:100%; width:100%;"></div>
         </div>
+
     </main>
 
+    <!-- Footer -->
+    <footer class="text-center py-4 text-gray-500 text-xs border-t border-gray-800">
+        &copy; 2026 Forex AI Pro. All rights reserved.
+    </footer>
+
+    <!-- TradingView Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        function changeSymbol(symbol) {
-            document.getElementById('chartContainer').innerHTML = '<div id="tradingview_chart" style="height:100%"></div>';
+        function changeSymbol(symbol, btn) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.asset-btn').forEach(b => {
+                b.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                b.classList.add('bg-gray-700', 'text-gray-300');
+            });
+            // Add active class to clicked button
+            btn.classList.remove('bg-gray-700', 'text-gray-300');
+            btn.classList.add('bg-blue-600', 'text-white', 'shadow');
+
+            // Re-render TradingView Chart
+            document.getElementById('chartContainer').innerHTML = '<div id="tradingview_chart" style="height:100%;width:100%"></div>';
             new TradingView.widget({
                 "autosize": true,
                 "symbol": symbol,
                 "interval": "15",
+                "timezone": "Etc/UTC",
                 "theme": "dark",
                 "style": "1",
+                "locale": "en",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
                 "container_id": "tradingview_chart"
             });
         }
         
-        // Load default chart
-        changeSymbol('BINANCE:BTCUSDT');
+        // Load default chart on startup (BTC)
+        changeSymbol('BINANCE:BTCUSDT', document.querySelector('.asset-btn'));
 
         function sendToTelegram() {
-            window.open(`https://t.me/share/url?url=&text=🚨 AI SIGNAL: STRONG BUY on ${document.title}`, '_blank');
+            window.open('https://t.me/share/url?url=&text=🚨 FOREX AI PRO SIGNAL: STRONG BUY (Confidence 95.8%)', '_blank');
         }
     </script>
 </body>
