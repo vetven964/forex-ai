@@ -61,8 +61,11 @@
                 <!-- LEFT: CHART & AI -->
                 <div class="lg:col-span-3 space-y-6">
                     <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
-                        <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
-                        <div id="chartContainer" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
+                        <div class="text-xs text-gray-400 mb-2 font-semibold flex justify-between items-center">
+                            <span>📈 Live Market Chart</span>
+                            <span class="text-[10px] text-blue-400 font-mono">Binance Feed Active</span>
+                        </div>
+                        <div id="chartContainer" style="height: 420px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
                     </section>
 
                     <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
@@ -75,10 +78,11 @@
                             </select>
                         </div>
 
-                        <div id="chatLogs" class="bg-black h-56 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
+                        <!-- Expanded Chat Logs Height to h-72 for better display -->
+                        <div id="chatLogs" class="bg-black h-72 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
                             <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
                                 <span class="text-blue-400 font-bold block mb-1">🤖 VET Bot:</span> 
-                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) ភ្ជាប់ដំណើរការជោគជ័យ។
+                                សួស្តីបងប្រុស! ប្រព័ន្ធ AI និង Telegram Bot (@ai_pro_auto_bot) ត្រៀមបញ្ជូនសញ្ញាជោគជ័យ។
                             </div>
                         </div>
 
