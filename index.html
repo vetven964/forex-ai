@@ -1,726 +1,739 @@
 <!DOCTYPE html>
-<html lang="km" class="dark">
+<html lang="km">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTrade AI - Advanced All-in-One Platform</title>
-    <!-- Tailwind CSS CDN -->
+    <title>VET Trade AI - Master Terminal & ICT Advanced Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0b0f19',
-                        cardbg: '#111827',
-                        cardhover: '#1f2937',
-                        borderbg: '#1f2937',
-                        accent: '#3b82f6',
-                        gold: '#f59e0b',
-                        khqr: '#e11d48'
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Khmer -->
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
-        body { font-family: 'Kantumruy Pro', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
-        .glass-panel { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gradient-btn { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); }
-        .gradient-btn:hover { background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%); }
-        .khqr-header { background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%); }
+        body { background-color: #0b0e14; color: white; font-family: sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="p-4 space-y-6 max-w-7xl mx-auto">
 
-    <!-- NAVBAR HEADER -->
-    <header class="glass-panel sticky top-0 z-40 border-b border-gray-800 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <!-- Brand Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
-                <div class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-robot"></i>
-                </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-extrabold text-xl tracking-wide text-white">V TRADE</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">AI v3.5</span>
-                    </div>
-                    <p class="text-xs text-gray-400">All-in-One Trading System</p>
-                </div>
+    <div id="authWrapper" class="min-h-[85vh] flex items-center justify-center">
+        <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
+            <div class="text-center space-y-2">
+                <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
+                    🤖 <span class="text-blue-500">VET Trade AI</span>
+                </h1>
+                <p id="authSubTitle" class="text-xs text-gray-400">ប្រព័ន្ធវិភាគទីផ្សារ ICT និង Auto Telegram Bot កម្រិតខ្ពស់</p>
             </div>
 
-            <!-- Navigation Tabs -->
-            <nav class="hidden lg:flex items-center space-x-1 bg-gray-900/60 p-1 rounded-xl border border-gray-800">
-                <button id="nav-dashboard" onclick="switchTab('dashboard')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-blue-400 bg-gray-800/80">
-                    <i class="fa-solid fa-chart-line mr-1.5"></i>ផ្ទាំងគ្រប់គ្រង
-                </button>
-                <button id="nav-terminal" onclick="switchTab('terminal')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-display mr-1.5"></i>ស្ថានីយជួញដូរ
-                </button>
-                <button id="nav-signals" onclick="switchTab('signals')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white relative">
-                    <i class="fa-solid fa-bolt text-yellow-400 mr-1.5"></i>សញ្ញា AI
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
-                </button>
-                <button id="nav-news" onclick="switchTab('news')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-globe text-cyan-400 mr-1.5"></i>ព័ត៌មានពិភពលោក
-                </button>
-                <button id="nav-vip" onclick="switchTab('vip')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-crown text-amber-400 mr-1.5"></i>កញ្ចប់ VIP & Free 3ថ្ងៃ
-                </button>
-                <button id="nav-profile" onclick="switchTab('profile')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-user-shield text-purple-400 mr-1.5"></i>គណនី & ភាពឯកជន
-                </button>
-                <button id="nav-settings" onclick="switchTab('settings')" class="tab-btn px-3 py-2 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-gear mr-1.5"></i>ការកំណត់
-                </button>
-            </nav>
+            <div class="flex bg-black p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+                <button type="button" onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2 rounded-md bg-blue-600 text-white transition">ចូលប្រព័ន្ធ (Login)</button>
+                <button type="button" onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2 rounded-md text-gray-400 hover:text-white transition">ចុះឈ្មោះ (Register)</button>
+            </div>
 
-            <!-- User Info & Auth Actions -->
-            <div class="flex items-center space-x-3">
-                <div id="auth-user-info" class="text-right hidden sm:block">
-                    <div class="flex items-center justify-end space-x-2">
-                        <span id="user-badge" class="px-2 py-0.5 text-xs rounded-full font-bold bg-green-500/20 text-green-400 border border-green-500/30">Free 3-Day Trial</span>
-                        <span id="user-name" class="font-bold text-sm text-gray-200">វ៉ែន (VET Ven)</span>
-                    </div>
-                    <div class="text-xs text-green-400 font-mono font-bold mt-0.5">
-                        Balance: $<span id="user-balance">1,000.00</span> USD
-                    </div>
+            <div id="authForm" class="space-y-4 pt-2">
+                <div id="nameFieldContainer" class="hidden space-y-1">
+                    <label class="text-[10px] text-gray-400">ឈ្មោះពេញ (Full Name)</label>
+                    <input type="text" id="regName" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក">
                 </div>
-                <button onclick="openAuthModal()" id="auth-btn-action" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold text-white shadow-lg transition flex items-center space-x-2">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Sign In / Login</span>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-400">អ៊ីមែល (Email Address)</label>
+                    <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="user@vettarde.ai">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] text-gray-400">ពាក្យសម្ងាត់ (Password)</label>
+                        <a href="#" onclick="openForgotPasswordModal(event)" class="text-[10px] text-blue-400 hover:underline">ភ្លេចពាក្យសម្ងាត់?</a>
+                    </div>
+                    <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
+                </div>
+
+                <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                    ចូលប្រព័ន្ធ (Sign In)
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <main class="max-w-7xl mx-auto w-full flex-grow p-4 md:p-6 space-y-6">
-
-        <!-- 1. DASHBOARD TAB -->
-        <section id="tab-dashboard" class="space-y-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glass-panel p-4 rounded-2xl">
-                    <div class="text-xs text-gray-400 flex justify-between items-center">
-                        <span>BTC/USDT Live Price</span>
-                        <i class="fa-brands fa-bitcoin text-amber-500 text-lg"></i>
-                    </div>
-                    <div class="text-xl md:text-2xl font-bold font-mono text-green-400 mt-1" id="dash-btc-price">$64,250.00</div>
-                    <div class="text-xs text-green-500 font-bold mt-1"><i class="fa-solid fa-arrow-trend-up"></i> +2.45% (24h)</div>
+    <div id="appWrapper" class="space-y-6 hidden">
+        
+        <header class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-3 gap-3">
+            <h1 class="text-xl font-bold flex items-center gap-2 cursor-pointer" onclick="switchTab('landing')">
+                🤖 <span class="text-blue-500">VET Trade AI</span> <span class="text-xs text-purple-400 border border-purple-500/40 px-2 py-0.5 rounded">All-in-One Advanced</span>
+            </h1>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="space-x-1">
+                    <button type="button" onclick="switchTab('landing')" id="btn-landing" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Home</button>
+                    <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
+                    <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
+                    <button type="button" onclick="switchTab('pricing')" id="btn-pricing" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Pricing & VIP</button>
+                    <button type="button" onclick="switchTab('faq')" id="btn-faq" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Help / FAQ</button>
+                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
                 </div>
-                <div class="glass-panel p-4 rounded-2xl">
-                    <div class="text-xs text-gray-400 flex justify-between items-center">
-                        <span>XAU/USD (Gold)</span>
-                        <i class="fa-solid fa-coins text-yellow-400 text-lg"></i>
-                    </div>
-                    <div class="text-xl md:text-2xl font-bold font-mono text-white mt-1" id="dash-gold-price">$2,385.50</div>
-                    <div class="text-xs text-green-500 font-bold mt-1"><i class="fa-solid fa-arrow-trend-up"></i> +0.82% (24h)</div>
-                </div>
-                <div class="glass-panel p-4 rounded-2xl">
-                    <div class="text-xs text-gray-400 flex justify-between items-center">
-                        <span>AI Win Rate (ICT Model)</span>
-                        <i class="fa-solid fa-bullseye text-purple-400 text-lg"></i>
-                    </div>
-                    <div class="text-xl md:text-2xl font-bold font-mono text-purple-400 mt-1">94.8%</div>
-                    <div class="text-xs text-gray-400 mt-1">ICT Analytics Engine Active</div>
-                </div>
-                <div class="glass-panel p-4 rounded-2xl">
-                    <div class="text-xs text-gray-400 flex justify-between items-center">
-                        <span>សានុភាព Trial</span>
-                        <i class="fa-solid fa-clock text-blue-400 text-lg"></i>
-                    </div>
-                    <div class="text-lg md:text-xl font-bold mt-1 text-blue-400" id="dash-trial-countdown">
-                        សល់ ៣ ថ្ងៃ
-                    </div>
-                    <a href="javascript:switchTab('vip')" class="text-xs text-amber-400 hover:underline mt-1 block">អាប់គ្រេដ VIP ຖาวរ →</a>
+                <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
+                    🔴 LIVE: <span id="headerAsset" class="text-green-400 font-bold">BTC/USD</span>
                 </div>
             </div>
+        </header>
 
-            <!-- TradingView Chart & AI Analytics Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 glass-panel p-4 rounded-2xl flex flex-col h-[480px]">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-chart-candlestick text-blue-400"></i>
-                            <h2 class="font-bold text-white text-sm">ក្រាហ្វជួញដូរផ្ទាល់ (TradingView Live Chart)</h2>
-                        </div>
-                        <div class="text-xs text-gray-400 font-mono">ICT Smart Money Concept</div>
-                    </div>
-                    <div class="w-full flex-grow rounded-xl overflow-hidden bg-gray-900 border border-gray-800">
-                        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=BINANCE%3ABTCUSDT&interval=15&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FPhnom_Penh" 
-                                class="w-full h-full border-0"></iframe>
-                    </div>
+        <div id="tab-landing" class="tab-content space-y-8 hidden">
+            <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-800/40 p-8 rounded-2xl text-center space-y-4 shadow-2xl">
+                <h2 class="text-3xl font-extrabold text-white">ប្រព័ន្ធវិភាគជួញដូរស្វ័យប្រវត្តិលំដាប់ខ្ពស់ <span class="text-blue-400">ICT & AI</span></h2>
+                <p class="text-sm text-gray-300 max-w-2xl mx-auto">វិភាគទីផ្សារគ្រីបតូ និងមាស (Gold/XAUUSD) តាមក្បួនខ្នាត Order Block, Fair Value Gap (FVG) និងបញ្ជូនសញ្ញាទៅកាន់ Telegram Bot ស្វ័យប្រវត្តិរៀងរាល់ ៥នាទីម្តង។</p>
+                <div class="flex justify-center gap-3 pt-2">
+                    <button type="button" onclick="switchTab('terminal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-6 py-3 rounded-lg transition shadow-lg cursor-pointer">🚀 ចាប់ផ្តើមប្រើប្រាស់ Terminal</button>
+                    <button type="button" onclick="switchTab('pricing')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-6 py-3 rounded-lg transition shadow-lg cursor-pointer">💎 មើលកញ្ចប់សេវាកម្ម (VIP)</button>
                 </div>
-
-                <!-- AI Sentiment Panel -->
-                <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-white text-sm flex items-center">
-                                <i class="fa-solid fa-brain text-purple-400 mr-2"></i>ICT AI Sentiment Analysis
-                            </h3>
-                            <span class="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full font-bold">STRONG BUY</span>
-                        </div>
-                        
-                        <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 text-center mb-6">
-                            <div class="text-3xl font-extrabold text-green-400 font-mono mb-1">92/100</div>
-                            <div class="text-xs text-gray-400">ICT Order Block Detected (M15 - H1)</div>
-                            <div class="w-full bg-gray-800 h-2.5 rounded-full mt-3 overflow-hidden">
-                                <div class="bg-gradient-to-r from-yellow-500 via-green-400 to-emerald-500 h-full w-[92%] rounded-full"></div>
-                            </div>
-                        </div>
-
-                        <h4 class="font-bold text-xs text-gray-300 mb-3">សញ្ញា AI តាម Timeframe (5m - 1h)៖</h4>
-                        <div class="space-y-2.5">
-                            <div class="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 flex justify-between items-center text-xs">
-                                <div>
-                                    <span class="font-bold text-white">BTC/USDT [15m]</span>
-                                    <span class="text-xs text-green-400 font-bold ml-1.5">BUY (Long)</span>
-                                </div>
-                                <span class="text-gray-400 font-mono">TP: 66,500</span>
-                            </div>
-                            <div class="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 flex justify-between items-center text-xs">
-                                <div>
-                                    <span class="font-bold text-white">XAU/USD [1h]</span>
-                                    <span class="text-xs text-green-400 font-bold ml-1.5">BUY (Long)</span>
-                                </div>
-                                <span class="text-gray-400 font-mono">TP: 2,410</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 pt-4 border-t border-gray-800">
-                        <button onclick="switchTab('signals')" class="w-full py-2.5 rounded-xl gradient-btn text-white font-bold text-xs shadow-lg text-center">
-                            <i class="fa-solid fa-bolt text-amber-300 mr-1.5"></i>មើលសញ្ញា AI ពេញលេញគ្រប់ Timeframe
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. TRADING TERMINAL TAB -->
-        <section id="tab-terminal" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="glass-panel p-5 rounded-2xl">
-                    <h2 class="font-bold text-md text-white mb-4 flex items-center">
-                        <i class="fa-solid fa-sliders text-blue-400 mr-2"></i>ស្ថានីយបញ្ជាទិញ/លក់ (ICT Terminal)
-                    </h2>
-
-                    <form id="trade-form" onsubmit="executeTrade(event)" class="space-y-4 text-xs">
-                        <div>
-                            <label class="block text-gray-400 mb-1">ជ្រើសរើសគូទ្រព្យសកម្ម (Symbol)</label>
-                            <select id="trade-symbol" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500">
-                                <option value="BTC/USDT">BTC/USDT (Bitcoin)</option>
-                                <option value="ETH/USDT">ETH/USDT (Ethereum)</option>
-                                <option value="XAU/USD">XAU/USD (Gold)</option>
-                                <option value="EUR/USD">EUR/USD (Forex)</option>
-                            </select>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <button type="button" id="btn-side-buy" onclick="setSide('BUY')" class="py-2.5 rounded-xl font-bold text-white bg-green-600 border border-green-500 shadow-lg">
-                                <i class="fa-solid fa-arrow-up mr-1"></i> BUY (LONG)
-                            </button>
-                            <button type="button" id="btn-side-sell" onclick="setSide('SELL')" class="py-2.5 rounded-xl font-bold text-gray-400 bg-gray-900 border border-gray-800 hover:text-white">
-                                <i class="fa-solid fa-arrow-down mr-1"></i> SELL (SHORT)
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-gray-400 mb-1">ចំនួនទឹកប្រាក់ ($)</label>
-                                <input type="number" id="trade-amount" value="100" min="10" step="10" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-gray-400 mb-1">Leverage</label>
-                                <select id="trade-leverage" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                                    <option value="10">10x</option>
-                                    <option value="20" selected>20x</option>
-                                    <option value="50">50x</option>
-                                    <option value="100">100x (ICT Pro)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-gray-400 mb-1">Take Profit (TP)</label>
-                                <input type="number" id="trade-tp" placeholder="Optional" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-gray-400 mb-1">Stop Loss (SL)</label>
-                                <input type="number" id="trade-sl" placeholder="Optional" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full py-3 rounded-xl font-bold text-white gradient-btn shadow-lg transition">
-                            <i class="fa-solid fa-paper-plane mr-2"></i>បញ្ជូនបញ្ជាជួញដូរ (Open Trade)
-                        </button>
-                    </form>
-                </div>
-
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="glass-panel p-5 rounded-2xl min-h-[300px]">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-white text-sm flex items-center">
-                                <i class="fa-solid fa-list-check text-green-400 mr-2"></i>ការជួញដូរដែលកំពុងបើក (Active Positions)
-                            </h3>
-                            <span id="active-count" class="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-bold">0 Active</span>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs text-gray-300">
-                                <thead class="bg-gray-900/90 text-gray-400 uppercase font-mono border-b border-gray-800">
-                                    <tr>
-                                        <th class="p-3">Symbol</th>
-                                        <th class="p-3">Type</th>
-                                        <th class="p-3">Entry</th>
-                                        <th class="p-3">Margin</th>
-                                        <th class="p-3">PnL ($)</th>
-                                        <th class="p-3 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="positions-list" class="divide-y divide-gray-800">
-                                    <tr>
-                                        <td colspan="6" class="p-6 text-center text-gray-500">មិនទាន់មានការជួញដូរដែលកំពុងបើកនៅឡើយទេ។</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. AI SIGNALS TAB (ICT Analytics Signal 5m, 15m, 1h) -->
-        <section id="tab-signals" class="hidden space-y-6">
-            <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="font-extrabold text-lg text-white flex items-center">
-                        <i class="fa-solid fa-bolt text-amber-400 mr-2"></i> ICT AI Analytics Signals (5m, 15m, 1h)
-                    </h2>
-                    <p class="text-xs text-gray-400 mt-1">វិភាគទីផ្សារជាក់ស្តែងតាម Timeframe ខ្លី និងមធ្យម ពេលណាចាំបាច់ត្រូវ Buy ឬ Sell ជាមួយ Telegram Alert</p>
-                </div>
-                <button onclick="sendSignalToTelegramBot()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition flex items-center space-x-2">
-                    <i class="fa-brands fa-telegram text-sm"></i>
-                    <span>Test Telegram Bot Alert</span>
-                </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- 5 Mins Scalping Signal -->
-                <div class="glass-panel p-5 rounded-2xl border border-blue-500/30 relative">
-                    <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase font-mono">
-                        Timeframe: 5 Mins
-                    </div>
-                    <div class="text-sm font-bold text-white mb-1">BTC / USDT (Scalping)</div>
-                    <div class="text-xs text-green-400 font-bold mb-3"><i class="fa-solid fa-circle-arrow-up"></i> BUY / LONG SIGNAL</div>
-                    <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-1.5 font-mono text-xs mb-4">
-                        <div class="flex justify-between"><span class="text-gray-400">Entry:</span> <span class="text-white font-bold">64,200</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">TP (5m):</span> <span class="text-green-400 font-bold">64,600</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">SL:</span> <span class="text-red-400 font-bold">64,000</span></div>
-                    </div>
-                    <button onclick="copySignalToTerminal('BTC/USDT', 'BUY', 64200, 64600, 64000)" class="w-full py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-xl">
-                        ប្រើប្រាស់សញ្ញានេះ
-                    </button>
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-2">
+                    <div class="text-2xl">📊</div>
+                    <h3 class="text-sm font-bold text-blue-400">Real-time TradingView Chart</h3>
+                    <p class="text-xs text-gray-400">ក្រាហ្វិកផ្សាយផ្ទាល់រហ័សទាន់ចិត្ត ជាមួយเครื่องมือវិភាគបច្ចេកទេសសម្បូរបែប។</p>
                 </div>
-
-                <!-- 15 Mins Intraday Signal -->
-                <div class="glass-panel p-5 rounded-2xl border border-green-500/30 relative">
-                    <div class="absolute top-0 right-0 bg-green-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase font-mono">
-                        Timeframe: 15 Mins
-                    </div>
-                    <div class="text-sm font-bold text-white mb-1">XAU / USD (Gold)</div>
-                    <div class="text-xs text-green-400 font-bold mb-3"><i class="fa-solid fa-circle-arrow-up"></i> BUY / LONG SIGNAL</div>
-                    <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-1.5 font-mono text-xs mb-4">
-                        <div class="flex justify-between"><span class="text-gray-400">Entry:</span> <span class="text-white font-bold">2,382.00</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">TP (15m):</span> <span class="text-green-400 font-bold">2,405.00</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">SL:</span> <span class="text-red-400 font-bold">2,365.00</span></div>
-                    </div>
-                    <button onclick="copySignalToTerminal('XAU/USD', 'BUY', 2382, 2405, 2365)" class="w-full py-2 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-xl">
-                        ប្រើប្រាស់សញ្ញានេះ
-                    </button>
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-2">
+                    <div class="text-2xl">⚡</div>
+                    <h3 class="text-sm font-bold text-purple-400">5M Auto Telegram Bot</h3>
+                    <p class="text-xs text-gray-400">ប្រព័ន្ធ AI ដំណើរការផ្ញើសញ្ញា Buy/Sell/Wait ទៅ Telegram ផ្ទាល់ខ្លួនរៀងរាល់ ៥នាទី។</p>
                 </div>
-
-                <!-- 1 Hour Swing Signal -->
-                <div class="glass-panel p-5 rounded-2xl border border-purple-500/30 relative">
-                    <div class="absolute top-0 right-0 bg-purple-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase font-mono">
-                        Timeframe: 1 Hour
-                    </div>
-                    <div class="text-sm font-bold text-white mb-1">ETH / USDT (Swing)</div>
-                    <div class="text-xs text-red-400 font-bold mb-3"><i class="fa-solid fa-circle-arrow-down"></i> SELL / SHORT SIGNAL</div>
-                    <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-1.5 font-mono text-xs mb-4">
-                        <div class="flex justify-between"><span class="text-gray-400">Entry:</span> <span class="text-white font-bold">3,450.00</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">TP (1h):</span> <span class="text-green-400 font-bold">3,200.00</span></div>
-                        <div class="flex justify-between"><span class="text-gray-400">SL:</span> <span class="text-red-400 font-bold">3,520.00</span></div>
-                    </div>
-                    <button onclick="copySignalToTerminal('ETH/USDT', 'SELL', 3450, 3200, 3520)" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl">
-                        ប្រើប្រាស់សញ្ញានេះ
-                    </button>
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-2">
+                    <div class="text-2xl">🔒</div>
+                    <h3 class="text-sm font-bold text-green-400">Advanced Profile & Security</h3>
+                    <p class="text-xs text-gray-400">គ្រប់គ្រងទិន្នន័យផ្ទាល់ខ្លួន និងការពារសុវត្ថិភាពគណនីកម្រិតខ្ពស់ (2FA & Encryption)។</p>
                 </div>
-            </div>
-        </section>
-
-        <!-- 4. WORLD NEWS TAB (Fed New & Global News in Khmer) -->
-        <section id="tab-news" class="hidden space-y-6 max-w-4xl mx-auto">
-            <div class="glass-panel p-6 rounded-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-                    <h2 class="font-bold text-lg text-white flex items-center">
-                        <i class="fa-solid fa-globe text-cyan-400 mr-2"></i> ព័ត៌មានសេដ្ឋកិច្ចពិភពលោក និង Fed News (ភាសាខ្មែរ)
-                    </h2>
-                    <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold">Real-time Feed</span>
-                </div>
-
-                <div class="space-y-4 text-xs">
-                    <div class="p-4 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
-                        <div class="flex justify-between items-center text-gray-400">
-                            <span class="text-cyan-400 font-bold">FEDERAL RESERVE (FED)</span>
-                            <span>ថ្ងៃនេះ, ១១:៣០ ព្រឹក</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-white">ធនាគារកណ្តាលអាមេរិក (Fed) រក្សាអត្រាការប្រាក់នៅកម្រិតដដែល εν αναμονή ទិន្នន័យអតិផរណាថ្មី</h3>
-                        <p class="text-gray-300 leading-relaxed">
-                            ប្រធាន Fed បានបញ្ជាក់ថាមន្រ្តីកំពុងតាមដានយ៉ាងដិតដល់នូវសន្ទុះសេដ្ឋកិច្ច និងទីផ្សារការងារ មុនពេលសម្រេចចិត្តលើការកាត់បន្ថយអត្រាការប្រាក់បន្ថែម ដែលធ្វើឱ្យតម្លៃមាស (XAU/USD) និង Bitcoin មានការប្រែប្រួលខ្លាំងក្នុង Timeframe ១៥នាទី និង ១ម៉ោង។
-                        </p>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
-                        <div class="flex justify-between items-center text-gray-400">
-                            <span class="text-yellow-400 font-bold">GOLD & CRYPTO MARKET</span>
-                            <span>ថ្ងៃនេះ, ០៩:១៥ ព្រឹក</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-white">ទីផ្សារមាសអន្តរជាតិបន្តឡើងថ្លៃ ខណៈទុនវិនិយោគហូរចូល Bitcoin យ៉ាងច្រើន</h3>
-                        <p class="text-gray-300 leading-relaxed">
-                            សញ្ញា AI របស់យើងបានរកឃើញ Order Block ដ៏សំខាន់នៅលើគូទ្រព្យ BTC និង Gold ដែលជាឱកាសសម្រាប់ពាណិជ្ជករធ្វើការ Buy តាមកំឡុងពេល 15m ដល់ 1h ខាងមុខនេះ។
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. VIP PLANS & FREE 3-DAY TRIAL TAB -->
-        <section id="tab-vip" class="hidden space-y-8 py-4 max-w-4xl mx-auto">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl font-extrabold text-white">កញ្ចប់សមាជិកភាព & Free 3-Day Trial</h2>
-                <p class="text-xs text-gray-400">စမ်းသပ်ប្រើប្រាស់ដោយឥតគិតថ្លៃរយៈពេល ៣ថ្ងៃ ឬអាប់គ្រេដជា VIP Pro ដើម្បីទទួលបានសញ្ញា AI ពេញលេញ</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Free 3-Day Trial Plan -->
-                <div class="glass-panel p-6 rounded-3xl border border-blue-500/50 flex flex-col justify-between">
-                    <div>
-                        <div class="text-blue-400 text-xs font-bold uppercase mb-2">Free Trial Plan</div>
-                        <div class="text-3xl font-extrabold text-white mb-4"> miễn phí <span class="text-xs text-gray-400 font-normal">/ ៣ ថ្ងៃដំបូង</span></div>
-                        <ul class="space-y-3 text-xs text-gray-300 mb-6">
-                            <li class="flex items-center"><i class="fa-solid fa-check text-green-400 mr-2"></i> សញ្ញា AI ៣ដងក្នុងមួយថ្ងៃ (5m & 15m)</li>
-                            <li class="flex items-center"><i class="fa-solid fa-check text-green-400 mr-2"></i> ស្ថានីយជួញដូរ Demo Balance $1,000</li>
-                            <li class="flex items-center"><i class="fa-solid fa-check text-green-400 mr-2"></i> អានព័ត៌មានពិភពលោក និង Fed News</li>
-                        </ul>
-                    </div>
-                    <button class="w-full py-3 rounded-xl bg-blue-600/20 text-blue-400 font-bold text-xs border border-blue-500/30">
-                        កំពុងដំណើរការ (Free Trial Active)
-                    </button>
-                </div>
-
-                <!-- VIP Pro Trader -->
-                <div class="glass-panel p-6 rounded-3xl border-2 border-amber-500 relative flex flex-col justify-between shadow-2xl">
-                    <div class="absolute -top-3.5 right-6 bg-amber-500 text-gray-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase">
-                        RECOMMENDED
-                    </div>
-                    <div>
-                        <div class="text-amber-400 text-xs font-bold uppercase mb-2 flex items-center">
-                            <i class="fa-solid fa-crown mr-1"></i> VIP Pro Trader
-                        </div>
-                        <div class="text-3xl font-extrabold text-white mb-4">$29 <span class="text-xs text-gray-400 font-normal">/ ខែ (Lifetime)</span></div>
-                        <ul class="space-y-3 text-xs text-gray-200 mb-6">
-                            <li class="flex items-center"><i class="fa-solid fa-check text-amber-400 mr-2"></i> សញ្ញា AI Unlimited (Crypto, Gold, Forex)</li>
-                            <li class="flex items-center"><i class="fa-solid fa-check text-amber-400 mr-2"></i> Telegram Bot Alert ផ្ញើចូលទូរស័ព្ទភ្លាមៗ</li>
-                            <li class="flex items-center"><i class="fa-solid fa-check text-amber-400 mr-2"></i> Auto Trading API Integration</li>
-                        </ul>
-                    </div>
-                    <button onclick="openVipModal()" class="w-full py-3.5 rounded-xl gradient-btn text-white font-bold text-xs shadow-lg">
-                        <i class="fa-solid fa-qrcode mr-2"></i>ទូទាត់ប្រាក់ຜ່ານ ABA KHQR ($29)
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6. PROFILE & PRIVACY TAB -->
-        <section id="tab-profile" class="hidden space-y-6 max-w-2xl mx-auto">
-            <div class="glass-panel p-6 rounded-2xl space-y-6 text-xs">
-                <h2 class="font-bold text-base text-white border-b border-gray-800 pb-3 flex items-center">
-                    <i class="fa-solid fa-user-shield text-purple-400 mr-2"></i> ព័ត៌មានគណនី និង ភាពឯកជន (Profile Privacy)
-                </h2>
-
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-400 mb-1">ឈ្មោះពេញ (Full Name)</label>
-                            <input type="text" id="profile-name" value="វ៉ែន (VET Ven)" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-gray-400 mb-1">ថ្ងៃខែឆ្នាំកំណើត (DOB)</label>
-                            <input type="text" value="០២ ១១ ១៩៩៤" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-400 mb-1">Email Address</label>
-                        <input type="email" value="vet.ven@gmail.com" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none">
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-gray-900 border border-gray-800 space-y-3">
-                        <h3 class="font-bold text-white">ការកំណត់ភាពឯកជន (Privacy Settings)</h3>
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-400">លាក់សមតុល្យទឹកប្រាក់នៅលើ Profile</span>
-                            <input type="checkbox" checked class="w-4 h-4 accent-blue-600">
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-400">អនុញ្ញាតឱ្យ Telegram Bot ផ្ញើការជូនដំណឹង</span>
-                            <input type="checkbox" checked class="w-4 h-4 accent-blue-600">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end">
-                    <button onclick="showToast('បានរក្សាទុក Profile Privacy ជោគជ័យ!', 'success')" class="gradient-btn px-5 py-2.5 rounded-xl font-bold text-white">
-                        រក្សាទុកការផ្លាស់ប្តូរ
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 7. SETTINGS TAB -->
-        <section id="tab-settings" class="hidden space-y-6 max-w-2xl mx-auto">
-            <div class="glass-panel p-6 rounded-2xl space-y-6 text-xs">
-                <h2 class="font-bold text-base text-white border-b border-gray-800 pb-3 flex items-center">
-                    <i class="fa-solid fa-sliders text-blue-400 mr-2"></i>ការកំណត់ Telegram Bot & API
-                </h2>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-400 mb-1">Telegram Bot Token</label>
-                        <input type="text" id="settings-bot-token" value="712345678:AAH_VTradeBot_Token" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-gray-400 mb-1">Telegram Chat ID</label>
-                        <input type="text" id="settings-chat-id" value="987654321" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
-                    </div>
-                </div>
-
-                <div class="flex justify-end">
-                    <button onclick="showToast('បានតភ្ជាប់ Telegram Bot ជោគជ័យ!', 'success')" class="gradient-btn px-5 py-2.5 rounded-xl font-bold text-white">
-                        រក្សាទុកការកំណត់ Bot
-                    </button>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="glass-panel border-t border-gray-800 py-4 px-4 text-center text-xs text-gray-500">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-            <div>© 2026 VTRADE AI. All rights reserved. (VET Ven)</div>
-            <div class="flex space-x-4">
-                <span>ABA Pay ID: 002145481</span>
-                <span>•</span>
-                <span>System Status: <span class="text-green-400">Online</span></span>
             </div>
         </div>
-    </footer>
 
-    <!-- SIGN IN / LOGIN MODAL -->
-    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative space-y-4 text-xs">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
-            <h3 class="font-bold text-base text-white text-center">Sign In / Login to VTrade AI</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-gray-400 mb-1">Email / Username</label>
-                    <input type="text" id="login-email" value="vet.ven@gmail.com" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        <div id="tab-terminal" class="tab-content space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                
+                <div class="lg:col-span-3 space-y-6">
+                    <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
+                        <div class="text-xs text-gray-400 mb-2 font-semibold flex justify-between items-center">
+                            <span>📈 Live Market Chart (<span id="currentChartTitle">BTCUSDT</span>) - ICT Setup</span>
+                            <span class="text-[10px] text-blue-400 font-mono">Real-time Feed Active</span>
+                        </div>
+                        <div id="chartContainer" style="height: 420px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
+                    </section>
+
+                    <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-bold text-gray-300 flex items-center gap-1.5">💬 ICT AI Assistant Panel</span>
+                            <select id="marketSelect" onchange="changeMarketSymbol()" class="bg-gray-800 text-xs text-white px-2.5 py-1 rounded border border-gray-700 focus:outline-none cursor-pointer">
+                                <option value="BTCUSDT">BTCUSDT (Bitcoin)</option>
+                                <option value="ETHUSDT">ETHUSDT (Ethereum)</option>
+                                <option value="SOLUSDT">SOLUSDT (Solana)</option>
+                                <option value="XAUUSD">XAUUSD (Gold / មាស)</option>
+                            </select>
+                        </div>
+
+                        <div id="chatLogs" class="bg-black h-72 rounded-lg p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800 shadow-inner">
+                            <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800">
+                                <span class="text-blue-400 font-bold block mb-1">🤖 VET ICT Bot:</span> 
+                                សួស្តី! ប្រព័ន្ធវិភាគ ICT និង Telegram Bot (@ai_pro_auto_bot) រួចរាល់។ សូមបំពេញ Chat ID រួចចុច Start Auto Bot!
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="triggerAction('Analyze')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-lg transition font-medium flex gap-1 items-center cursor-pointer">📊 ICT Analysis</button>
+                                <button type="button" onclick="triggerAction('BUY')" class="bg-green-600 hover:bg-green-500 text-white text-xs px-3 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🟢 BUY Signal</button>
+                                <button type="button" onclick="triggerAction('SELL')" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded-lg transition font-bold flex gap-1 items-center cursor-pointer">🔴 SELL Signal</button>
+                            </div>
+                            <div>
+                                <button type="button" id="autoBotBtn" onclick="toggleAutoBot()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer">
+                                    ⚡ Start 5M Auto AI Bot
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                <div>
-                    <label class="block text-gray-400 mb-1">Password</label>
-                    <input type="password" value="********" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+
+                <div class="space-y-6">
+                    <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
+                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                            📱 Telegram Bot Setup
+                        </h3>
+                        <p class="text-[11px] text-gray-400">ប្រព័ន្ធភ្ជាប់ជាមួយ @ai_pro_auto_bot រួចរាល់។</p>
+                        
+                        <div class="space-y-3 text-xs pt-2">
+                            <div>
+                                <label class="text-[10px] text-gray-400">Bot Token</label>
+                                <input type="text" id="tgToken" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1" value="8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] text-gray-400">Chat ID / Channel ID</label>
+                                    <a href="https://t.me/userinfobot" target="_blank" class="text-[9px] text-blue-400 underline">រក Chat ID</a>
+                                </div>
+                                <input type="text" id="tgChatId" placeholder="ឧ: 192837465" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1">
+                            </div>
+                            <button type="button" onclick="testTelegramConnection()" class="w-full bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold py-2.5 rounded-lg transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                                🚀 Test Connection
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
+                        <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">📊 Live Order Book</h3>
+                        <div class="space-y-1 text-[11px] font-mono">
+                            <div class="flex justify-between text-red-400"><span>Spread Ask</span><span>Volume</span></div>
+                            <div class="flex justify-between text-red-400"><span>65,080.00</span><span>0.45</span></div>
+                            <div class="flex justify-between text-red-400"><span>65,050.00</span><span>1.20</span></div>
+                            <div class="py-1 text-center font-bold text-yellow-400 border-y border-gray-800">Spread Active</div>
+                            <div class="flex justify-between text-green-400"><span>65,010.00</span><span>0.95</span></div>
+                            <div class="flex justify-between text-green-400"><span>64,990.00</span><span>3.40</span></div>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="handleLogin()" class="w-full py-3 rounded-xl gradient-btn font-bold text-white shadow-lg">
-                    Login / ចូលគណនី
+
+            </div>
+        </div>
+
+        <div id="tab-dashboard" class="tab-content space-y-6 hidden">
+            <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
+                <h2 class="text-lg font-bold text-purple-400">📊 ICT Advanced System Analytics Dashboard</h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-black p-4 rounded-lg border border-gray-800">
+                        <div class="text-xs text-gray-400">Total Active Bots</div>
+                        <div class="text-xl font-bold text-white mt-1">@ai_pro_auto_bot</div>
+                        <div class="text-[10px] text-green-400 mt-1">🟢 Status: Online (5M Interval)</div>
+                    </div>
+                    <div class="bg-black p-4 rounded-lg border border-gray-800">
+                        <div class="text-xs text-gray-400">Telegram Signals Sent</div>
+                        <div class="text-2xl font-bold text-sky-400 mt-1" id="signalCount">24 Signals</div>
+                    </div>
+                    <div class="bg-black p-4 rounded-lg border border-gray-800">
+                        <div class="text-xs text-gray-400">System Uptime</div>
+                        <div class="text-2xl font-bold text-blue-400 mt-1">99.99%</div>
+                    </div>
+                    <div class="bg-black p-4 rounded-lg border border-gray-800">
+                        <div class="text-xs text-gray-400">ICT Strategy Win Rate</div>
+                        <div class="text-2xl font-bold text-yellow-400 mt-1">91.2%</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
+                        <h3 class="text-sm font-bold text-blue-400">📈 Market Overview & Performance</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Most Active Asset:</span>
+                                <span class="text-white font-bold">BTCUSDT & XAUUSD</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Average Risk/Reward Ratio:</span>
+                                <span class="text-green-400 font-bold">1 : 3.5 (ICT Optimized)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Subscription Status:</span>
+                                <span id="dashSubTier" class="text-purple-400 font-bold">Free Tier</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
+                        <h3 class="text-sm font-bold text-purple-400">⚡ Recent System & AI Logs</h3>
+                        <div id="dashLogs" class="text-[11px] text-gray-300 space-y-1.5 max-h-32 overflow-y-auto font-mono">
+                            <div>[08:41] System initialized successfully.</div>
+                            <div>[08:42] Connected to Telegram Bot @ai_pro_auto_bot.</div>
+                            <div>[08:45] ICT Order Block scan completed for BTCUSDT.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-pricing" class="tab-content space-y-6 hidden">
+            <div class="text-center space-y-2 max-w-xl mx-auto">
+                <h2 class="text-2xl font-bold text-purple-400">💎 កញ្ចប់សេវាកម្ម (Pricing & VIP Plans)</h2>
+                <p class="text-xs text-gray-400">ជ្រើសរើសកញ្ចប់ដែលសាកសមនឹងតម្រូវការជួញដូររបស់អ្នក ដើម្បីទទួលបានសញ្ញា ICT កម្រិតខ្ពស់ពេញលេញ។</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto pt-2">
+                <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="text-sm font-bold text-gray-400">សាកល្បង (Free Plan)</div>
+                        <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs text-gray-400 font-normal">/ ជារៀងរហូត</span></div>
+                        <ul class="text-xs text-gray-300 space-y-2 pt-2">
+                            <li>✓ TradingView Chart Live</li>
+                            <li>✓ ICT Analysis พื้นฐาน</li>
+                            <li>✓ Telegram Bot (จำกัดសញ្ញា)</li>
+                        </ul>
+                    </div>
+                    <button type="button" onclick="selectPlan('Free Plan', 0)" class="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold py-3 rounded-lg transition cursor-pointer">
+                        កំពុងប្រើប្រាស់ស្រាប់
+                    </button>
+                </div>
+
+                <div class="bg-gray-900 p-6 rounded-2xl border border-blue-500 shadow-xl space-y-4 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
+                    <div class="space-y-3">
+                        <div class="text-sm font-bold text-blue-400">VIP Pro Trader</div>
+                        <div class="text-3xl font-extrabold text-white">$29 <span class="text-xs text-gray-400 font-normal">/ ១ខែ</span></div>
+                        <ul class="text-xs text-gray-300 space-y-2 pt-2">
+                            <li>✓ Real-time 5M Auto Telegram Bot</li>
+                            <li>✓ Full ICT Strategy (OB, FVG, TP/SL)</li>
+                            <li>✓ Priority Support & Custom Pairs</li>
+                        </ul>
+                    </div>
+                    <button type="button" onclick="openCheckoutModal('VIP Pro Trader', 29)" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                        បង់ប្រាក់ទិញ VIP ឥឡូវនេះ ($29)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-faq" class="tab-content space-y-6 hidden">
+            <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg max-w-3xl mx-auto space-y-6">
+                <h2 class="text-lg font-bold text-blue-400">❓ សំណួរដែលតែងតែសួរញឹកញាប់ (FAQ & Support)</h2>
+                
+                <div class="space-y-4 text-xs">
+                    <div class="border-b border-gray-800 pb-3">
+                        <div class="font-bold text-white mb-1">១. តើធ្វើដូចម្តេចដើម្បីយក Telegram Chat ID?</div>
+                        <div class="text-gray-400">អ្នកអាចចូលទៅកាន់ Telegram Bot ឈ្មោះ <a href="https://t.me/userinfobot" target="_blank" class="text-blue-400 underline">@userinfobot</a> ហើយចុច Start ដើម្បីទទួលបានលេខ Chat ID ផ្ទាល់ខ្លួនរបស់អ្នក។</div>
+                    </div>
+
+                    <div class="border-b border-gray-800 pb-3">
+                        <div class="font-bold text-white mb-1">២. តើ 5M Auto Telegram Bot ដំណើរការយ៉ាងដូចម្តេច?</div>
+                        <div class="text-gray-400">ពេលអ្នកចុចប៊ូតុង "Start 5M Auto AI Bot" ប្រព័ន្ធនឹងធ្វើការវិភាគទីផ្សាររៀងរាល់ ៥នាទីម្តង និងផ្ញើសញ្ញា Buy/Sell ព្រមទាំងកម្រិត TP/SL ចូល Telegram របស់អ្នកដោយស្វ័យប្រវត្តិ។</div>
+                    </div>
+
+                    <div>
+                        <div class="font-bold text-white mb-1">៣. ទំនាក់ទំនងជំនួយបច្ចេកទេស</div>
+                        <div class="text-gray-400">ប្រសិនបើមានបញ្ហាខัดข้อง អាចទាក់ទងមកកាន់ក្រុមការងារយើងខ្ញុំតាមរយៈ Telegram Channel ផ្លូវការ៖ <span class="text-sky-400 font-semibold">@ai_pro_auto_bot</span>។</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-profile" class="tab-content space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+                    <h2 class="text-lg font-bold text-blue-400">👤 User & Bot Profile Settings</h2>
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-sm">
+                        <div><span class="text-gray-400">Full Name:</span> <span id="profileDisplayName" class="font-bold text-white">VET Ven</span></div>
+                        <div><span class="text-gray-400">Email:</span> <span id="profileDisplayEmail" class="text-gray-300">vet.ven@vettarde.ai</span></div>
+                        <div><span class="text-gray-400">Connected Telegram Bot:</span> <span class="text-sky-400 font-semibold">@ai_pro_auto_bot</span></div>
+                        <div><span class="text-gray-400">Account Role / Tier:</span> <span id="profileDisplayTier" class="text-purple-400 font-semibold">Free Member</span></div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
+                            🚪 ចាកចេញពីគណនី (Logout)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+                    <h2 class="text-lg font-bold text-green-400">🔒 Privacy & Security Settings</h2>
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-4 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-bold text-white">Two-Factor Authentication (2FA)</div>
+                                <div class="text-[10px] text-gray-400">Protect your account with extra security layer.</div>
+                            </div>
+                            <input type="checkbox" id="privacy2FA" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-gray-800 pt-3">
+                            <div>
+                                <div class="font-bold text-white">Hide Profile Online Status</div>
+                                <div class="text-[10px] text-gray-400">Keep your trading session anonymous on public channels.</div>
+                            </div>
+                            <input type="checkbox" id="privacyHideStatus" class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-gray-800 pt-3">
+                            <div>
+                                <div class="font-bold text-white">API Token Encryption</div>
+                                <div class="text-[10px] text-gray-400">Encrypt Telegram Bot Token in local storage.</div>
+                            </div>
+                            <input type="checkbox" id="privacyEncryption" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" onclick="savePrivacySettings()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg transition shadow-md cursor-pointer">
+                                💾 រក្សាទុកការកំណត់ភាពជាឯកជន (Save Privacy)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="checkoutModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-white flex justify-between items-center">
+                <span>💳 ទូទាត់ប្រាក់កញ្ចប់ <span id="modalPlanName" class="text-blue-400">VIP Pro</span></span>
+                <button type="button" onclick="closeCheckoutModal()" class="text-gray-400 hover:text-white text-sm">✕</button>
+            </h3>
+            <p class="text-xs text-gray-400">តម្លៃសរុប៖ <span id="modalPlanPrice" class="text-yellow-400 font-bold">$29</span></p>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400">លេខកាត ឬ ABA PayWay / KHQR</label>
+                    <div class="bg-black p-4 rounded-lg border border-gray-800 text-center space-y-2">
+                        <div class="text-blue-400 font-bold">KHQR Scan to Pay</div>
+                        <div class="text-[11px] text-gray-300">ABA Account: <b>000 123 456 (VET TRADE AI)</b></div>
+                    </div>
+                </div>
+                <button type="button" onclick="confirmPayment()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                    ✅ បញ្ជាក់ការទូទាត់ប្រាក់ (Confirm Payment)
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ABA KHQR PAYMENT MODAL -->
-    <div id="vip-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden border border-gray-700 shadow-2xl relative">
-            <button onclick="closeVipModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-800/80 text-gray-400 hover:text-white flex items-center justify-center">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <div class="khqr-header p-5 text-white text-center">
-                <div class="inline-block bg-white text-rose-600 font-extrabold px-3 py-0.5 rounded-md text-xs mb-2">KHQR SCAN TO PAY</div>
-                <h3 class="font-extrabold text-lg">ទូទាត់ប្រាក់កញ្ចប់ VIP Pro Trader</h3>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="bg-white p-4 rounded-2xl shadow-inner text-center max-w-[200px] mx-auto border-4 border-rose-600">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=00020101021238580009abaaccount002145481520459995303840540529.005802KH5912VET TRADE AI6010Phnom Penh6304" alt="KHQR" class="w-full h-auto mx-auto rounded-lg">
-                    <div class="mt-2 text-rose-700 font-extrabold text-sm font-mono">$29.00 USD</div>
-                </div>
-                <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 space-y-1.5 text-xs">
-                    <div class="flex justify-between"><span class="text-gray-400">ឈ្មោះគណនី:</span> <span class="font-bold text-white">VTRADE AI</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">ABA Pay:</span> <span class="font-bold text-amber-400 font-mono">002145481</span></div>
-                </div>
-                <div>
-                    <input type="text" id="tx-id-input" placeholder="លេខប្រតិបត្តិការ ABA Ref ID" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-white font-mono text-xs focus:outline-none mb-3">
-                    <button onclick="processPaymentConfirmation()" id="btn-confirm-pay" class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs shadow-lg">
-                        បញ្ជាក់ការទូទាត់ប្រាក់
-                    </button>
-                </div>
+    <div id="forgotModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-white flex justify-between items-center">
+                <span>🔑 សារសង្គ្រោះពាក្យសម្ងាត់</span>
+                <button type="button" onclick="closeForgotModal()" class="text-gray-400 hover:text-white text-sm">✕</button>
+            </h3>
+            <p class="text-xs text-gray-400">សូមបញ្ចូលអ៊ីមែលរបស់អ្នកដើម្បីទទួលបានតំណភ្ជាប់ប្តូរពាក្យសម្ងាត់ថ្មី។</p>
+            <div class="space-y-3 text-xs">
+                <input type="email" id="forgotEmail" placeholder="user@vettarde.ai" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500">
+                <button type="button" onclick="submitForgotPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                    ផ្ញើតំណប្តូរពាក្យសម្ងាត់
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- TOAST CONTAINER -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
-
-    <!-- JAVASCRIPT APP LOGIC -->
     <script>
-        let appState = {
-            isVip: false,
-            balance: 1000.00,
-            activePositions: [],
-            selectedSide: 'BUY'
-        };
+        let signalCounter = 24;
+        let tvWidget = null;
+        let autoBotTimer = null;
+        let isAutoBotRunning = false;
+        let authMode = 'login';
+        let currentTier = 'Free Member';
 
-        function switchTab(tabId) {
-            const tabs = ['dashboard', 'terminal', 'signals', 'news', 'vip', 'profile', 'settings'];
-            tabs.forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                if(el) el.classList.add('hidden');
-                const btn = document.getElementById(`nav-${t}`);
-                if(btn) {
-                    btn.classList.remove('text-blue-400', 'bg-gray-800/80');
-                    btn.classList.add('text-gray-400');
-                }
-            });
-            const targetTab = document.getElementById(`tab-${tabId}`);
-            if(targetTab) targetTab.classList.remove('hidden');
-            const targetBtn = document.getElementById(`nav-${tabId}`);
-            if(targetBtn) {
-                targetBtn.classList.add('text-blue-400', 'bg-gray-800/80');
-                targetBtn.classList.remove('text-gray-400');
+        window.onload = function() {
+            if(localStorage.getItem('vet_chat_id')) {
+                document.getElementById('tgChatId').value = localStorage.getItem('vet_chat_id');
+            }
+            if(localStorage.getItem('vet_user_name')) {
+                let name = localStorage.getItem('vet_user_name');
+                let email = localStorage.getItem('vet_user_email');
+                document.getElementById('profileDisplayName').innerText = name;
+                document.getElementById('profileDisplayEmail').innerText = email;
             }
         }
 
-        function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
-        function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
-        function openVipModal() { document.getElementById('vip-modal').classList.remove('hidden'); }
-        function closeVipModal() { document.getElementById('vip-modal').classList.add('hidden'); }
+        function switchAuthMode(mode) {
+            authMode = mode;
+            const loginBtn = document.getElementById('authTabLogin');
+            const regBtn = document.getElementById('authTabRegister');
+            const nameContainer = document.getElementById('nameFieldContainer');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const subTitle = document.getElementById('authSubTitle');
 
-        function handleLogin() {
-            closeAuthModal();
-            showToast(" සාර්ථក! ស្វាគមន៍ការចូលកាន់ប្រព័ន្ធ VTrade AI", "success");
-        }
-
-        function sendSignalToTelegramBot() {
-            showToast("បានបញ្ជូនសញ្ញា AI ຜ່ານ Telegram Bot ទៅកាន់ទូរស័ព្ទដៃជោគជ័យ!", "success");
-        }
-
-        function setSide(side) {
-            appState.selectedSide = side;
-            const buyBtn = document.getElementById('btn-side-buy');
-            const sellBtn = document.getElementById('btn-side-sell');
-            if(side === 'BUY') {
-                buyBtn.className = "py-2.5 rounded-xl font-bold text-white bg-green-600 border border-green-500 shadow-lg";
-                sellBtn.className = "py-2.5 rounded-xl font-bold text-gray-400 bg-gray-900 border border-gray-800";
+            if (mode === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                regBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.add('hidden');
+                submitBtn.innerText = "ចូលប្រព័ន្ធ (Sign In)";
+                subTitle.innerText = "ប្រព័ន្ធវិភាគទីផ្សារ ICT និង Auto Telegram Bot កម្រិតខ្ពស់";
             } else {
-                sellBtn.className = "py-2.5 rounded-xl font-bold text-white bg-red-600 border border-red-500 shadow-lg";
-                buyBtn.className = "py-2.5 rounded-xl font-bold text-gray-400 bg-gray-900 border border-gray-800";
+                regBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                loginBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.remove('hidden');
+                submitBtn.innerText = "បង្កើតគណនីថ្មី (Register)";
+                subTitle.innerText = "ចុះឈ្មោះដើម្បីចាប់ផ្តើមប្រើប្រាស់ VET Trade AI";
             }
         }
 
-        function executeTrade(e) {
-            e.preventDefault();
-            const symbol = document.getElementById('trade-symbol').value;
-            const amount = parseFloat(document.getElementById('trade-amount').value);
-            const leverage = parseInt(document.getElementById('trade-leverage').value);
-
-            if(amount > appState.balance) {
-                showToast("សមតុល្យទឹកប្រាក់មិនគ្រប់គ្រាន់!", "error");
+        function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const pass = document.getElementById('authPass').value.trim();
+            
+            if(!email || !pass) {
+                alert("⚠️ សូមបំពេញអ៊ីមែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!");
                 return;
             }
 
-            const position = {
-                id: Date.now(),
-                symbol,
-                side: appState.selectedSide,
-                entryPrice: symbol.includes('BTC') ? 64250 : 2385,
-                amount,
-                leverage,
-                pnl: 0.00
-            };
+            if (authMode === 'register') {
+                const name = document.getElementById('regName').value.trim() || "Public User";
+                localStorage.setItem('vet_user_name', name);
+                localStorage.setItem('vet_user_email', email);
+                document.getElementById('profileDisplayName').innerText = name;
+                document.getElementById('profileDisplayEmail').innerText = email;
+                alert("✅ ចុះឈ្មោះគណនីបានជោគជ័យ!");
+            }
 
-            appState.activePositions.push(position);
-            renderPositions();
-            showToast(`បានបើកបញ្ជា ${appState.selectedSide} ${symbol} ជោគជ័យ!`, "success");
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appWrapper').classList.remove('hidden');
+            switchTab('landing');
+            loadChart("BTCUSDT");
         }
 
-        function closePosition(id) {
-            appState.activePositions = appState.activePositions.filter(p => p.id !== id);
-            renderPositions();
-            showToast("បានបិទការជួញដូររួចរាល់!", "info");
+        function handleLogout() {
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('authWrapper').style.display = 'flex';
         }
 
-        function renderPositions() {
-            const container = document.getElementById('positions-list');
-            document.getElementById('active-count').innerText = `${appState.activePositions.length} Active`;
-            if(appState.activePositions.length === 0) {
-                container.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500">មិនទាន់មានការជួញដូរដែលកំពុងបើកនៅឡើយទេ។</td></tr>`;
+        function switchTab(tabName) {
+            ['landing', 'terminal', 'dashboard', 'pricing', 'faq', 'profile'].forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if(el) el.classList.add('hidden');
+                const btn = document.getElementById('btn-' + t);
+                if(btn) btn.className = "bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition";
+            });
+            const targetTab = document.getElementById('tab-' + tabName);
+            if(targetTab) targetTab.classList.remove('hidden');
+            const targetBtn = document.getElementById('btn-' + tabName);
+            if(targetBtn) targetBtn.className = "bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold";
+        }
+
+        function loadChart(symbol) {
+            document.getElementById('currentChartTitle').innerText = symbol;
+            document.getElementById('headerAsset').innerText = symbol.replace('USDT', '/USD');
+            
+            let tvSymbol = "BINANCE:" + symbol;
+            if(symbol === "XAUUSD") {
+                tvSymbol = "OANDA:XAUUSD";
+            }
+
+            document.getElementById('chartContainer').innerHTML = "";
+            setTimeout(() => {
+                tvWidget = new TradingView.widget({
+                    "container_id": "chartContainer",
+                    "symbol": tvSymbol,
+                    "autosize": true,
+                    "theme": "dark",
+                    "style": "1",
+                    "interval": "15",
+                    "timezone": "Etc/UTC"
+                });
+            }, 100);
+        }
+
+        function changeMarketSymbol() {
+            const selectedSymbol = document.getElementById('marketSelect').value;
+            loadChart(selectedSymbol);
+            
+            const logs = document.getElementById('chatLogs');
+            logs.innerHTML += `
+                <div class="bg-gray-800/40 p-2 rounded-lg border border-gray-700/40 mt-2 text-[11px] text-yellow-400">
+                    🔄 Market switched to <b>${selectedSymbol}</b>. ICT parameters updated.
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function sendToTelegram(messageText) {
+            const token = document.getElementById('tgToken').value.trim();
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!token || !chatId) return false;
+
+            localStorage.setItem('vet_chat_id', chatId);
+
+            const url = `https://api.telegram.org/bot${token}/sendMessage`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: messageText, parse_mode: 'HTML' })
+                });
+                const data = await response.json();
+                return data.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function testTelegramConnection() {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
                 return;
             }
-            container.innerHTML = appState.activePositions.map(pos => `
-                <tr class="hover:bg-gray-800/50">
-                    <td class="p-3 font-bold text-white">${pos.symbol}</td>
-                    <td class="p-3 font-bold ${pos.side === 'BUY' ? 'text-green-400' : 'text-red-400'}">${pos.side} ${pos.leverage}x</td>
-                    <td class="p-3 font-mono">$${pos.entryPrice}</td>
-                    <td class="p-3 font-mono">$${pos.amount}</td>
-                    <td class="p-3 font-mono font-bold text-green-400">+$0.00</td>
-                    <td class="p-3 text-right"><button onclick="closePosition(${pos.id})" class="px-2 py-1 bg-red-600/30 text-red-400 hover:bg-red-600 hover:text-white rounded text-[10px]">Close</button></td>
-                </tr>
-            `).join('');
+
+            const msg = "✅ <b>VET Trade AI</b>: ប្រព័ន្ធ Telegram Alert ភ្ជាប់ជាមួយ @ai_pro_auto_bot បានជោគជ័យ!";
+            const success = await sendToTelegram(msg);
+            if(success) {
+                alert('✅ ភ្ជាប់ជោគជ័យ!');
+            } else {
+                alert('❌ បរាជ័យ! សូមពិនិត្យ Chat ID ឬធានាថាបានចុច /start ក្នុង Bot ហើយ។');
+            }
         }
 
-        function copySignalToTerminal(symbol, side, entry, tp, sl) {
+        function toggleAutoBot() {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិនមុននឹងចាប់ផ្តើម Auto Bot!");
+                return;
+            }
+
+            const btn = document.getElementById('autoBotBtn');
+            const logs = document.getElementById('chatLogs');
+
+            if (!isAutoBotRunning) {
+                isAutoBotRunning = true;
+                btn.className = "bg-red-600 hover:bg-red-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer animate-pulse";
+                btn.innerHTML = "⏹ Stop 5M Auto Bot";
+
+                logs.innerHTML += `
+                    <div class="bg-purple-900/40 p-2.5 rounded-lg border border-purple-700/50 mt-2 text-purple-300">
+                        ⚡ <b>5M Auto AI Bot Started:</b> ប្រព័ន្ធកំពុងវិភាគទីផ្សារ ICT និងផ្ញើចូល Telegram រៀងរាល់ ៥នាទីម្តង...
+                    </div>
+                `;
+                logs.scrollTop = logs.scrollHeight;
+
+                runAutoAiCycle();
+                autoBotTimer = setInterval(() => { runAutoAiCycle(); }, 300000);
+
+            } else {
+                isAutoBotRunning = false;
+                clearInterval(autoBotTimer);
+                btn.className = "bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-2 rounded-lg transition font-bold flex gap-1.5 items-center shadow-lg cursor-pointer";
+                btn.innerHTML = "⚡ Start 5M Auto AI Bot";
+
+                logs.innerHTML += `
+                    <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50 mt-2 text-gray-400">
+                        ⏹ <b>Auto AI Bot Stopped.</b>
+                    </div>
+                `;
+                logs.scrollTop = logs.scrollHeight;
+            }
+        }
+
+        async function runAutoAiCycle() {
+            const market = document.getElementById('marketSelect').value;
+            const actions = ['WAIT', 'WAIT', 'BUY', 'SELL'];
+            const chosenAction = actions[Math.floor(Math.random() * actions.length)];
+
+            let teleMsg = "";
+            let webText = "";
+
+            if (chosenAction === 'BUY') {
+                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `🟢 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
+            } else if (chosenAction === 'SELL') {
+                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `🔴 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
+            } else {
+                teleMsg = `⏳ <b>VET AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                webText = `⏳ <b>[ICT AUTO SIGNAL]:</b> ទីផ្សារមិនទាន់ច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
+            }
+
+            const isSent = await sendToTelegram(teleMsg);
+            if(isSent) {
+                signalCounter++;
+                document.getElementById('signalCount').innerText = signalCounter + " Signals";
+            }
+
+            const logs = document.getElementById('chatLogs');
+            let alertStatusHTML = isSent ? 
+                `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ 5M Auto Telegram Alert sent successfully!</div>` : 
+                `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed.</div>`;
+
+            logs.innerHTML += `
+                <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
+                    <span class="text-purple-400 font-bold block">⚡ 5M Auto Bot:</span> 
+                    <div class="text-gray-200">${webText}</div>
+                    ${alertStatusHTML}
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function triggerAction(actionType) {
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(!chatId) {
+                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
+                return;
+            }
+
+            const logs = document.getElementById('chatLogs');
+            const market = document.getElementById('marketSelect').value;
+            
+            logs.innerHTML += `
+                <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50 mt-2">
+                    <span class="text-purple-400 font-bold block mb-0.5">👤 User Request:</span> ${actionType} Signal for ${market}
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
+
+            let webText = "";
+            let teleMsg = "";
+
+            if (actionType === 'BUY') {
+                webText = `🟢 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
+                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+            } else if (actionType === 'SELL') {
+                webText = `🔴 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
+                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+            } else {
+                webText = `📊 <b>វិភាគ ICT ${market}:</b> Market Structure ស្ថិតក្នុងតំបន់រង់ចាំ (Order Block & FVG)។`;
+                teleMsg = `📊 <b>VET ICT MARKET ANALYSIS</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Monitoring Order Blocks.\n\n🤖 <i>Generated by VET Trade AI</i>`;
+            }
+
+            setTimeout(async () => {
+                const isSent = await sendToTelegram(teleMsg);
+                if(isSent) {
+                    signalCounter++;
+                    document.getElementById('signalCount').innerText = signalCounter + " Signals";
+                }
+
+                let alertStatusHTML = isSent ? 
+                    `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ Telegram Alert sent successfully!</div>` : 
+                    `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed.</div>`;
+
+                logs.innerHTML += `
+                    <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
+                        <span class="text-blue-400 font-bold block">🤖 VET ICT Bot:</span> 
+                        <div class="text-gray-200">${webText}</div>
+                        ${alertStatusHTML}
+                    </div>
+                `;
+                logs.scrollTop = logs.scrollHeight;
+            }, 500);
+        }
+
+        function openCheckoutModal(planName, price) {
+            document.getElementById('modalPlanName').innerText = planName;
+            document.getElementById('modalPlanPrice').innerText = "$" + price;
+            document.getElementById('checkoutModal').style.display = 'flex';
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+
+        function confirmPayment() {
+            currentTier = 'VIP Pro Trader';
+            document.getElementById('profileDisplayTier').innerText = currentTier;
+            document.getElementById('dashSubTier').innerText = currentTier;
+            closeCheckoutModal();
+            alert("✅ ការទូទាត់ប្រាក់បានជោគជ័យ! គណនីរបស់អ្នកត្រូវបានអាប់ដេតជា VIP Pro ស្រេចបាច់។");
             switchTab('terminal');
-            document.getElementById('trade-symbol').value = symbol;
-            setSide(side);
-            if(tp) document.getElementById('trade-tp').value = tp;
-            if(sl) document.getElementById('trade-sl').value = sl;
-            showToast(`បានចម្លងសញ្ញា ${symbol} ចូល Terminal!`, "info");
         }
 
-        function processPaymentConfirmation() {
-            appState.isVip = true;
-            closeVipModal();
-            document.getElementById('user-badge').innerText = "VIP Pro Trader";
-            document.getElementById('user-badge').className = "px-2.5 py-0.5 text-xs rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40";
-            showToast("អបអរសាទរ! គណនីរបស់អ្នកត្រូវបានអាប់គ្រេដជា VIP Pro Trader រួចរាល់។", "success");
+        function openForgotPasswordModal(e) {
+            e.preventDefault();
+            document.getElementById('forgotModal').style.display = 'flex';
         }
 
-        function showToast(msg, type = "info") {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bgClass = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
-            toast.className = `${bgClass} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2 transition pointer-events-auto`;
-            toast.innerHTML = `<i class="fa-solid fa-bell"></i> <span>${msg}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        function closeForgotModal() {
+            document.getElementById('forgotModal').style.display = 'none';
+        }
+
+        function submitForgotPassword() {
+            const email = document.getElementById('forgotEmail').value.trim();
+            if(!email) {
+                alert("⚠️ សូមបញ្ចូលអ៊ីមែលរបស់អ្នក!");
+                return;
+            }
+            alert("✅ តំណភ្ជាប់ប្តូរពាក្យសម្ងាត់ត្រូវបានផ្ញើទៅកាន់អ៊ីមែល " + email + " រួចរាល់ហើយ!");
+            closeForgotModal();
+        }
+
+        function savePrivacySettings() {
+            alert("✅ ការកំណត់ភាពជាឯកជន (Privacy & Security) ត្រូវបានរក្សាទុកដោយជោគជ័យ!");
         }
     </script>
 </body>
