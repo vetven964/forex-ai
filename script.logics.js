@@ -1,8 +1,7 @@
 let currentSymbol = "BINANCE:BTCUSD";
-let currentTimeframe = "15";
 let tvWidget = null;
 
-function initTradingView(symbol, timeframe) {
+function initTradingView(symbol) {
     const container = document.getElementById("tradingview_widget");
     if(container) {
         container.innerHTML = "";
@@ -10,54 +9,24 @@ function initTradingView(symbol, timeframe) {
             "width": "100%",
             "height": "100%",
             "symbol": symbol,
-            "interval": timeframe,
+            "interval": "15",
             "timezone": "Etc/UTC",
             "theme": "dark",
             "style": "1",
             "locale": "en",
-            "container_id": "tradingview_widget",
-            "hide_side_toolbar": false,
-            "allow_symbol_change": true,
-            "details": true,
-            "hotlist": true,
-            "calendar": true
+            "container_id": "tradingview_widget"
         });
     }
 }
 
 function changeAsset(symbol, labelName, btnElement) {
     currentSymbol = symbol;
-    initTradingView(currentSymbol, currentTimeframe);
-    
-    const labelEl = document.getElementById("current-asset-label");
-    if(labelEl) {
-        labelEl.innerText = labelName;
-    }
-
-    const titleEl = document.getElementById("panel-symbol-title");
-    if(titleEl) {
-        titleEl.innerText = labelName + " - 15m";
-    }
-
-    document.querySelectorAll('.asset-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-success', 'text-black', 'border-success');
-        btn.classList.add('text-white');
-    });
-    btnElement.classList.remove('text-white');
-    btnElement.classList.add('active', 'bg-success', 'text-black', 'fw-bold');
-}
-
-function switchTab(tabName, btnElement) {
-    const parentContainer = btnElement.parentElement;
-    parentContainer.querySelectorAll('button').forEach(btn => {
-        btn.classList.remove('text-warning', 'fw-bold', 'active-tab');
-        btn.classList.add('text-muted');
-    });
-    
-    btnElement.classList.remove('text-muted');
-    btnElement.classList.add('text-warning', 'fw-bold', 'active-tab');
+    initTradingView(currentSymbol);
+    document.getElementById("current-asset-label").innerText = labelName;
+    document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    initTradingView(currentSymbol, currentTimeframe);
+    initTradingView(currentSymbol);
 });
