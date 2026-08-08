@@ -2,7 +2,6 @@ let currentSymbol = "BINANCE:BTCUSD";
 let currentTimeframe = "15";
 let tvWidget = null;
 
-// Initialize TradingView Widget
 function initTradingView(symbol, timeframe) {
     const container = document.getElementById("tradingview_widget");
     if(container) {
@@ -21,38 +20,41 @@ function initTradingView(symbol, timeframe) {
     }
 }
 
-// Switch Page Tabs Function
 function switchPage(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page-content').forEach(page => {
-        page.classList.remove('active-page');
-    });
-    // Remove active class from tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    const dashboardPage = document.getElementById('page-dashboard');
+    const analyticsPage = document.getElementById('page-analytics');
+    const dashBtn = document.getElementById('tab-dashboard-btn');
+    const anaBtn = document.getElementById('tab-analytics-btn');
 
-    // Show selected page
     if(pageId === 'dashboard') {
-        document.getElementById('page-dashboard').classList.add('active-page');
-        event.target.classList.add('active');
-        // Re-initialize chart to fix rendering size bugs
+        dashboardPage.classList.remove('d-none');
+        analyticsPage.classList.add('d-none');
+        dashBtn.classList.add('active', 'btn-primary');
+        dashBtn.classList.remove('btn-outline-primary');
+        anaBtn.classList.remove('active', 'btn-primary');
+        anaBtn.classList.add('btn-outline-primary');
         setTimeout(() => initTradingView(currentSymbol, currentTimeframe), 100);
     } else if(pageId === 'analytics') {
-        document.getElementById('page-analytics').classList.add('active-page');
-        event.target.classList.add('active');
+        dashboardPage.classList.add('d-none');
+        analyticsPage.classList.remove('d-none');
+        anaBtn.classList.add('active', 'btn-primary');
+        anaBtn.classList.remove('btn-outline-primary');
+        dashBtn.classList.remove('active', 'btn-primary');
+        dashBtn.classList.add('btn-outline-primary');
     }
 }
 
-// Change Asset Function
 function changeAsset(symbol, btnElement) {
     currentSymbol = symbol;
     initTradingView(currentSymbol, currentTimeframe);
-    document.querySelectorAll('.asset-btn').forEach(btn => btn.classList.remove('active'));
-    btnElement.classList.add('active');
+    document.querySelectorAll('.asset-btn').forEach(btn => {
+        btn.classList.remove('active', 'btn-success');
+        btn.classList.add('btn-secondary');
+    });
+    btnElement.classList.remove('btn-secondary');
+    btnElement.classList.add('active', 'btn-success');
 }
 
-// Active Session Calculator
 function updateActiveSession() {
     const utcHours = new Date().getUTCHours();
     let sessionName = (utcHours >= 0 && utcHours < 8) ? "ASIAN Session 🇯🇵" : 
@@ -65,7 +67,6 @@ function updateActiveSession() {
     }
 }
 
-// Run on page load
 document.addEventListener("DOMContentLoaded", () => {
     initTradingView(currentSymbol, currentTimeframe);
     updateActiveSession();
