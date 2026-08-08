@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Forex AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font Khmer (Preah Vihear / Koulen or Battambang) -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Battambang', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <h1 class="text-xl font-bold text-blue-400">Forex AI Dashboard</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-gray-300 hover:text-white text-sm transition">ទំព័រដើម</a>
+            <a href="login.html" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition shadow">ចាកចេញ (Logout)</a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl w-full mx-auto px-4 py-10">
+        <div class="bg-gray-800 rounded-2xl shadow-xl border border-gray-700 overflow-hidden">
+            
+            <!-- Header Banner Inside Card -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6 text-white">
+                <h2 class="text-2xl font-bold">ព័ត៌មានប្រវត្តិរូបផ្ទាល់ខ្លួន</h2>
+                <p class="text-blue-100 text-sm mt-1">គ្រប់គ្រង និងធ្វើបច្ចុប្បន្នភាពគណនីរបស់អ្នកនៅទីនេះ</p>
+            </div>
+
+            <!-- Profile Form Body -->
+            <form id="profileForm" class="p-6 md:p-8 space-y-6">
+                
+                <!-- Avatar Section -->
+                <div class="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-700">
+                    <div class="relative">
+                        <img id="avatarPreview" src="https://via.placeholder.com/150" alt="Profile Picture" class="w-24 h-24 rounded-full border-4 border-blue-500 object-cover shadow-lg">
+                    </div>
+                    <div class="text-center sm:text-left space-y-2">
+                        <h3 class="text-lg font-semibold text-white">រូបភាពតំណាង (Avatar)</h3>
+                        <label class="inline-block bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium px-4 py-2 rounded-lg cursor-pointer transition border border-gray-600">
+                            ផ្លាស់ប្តូររូបភាពថ្មី
+                            <input type="file" id="uploadAvatar" accept="image/*" class="hidden" onchange="previewImage(event)">
+                        </label>
+                        <p class="text-xs text-gray-400">PNG, JPG ឬ GIF (ទំហំអតិបរមា 2MB)</p>
+                    </div>
+                </div>
+
+                <!-- Input Fields Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">ឈ្មោះពេញ (Full Name)</label>
+                        <input type="text" id="fullName" value="VET Ven" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">អ៊ីមែល (Email Address)</label>
+                        <input type="email" id="email" value="vetven964@gmail.com" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">លេខទូរសព្ទ (Phone Number)</label>
+                        <input type="text" id="phone" placeholder="+855 ..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">តួនាទី (Role)</label>
+                        <input type="text" value="System Administrator" disabled class="w-full bg-gray-900/50 border border-gray-700/50 rounded-xl px-4 py-2.5 text-gray-400 cursor-not-allowed">
+                    </div>
+                </div>
+
+                <!-- Alert Message Notification -->
+                <div id="successAlert" class="hidden bg-green-900/50 border border-green-500 text-green-300 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+                    <span>រក្សាទុកព័ត៌មានបានដោយជោគជ័យ!</span>
+                </div>
+
+                <!-- Save Button -->
+                <div class="flex justify-end pt-4 border-t border-gray-700">
+                    <button type="button" onclick="saveProfile()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30">
+                        រក្សាទុកការផ្លាស់ប្តូរ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-gray-500 text-xs border-t border-gray-800">
+        &copy; 2026 Forex AI. All rights reserved.
+    </footer>
+
+    <!-- JavaScript សម្រាប់ដំណើរការប៊ូតុង និងប្តូររូបភាព -->
+    <script>
+        // Preview Image when user selects a file
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById('avatarPreview');
+                output.src = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // Save Profile Action Simulation
+        function saveProfile() {
+            const alertBox = document.getElementById('successAlert');
+            alertBox.classList.remove('hidden');
+            
+            // Hide alert after 3 seconds
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
