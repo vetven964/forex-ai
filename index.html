@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI - Master Terminal & ICT Advanced Version</title>
+    <title>VET Trade AI - Master Terminal & ICT Advanced Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -14,32 +14,41 @@
 </head>
 <body class="p-4 space-y-6 max-w-7xl mx-auto">
 
-    <!-- ================= SIGN IN / AUTHENTICATION WRAPPER ================= -->
+    <!-- ================= AUTHENTICATION WRAPPER (LOGIN & REGISTER) ================= -->
     <div id="authWrapper" class="min-h-[85vh] flex items-center justify-center">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
                 <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
                     🤖 <span class="text-blue-500">VET Trade AI</span>
                 </h1>
-                <p class="text-xs text-gray-400">សូម Sign In ចូលប្រព័ន្ធ ICT Trading & Telegram Bot (@ai_pro_auto_bot)</p>
+                <p id="authSubTitle" class="text-xs text-gray-400">សូមចូលគណនីរបស់អ្នកដើម្បីចាប់ផ្តើមប្រព័ន្ធ ICT Trading</p>
             </div>
-            <div class="space-y-4 pt-2">
-                <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Email / Username</label>
+
+            <!-- Tab Switcher for Login / Register -->
+            <div class="flex bg-black p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+                <button type="button" onclick="switchAuthMode('login')" id="authTabLogin" class="flex-1 py-2 rounded-md bg-blue-600 text-white transition">ចូលប្រព័ន្ធ (Login)</button>
+                <button type="button" onclick="switchAuthMode('register')" id="authTabRegister" class="flex-1 py-2 rounded-md text-gray-400 hover:text-white transition">ចុះឈ្មោះ (Register)</button>
+            </div>
+
+            <!-- Form Fields -->
+            <div id="authForm" class="space-y-4 pt-2">
+                <div id="nameFieldContainer" class="hidden space-y-1">
+                    <label class="text-[10px] text-gray-400">ឈ្មោះពេញ (Full Name)</label>
+                    <input type="text" id="regName" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" placeholder="វ៉ែន វៀន (VET Ven)">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-400">អ៊ីមែល (Email Address)</label>
                     <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="vet.ven@vettarde.ai">
                 </div>
-                <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Password</label>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-400">ពាក្យសម្ងាត់ (Password)</label>
                     <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
                 </div>
-                <div class="flex items-center justify-between text-[11px] text-gray-400">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                        <input type="checkbox" checked class="rounded bg-black border-gray-800"> จดจำគណនីខ្ញុំ (Remember me)
-                    </label>
-                    <a href="#" onclick="alert('សូមទាក់ទង Admin ដើម្បី Reset Password!')" class="text-blue-400 hover:underline">ភ្លេចលេខសម្ងាត់?</a>
-                </div>
-                <button type="button" onclick="handleAuthSubmit()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
-                    🔑 Sign In to Terminal
+
+                <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
+                    ចូលប្រព័ន្ធ (Sign In)
                 </button>
             </div>
         </div>
@@ -51,7 +60,7 @@
         <!-- Header & Navigation -->
         <header class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-3 gap-3">
             <h1 class="text-xl font-bold flex items-center gap-2">
-                🤖 <span class="text-blue-500">VET Trade AI</span> ICT Advanced
+                🤖 <span class="text-blue-500">VET Trade AI</span> ICT Advanced Ultimate
             </h1>
             
             <div class="flex items-center gap-3">
@@ -160,12 +169,9 @@
         <!-- ================= TAB 2: DASHBOARD ================= -->
         <div id="tab-dashboard" class="tab-content space-y-6 hidden">
             <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-purple-400">📊 ICT Advanced System Analytics Dashboard</h2>
-                    <span class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800 text-green-400">🟢 Real-time Synchronized</span>
-                </div>
-
-                <!-- Top Metrics Grid -->
+                <h2 class="text-lg font-bold text-purple-400">📊 ICT Advanced System Analytics Dashboard</h2>
+                
+                <!-- Metric Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">Total Active Bots</div>
@@ -186,41 +192,32 @@
                     </div>
                 </div>
 
-                <!-- Extra Analytical Widgets for Dashboard -->
+                <!-- Secondary Dashboard Widgets (Market Overview & Performance) -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
                     <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
-                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider">📈 Market Performance Overview (ICT)</h3>
+                        <h3 class="text-sm font-bold text-blue-400">📈 Market Overview & Performance</h3>
                         <div class="space-y-2 text-xs">
-                            <div class="flex justify-between py-1 border-b border-gray-800">
-                                <span class="text-gray-400">BTCUSDT Accuracy:</span>
-                                <span class="text-green-400 font-bold">94.5% (Bullish Order Block)</span>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Most Active Asset:</span>
+                                <span class="text-white font-bold">BTCUSDT & XAUUSD</span>
                             </div>
-                            <div class="flex justify-between py-1 border-b border-gray-800">
-                                <span class="text-gray-400">XAUUSD Accuracy:</span>
-                                <span class="text-green-400 font-bold">89.2% (FVG Mitigation)</span>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Average Risk/Reward Ratio:</span>
+                                <span class="text-green-400 font-bold">1 : 3.5 (ICT Optimized)</span>
                             </div>
-                            <div class="flex justify-between py-1">
-                                <span class="text-gray-400">Average Risk-to-Reward Ratio:</span>
-                                <span class="text-yellow-400 font-bold">1 : 3.5</span>
+                            <div class="flex justify-between border-b border-gray-800 pb-2">
+                                <span class="text-gray-400">Last Auto Execution:</span>
+                                <span class="text-purple-400 font-bold" id="dashLastRun">Active (Every 5 Mins)</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
-                        <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">⚡ Recent Automated Telegram Activity</h3>
-                        <div class="space-y-2 text-[11px] font-mono text-gray-300">
-                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
-                                <span>[BTCUSDT] ICT BUY (TP1/TP2/TP3 Hit)</span>
-                                <span class="text-green-400">Success</span>
-                            </div>
-                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
-                                <span>[XAUUSD] Market Consolidation (WAIT)</span>
-                                <span class="text-yellow-400">Hold</span>
-                            </div>
-                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
-                                <span>[ETHUSDT] ICT SELL SHORT Triggered</span>
-                                <span class="text-green-400">Success</span>
-                            </div>
+                        <h3 class="text-sm font-bold text-purple-400">⚡ Recent System & AI Logs</h3>
+                        <div id="dashLogs" class="text-[11px] text-gray-300 space-y-1.5 max-h-32 overflow-y-auto font-mono">
+                            <div>[08:41] System initialized successfully.</div>
+                            <div>[08:42] Connected to Telegram Bot @ai_pro_auto_bot.</div>
+                            <div>[08:45] ICT Order Block scan completed for BTCUSDT.</div>
                         </div>
                     </div>
                 </div>
@@ -229,51 +226,65 @@
 
         <!-- ================= TAB 3: PROFILE & PRIVACY ================= -->
         <div id="tab-profile" class="tab-content space-y-6 hidden">
-            <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6 max-w-4xl">
-                <h2 class="text-lg font-bold text-blue-400">👤 User Profile & Security Privacy Controls</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Profile Info -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- User Profile Info -->
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+                    <h2 class="text-lg font-bold text-blue-400">👤 User & Bot Profile Settings</h2>
                     <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-sm">
-                        <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">ព័ត៌មានផ្ទាល់ខ្លួន (Account Info)</h3>
-                        <div><span class="text-gray-400">Full Name:</span> <span class="font-bold text-white">VET Ven</span></div>
-                        <div><span class="text-gray-400">Email:</span> <span class="text-gray-300">vet.ven@vettarde.ai</span></div>
+                        <div><span class="text-gray-400">Full Name:</span> <span id="profileDisplayName" class="font-bold text-white">VET Ven</span></div>
+                        <div><span class="text-gray-400">Email:</span> <span id="profileDisplayEmail" class="text-gray-300">vet.ven@vettarde.ai</span></div>
                         <div><span class="text-gray-400">Connected Telegram Bot:</span> <span class="text-sky-400 font-semibold">@ai_pro_auto_bot</span></div>
                         <div><span class="text-gray-400">Account Role:</span> <span class="text-purple-400 font-semibold">Master ICT Trader / Administrator</span></div>
                     </div>
-
-                    <!-- Privacy & Security Controls -->
-                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-xs">
-                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider mb-2">🔒 Privacy & Security Settings</h3>
-                        
-                        <div class="space-y-3">
-                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
-                                <span class="text-gray-300">Telegram Bot Token Encryption</span>
-                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
-                            </label>
-                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
-                                <span class="text-gray-300">Two-Factor Authentication (2FA)</span>
-                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
-                            </label>
-                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
-                                <span class="text-gray-300">Hide API Keys & Chat ID in Logs</span>
-                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
-                            </label>
-                            <label class="flex items-center justify-between cursor-pointer py-1">
-                                <span class="text-gray-300">Auto-Logout on Inactivity (30 mins)</span>
-                                <input type="checkbox" class="rounded bg-gray-900 border-gray-700 accent-blue-500">
-                            </label>
-                        </div>
+                    <div class="pt-2">
+                        <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
+                            🚪 ចាកចេញពីគណនី (Logout)
+                        </button>
                     </div>
                 </div>
 
-                <div class="pt-2 flex items-center justify-between border-t border-gray-800 pt-4">
-                    <button type="button" onclick="alert('រក្សាទុក Privacy Settings ជោគជ័យ!')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
-                        💾 រក្សាទុកការកំណត់ (Save Changes)
-                    </button>
-                    <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
-                        🚪 ចាកចេញពីគណនី (Sign Out)
-                    </button>
+                <!-- Privacy & Security Settings -->
+                <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+                    <h2 class="text-lg font-bold text-green-400">🔒 Privacy & Security Settings</h2>
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-4 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-bold text-white">Two-Factor Authentication (2FA)</div>
+                                <div class="text-[10px] text-gray-400">Protect your account with extra security layer.</div>
+                            </div>
+                            <input type="checkbox" id="privacy2FA" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-gray-800 pt-3">
+                            <div>
+                                <div class="font-bold text-white">Hide Profile Online Status</div>
+                                <div class="text-[10px] text-gray-400">Keep your trading session anonymous on public channels.</div>
+                            </div>
+                            <input type="checkbox" id="privacyHideStatus" class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-gray-800 pt-3">
+                            <div>
+                                <div class="font-bold text-white">API Token Encryption</div>
+                                <div class="text-[10px] text-gray-400">Encrypt Telegram Bot Token in local storage.</div>
+                            </div>
+                            <input type="checkbox" id="privacyEncryption" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-gray-800 pt-3">
+                            <div>
+                                <div class="font-bold text-white">Telegram Signal Privacy Mode</div>
+                                <div class="text-[10px] text-gray-400">Restrict alerts strictly to your private Chat ID.</div>
+                            </div>
+                            <input type="checkbox" id="privacyTeleMode" checked class="w-4 h-4 accent-blue-600 cursor-pointer">
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" onclick="savePrivacySettings()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg transition shadow-md cursor-pointer">
+                                💾 រក្សាទុកការកំណត់ความเป็นส่วนตัว (Save Privacy)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -286,14 +297,61 @@
         let tvWidget = null;
         let autoBotTimer = null;
         let isAutoBotRunning = false;
+        let authMode = 'login'; // 'login' or 'register'
 
         window.onload = function() {
             if(localStorage.getItem('vet_chat_id')) {
                 document.getElementById('tgChatId').value = localStorage.getItem('vet_chat_id');
             }
+            if(localStorage.getItem('vet_user_name')) {
+                let name = localStorage.getItem('vet_user_name');
+                let email = localStorage.getItem('vet_user_email');
+                document.getElementById('profileDisplayName').innerText = name;
+                document.getElementById('profileDisplayEmail').innerText = email;
+            }
+        }
+
+        function switchAuthMode(mode) {
+            authMode = mode;
+            const loginBtn = document.getElementById('authTabLogin');
+            const regBtn = document.getElementById('authTabRegister');
+            const nameContainer = document.getElementById('nameFieldContainer');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const subTitle = document.getElementById('authSubTitle');
+
+            if (mode === 'login') {
+                loginBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                regBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.add('hidden');
+                submitBtn.innerText = "ចូលប្រព័ន្ធ (Sign In)";
+                subTitle.innerText = "សូមចូលគណនីរបស់អ្នកដើម្បីចាប់ផ្តើមប្រព័ន្ធ ICT Trading";
+            } else {
+                regBtn.className = "flex-1 py-2 rounded-md bg-blue-600 text-white transition";
+                loginBtn.className = "flex-1 py-2 rounded-md text-gray-400 hover:text-white transition";
+                nameContainer.classList.remove('hidden');
+                submitBtn.innerText = "បង្កើតគណនីថ្មី (Register)";
+                subTitle.innerText = "បង្កើតគណនីថ្មីដើម្បីប្រើប្រាស់ VET Trade AI Bot";
+            }
         }
 
         function handleAuthSubmit() {
+            const email = document.getElementById('authEmail').value.trim();
+            const pass = document.getElementById('authPass.value') || document.getElementById('authPass').value.trim();
+            
+            if(!email || !pass) {
+                alert("⚠️ សូមបំពេញអ៊ីមែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            if (authMode === 'register') {
+                const name = document.getElementById('regName').value.trim() || "VET Ven";
+                localStorage.setItem('vet_user_name', name);
+                localStorage.setItem('vet_user_email', email);
+                document.getElementById('profileDisplayName').innerText = name;
+                document.getElementById('profileDisplayEmail').innerText = email;
+                alert("✅ ចុះឈ្មោះ និងបង្កើតគណនីបានជោគជ័យ!");
+            }
+
             document.getElementById('authWrapper').style.display = 'none';
             document.getElementById('appWrapper').classList.remove('hidden');
             loadChart("BTCUSDT");
@@ -409,6 +467,8 @@
                 logs.scrollTop = logs.scrollHeight;
 
                 runAutoAiCycle();
+
+                // Run every 5 minutes (300,000 ms)
                 autoBotTimer = setInterval(() => {
                     runAutoAiCycle();
                 }, 300000);
@@ -519,6 +579,10 @@
                 `;
                 logs.scrollTop = logs.scrollHeight;
             }, 500);
+        }
+
+        function savePrivacySettings() {
+            alert("✅ ការកំណត់ความเป็นส่วนตัว (Privacy & Security) ត្រូវបានរក្សាទុកដោយជោគជ័យ!");
         }
     </script>
 </body>
