@@ -3,140 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex AI Pro - Real-Time Advanced Terminal</title>
+    <title>Forex AI Pro - Advanced Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Battambang', sans-serif; background-color: #0b0e14; color: #e4e4e7; }
         .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        /* ការពារបាត់បង់ Dashboard */
+        #chartContainer { min-height: 400px; display: block !important; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between">
+<body class="p-4">
 
-    <div>
-        <!-- Live Market Ticker -->
-        <div class="bg-gray-950 text-xs py-2 px-6 border-b border-gray-800 flex overflow-x-auto space-x-6 text-gray-400 whitespace-nowrap">
-            <span>🔴 LIVE MARKET:</span>
-            <span>BTC/USD: <strong id="tickerBtc" class="text-green-400">Loading...</strong></span>
-            <span>ETH/USD: <strong id="tickerEth" class="text-green-400">Loading...</strong></span>
-            <span>XAU/USD: <strong class="text-green-400">$2,340</strong></span>
-        </div>
-
-        <!-- Header -->
-        <header class="glass mx-4 mt-4 rounded-2xl px-6 py-4 flex flex-wrap justify-between items-center shadow-xl">
-            <h1 class="text-xl font-black text-white tracking-wider">Forex AI <span class="text-blue-500">Pro</span></h1>
-            
-            <!-- Asset Switcher -->
-            <div class="flex space-x-2 my-2 sm:my-0">
-                <button onclick="changeSymbol('BINANCE:BTCUSDT', this)" class="asset-btn bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold transition shadow">BTC</button>
-                <button onclick="changeSymbol('BINANCE:ETHUSDT', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">ETH</button>
-                <button onclick="changeSymbol('FX:EURUSD', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">EUR</button>
-                <button onclick="changeSymbol('OANDA:XAUUSD', this)" class="asset-btn bg-gray-800 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition">GOLD</button>
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <button onclick="sendToTelegram()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow flex items-center space-x-1">
-                    <span>📤 Telegram</span>
-                </button>
-                <a href="profile.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow">
-                    Profile
-                </a>
-            </div>
-        </header>
+    <!-- Live Market Ticker -->
+    <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 mb-6 flex space-x-6 text-sm">
+        <span class="text-gray-400">🔴 LIVE:</span>
+        <span id="tickerBtc" class="text-green-400 font-bold">BTC/USD: $65,000</span>
+        <span id="tickerEth" class="text-green-400 font-bold">ETH/USD: $3,500</span>
     </div>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
-        
-        <!-- Signal & Market Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- AI Signal Card -->
-            <div class="lg:col-span-2 glass rounded-2xl p-6 shadow-xl flex flex-col justify-between border-l-4 border-green-500">
-                <div>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest">AI Signal Recommendation</span>
-                    <h2 class="text-3xl font-black text-green-400 mt-1">STRONG BUY</h2>
-                </div>
-                <div class="flex flex-wrap gap-6 mt-4 pt-4 border-t border-gray-700/50 text-xs">
-                    <div>
-                        <p class="text-gray-400">AI Confidence</p>
-                        <p class="font-bold text-blue-400 text-sm">95.8%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400">Trend Status</p>
-                        <p class="font-bold text-green-400 text-sm">Bullish</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-400">Execution Speed</p>
-                        <p class="font-bold text-gray-200 text-sm">&lt; 0.1s</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI Interactive Terminal Hub (Real-Time API Analysis) -->
-            <div class="glass rounded-2xl p-4 shadow-xl flex flex-col h-[230px]">
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>🤖 AI Terminal Hub</span>
-                    <span class="text-[10px] text-green-400 animate-pulse font-mono">ONLINE API</span>
-                </h3>
-                <!-- Chat/Analysis Box -->
-                <div id="terminalLogs" class="flex-1 bg-gray-900/80 rounded-xl p-2.5 overflow-y-auto space-y-2 text-[11px] border border-gray-800">
-                    <div class="text-gray-400">💡 វាយបញ្ចូលពាក្យ <b>BTC</b>, <b>ETH</b> ឬ <b>XAU</b> ដើម្បីទាញតម្លៃ Real-Time មកវិភាគ។</div>
-                </div>
-                <!-- Input Box -->
-                <div class="mt-2 flex gap-2">
-                    <input type="text" id="terminalInput" placeholder="Type symbol (e.g. BTC, ETH)..." class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                    <button onclick="runRealTimeAnalysis()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">➤</button>
-                </div>
-            </div>
-
+    <!-- Header -->
+    <div class="glass p-6 rounded-2xl mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-black text-white">Forex AI <span class="text-blue-500">Dashboard</span></h1>
+        <div class="space-x-2">
+            <button onclick="changeSymbol('BINANCE:BTCUSDT')" class="bg-blue-600 px-4 py-2 rounded-lg text-xs">BTC</button>
+            <button onclick="changeSymbol('BINANCE:ETHUSDT')" class="bg-gray-700 px-4 py-2 rounded-lg text-xs">ETH</button>
         </div>
+    </div>
 
-        <!-- TradingView Chart Section -->
-        <div class="glass rounded-2xl p-2 shadow-xl overflow-hidden h-[480px]">
-            <div id="chartContainer" style="height:100%; width:100%;"></div>
+    <!-- Dashboard Content -->
+    <div class="dashboard-grid mb-6">
+        <!-- AI Card -->
+        <div class="glass p-6 rounded-2xl border-l-4 border-green-500">
+            <h2 class="text-green-400 font-bold text-xl">STRONG BUY</h2>
+            <p class="text-xs text-gray-400 mt-2">Confidence: 95.8% | Bullish</p>
         </div>
-
-        <!-- AI Signal History Table -->
-        <div class="glass rounded-2xl p-6 shadow-xl">
-            <h3 class="text-sm font-bold text-white mb-4 flex items-center justify-between">
-                <span>📊 ប្រវត្តិសញ្ញា AI Signal ថ្មីៗ (History Performance)</span>
-                <span class="text-[10px] text-green-400 bg-green-950/80 px-3 py-1 rounded-full border border-green-800 font-mono">Win Rate: 94.2%</span>
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-gray-300">
-                    <thead class="bg-gray-900/80 uppercase text-gray-400 border-b border-gray-800">
-                        <tr>
-                            <th class="px-4 py-3">ពេលវេលា / Time</th>
-                            <th class="px-4 py-3">Asset Pair</th>
-                            <th class="px-4 py-3">Signal</th>
-                            <th class="px-4 py-3">Confidence</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-800/60">
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="px-4 py-3">០៨/០៨/២០២៦ - ១២:៣០</td>
-                            <td class="px-4 py-3 font-bold text-white">BTC/USD</td>
-                            <td class="px-4 py-3 text-green-400 font-bold">STRONG BUY</td>
-                            <td class="px-4 py-3 text-blue-400 font-semibold">95.8%</td>
-                            <td class="px-4 py-3"><span class="bg-green-900/50 text-green-300 px-2.5 py-1 rounded border border-green-700 font-medium">TP Hit (+120 pips)</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <!-- Terminal Hub -->
+        <div class="glass p-6 rounded-2xl">
+            <h3 class="text-white font-bold mb-2">🤖 AI Terminal</h3>
+            <div id="terminalLogs" class="bg-black p-3 h-24 overflow-y-auto text-xs text-green-400 mb-2 border border-gray-800"></div>
+            <input type="text" id="terminalInput" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-xs" placeholder="Command...">
         </div>
+    </div>
 
-    </main>
+    <!-- Chart -->
+    <div class="glass p-4 rounded-2xl h-[500px]">
+        <div id="chartContainer" style="width:100%; height:100%;"></div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-gray-500 text-[11px] border-t border-gray-800/60 mt-6">
-        &copy; 2026 Forex AI Pro. All rights reserved.
-    </footer>
-
-    <!-- TradingView & JavaScript Link -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script src="script-logics.js"></script>
 </body>
