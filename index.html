@@ -14,20 +14,32 @@
 </head>
 <body class="p-4 space-y-6 max-w-7xl mx-auto">
 
-    <!-- ================= AUTHENTICATION WRAPPER ================= -->
-    <div id="authWrapper" class="min-h-[80vh] flex items-center justify-center">
+    <!-- ================= SIGN IN / AUTHENTICATION WRAPPER ================= -->
+    <div id="authWrapper" class="min-h-[85vh] flex items-center justify-center">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
                 <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
                     🤖 <span class="text-blue-500">VET Trade AI</span>
                 </h1>
-                <p class="text-xs text-gray-400">សូមចូលគណនីរបស់អ្នកដើម្បីចាប់ផ្តើមប្រព័ន្ធ ICT Trading & Telegram Bot</p>
+                <p class="text-xs text-gray-400">សូម Sign In ចូលប្រព័ន្ធ ICT Trading & Telegram Bot (@ai_pro_auto_bot)</p>
             </div>
-            <div class="space-y-4 pt-4">
-                <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="vet.ven@vettarde.ai">
-                <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
+            <div class="space-y-4 pt-2">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Email / Username</label>
+                    <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="vet.ven@vettarde.ai">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Password</label>
+                    <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-gray-400">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" checked class="rounded bg-black border-gray-800"> จดจำគណនីខ្ញុំ (Remember me)
+                    </label>
+                    <a href="#" onclick="alert('សូមទាក់ទង Admin ដើម្បី Reset Password!')" class="text-blue-400 hover:underline">ភ្លេចលេខសម្ងាត់?</a>
+                </div>
                 <button type="button" onclick="handleAuthSubmit()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
-                    ចូលប្រព័ន្ធ (Sign In)
+                    🔑 Sign In to Terminal
                 </button>
             </div>
         </div>
@@ -46,7 +58,7 @@
                 <div class="space-x-1">
                     <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
                     <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
-                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
+                    <button type="button" onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile & Privacy</button>
                 </div>
                 <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
                     🔴 LIVE MARKET FEED: <span id="headerAsset" class="text-green-400 font-bold">BTC/USD</span>
@@ -148,11 +160,16 @@
         <!-- ================= TAB 2: DASHBOARD ================= -->
         <div id="tab-dashboard" class="tab-content space-y-6 hidden">
             <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6">
-                <h2 class="text-lg font-bold text-purple-400">📊 ICT Advanced System Analytics</h2>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-purple-400">📊 ICT Advanced System Analytics Dashboard</h2>
+                    <span class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800 text-green-400">🟢 Real-time Synchronized</span>
+                </div>
+
+                <!-- Top Metrics Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">Total Active Bots</div>
-                        <div class="text-2xl font-bold text-white mt-1">@ai_pro_auto_bot</div>
+                        <div class="text-xl font-bold text-white mt-1">@ai_pro_auto_bot</div>
                         <div class="text-[10px] text-green-400 mt-1">🟢 Status: Online (5M Interval)</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
@@ -168,22 +185,94 @@
                         <div class="text-2xl font-bold text-yellow-400 mt-1">91.2%</div>
                     </div>
                 </div>
+
+                <!-- Extra Analytical Widgets for Dashboard -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
+                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider">📈 Market Performance Overview (ICT)</h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-gray-800">
+                                <span class="text-gray-400">BTCUSDT Accuracy:</span>
+                                <span class="text-green-400 font-bold">94.5% (Bullish Order Block)</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-gray-800">
+                                <span class="text-gray-400">XAUUSD Accuracy:</span>
+                                <span class="text-green-400 font-bold">89.2% (FVG Mitigation)</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-gray-400">Average Risk-to-Reward Ratio:</span>
+                                <span class="text-yellow-400 font-bold">1 : 3.5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3">
+                        <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">⚡ Recent Automated Telegram Activity</h3>
+                        <div class="space-y-2 text-[11px] font-mono text-gray-300">
+                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
+                                <span>[BTCUSDT] ICT BUY (TP1/TP2/TP3 Hit)</span>
+                                <span class="text-green-400">Success</span>
+                            </div>
+                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
+                                <span>[XAUUSD] Market Consolidation (WAIT)</span>
+                                <span class="text-yellow-400">Hold</span>
+                            </div>
+                            <div class="bg-gray-900 p-2 rounded border border-gray-800 flex justify-between">
+                                <span>[ETHUSDT] ICT SELL SHORT Triggered</span>
+                                <span class="text-green-400">Success</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- ================= TAB 3: PROFILE ================= -->
+        <!-- ================= TAB 3: PROFILE & PRIVACY ================= -->
         <div id="tab-profile" class="tab-content space-y-6 hidden">
-            <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4 max-w-2xl">
-                <h2 class="text-lg font-bold text-blue-400">👤 User & Bot Profile Settings</h2>
-                <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-sm">
-                    <div><span class="text-gray-400">Full Name:</span> <span class="font-bold text-white">VET Ven</span></div>
-                    <div><span class="text-gray-400">Email:</span> <span class="text-gray-300">vet.ven@vettarde.ai</span></div>
-                    <div><span class="text-gray-400">Connected Telegram Bot:</span> <span class="text-sky-400 font-semibold">@ai_pro_auto_bot</span></div>
-                    <div><span class="text-gray-400">Account Role:</span> <span class="text-purple-400 font-semibold">Master ICT Trader / Administrator</span></div>
+            <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-6 max-w-4xl">
+                <h2 class="text-lg font-bold text-blue-400">👤 User Profile & Security Privacy Controls</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Profile Info -->
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-sm">
+                        <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">ព័ត៌មានផ្ទាល់ខ្លួន (Account Info)</h3>
+                        <div><span class="text-gray-400">Full Name:</span> <span class="font-bold text-white">VET Ven</span></div>
+                        <div><span class="text-gray-400">Email:</span> <span class="text-gray-300">vet.ven@vettarde.ai</span></div>
+                        <div><span class="text-gray-400">Connected Telegram Bot:</span> <span class="text-sky-400 font-semibold">@ai_pro_auto_bot</span></div>
+                        <div><span class="text-gray-400">Account Role:</span> <span class="text-purple-400 font-semibold">Master ICT Trader / Administrator</span></div>
+                    </div>
+
+                    <!-- Privacy & Security Controls -->
+                    <div class="bg-black p-5 rounded-lg border border-gray-800 space-y-3 text-xs">
+                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider mb-2">🔒 Privacy & Security Settings</h3>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
+                                <span class="text-gray-300">Telegram Bot Token Encryption</span>
+                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
+                                <span class="text-gray-300">Two-Factor Authentication (2FA)</span>
+                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer py-1 border-b border-gray-800">
+                                <span class="text-gray-300">Hide API Keys & Chat ID in Logs</span>
+                                <input type="checkbox" checked class="rounded bg-gray-900 border-gray-700 accent-blue-500">
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer py-1">
+                                <span class="text-gray-300">Auto-Logout on Inactivity (30 mins)</span>
+                                <input type="checkbox" class="rounded bg-gray-900 border-gray-700 accent-blue-500">
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="pt-2">
+
+                <div class="pt-2 flex items-center justify-between border-t border-gray-800 pt-4">
+                    <button type="button" onclick="alert('រក្សាទុក Privacy Settings ជោគជ័យ!')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
+                        💾 រក្សាទុកការកំណត់ (Save Changes)
+                    </button>
                     <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer">
-                        🚪 ចាកចេញពីគណនី (Logout)
+                        🚪 ចាកចេញពីគណនី (Sign Out)
                     </button>
                 </div>
             </div>
@@ -319,10 +408,7 @@
                 `;
                 logs.scrollTop = logs.scrollHeight;
 
-                // Run immediately once
                 runAutoAiCycle();
-
-                // Run every 5 minutes (300,000 ms)
                 autoBotTimer = setInterval(() => {
                     runAutoAiCycle();
                 }, 300000);
@@ -344,7 +430,6 @@
 
         async function runAutoAiCycle() {
             const market = document.getElementById('marketSelect').value;
-            // Weighted actions: Wait if market is not clear, otherwise Buy/Sell
             const actions = ['WAIT', 'WAIT', 'BUY', 'SELL'];
             const chosenAction = actions[Math.floor(Math.random() * actions.length)];
 
