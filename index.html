@@ -11,14 +11,27 @@
 <body class="bg-body-tertiary">
     <div class="container-fluid vh-100 d-flex flex-column p-2 overflow-hidden">
         
-        <!-- Top Status Bar -->
+        <!-- Top Status Bar (Added Profile & Telegram Button) -->
         <header class="navbar navbar-dark bg-dark px-3 rounded-3 mb-2 border border-secondary border-opacity-25 py-1">
             <div class="d-flex align-items-center gap-3">
                 <span class="navbar-brand fw-bold fs-6 text-white mb-0">V ⚡ <span class="text-warning">Free plan</span></span>
-                <span class="badge bg-secondary text-light">VOLATILITY Low</span>
-                <span class="badge bg-secondary text-light">REGIME Cautious</span>
+                <span class="badge bg-secondary text-light d-none d-md-inline">VOLATILITY Low</span>
+                <span class="badge bg-secondary text-light d-none d-md-inline">REGIME Cautious</span>
             </div>
+            
+            <!-- Right side: Profile & Telegram -->
             <div class="d-flex align-items-center gap-2">
+                <!-- Telegram Contact Button (បងអាចដូរ Link ដាក់ Telegram ផ្ទាល់ខ្លួនរបស់បងនៅត្រង់ href) -->
+                <a href="https://t.me/your_telegram" target="_blank" class="btn btn-sm btn-outline-info fw-bold py-1 px-2 d-flex align-items-center gap-1">
+                    <span>✈️ Telegram</span>
+                </a>
+                
+                <!-- User Profile Display -->
+                <div class="d-flex align-items-center gap-2 bg-black px-2 py-1 rounded border border-secondary border-opacity-50">
+                    <span class="rounded-circle bg-success text-dark d-inline-flex justify-content-center align-items-center fw-bold" style="width: 24px; height: 24px; font-size: 11px;">V</span>
+                    <span class="text-light small fw-semibold">VET Ven</span>
+                </div>
+
                 <button class="btn btn-sm btn-success fw-bold px-3">UPGRADE</button>
             </div>
         </header>
@@ -72,7 +85,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: AI Signal History & Performance Table (ផ្នែកបន្ថែមថ្មី) -->
+                <!-- AI Signal History & Performance Table -->
                 <div class="card bg-dark border border-secondary border-opacity-25 mt-2 p-3 shadow">
                     <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary border-opacity-25 pb-2">
                         <h6 class="mb-0 fw-bold text-light">📋 VENPro AI - Live Signal History & Performance</h6>
@@ -123,7 +136,7 @@
             </div>
 
             <!-- Right Side: AI Assistant Chat Desk -->
-            <div class="col-lg-3 d-flex flex-column h-100 bg-dark rounded border border-secondary border-opacity-25 p-3">
+            <div class="col-lg-3 d-flex flex-link h-100 bg-dark rounded border border-secondary border-opacity-25 p-3 d-flex flex-column">
                 <div class="d-flex align-items-center gap-2 border-bottom border-secondary border-opacity-25 pb-2 mb-3">
                     <span>🤖</span>
                     <h6 class="mb-0 fw-bold text-light fs-6">Chat / Trade AI Desk</h6>
