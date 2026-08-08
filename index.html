@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI - Master Terminal & News</title>
+    <title>VET Trade AI - Master Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -10,11 +10,13 @@
         .news-ticker { overflow: hidden; white-space: nowrap; }
         .news-track { display: inline-block; animation: marquee 25s linear infinite; }
         @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body class="p-4 space-y-6 max-w-6xl mx-auto">
 
-    <!-- Header & Navigation Links (Dashboard, Profile, Live Ticker) -->
+    <!-- Header & Navigation Tabs -->
     <header class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-3 gap-3">
         <h1 class="text-xl font-bold flex items-center gap-2">
             🤖 <span class="text-blue-500">VET Trade AI</span> Terminal
@@ -23,8 +25,9 @@
         <!-- Navigation Buttons & Live Ticker -->
         <div class="flex items-center gap-3">
             <div class="space-x-1">
-                <a href="admin-dashboard.html" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</a>
-                <a href="profile.html" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs transition">Profile</a>
+                <button onclick="switchTab('terminal')" id="btn-terminal" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs transition font-semibold">Terminal</button>
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</button>
+                <button onclick="switchTab('profile')" id="btn-profile" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs transition">Profile</button>
             </div>
             <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
                 🔴 LIVE BTC/USD: <span id="btcPrice" class="text-green-400 font-bold">$65,230.00</span>
@@ -32,68 +35,123 @@
         </div>
     </header>
 
-    <!-- World News & Market Feeds Ticker Bar -->
+    <!-- World News & Fed News Ticker Bar -->
     <div class="bg-gray-900 border border-gray-800 rounded-lg p-2 flex items-center overflow-hidden text-xs">
         <span class="bg-blue-600 text-white font-bold px-2 py-1 rounded mr-3 uppercase tracking-wider shrink-0">🌐 World News</span>
         <div class="news-ticker w-full text-gray-300">
             <div class="news-track space-x-8">
-                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience.</span>
+                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady rates.</span>
                 <span class="text-green-400 font-semibold">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
-                <span class="text-blue-400 font-semibold">🌍 [Global]: Global equity markets react positively to latest inflation data releases.</span>
-                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience.</span>
-                <span class="text-green-400 font-semibold">📈 [Crypto]: Bitcoin holds steady above key support as institutional inflows increase.</span>
+                <span class="text-blue-400 font-semibold">🌍 [Global]: Global equity and forex markets react positively to latest central bank updates.</span>
+                <span class="text-yellow-400 font-semibold">⚡ [FED]: US Nonfarm Payrolls report shows strong labor market resilience & steady rates.</span>
             </div>
         </div>
     </div>
 
-    <!-- 1. TradingView Chart Section -->
-    <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
-        <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
-        <div id="chartContainer" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
-    </section>
+    <!-- TAB 1: TERMINAL & CHART & AI CHAT -->
+    <div id="tab-terminal" class="tab-content active space-y-6">
+        <!-- Live Market Chart -->
+        <section class="bg-gray-900 p-3 rounded-xl border border-gray-800 shadow-lg">
+            <div class="text-xs text-gray-400 mb-2 font-semibold">📈 Live Market Chart</div>
+            <div id="chartContainer" style="height: 400px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
+        </section>
 
-    <!-- 2. VET Trade AI Chat Box Section -->
-    <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
-        <div class="flex justify-between items-center">
-            <span class="text-sm font-bold text-gray-300">💬 AI Assistant Panel</span>
-            <select class="bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700">
-                <option>BTCUSDT (Bitcoin)</option>
-                <option>ETHUSDT (Ethereum)</option>
-            </select>
-        </div>
+        <!-- AI Assistant Panel -->
+        <section class="bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm font-bold text-gray-300">💬 AI Assistant Panel</span>
+                <select class="bg-gray-800 text-xs text-white px-2 py-1 rounded border border-gray-700">
+                    <option>BTCUSDT (Bitcoin)</option>
+                    <option>ETHUSDT (Ethereum)</option>
+                </select>
+            </div>
 
-        <!-- Chat History Box -->
-        <div id="chatLogs" class="bg-black h-48 rounded p-3 overflow-y-auto text-xs text-gray-300 space-y-2 border border-gray-800">
-            <div><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តី! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានអន្តរជាតិជូនបងប្រុស។ សូមជ្រើសរើសបញ្ជាខាងក្រោម ឬវាយសួរបាន!</div>
-        </div>
+            <div id="chatLogs" class="bg-black h-48 rounded p-3 overflow-y-auto text-xs text-gray-300 space-y-2 border border-gray-800">
+                <div><span class="text-blue-400 font-bold">VET Bot:</span> សួស្តី! ខ្ញុំរួចជាស្រេចក្នុងការជួយវិភាគទីផ្សារ និងព័ត៌មានពិភពលោកជូនបងប្រុស។</div>
+            </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-2">
-            <button onclick="sendAction('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition">Analyze Chart</button>
-            <button onclick="sendAction('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Best Setup</button>
-            <button onclick="sendAction('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Outlook</button>
-        </div>
+            <div class="flex gap-2">
+                <button onclick="sendAction('Analyze Chart')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition">Analyze Chart</button>
+                <button onclick="sendAction('Best Setup')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Best Setup</button>
+                <button onclick="sendAction('Outlook')" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded transition">Outlook</button>
+            </div>
 
-        <!-- Input Box -->
-        <div class="flex gap-2 mt-2">
-            <input type="text" id="userInput" placeholder="វាយសំណួរ ឬទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500">
-            <button onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs transition">➤</button>
+            <div class="flex gap-2 mt-2">
+                <input type="text" id="userInput" placeholder="វាយសំណួរ ឬទីផ្សារ..." class="flex-1 bg-black text-xs text-white px-3 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500">
+                <button onclick="sendCustomMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs transition">➤</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB 2: ADMIN DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content space-y-6">
+        <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+            <h2 class="text-lg font-bold text-purple-400">📊 Admin Analytics Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-black p-4 rounded border border-gray-800">
+                    <div class="text-xs text-gray-400">Total System Users</div>
+                    <div class="text-xl font-bold text-white mt-1">1,245</div>
+                </div>
+                <div class="bg-black p-4 rounded border border-gray-800">
+                    <div class="text-xs text-gray-400">Active AI Requests</div>
+                    <div class="text-xl font-bold text-green-400 mt-1">384 / min</div>
+                </div>
+                <div class="bg-black p-4 rounded border border-gray-800">
+                    <div class="text-xs text-gray-400">System Status</div>
+                    <div class="text-xl font-bold text-blue-400 mt-1">Optimal (100%)</div>
+                </div>
+            </div>
         </div>
-    </section>
+    </div>
+
+    <!-- TAB 3: PROFILE -->
+    <div id="tab-profile" class="tab-content space-y-6">
+        <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg space-y-4">
+            <h2 class="text-lg font-bold text-blue-400">👤 User Profile Settings</h2>
+            <div class="bg-black p-4 rounded border border-gray-800 space-y-3 text-sm">
+                <div><span class="text-gray-400">Account Name:</span> <span class="font-bold text-white">VET Ven</span></div>
+                <div><span class="text-gray-400">Role:</span> <span class="text-purple-400 font-semibold">Master Trader / Administrator</span></div>
+                <div><span class="text-gray-400">API Status:</span> <span class="text-green-400">Connected & Verified</span></div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Load TradingView Chart
-        setTimeout(() => {
-            new TradingView.widget({
-                "container_id": "chartContainer",
-                "symbol": "BINANCE:BTCUSDT",
-                "autosize": true,
-                "theme": "dark",
-                "style": "1",
-                "interval": "15",
-                "timezone": "Etc/UTC"
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('header button').forEach(el => {
+                el.classList.remove('bg-blue-600', 'font-semibold');
+                el.classList.add('bg-gray-800');
             });
-        }, 300);
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabName);
+            activeBtn.classList.remove('bg-gray-800');
+            activeBtn.classList.add('bg-blue-600', 'font-semibold');
+
+            // Refresh TradingView widget if switching back to terminal
+            if(tabName === 'terminal' && !window.tvWidgetLoaded) {
+                loadChart();
+            }
+        }
+
+        // Load TradingView Chart
+        function loadChart() {
+            window.tvWidgetLoaded = true;
+            setTimeout(() => {
+                new TradingView.widget({
+                    "container_id": "chartContainer",
+                    "symbol": "BINANCE:BTCUSDT",
+                    "autosize": true,
+                    "theme": "dark",
+                    "style": "1",
+                    "interval": "15",
+                    "timezone": "Etc/UTC"
+                });
+            }, 200);
+        }
+        loadChart();
 
         // Simulated Live Price Update
         setInterval(() => {
@@ -102,13 +160,12 @@
             document.getElementById('btcPrice').innerText = '$' + (base + random).toLocaleString() + '.00';
         }, 3000);
 
-        // Chat Interaction Logic
+        // Chat Logic
         function sendAction(actionType) {
             const logs = document.getElementById('chatLogs');
             logs.innerHTML += `<div><span class="text-purple-400 font-bold">You:</span> ${actionType}</div>`;
-            
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} for BTC/USDT with current world news feed... Market trend looks stable with bullish confirmation zones. Good to go!</div>`;
+                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Analyzing ${actionType} alongside latest Fed & World news updates... Market looks strong!</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 500);
             logs.scrollTop = logs.scrollHeight;
@@ -118,13 +175,11 @@
             const input = document.getElementById('userInput');
             const val = input.value.trim();
             if(!val) return;
-
             const logs = document.getElementById('chatLogs');
             logs.innerHTML += `<div><span class="text-purple-400 font-bold">You:</span> ${val}</div>`;
             input.value = '';
-
             setTimeout(() => {
-                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Received query regarding "${val}". AI Engine suggests monitoring key support levels and global updates.</div>`;
+                logs.innerHTML += `<div><span class="text-blue-400 font-bold">VET Bot:</span> Processing query: "${val}". AI Engine active.</div>`;
                 logs.scrollTop = logs.scrollHeight;
             }, 600);
             logs.scrollTop = logs.scrollHeight;
