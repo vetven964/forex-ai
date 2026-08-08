@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>VET Trade AI & Pro Terminal</title>
+    <title>VET Trade AI - Master Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -11,13 +11,21 @@
 </head>
 <body class="p-4 space-y-6 max-w-6xl mx-auto">
 
-    <!-- Header & Live Ticker -->
-    <header class="flex justify-between items-center border-b border-gray-800 pb-3">
+    <!-- Header & Navigation Links (Dashboard, Profile, Live Ticker) -->
+    <header class="flex flex-col md:flex-row justify-between items-center border-b border-gray-800 pb-3 gap-3">
         <h1 class="text-xl font-bold flex items-center gap-2">
             🤖 <span class="text-blue-500">VET Trade AI</span> Terminal
         </h1>
-        <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
-            🔴 LIVE BTC/USD: <span id="btcPrice" class="text-green-400 font-bold">$65,230.00</span>
+        
+        <!-- Navigation Buttons & Live Ticker -->
+        <div class="flex items-center gap-3">
+            <div class="space-x-1">
+                <a href="admin-dashboard.html" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded text-xs transition">Dashboard</a>
+                <a href="profile.html" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs transition">Profile</a>
+            </div>
+            <div class="text-xs bg-black px-3 py-1.5 rounded border border-gray-800">
+                🔴 LIVE BTC/USD: <span id="btcPrice" class="text-green-400 font-bold">$65,230.00</span>
+            </div>
         </div>
     </header>
 
