@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - VENPro AI</title>
+    <style>
+        body { background: #1a1d23; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #0e1014; padding: 30px; border-radius: 10px; border: 1px solid #333; width: 300px; }
+        .login-box h2 { text-align: center; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 13px; }
+        .input-group input { width: 100%; padding: 8px; background: #2c313c; border: none; border-radius: 4px; color: #fff; box-sizing: border-box; }
+        .login-btn { width: 100%; padding: 10px; background: #4a90e2; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .login-btn:hover { background: #357abd; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2>🔐 Sign In</h2>
+        <div class="input-group">
+            <label>ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
+            <input type="text" id="username" placeholder="បញ្ចូលឈ្មោះ...">
+        </div>
+        <div class="input-group">
+            <label>ពាក្យសម្ងាត់ (Password)</label>
+            <input type="password" id="password" placeholder="បញ្ចូលពាក្យសម្ងាត់...">
+        </div>
+        <button class="login-btn" onclick="handleLogin()">ចូលកាន់វេបសាយ</button>
+    </div>
+
+    <script>
+        function handleLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
+            // កន្លែងកំណត់ Username និង Password តាមចិត្តចង់ (ແບບងាយស្រួល)
+            if(user === "admin" && pass === "1234") {
+                alert("Login สำเร็จ!");
+                window.location.href = "index.html"; // ចូលទៅកាន់ទំព័រមេ
+            } else {
+                alert("ឈ្មោះ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ!");
+            }
+        }
+    </script>
+
+</body>
+</html>
