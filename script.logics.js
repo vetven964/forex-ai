@@ -2,6 +2,7 @@ let currentSymbol = "BINANCE:BTCUSD";
 let currentTimeframe = "15";
 let tvWidget = null;
 
+// Initialize TradingView Widget
 function initTradingView(symbol, timeframe) {
     const container = document.getElementById("tradingview_widget");
     if(container) {
@@ -20,55 +21,41 @@ function initTradingView(symbol, timeframe) {
     }
 }
 
-function switchPage(pageId) {
-    const dashboardPage = document.getElementById('page-dashboard');
-    const analyticsPage = document.getElementById('page-analytics');
-    const dashBtn = document.getElementById('tab-dashboard-btn');
-    const anaBtn = document.getElementById('tab-analytics-btn');
-
-    if(pageId === 'dashboard') {
-        dashboardPage.classList.remove('d-none');
-        analyticsPage.classList.add('d-none');
-        dashBtn.classList.add('active', 'btn-primary');
-        dashBtn.classList.remove('btn-outline-primary');
-        anaBtn.classList.remove('active', 'btn-primary');
-        anaBtn.classList.add('btn-outline-primary');
-        setTimeout(() => initTradingView(currentSymbol, currentTimeframe), 100);
-    } else if(pageId === 'analytics') {
-        dashboardPage.classList.add('d-none');
-        analyticsPage.classList.remove('d-none');
-        anaBtn.classList.add('active', 'btn-primary');
-        anaBtn.classList.remove('btn-outline-primary');
-        dashBtn.classList.remove('active', 'btn-primary');
-        dashBtn.classList.add('btn-outline-primary');
-    }
-}
-
-function changeAsset(symbol, btnElement) {
+// Change Asset Function (ពេលចុចប៊ូតុង BTC, EUR, GBP, GOLD)
+function changeAsset(symbol, labelName, btnElement) {
     currentSymbol = symbol;
     initTradingView(currentSymbol, currentTimeframe);
+    
+    // ប្ដូរអត្ថបទឈ្មោះ Asset នៅផ្នែកខាងលើ
+    const labelEl = document.getElementById("current-asset-label");
+    if(labelEl) {
+        labelEl.innerText = labelName;
+    }
+
+    // ផ្លាស់ប្តូរ Active State របស់ប៊ូតុង
     document.querySelectorAll('.asset-btn').forEach(btn => {
         btn.classList.remove('active', 'btn-success');
-        btn.classList.add('btn-secondary');
+        btn.classList.add('btn-outline-light');
     });
-    btnElement.classList.remove('btn-secondary');
+    btnElement.classList.remove('btn-outline-light');
     btnElement.classList.add('active', 'btn-success');
 }
 
-function updateActiveSession() {
-    const utcHours = new Date().getUTCHours();
-    let sessionName = (utcHours >= 0 && utcHours < 8) ? "ASIAN Session 🇯🇵" : 
-                      (utcHours >= 8 && utcHours < 13) ? "London Session 🇬🇧" : 
-                      (utcHours >= 13 && utcHours < 21) ? "New York / London 🇺🇸🇬🇧" : "Pacific / Off-Hours 🇦🇺";
+// Switch Floating AI Panel Tabs (Analysis, Bot, History, News)
+function switchTab(tabName, btnElement) {
+    // ដក active ចេញពីប៊ូតុងទាំងអស់ក្នុង Panel
+    const parentContainer = btnElement.parentElement;
+    parentContainer.querySelectorAll('button').forEach(btn => {
+        btn.classList.remove('text-warning', 'fw-bold', 'active-tab');
+        btn.classList.add('text-muted');
+    });
     
-    const sessionEl = document.getElementById("active-session");
-    if(sessionEl) {
-        sessionEl.innerText = sessionName;
-    }
+    // ใส่ active ឱ្យប៊ូតុងដែលកំពុងចុច
+    btnElement.classList.remove('text-muted');
+    btnElement.classList.add('text-warning', 'fw-bold', 'active-tab');
 }
 
+// Run on page load
 document.addEventListener("DOMContentLoaded", () => {
     initTradingView(currentSymbol, currentTimeframe);
-    updateActiveSession();
-    setInterval(updateActiveSession, 60000);
 });
