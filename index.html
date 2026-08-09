@@ -220,6 +220,24 @@
        ​ 
 <!-- </body> <!-- បិទ tag body នៅត្រង់នេះ -->
 
+            <!-- ដាក់កូដនេះនៅត្រង់នេះ (មុន tag </body>) -->
+            <!-- TAB 2: ADMIN MANAGER & USER LIST -->)
+    <script>
+        // ឆែកមើលក្នុង Console នៃ Browser (F12 > Console)
+        const status = sessionStorage.getItem('isLoggedIn');
+        console.log("Status Login គឺ៖", status); // មើលថាវាចេញ 'true' ឬ 'null'
+
+        if (status !== 'true') {
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('authWrapper').style.display = 'block';
+        } else {
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appWrapper').classList.remove('hidden');
+        }
+    </script>
+<!--</body>-->
+<!--</html>  -->
+<!-- TAB 2: ADMIN MANAGER & USER LIST -->)
             
             <!-- TAB 2: ADMIN MANAGER & USER LIST -->
             <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
