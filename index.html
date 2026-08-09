@@ -532,6 +532,49 @@
                 </div>
             </div>
 
+            <!-- ផ្នែកនេះគឺជាកូដថ្មីដែលបងត្រូវយកទៅដាក់ជំនួស -->
+<script>
+    // 1. Centralized State Management
+    const AppState = {
+        init: () => {
+            console.log("System Initialized: V Trade AI v5.0.2");
+            AppState.loadUserData();
+            AppState.loadTradeSettings();
+        },
+        
+        loadUserData: () => {
+            const user = localStorage.getItem('vtrade_logged_user');
+            const authEl = document.getElementById('btnAuth');
+            if (user && authEl) {
+                authEl.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${user}</span>`;
+            }
+        },
+
+        loadTradeSettings: () => {
+            const plan = localStorage.getItem('vtrade_selected_plan') || 'Free';
+            const copyState = localStorage.getItem('vtrade_copy_state');
+            const multiplier = localStorage.getItem('vtrade_copy_multiplier') || '1.0x';
+
+            const planEl = document.getElementById('currentPlanDisplay');
+            const statusEl = document.getElementById('dashCopyStatus');
+
+            if (planEl) planEl.innerText = plan;
+            if (copyState === 'active' && statusEl) {
+                statusEl.innerText = `Running (${multiplier})`;
+                statusEl.classList.add('text-green-500'); 
+            }
+        }
+    };
+
+    // 2. Execution on Window Load
+    window.onload = () => {
+        AppState.init();
+        if (typeof updateRealTimeData === 'function') {
+            setInterval(updateRealTimeData, 30000); 
+        }
+    };
+</script>
+            
             <!-- TAB: NEWS & LINK CONNECTION -->
             <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
