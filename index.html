@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Telegram Bot & AI Signal System</title>
+    <title>V Trade AI Pro - Ultimate Trading & Telegram Signal System</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for Icons -->
@@ -24,25 +24,44 @@
 <body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
 
     <!-- Top Navigation Header -->
-    <header class="glass-panel sticky top-0 z-50 px-6 py-3.5 flex justify-between items-center border-b border-gray-800">
+    <header class="glass-panel sticky top-0 z-50 px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/30">
                 <i class="fa-solid fa-robot text-lg"></i>
             </div>
             <div>
-                <h1 class="text-base font-bold tracking-wider text-white">V TRADE AI & TELEGRAM BOT</h1>
+                <h1 class="text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TELEGRAM BOT</h1>
                 <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>AI Research & Sideways Filter Active
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">AI Research & Market Sessions Active</span>
                 </p>
             </div>
         </div>
 
+        <!-- Real-time Live Clock & Date -->
+        <div class="hidden xl:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
+            <div class="flex items-center gap-2 text-blue-400 font-mono">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span id="liveDate">--/--/----</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-emerald-400 font-mono font-bold">
+                <i class="fa-regular fa-clock"></i>
+                <span id="liveClock">00:00:00</span>
+            </div>
+        </div>
+
+        <!-- Language Selector & Controls -->
         <div class="flex items-center space-x-3">
+            <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-xs rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
+                <option value="km">🇰🇭 ភាសាខ្មែរ (Khmer)</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
             <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-2">
-                <i class="fa-solid fa-wallet"></i><span>ដាក់ប្រាក់ / ទូទាត់</span>
+                <i class="fa-solid fa-wallet"></i><span id="btnDeposit">ដាក់ប្រាក់</span>
             </button>
             <button onclick="openModal('authModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                <i class="fa-solid fa-user-shield"></i><span id="headerAuthLabel">Login / Sign In</span>
+                <i class="fa-solid fa-user-shield"></i><span id="btnAuth">Login / Sign In</span>
             </button>
         </div>
     </header>
@@ -54,33 +73,39 @@
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0">
             <nav class="space-y-1.5">
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left">
-                    <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+                    <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+                </button>
+                <button onclick="switchTab('sessions')" id="nav-sessions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                    <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span id="menuSessions">ម៉ោងទីផ្សារ (Asian/NY/London)</span>
+                </button>
+                <button onclick="switchTab('news')" id="nav-news" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                    <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span id="menuNews">ព័ត៌មាន & ដំណ লিংক (News Links)</span>
                 </button>
                 <button onclick="switchTab('pricing')" id="nav-pricing" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-tags w-5 text-purple-400"></i><span>កញ្ចប់តម្លៃ (Pricing Plans)</span>
+                    <i class="fa-solid fa-tags w-5 text-purple-400"></i><span id="menuPricing">កញ្ចប់តម្លៃ (Pricing & Trial)</span>
                 </button>
                 <button onclick="switchTab('telegram')" id="nav-telegram" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>Telegram Bot & Setup Guide</span>
+                    <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span id="menuTelegram">Telegram Bot & Setup</span>
                 </button>
                 <button onclick="switchTab('signals')" id="nav-signals" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-brain w-5 text-amber-400"></i><span>AI Research & Signals (Buy/Sell/Sideways)</span>
+                    <i class="fa-solid fa-brain w-5 text-emerald-400"></i><span id="menuSignals">AI Research & Signals</span>
                 </button>
                 <button onclick="switchTab('tvchart')" id="nav-tvchart" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-chart-candlestick w-5 text-emerald-400"></i><span>TradingView Chart</span>
+                    <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span id="menuChart">TradingView Chart</span>
                 </button>
                 <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>សុវត្ថិភាព (Security / ITC / Pass)</span>
+                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">សុវត្ថិភាព (ITC / Pass / Login)</span>
                 </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
                 <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-headset text-sm"></i><span>AI Support 24/7</span>
+                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support 24/7</span>
                 </button>
             </div>
         </aside>
 
         <!-- Main Workspace Area -->
-        <main class="flex-1 p-6 overflow-y-auto">
+        <main class="flex-1 p-6 overflow-y-auto space-y-6">
             
             <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="tab-content active space-y-6">
@@ -93,7 +118,7 @@
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500">
                         <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មបច្ចុប្បន្ន</p>
                         <h3 class="text-xl font-bold mt-1 text-indigo-400" id="currentPlanDisplay">Free Tier (សាកល្បង)</h3>
-                        <span class="text-xs text-gray-400">អាច nâng cấp ពេលណាก็ได้</span>
+                        <span class="text-xs text-gray-400">អាច upgrade ពេលណាก็ได้</span>
                     </div>
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
                         <p class="text-xs text-gray-400">AI Research Win Rate</p>
@@ -109,22 +134,127 @@
                     </div>
                 </div>
 
-                <div class="glass-panel p-6 rounded-2xl space-y-4">
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                            <i class="fa-solid fa-terminal text-blue-400"></i> ប្រព័ន្ធដំណើរការ AI Research & Telegram Bot Logs
-                        </h3>
-                        <span class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold">ដំណើរការធម្មតា</span>
+                <!-- Market Sessions Mini Overview widget -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-amber-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">Asian Session (Tokyo)</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashAsianStatus">កំពុងរៀបចំ...</h4>
+                        </div>
+                        <i class="fa-solid fa-sun text-amber-400 text-2xl"></i>
                     </div>
-                    <div class="bg-gray-950 p-4 rounded-xl font-mono text-[11px] text-gray-300 space-y-2 h-44 overflow-y-auto" id="terminalLogs">
-                        <p class="text-blue-400">[SYSTEM] Security ITC & Login sessions initialized securely.</p>
-                        <p class="text-emerald-400">[AI RESEARCH] Scanning market conditions... Filtering out Sideways / Choppy zones.</p>
-                        <p class="text-amber-400">[TELEGRAM BOT] Waiting for user configuration & pricing plan selection.</p>
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-blue-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">London Session</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashLondonStatus">កំពុងរៀបចំ...</h4>
+                        </div>
+                        <i class="fa-solid fa-cloud-sun text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-purple-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">New York Session</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashNyStatus">កំពុងរៀបចំ...</h4>
+                        </div>
+                        <i class="fa-solid fa-moon text-purple-400 text-2xl"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 2: PRICING PLANS -->
+            <!-- TAB 2: MARKET SESSIONS (ASIAN, LONDON, NEW YORK REAL-TIME) -->
+            <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="text-center space-y-2">
+                    <h3 class="text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto</h3>
+                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <!-- Asian Session -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-amber-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-amber-400 text-base">Asian Session (Tokyo)</h4>
+                            <span id="badgeAsian" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារតំបន់អាស៊ីចាប់ផ្តើមបើកដំណើរការដំបូងគេក្នុងមួយថ្ងៃ។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">07:00 AM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">03:00 PM (ICT)</b></div>
+                            <div class="pt-2 text-amber-400" id="timerAsian">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+
+                    <!-- London Session -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-blue-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-blue-400 text-base">London Session</h4>
+                            <span id="badgeLondon" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារអឺរ៉ុបដែលមានបរិមាណជួញដូរខ្លាំងជាងគេប្រចាំថ្ងៃ។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">03:00 PM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">11:00 PM (ICT)</b></div>
+                            <div class="pt-2 text-blue-400" id="timerLondon">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+
+                    <!-- New York Session -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-purple-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-purple-400 text-base">New York Session</h4>
+                            <span id="badgeNy" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារអាមេរិកដែលមានការប្រែប្រួលតម្លៃខ្លាំងក្លាជាងគេ (High Volatility)។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">08:00 PM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">04:00 AM (ICT)</b></div>
+                            <div class="pt-2 text-purple-400" id="timerNy">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: NEWS & LINK CONNECTION -->
+            <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="text-center space-y-2">
+                    <h3 class="text-xl font-bold text-white">ព័ត៌មានសេដ្ឋកិច្ច និងតំណភ្ជាប់ (News & Link Connection)</h3>
+                    <p class="text-xs text-gray-400">ព័ត៌មានទាន់ហេតុការណ៍ និងតំណភ្ជាប់ផ្ទាល់ទៅកាន់ប្រភពព័ត៌មានអន្តរជាតិធំៗ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- News Item 1 -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-gray-400 text-[11px]">
+                                <span><i class="fa-regular fa-clock"></i> ថ្ងៃនេះ, 08:30 AM</span>
+                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold">High Impact (US Fed)</span>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">US Non-Farm Payrolls (NFP) & Fed Interest Rate Decision Update</h4>
+                            <p class="text-gray-400">ការជះឥទ្ធិពលរបស់ធនាគារកណ្តាលអាមេរិក (Fed) លើអត្រាការប្រាក់ និងតម្លៃមាស (XAU/USD) រួមទាំងគ្រីបតូស៊ីប៊ែរ។</p>
+                        </div>
+                        <a href="https://www.investing.com/economic-calendar/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
+                            <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+
+                    <!-- News Item 2 -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-gray-400 text-[11px]">
+                                <span><i class="fa-regular fa-clock"></i> ថ្ងៃនេះ, 07:15 AM</span>
+                                <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Crypto Market</span>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">Bitcoin Breakout Analysis & AI Research Market Trend</h4>
+                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy នៅតំបន់ Sideways Breakout។</p>
+                        </div>
+                        <a href="https://www.coindesk.com/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
+                            <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: PRICING PLANS & TRIAL -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-5xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់សេវាកម្ម (Pricing Plans & Free Trial)</h3>
@@ -140,7 +270,7 @@
                             <div class="text-2xl font-bold text-white">$0 <span class="text-xs text-gray-400 font-normal">/ រហូត</span></div>
                             <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800">
                                 <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> AI Research មូលដ្ឋាន</li>
-                                <li><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i> Telegram Signal (យឺត យ៉ាវជាង)</li>
+                                <li><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i> Telegram Signal (យឺតយ៉ាវជាង)</li>
                                 <li><i class="fa-solid fa-xmark text-red-400 mr-2"></i> គ្មានមុខងារ Auto-Execution ពេញលេញ</li>
                             </ul>
                         </div>
@@ -182,14 +312,14 @@
                 </div>
             </div>
 
-            <!-- TAB 3: TELEGRAM BOT & SETUP GUIDE -->
+            <!-- TAB 5: TELEGRAM BOT & SETUP GUIDE -->
             <div id="tab-telegram" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
                             <h3 class="font-bold text-white text-sm">Telegram Bot Setup & User Information</h3>
-                            <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមការណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
+                            <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមการណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
                         </div>
                     </div>
 
@@ -199,7 +329,7 @@
                         <ol class="list-decimal list-inside space-y-1 text-gray-300">
                             <li>ចូលទៅកាន់ Telegram រួចស្វែងរកពាក្យ <b class="text-white">@BotFather</b> ដើម្បីបង្កើត Bot ថ្មី និងយក <b class="text-emerald-400">Bot Token</b>។</li>
                             <li>យក Bot ដែលទើបបង្កើតនោះ ដាក់ចូលទៅក្នុង Telegram Channel ឬ Group របស់អ្នក ហើយផ្ដល់សិទ្ធិជា <b class="text-white">Admin</b>។</li>
-                            <li>យក <b class="text-emerald-400">Chat ID / Channel ID</b> របស់ท่าน (ឧទាហរណ៍៖ `-100xxxxxxxxxx`) មកបំពេញខាងក្រោម។</li>
+                            <li>យក <b class="text-emerald-400">Chat ID / Channel ID</b> របស់លោកអ្នក (ឧទាហរណ៍៖ `-100xxxxxxxxxx`) មកបំពេញខាងក្រោម។</li>
                             <li>ចុចប៊ូតុង "តេស្តតភ្ជាប់ Telegram Bot" ដើម្បីធានាថាវាដំណើរការចេញចូលបានស្រួល។</li>
                         </ol>
                     </div>
@@ -227,10 +357,10 @@
                 </div>
             </div>
 
-            <!-- TAB 4: AI RESEARCH & SIGNALS (BUY / SELL / SIDEWAYS / WAITING) -->
+            <!-- TAB 6: AI RESEARCH & SIGNALS -->
             <div id="tab-signals" class="tab-content space-y-6">
                 <div class="glass-panel p-6 rounded-2xl space-y-4">
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-3 flex-wrap gap-2">
                         <div>
                             <h3 class="font-bold text-white text-sm">AI Research Market Analyzer (Buy / Sell / Waiting / Sideways)</h3>
                             <p class="text-xs text-gray-400">ប្រព័ន្ធ AI ធ្វើការ Research ទីផ្សារសិន ទើបសម្រេចចិត្តបោះ Signal ឬរង់ចាំពេលទីផ្សារ Sideways កណ្ដាលផ្លូវ។</p>
@@ -240,7 +370,7 @@
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="signalCardsContainer">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Signal 1: BUY -->
                         <div class="glass-panel p-4 rounded-2xl border border-emerald-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
@@ -287,9 +417,9 @@
                 </div>
             </div>
 
-            <!-- TAB 5: TRADINGVIEW CHART -->
+            <!-- TAB 7: TRADINGVIEW CHART -->
             <div id="tab-tvchart" class="tab-content space-y-4">
-                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs">
+                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
                         <h3 class="font-bold text-white text-sm">TradingView Live Chart</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
@@ -303,7 +433,7 @@
                 <div class="glass-panel rounded-2xl overflow-hidden h-[500px]" id="tradingview_widget"></div>
             </div>
 
-            <!-- TAB 6: SECURITY / ITC / LOGIN / FORGET PASSWORD -->
+            <!-- TAB 8: SECURITY / ITC / LOGIN / PASS -->
             <div id="tab-security" class="tab-content space-y-6 max-w-xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -358,9 +488,9 @@
                 </div>
             </div>
 
-            <!-- Forget Password Form (Hidden by default) -->
+            <!-- Forget Password Form -->
             <div class="space-y-3 hidden" id="forgetPassSection">
-                <p class="text-gray-300">សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកដើម្បីទទួលលេខកូដ reset ពាក្យសម្ងាត់តាមប្រព័ន្ធ സുវត្ថិភាព ITC៖</p>
+                <p class="text-gray-300">សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកដើម្បីទទួលលេខកូដ reset ពាក្យសម្ងាត់តាមប្រព័ន្ធសុវត្ថិភាព ITC៖</p>
                 <div>
                     <label class="text-gray-400 mb-1 block">អ៊ីម៉ែល (Email)</label>
                     <input type="email" placeholder="example@domain.com" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
@@ -379,7 +509,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! តើមានចម្ងល់រឿង AI Research, Telegram Bot ឬ Pricing ដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! តើមានចម្ងល់រឿង AI Research, Telegram Bot ឬ Market Sessions ដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -399,6 +529,121 @@
     <!-- JavaScript Execution Logic -->
     <script>
         let tvWidgetInstance = null;
+
+        // Multi-language dictionary
+        const translations = {
+            km: {
+                brand: "V TRADE AI & TELEGRAM BOT",
+                headerStatus: "AI Research & Market Sessions Active",
+                deposit: "ដាក់ប្រាក់",
+                auth: "Login / Sign In",
+                dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)",
+                sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)",
+                news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)",
+                pricing: "កញ្ចប់តម្លៃ (Pricing & Trial)",
+                telegram: "Telegram Bot & Setup",
+                signals: "AI Research & Signals",
+                chart: "TradingView Chart",
+                security: "សុវត្ថិភាព (ITC / Pass / Login)",
+                support: "AI Support 24/7"
+            },
+            en: {
+                brand: "V TRADE AI & TELEGRAM BOT",
+                headerStatus: "AI Research & Market Sessions Active",
+                deposit: "Deposit",
+                auth: "Login / Sign In",
+                dash: "Dashboard",
+                sessions: "Market Sessions (Asian/NY/London)",
+                news: "News & Link Connections",
+                pricing: "Pricing Plans & Trial",
+                telegram: "Telegram Bot & Setup",
+                signals: "AI Research & Signals",
+                chart: "TradingView Chart",
+                security: "Security (ITC / Pass / Login)",
+                support: "AI Support 24/7"
+            },
+            zh: {
+                brand: "V TRADE AI & 电报机器人",
+                headerStatus: "AI研究与市场时段激活",
+                deposit: "存款",
+                auth: "登录 / 注册",
+                dash: "控制面板",
+                sessions: "市场时段 (亚洲/纽约/伦敦)",
+                news: "新闻与链接",
+                pricing: "价格与试用",
+                telegram: "电报机器人与设置",
+                signals: "AI研究与信号",
+                chart: "TradingView 图表",
+                security: "安全 (ITC / 密码 / 登录)",
+                support: "AI 24/7 支持"
+            }
+        };
+
+        function changeLanguage(lang) {
+            const t = translations[lang] || translations.km;
+            document.getElementById('txtBrandTitle').innerText = t.brand;
+            document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
+            document.getElementById('btnDeposit').innerText = t.deposit;
+            document.getElementById('btnAuth').innerText = t.auth;
+            document.getElementById('menuDashboard').innerText = t.dash;
+            document.getElementById('menuSessions').innerText = t.sessions;
+            document.getElementById('menuNews').innerText = t.news;
+            document.getElementById('menuPricing').innerText = t.pricing;
+            document.getElementById('menuTelegram').innerText = t.telegram;
+            document.getElementById('menuSignals').innerText = t.signals;
+            document.getElementById('menuChart').innerText = t.chart;
+            document.getElementById('menuSecurity').innerText = t.security;
+            document.getElementById('menuSupport').innerText = t.support;
+        }
+
+        // Real-time Live Clock & Market Sessions Auto Calculator
+        function updateRealTimeData() {
+            const now = new Date();
+            // Format Date
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            document.getElementById('liveDate').innerText = now.toLocaleDateString('km-KH', options);
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+
+            // Market Hours Check (ICT / Phnom Penh Time UTC+7)
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+
+            // Asian Session: 07:00 - 15:00 (420 to 900 minutes)
+            const isAsianOpen = totalMinutes >= 420 && totalMinutes < 900;
+            updateSessionUI('Asian', isAsianOpen, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
+
+            // London Session: 15:00 - 23:00 (900 to 1380 minutes)
+            const isLondonOpen = totalMinutes >= 900 && totalMinutes < 1380;
+            updateSessionUI('London', isLondonOpen, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
+
+            // New York Session: 20:00 - 04:00 (1200 to 240 minutes next day)
+            const isNyOpen = totalMinutes >= 1200 || totalMinutes < 240;
+            updateSessionUI('New York', isNyOpen, 'badgeNy', 'timerNy', 'dashNyStatus');
+        }
+
+        function updateSessionUI(name, isOpen, badgeId, timerId, dashStatusId) {
+            const badge = document.getElementById(badgeId);
+            const timer = document.getElementById(timerId);
+            const dashStatus = document.getElementById(dashStatusId);
+
+            if(isOpen) {
+                badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse";
+                badge.innerText = "🟢 OPEN (បើកដំណើរការ)";
+                if(timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ active`;
+                if(dashStatus) dashStatus.innerText = "🟢 OPEN (កំពុងបើក)";
+            } else {
+                badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
+                badge.innerText = "🔴 CLOSED (បិទ)";
+                if(timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} បានបិទរង់ចាំបើកពេលក្រោយ`;
+                if(dashStatus) dashStatus.innerText = "🔴 CLOSED (បានបិទ)";
+            }
+        }
+
+        setInterval(updateRealTimeData, 1000);
+        window.onload = function() {
+            updateRealTimeData();
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -471,20 +716,12 @@
         function handleUserLogin() {
             const email = document.getElementById('authEmail').value;
             closeModal('authModal');
-            document.getElementById('headerAuthLabel').innerText = email ? email.split('@')[0] : 'User Secured';
+            document.getElementById('btnAuth').innerText = email ? email.split('@')[0] : 'User Secured';
             alert('ចូលគណនី (Sign In) ដោយសុវត្ថិភាពជោគជ័យ!');
         }
 
         function runAIResearchScan() {
-            const terminal = document.getElementById('terminalLogs');
-            const timeStr = new Date().toLocaleTimeString();
-            terminal.innerHTML += `<p class="text-purple-400">[${timeStr}] AI RESEARCH: Running market scan across crypto & forex...</p>`;
-            terminal.scrollTop = terminal.scrollHeight;
-            setTimeout(() => {
-                terminal.innerHTML += `<p class="text-emerald-400">[${timeStr}] AI RESEARCH: Analysis complete. Validated BUY/SELL signals; filtered out choppy Sideways zones.</p>`;
-                terminal.scrollTop = terminal.scrollHeight;
-                alert('AI Research បានវិភាគទីផ្សាររួចរាល់! ទីផ្សារខ្លះមានសញ្ញាច្បាស់លាស់ និងខ្លះស្ថិតក្នុងស្ថានភាព Sideways (Waiting)។');
-            }, 800);
+            alert('AI Research បានវិភាគទីផ្សាររួចរាល់! ទីផ្សារខ្លះមានសញ្ញាច្បាស់លាស់ និងខ្លះស្ថិតក្នុងស្ថានភាព Sideways (Waiting)។');
         }
 
         async function sendSignalToTelegram(pair, actionDesc) {
@@ -492,8 +729,6 @@
             const chatId = document.getElementById('tgChatIdInput').value.trim();
             const plan = document.getElementById('selectedPlanInput').value;
             const userName = document.getElementById('tgUserName').value;
-            const terminal = document.getElementById('terminalLogs');
-            const timeStr = new Date().toLocaleTimeString();
 
             if(!token || !chatId) {
                 alert('សូមបំពេញ Telegram Bot Token និង Chat ID នៅផ្ទាំង "Telegram Bot & Setup Guide" ជាមុនសិន!');
@@ -512,7 +747,6 @@
                 const d = await res.json();
                 if(d.ok) {
                     alert('សញ្ញា Trade ត្រូវបានផ្ញើចូល Telegram របស់អ្នកដោយជោគជ័យ!');
-                    terminal.innerHTML += `<p class="text-emerald-400">[${timeStr}] TELEGRAM BOT: Signal ${pair} sent successfully.</p>`;
                 } else {
                     alert('ផ្ញើមិនចេញទេ៖ ' + d.description);
                 }
