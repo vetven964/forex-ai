@@ -26,7 +26,6 @@
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
-            <!-- Mobile Menu Toggle Button -->
             <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none">
                 <i class="fa-solid fa-bars"></i>
             </button>
@@ -41,7 +40,6 @@
             </div>
         </div>
 
-        <!-- Real-time Live Clock & Date -->
         <div class="hidden xl:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
             <div class="flex items-center gap-2 text-blue-400 font-mono">
                 <i class="fa-regular fa-calendar-days"></i>
@@ -54,7 +52,6 @@
             </div>
         </div>
 
-        <!-- Language Selector & Controls -->
         <div class="flex items-center space-x-2">
             <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none cursor-pointer">
                 <option value="km">🇰🇭 ខ្មែរ</option>
@@ -71,7 +68,7 @@
     </header>
 
     <!-- Mobile Drawer Menu Overlay -->
-    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
             <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -217,7 +214,6 @@
                         </button>
                     </div>
 
-                    <!-- Search and Filter Bar -->
                     <div class="flex gap-3 flex-wrap">
                         <input type="text" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                         <select class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none">
@@ -228,7 +224,6 @@
                         </select>
                     </div>
 
-                    <!-- User List Table -->
                     <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
                         <table class="w-full text-left border-collapse min-w-[650px]">
                             <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
@@ -365,7 +360,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-                    <!-- Free 7-Day Trial -->
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-emerald-500/30">
                         <div class="space-y-3">
                             <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Popular Trial</span>
@@ -376,7 +370,6 @@
                         <button onclick="selectPricingPlan('Free 7-Day Trial', 0)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">ជ្រើសរើសសាកល្បង</button>
                     </div>
 
-                    <!-- Basic Plan $4.99 -->
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-blue-500/30">
                         <div class="space-y-3">
                             <span class="bg-blue-500/20 text-blue-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Basic Plan</span>
@@ -387,7 +380,6 @@
                         <button onclick="selectPricingPlan('Basic AI Signal ($4.99)', 4.99)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">ទិញកញ្ចប់ $4.99</button>
                     </div>
 
-                    <!-- Standard Plan $8.99 -->
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-purple-500/30">
                         <div class="space-y-3">
                             <span class="bg-purple-500/20 text-purple-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Standard Pro</span>
@@ -398,7 +390,6 @@
                         <button onclick="selectPricingPlan('Standard AI Bot ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20">ទិញកញ្ចប់ $8.99</button>
                     </div>
 
-                    <!-- VIP Pro Plan $12.99 -->
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-amber-500 shadow-xl shadow-amber-500/10 relative overflow-hidden">
                         <div class="absolute -right-12 top-4 bg-amber-500 text-gray-950 font-bold px-10 py-1 rotate-45 text-[9px]">BEST VALUE</div>
                         <div class="space-y-3">
@@ -418,7 +409,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup & User Information</h3>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup & User Information (Auto-Save Active)</h3>
                             <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមការណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
                         </div>
                     </div>
@@ -441,7 +432,7 @@
                             <input type="text" id="tgChatIdInput" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តតភ្ជាប់ Telegram Bot ឥឡូវនេះ</button>
+                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តតភ្ជាប់ និងរក្សាទុក Telegram Bot ឥឡូវនេះ</button>
                 </div>
             </div>
 
@@ -736,13 +727,27 @@
 
         setInterval(updateRealTimeData, 1000);
 
-        // ពិនិត្យស្ថានភាព Login ពេល Load ទំព័រម្តងទៀត (Check LocalStorage Session)
+        // ផ្ទុកទិន្នន័យ Login និង Telegram Bot Config មកវិញពេល Load ទំព័រ
         window.onload = function() { 
             updateRealTimeData(); 
+            
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if(savedUser) {
                 document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
             }
+
+            const savedToken = localStorage.getItem('vtrade_tg_token');
+            const savedChatId = localStorage.getItem('vtrade_tg_chatid');
+            const savedPlan = localStorage.getItem('vtrade_selected_plan');
+            const savedUserName = localStorage.getItem('vtrade_tg_username');
+
+            if(savedToken) document.getElementById('tgTokenInput').value = savedToken;
+            if(savedChatId) document.getElementById('tgChatIdInput').value = savedChatId;
+            if(savedPlan) {
+                document.getElementById('selectedPlanInput').value = savedPlan;
+                document.getElementById('currentPlanDisplay').innerText = savedPlan;
+            }
+            if(savedUserName) document.getElementById('tgUserName').value = savedUserName;
         }
 
         function switchTab(tabId) {
@@ -776,6 +781,8 @@
         function selectPricingPlan(planName, price) {
             document.getElementById('selectedPlanInput').value = planName;
             document.getElementById('currentPlanDisplay').innerText = planName;
+            localStorage.setItem('vtrade_selected_plan', planName);
+
             alert(`បានជ្រើសរើសកញ្ចប់ ${planName} ($${price})។ សូមធ្វើការបង់ប្រាក់តាមលេខគណនី VET VEN ឬភ្ជាប់ Telegram Bot!`);
             switchTab('telegram');
         }
@@ -810,7 +817,6 @@
                 closeModal('authModal');
                 const usernameShort = email ? email.split('@')[0] : 'Admin';
                 
-                // រក្សាទុកទិន្នន័យ Login ក្នុង localStorage ដើម្បីកុំឱ្យបាត់ពេល Refresh ទំព័រ
                 localStorage.setItem('vtrade_logged_user', usernameShort);
                 document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${usernameShort}</span>`;
                 
@@ -855,11 +861,18 @@
         async function testTelegramIntegration() {
             const token = document.getElementById('tgTokenInput').value.trim();
             const chatId = document.getElementById('tgChatIdInput').value.trim();
+            const userName = document.getElementById('tgUserName').value.trim();
+
             if(!token || !chatId) {
                 alert('សូមបំពេញ Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវសិន!');
                 return;
             }
-            const text = `🔔 **V Trade AI Connection Test**\n✅ Telegram Bot connected successfully!`;
+
+            localStorage.setItem('vtrade_tg_token', token);
+            localStorage.setItem('vtrade_tg_chatid', chatId);
+            localStorage.setItem('vtrade_tg_username', userName);
+
+            const text = `🔔 **V Trade AI Connection Test**\n✅ Telegram Bot connected successfully for ${userName}!`;
             try {
                 const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST',
@@ -867,7 +880,7 @@
                     body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
                 });
                 const d = await res.json();
-                if(d.ok) alert('តេស្តតភ្ជាប់ Telegram Bot បានជោគជ័យ ១០០%!');
+                if(d.ok) alert('តេស្តតភ្ជាប់ និងរក្សាទុក Telegram Bot Saved បានជោគជ័យ ១០០%!');
                 else alert('បញ្ហា៖ ' + d.description);
             } catch(err) {
                 alert('កំហុសតភ្ជាប់បណ្តាញ!');
