@@ -32,7 +32,7 @@
             <div>
                 <h1 class="text-base font-bold tracking-wider text-white">V TRADE AI ULTIMATE</h1>
                 <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>ប្រព័ន្ធ Live API & Bot សកម្ម 100%
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>ប្រព័ន្ធ Telegram & API សកម្ម 100%
                 </p>
             </div>
         </div>
@@ -145,47 +145,48 @@
                 <div class="glass-panel rounded-2xl overflow-hidden h-[500px]" id="tradingview_widget"></div>
             </div>
 
-            <!-- TAB 3: TELEGRAM BOT & PROFILE -->
+            <!-- TAB 3: TELEGRAM BOT & LIVE PROFILE -->
             <div id="tab-telegram" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    <!-- Bot Profile Card -->
+                    <!-- Bot Live Profile Card -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                         <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                             <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                             <div>
-                                <h3 class="font-bold text-white text-sm">Telegram Bot Profile</h3>
-                                <p class="text-emerald-400">Status: Connected & Ready</p>
+                                <h3 class="font-bold text-white text-sm">Telegram Bot Live Profile</h3>
+                                <p id="botStatusText" class="text-amber-400">ស្ថានភាព៖ កំពុងរង់ចាំការតភ្ជាប់ Token</p>
                             </div>
                         </div>
                         <div class="space-y-3">
                             <div>
+                                <label class="text-gray-400 mb-1 block">Bot Name / ID</label>
+                                <input type="text" id="profileBotName" readonly value="ຍັງមិនទាន់ភ្ជាប់" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-gray-300 font-bold">
+                            </div>
+                            <div>
                                 <label class="text-gray-400 mb-1 block">Bot Username</label>
-                                <input type="text" readonly value="@VTradeAI_Bot" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-gray-300">
+                                <input type="text" id="profileBotUsername" readonly value="@..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-gray-300">
                             </div>
                             <div>
-                                <label class="text-gray-400 mb-1 block">Connected Admin Name</label>
-                                <input type="text" readonly value="VET Ven" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-gray-300">
-                            </div>
-                            <div>
-                                <label class="text-gray-400 mb-1 block">Webhook Status</label>
-                                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg font-bold inline-block">Active Endpoint</span>
+                                <label class="text-gray-400 mb-1 block">Admin Owner</label>
+                                <input type="text" readonly value="VET Ven" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-emerald-400 font-bold">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bot Token & Test Sender -->
+                    <!-- Bot Token & Test Sender Setup -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
-                        <h3 class="font-bold text-white text-sm border-b border-gray-800 pb-3">កំណត់ និងតេស្តផ្ញើសារ</h3>
+                        <h3 class="font-bold text-white text-sm border-b border-gray-800 pb-3">កំណត់ Telegram Token & Chat ID</h3>
                         <div class="space-y-3">
                             <div>
                                 <label class="text-gray-400 mb-1 block">Telegram Bot Token</label>
-                                <input type="text" id="tgTokenInput" placeholder="712345678:AAH..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                                <input type="text" id="tgTokenInput" placeholder="ឧទាហរណ៍៖ 712345678:AAH..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
                             </div>
                             <div>
-                                <label class="text-gray-400 mb-1 block">Telegram Chat ID</label>
-                                <input type="text" id="tgChatIdInput" placeholder="-1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                                <label class="text-gray-400 mb-1 block">Telegram Chat ID / Channel ID</label>
+                                <input type="text" id="tgChatIdInput" placeholder="ឧទាហរណ៍៖ -1001234567890 ឬ ID ផ្ទាល់ខ្លួន" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
                             </div>
-                            <button onclick="testTelegramBot()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តផ្ញើសារ Signal ទៅ Telegram</button>
+                            <button onclick="fetchTelegramBotProfile()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">១. ពិនិត្យ និងផ្ទុក Bot Profile</button>
+                            <button onclick="sendTelegramLiveMessage()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30">២. ផ្ញើសារសាកល្បង (Test Alert) ទៅ Telegram</button>
                         </div>
                     </div>
                 </div>
@@ -194,7 +195,7 @@
             <!-- TAB 4: AI SIGNALS -->
             <div id="tab-signals" class="tab-content space-y-6">
                 <h3 class="text-base font-bold text-white">សញ្ញាជួញដូរវិភាគដោយ AI (Live Signals Hub)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="signalsContainer">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="glass-panel p-4 rounded-2xl text-xs space-y-2 border border-emerald-500/30">
                         <div class="flex justify-between font-bold text-white"><span>SOL / USDT (Long Position)</span><span class="text-emerald-400">WIN RATE: 94%</span></div>
                         <p class="text-gray-400">AI រកឃើញសញ្ញាទិញចូលច្បាស់លាស់ពីទីផ្សារអន្តរជាតិ។</p>
@@ -336,14 +337,69 @@
             initTradingViewWidget(symbol);
         }
 
-        function testTelegramBot() {
-            const token = document.getElementById('tgTokenInput').value;
-            const chatId = document.getElementById('tgChatIdInput').value;
-            if(!token || !chatId) {
-                alert('សូមបំពេញ Telegram Bot Token និង Chat ID ជាមុនសិន!');
+        // 1. Fetch Real Telegram Bot Profile via getMe API
+        async function fetchTelegramBotProfile() {
+            const token = document.getElementById('tgTokenInput').value.trim();
+            if(!token) {
+                alert('សូមបញ្ចូល Telegram Bot Token ជាមុនសិន!');
                 return;
             }
-            alert('ប្រព័ន្ធបានផ្ញើសារ Test Alert ទៅកាន់ Telegram Bot Profile របស់អ្នកជោគជ័យ!');
+
+            document.getElementById('botStatusText').innerText = 'ស្ថានភាព៖ កំពុងទាញយកទិន្នន័យ...';
+            
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+                const data = await response.json();
+
+                if(data.ok) {
+                    document.getElementById('profileBotName').value = data.result.first_name || 'គ្មានឈ្មោះ';
+                    document.getElementById('profileBotUsername').value = '@' + data.result.username;
+                    document.getElementById('botStatusText').innerText = 'ស្ថានភាព៖ បានភ្ជាប់ដោយជោគជ័យ (Connected)';
+                    document.getElementById('botStatusText').className = 'text-emerald-400 font-bold';
+                    alert(`បានភ្ជាប់ Bot (${data.result.first_name}) ជោគជ័យ!`);
+                } else {
+                    alert('Token មិនត្រឹមត្រូវ៖ ' + data.description);
+                    document.getElementById('botStatusText').innerText = 'ស្ថានភាព៖ មិនអាចភ្ជាប់បាន (Invalid Token)';
+                    document.getElementById('botStatusText').className = 'text-red-400 font-bold';
+                }
+            } catch (error) {
+                alert('មានបញ្ហាក្នុងការតភ្ជាប់បណ្តាញ (Network Error)');
+                document.getElementById('botStatusText').innerText = 'ស្ថានភាព៖ កំហុសបណ្តាញអ៊ីនធឺណិត';
+            }
+        }
+
+        // 2. Send Live Message to Telegram via sendMessage API
+        async function sendTelegramLiveMessage() {
+            const token = document.getElementById('tgTokenInput').value.trim();
+            const chatId = document.getElementById('tgChatIdInput').value.trim();
+
+            if(!token || !chatId) {
+                alert('សូមបំពេញ Telegram Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!');
+                return;
+            }
+
+            const textMessage = `🚨 **V Trade AI Signal Alert**\n👤 Admin: VET Ven\n📊 Status: System Active & Ready\n💡 ផ្ញើសារសាកល្បងពីប្រព័ន្ធ Enterprise Platform ជោគជ័យ!`;
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: textMessage,
+                        parse_mode: 'Markdown'
+                    })
+                });
+
+                const data = await response.json();
+                if(data.ok) {
+                    alert('សញ្ញាត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកដោយជោគជ័យ!');
+                } else {
+                    alert('ផ្ញើសារមិនជោគជ័យ៖ ' + data.description);
+                }
+            } catch (error) {
+                alert('មានបញ្ហាក្នុងការផ្ញើសារទៅកាន់ Telegram API!');
+            }
         }
 
         function updateChart(period) {
