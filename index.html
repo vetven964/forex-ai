@@ -21,18 +21,22 @@
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
 
     <!-- Top Navigation Header -->
-    <header class="glass-panel sticky top-0 z-50 px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
+    <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
-            <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/30">
-                <i class="fa-solid fa-robot text-lg"></i>
+            <!-- Mobile Menu Toggle Button -->
+            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-robot text-base"></i>
             </div>
             <div>
-                <h1 class="text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TELEGRAM BOT</h1>
-                <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">Admin Manager & 2FA Secured Active</span>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & BOT</h1>
+                <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">Admin & 2FA Active</span>
                 </p>
             </div>
         </div>
@@ -51,25 +55,62 @@
         </div>
 
         <!-- Language Selector & Controls -->
-        <div class="flex items-center space-x-3">
-            <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-xs rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
-                <option value="km">🇰🇭 ភាសាខ្មែរ (Khmer)</option>
-                <option value="en">🇬🇧 English</option>
+        <div class="flex items-center space-x-2">
+            <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none cursor-pointer">
+                <option value="km">🇰🇭 ខ្មែរ</option>
+                <option value="en">🇬🇧 ENG</option>
                 <option value="zh">🇨🇳 中文</option>
             </select>
-            <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-2">
-                <i class="fa-solid fa-wallet"></i><span id="btnDeposit">បង់ប្រាក់ (Pay Money)</span>
+            <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-wallet"></i><span id="btnDeposit">បង់ប្រាក់</span>
             </button>
-            <button onclick="openModal('authModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                <i class="fa-solid fa-user-shield"></i><span id="btnAuth">Login / Sign In</span>
+            <button onclick="openModal('authModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield"></i><span id="btnAuth">Login</span>
             </button>
         </div>
     </header>
 
+    <!-- Mobile Drawer Menu Overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu)</h3>
+            <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-2 text-xs">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium text-left">
+                <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+            </button>
+            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-left">
+                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
+            </button>
+            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span>ម៉ោងទីផ្សារ (Asian/NY/London)</span>
+            </button>
+            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
+            </button>
+            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-tags w-5 text-purple-400"></i><span>កញ្ចប់តម្លៃថ្មី (Pricing)</span>
+            </button>
+            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>Telegram Bot & Setup</span>
+            </button>
+            <button onclick="switchTab('signals'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-brain w-5 text-emerald-400"></i><span>AI Research & Signals</span>
+            </button>
+            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span>TradingView Chart</span>
+            </button>
+            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>សុវត្ថិភាព & 2FA</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Main Layout -->
     <div class="flex flex-1 overflow-hidden">
         
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0">
             <nav class="space-y-1.5">
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left">
@@ -108,7 +149,7 @@
         </aside>
 
         <!-- Main Workspace Area -->
-        <main class="flex-1 p-6 overflow-y-auto space-y-6">
+        <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
             <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="tab-content active space-y-6">
@@ -165,10 +206,10 @@
 
             <!-- TAB 2: ADMIN MANAGER & USER LIST -->
             <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
-                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs">
+                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
                         <div>
-                            <h3 class="font-bold text-amber-400 text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager: User List & Security Control</h3>
+                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager: User List & Security Control</h3>
                             <p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់</p>
                         </div>
                         <button onclick="alert('បានបន្ថែម User ថ្មីដោយជោគជ័យ!')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2">
@@ -188,8 +229,8 @@
                     </div>
 
                     <!-- User List Table -->
-                    <div class="bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 shadow-xl">
-                        <table class="w-full text-left border-collapse">
+                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
                             <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
                                 <tr>
                                     <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
@@ -272,7 +313,7 @@
             <!-- TAB 3: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto</h3>
                     <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
@@ -321,7 +362,7 @@
             <!-- TAB 4: NEWS & LINK CONNECTION -->
             <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-xl font-bold text-white">ព័ត៌មានសេដ្ឋកិច្ច និងតំណភ្ជាប់ (News & Link Connection)</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ព័ត៌មានសេដ្ឋកិច្ច និងតំណភ្ជាប់ (News & Link Connection)</h3>
                     <p class="text-xs text-gray-400">ព័ត៌មានទាន់ហេតុការណ៍ និងតំណភ្ជាប់ផ្ទាល់ទៅកាន់ប្រភពព័ត៌មានអន្តរជាតិធំៗ</p>
                 </div>
 
@@ -330,10 +371,10 @@
                         <div class="space-y-2">
                             <div class="flex justify-between items-center text-gray-400 text-[11px]">
                                 <span><i class="fa-regular fa-clock"></i> ថ្ងៃនេះ, 08:30 AM</span>
-                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold">High Impact (US Fed)</span>
+                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold">High Impact</span>
                             </div>
-                            <h4 class="font-bold text-white text-sm">US Non-Farm Payrolls (NFP) & Fed Interest Rate Decision Update</h4>
-                            <p class="text-gray-400">ការជះឥទ្ធិពលរបស់ធនាគារកណ្តាលអាមេរិក (Fed) លើអត្រាការប្រាក់ និងតម្លៃមាស (XAU/USD) រួមទាំងគ្រីបតូស៊ីប៊ែរ។</p>
+                            <h4 class="font-bold text-white text-sm">US Non-Farm Payrolls (NFP) & Fed Interest Rate Update</h4>
+                            <p class="text-gray-400">ការជះឥទ្ធិពលរបស់ធនាគារកណ្តាលអាមេរិក (Fed) លើអត្រាការប្រាក់ និងតម្លៃមាស (XAU/USD)។</p>
                         </div>
                         <a href="https://www.investing.com/economic-calendar/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
                             <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
@@ -348,7 +389,7 @@
                                 <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Crypto Market</span>
                             </div>
                             <h4 class="font-bold text-white text-sm">Bitcoin Breakout Analysis & AI Research Market Trend</h4>
-                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy នៅតំបន់ Sideways Breakout។</p>
+                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy។</p>
                         </div>
                         <a href="https://www.coindesk.com/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
                             <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
@@ -361,7 +402,7 @@
             <!-- TAB 5: PRICING PLANS (Free Day 7 Trial, $4.99, $8.99, $12.99) -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស (Pricing Plans & Free Trial)</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស (Pricing Plans & Free Trial)</h3>
                     <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មរចនាឡើងយ៉ាងពិសេស អមដោយជម្រើសបង់ប្រាក់ផ្ទាល់ខ្លួន VET VEN</p>
                 </div>
 
@@ -441,11 +482,11 @@
                     </div>
 
                     <div class="bg-gray-950 p-4 rounded-xl space-y-2 border border-blue-500/30 text-gray-300">
-                        <h4 class="font-bold text-blue-400 text-sm"><i class="fa-solid fa-book-open"></i> របៀបដំឡើង (Step-by-Step Installation Guide):</h4>
+                        <h4 class="font-bold text-blue-400 text-sm"><i class="fa-solid fa-book-open"></i> របៀបដំឡើង (Step-by-Step Guide):</h4>
                         <ol class="list-decimal list-inside space-y-1 text-gray-300">
                             <li>ចូលទៅកាន់ Telegram រួចស្វែងរកពាក្យ <b class="text-white">@BotFather</b> ដើម្បីបង្កើត Bot ថ្មី និងយក <b class="text-emerald-400">Bot Token</b>។</li>
-                            <li>យក Bot ដែលទើបបង្កើតនោះ ដាក់ចូលទៅក្នុង Telegram Channel ឬ Group របស់អ្នក ហើយផ្ដល់សិទ្ធិជា <b class="text-white">Admin</b>។</li>
-                            <li>យក <b class="text-emerald-400">Chat ID / Channel ID</b> របស់លោកអ្នក (ឧទាហរណ៍៖ `-100xxxxxxxxxx`) មកបំពេញខាងក្រោម។</li>
+                            <li>យក Bot ដែលទើបបង្កើតនោះ ដាក់ចូលទៅក្នុង Telegram Channel ឬ Group ហើយផ្ដល់សិទ្ធិជា <b class="text-white">Admin</b>។</li>
+                            <li>យក <b class="text-emerald-400">Chat ID / Channel ID</b> របស់លោកអ្នក មកបំពេញខាងក្រោម។</li>
                             <li>ចុចប៊ូតុង "តេស្តតភ្ជាប់ Telegram Bot" ដើម្បីធានាថាវាដំណើរការចេញចូលបានស្រួល។</li>
                         </ol>
                     </div>
@@ -474,14 +515,14 @@
 
             <!-- TAB 7: AI RESEARCH & SIGNALS -->
             <div id="tab-signals" class="tab-content space-y-6">
-                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-3 flex-wrap gap-2">
                         <div>
                             <h3 class="font-bold text-white text-sm">AI Research Market Analyzer (Buy / Sell / Waiting / Sideways)</h3>
                             <p class="text-xs text-gray-400">ប្រព័ន្ធ AI ធ្វើការ Research ទីផ្សារសិន ទើបសម្រេចចិត្តបោះ Signal ឬរង់ចាំពេលទីផ្សារ Sideways កណ្ដាលផ្លូវ។</p>
                         </div>
                         <button onclick="runAIResearchScan()" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:opacity-90 transition">
-                            <i class="fa-solid fa-microchip"></i> ឱ្យ AI Research ទីផ្សារឥឡូវនេះ
+                            <i class="fa-solid fa-microchip"></i> ឱ្យ AI Research ទីផ្សារ
                         </button>
                     </div>
 
@@ -489,7 +530,7 @@
                         <div class="glass-panel p-4 rounded-2xl border border-emerald-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">BTC / USDT</span>
-                                <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">🟢 BUY (ចូលទិញ)</span>
+                                <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">🟢 BUY</span>
                             </div>
                             <p class="text-gray-400">AI Research: ទីផ្សារហើបចេញពី zone ប្រមូលផ្ដុំ ស្របលក្ខខណ្ឌឡើង!</p>
                             <div class="grid grid-cols-3 gap-1 bg-gray-900 p-2 rounded-xl text-center">
@@ -497,13 +538,13 @@
                                 <div>TP: <b class="text-emerald-400">$96,500</b></div>
                                 <div>SL: <b class="text-red-400">$91,500</b></div>
                             </div>
-                            <button onclick="sendSignalToTelegram('BTC/USDT', 'BUY ($93,200)')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal នេះចូល Telegram</button>
+                            <button onclick="sendSignalToTelegram('BTC/USDT', 'BUY ($93,200)')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal ចូល Telegram</button>
                         </div>
 
                         <div class="glass-panel p-4 rounded-2xl border border-red-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">XAU / USD (Gold)</span>
-                                <span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-lg font-bold">🔴 SELL (ចូលលក់)</span>
+                                <span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-lg font-bold">🔴 SELL</span>
                             </div>
                             <p class="text-gray-400">AI Research: ប៉ះតំបន់ Resistance ខ្លាំង ត្រៀមចុះក្រោម។</p>
                             <div class="grid grid-cols-3 gap-1 bg-gray-900 p-2 rounded-xl text-center">
@@ -511,15 +552,15 @@
                                 <div>TP: <b class="text-emerald-400">$2,360</b></div>
                                 <div>SL: <b class="text-red-400">$2,430</b></div>
                             </div>
-                            <button onclick="sendSignalToTelegram('XAU/USD', 'SELL ($2,410)')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal នេះចូល Telegram</button>
+                            <button onclick="sendSignalToTelegram('XAU/USD', 'SELL ($2,410)')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal ចូល Telegram</button>
                         </div>
 
                         <div class="glass-panel p-4 rounded-2xl border border-amber-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">ETH / USDT</span>
-                                <span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-bold">🟡 SIDEWAYS / WAITING</span>
+                                <span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-bold">🟡 SIDEWAYS</span>
                             </div>
-                            <p class="text-gray-400">AI Research: ទីផ្សាររត់កណ្ដាលផ្លូវ (Sideways Range) គ្មានទិសដៅច្បាស់លាស់។ <u>ប្រព័ន្ធបញ្ជាឱ្យរង់ចាំ (Waiting)</u> ដើម្បីការពារការខាតបង់។</p>
+                            <p class="text-gray-400">AI Research: ទីផ្សាររត់កណ្ដាលផ្លូវ (Sideways) គ្មានទិសដៅច្បាស់លាស់។ <u>រង់ចាំ (Waiting)</u> ដើម្បីការពារហានិភ័យ។</p>
                             <div class="bg-gray-900 p-2 rounded-xl text-center text-amber-400 font-bold">
                                 ស្ថានភាព៖ កំពុងរង់ចាំសញ្ញា (No Trade Zone)
                             </div>
@@ -542,7 +583,7 @@
                         <option value="OANDA:XAUUSD">Gold (XAU/USD)</option>
                     </select>
                 </div>
-                <div class="glass-panel rounded-2xl overflow-hidden h-[500px]" id="tradingview_widget"></div>
+                <div class="glass-panel rounded-2xl overflow-hidden h-[450px]" id="tradingview_widget"></div>
             </div>
 
             <!-- TAB 9: SECURITY & 2FA -->
@@ -576,6 +617,25 @@
             </div>
 
         </main>
+    </div>
+
+    <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
+            <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
+        </button>
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
+            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
+        </button>
+        <button onclick="switchTab('signals')" class="flex flex-col items-center text-emerald-400">
+            <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Signals</span>
+        </button>
+        <button onclick="switchTab('telegram')" class="flex flex-col items-center text-blue-400">
+            <i class="fa-brands fa-telegram text-base mb-0.5"></i><span>Bot</span>
+        </button>
+        <button onclick="switchTab('pricing')" class="flex flex-col items-center text-purple-400">
+            <i class="fa-solid fa-tags text-base mb-0.5"></i><span>Pricing</span>
+        </button>
     </div>
 
     <!-- Modals: Login / 2FA -->
@@ -663,10 +723,10 @@
 
         const translations = {
             km: {
-                brand: "V TRADE AI & TELEGRAM BOT",
-                headerStatus: "Admin Manager & 2FA Secured Active",
-                deposit: "បង់ប្រាក់ (Pay Money)",
-                auth: "Login / Sign In",
+                brand: "V TRADE AI & BOT",
+                headerStatus: "Admin & 2FA Active",
+                deposit: "បង់ប្រាក់",
+                auth: "Login",
                 dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)",
                 sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)",
                 news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)",
@@ -678,34 +738,34 @@
                 support: "AI Support 24/7"
             },
             en: {
-                brand: "V TRADE AI & TELEGRAM BOT",
-                headerStatus: "Admin Manager & 2FA Secured Active",
+                brand: "V TRADE AI & BOT",
+                headerStatus: "Admin & 2FA Active",
                 deposit: "Pay Money",
-                auth: "Login / Sign In",
+                auth: "Login",
                 dash: "Dashboard",
-                sessions: "Market Sessions (Asian/NY/London)",
-                news: "News & Link Connections",
+                sessions: "Market Sessions",
+                news: "News & Links",
                 pricing: "Pricing Plans",
-                telegram: "Telegram Bot & Setup",
-                signals: "AI Research & Signals",
-                chart: "TradingView Chart",
+                telegram: "Telegram Bot Setup",
+                signals: "AI Signals",
+                chart: "TradingView",
                 security: "Security & 2FA",
-                support: "AI Support 24/7"
+                support: "AI Support"
             },
             zh: {
-                brand: "V TRADE AI & 电报机器人",
-                headerStatus: "管理员与2FA安全激活",
-                deposit: "支付金额",
-                auth: "登录 / 注册",
+                brand: "V TRADE AI",
+                headerStatus: "管理员与2FA激活",
+                deposit: "支付",
+                auth: "登录",
                 dash: "控制面板",
                 sessions: "市场时段",
                 news: "新闻与链接",
                 pricing: "价格方案",
-                telegram: "电报机器人设置",
-                signals: "AI研究与信号",
-                chart: "TradingView 图表",
-                security: "安全与2FA",
-                support: "AI 24/7 支持"
+                telegram: "电报设置",
+                signals: "AI信号",
+                chart: "图表",
+                security: "安全",
+                support: "支持"
             }
         };
 
@@ -724,6 +784,11 @@
             document.getElementById('menuChart').innerText = t.chart;
             document.getElementById('menuSecurity').innerText = t.security;
             document.getElementById('menuSupport').innerText = t.support;
+        }
+
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            overlay.classList.toggle('hidden');
         }
 
         function updateRealTimeData() {
@@ -809,7 +874,7 @@
         function initTradingViewWidget(symbol) {
             document.getElementById('tradingview_widget').innerHTML = "";
             tvWidgetInstance = new TradingView.widget({
-                "width": "100%", "height": "500", "symbol": symbol, "interval": "D",
+                "width": "100%", "height": "450", "symbol": symbol, "interval": "D",
                 "timezone": "Asia/Phnom_Penh", "theme": "dark", "style": "1", "locale": "en",
                 "toolbar_bg": "#07090e", "container_id": "tradingview_widget"
             });
