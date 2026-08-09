@@ -203,7 +203,24 @@
                     </div>
                 </div>
             </div>
+<!-- ផ្នែក HTML ផ្សេងៗរបស់អ្នកនៅខាងលើ... -->
+            
+            <!--Tab Admin Manager និងកូដផ្សេងៗទៀត...-->
+      ​
+    <script>
+        // កូដត្រួតពិនិត្យការ Login
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('authWrapper').style.display = 'block';
+        } else {
+            document.getElementById('authWrapper').style.display = 'none';
+            document.getElementById('appWrapper').classList.remove('hidden');
+        }
+    </script>
+       ​ 
+<!-- </body> <!-- បិទ tag body នៅត្រង់នេះ -->
 
+            
             <!-- TAB 2: ADMIN MANAGER & USER LIST -->
             <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
