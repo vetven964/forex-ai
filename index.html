@@ -64,8 +64,8 @@
             <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
                 <i class="fa-solid fa-wallet"></i><span id="btnDeposit">បង់ប្រាក់</span>
             </button>
-            <button onclick="openModal('authModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5">
-                <i class="fa-solid fa-user-shield"></i><span id="btnAuth">Login</span>
+            <button onclick="openModal('authModal')" id="btnAuth" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield"></i><span>Login</span>
             </button>
         </div>
     </header>
@@ -680,7 +680,6 @@
             document.getElementById('txtBrandTitle').innerText = t.brand;
             document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
             document.getElementById('btnDeposit').innerText = t.deposit;
-            document.getElementById('btnAuth').innerText = t.auth;
             document.getElementById('menuDashboard').innerText = t.dash;
             document.getElementById('menuSessions').innerText = t.sessions;
             document.getElementById('menuNews').innerText = t.news;
@@ -736,7 +735,15 @@
         }
 
         setInterval(updateRealTimeData, 1000);
-        window.onload = function() { updateRealTimeData(); }
+
+        // ពិនិត្យស្ថានភាព Login ពេល Load ទំព័រម្តងទៀត (Check LocalStorage Session)
+        window.onload = function() { 
+            updateRealTimeData(); 
+            const savedUser = localStorage.getItem('vtrade_logged_user');
+            if(savedUser) {
+                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
+            }
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -801,7 +808,12 @@
             const email = document.getElementById('authEmail').value;
             if(userEnteredOtp === activeOtpCode) {
                 closeModal('authModal');
-                document.getElementById('btnAuth').innerText = email ? email.split('@')[0] : 'Admin Secured';
+                const usernameShort = email ? email.split('@')[0] : 'Admin';
+                
+                // រក្សាទុកទិន្នន័យ Login ក្នុង localStorage ដើម្បីកុំឱ្យបាត់ពេល Refresh ទំព័រ
+                localStorage.setItem('vtrade_logged_user', usernameShort);
+                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${usernameShort}</span>`;
+                
                 alert('ផ្ទៀងផ្ទាត់ 2FA OTP ជោគជ័យ! បានចូលប្រព័ន្ធដោយសុវត្ថិភាព ១០០%។');
             } else {
                 alert('លេខកូដ OTP មិនត្រឹមត្រូវទេ! (កូដគឺ៖ ' + activeOtpCode + ')');
@@ -868,8 +880,9 @@
             if(!input.value.trim()) return;
             box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${input.value}</div>`;
             input.value = '';
+
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support: ប្រព័ន្ធ Admin Manager និងមុខងារទាំងអស់ដំណើរការធម្មតា ១០០%។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support: ប្រព័ន្ធ Admin Manager និងមុខងារទាំងអស់ដំណើរការធម្មតា ១០០%.</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 500);
         }
