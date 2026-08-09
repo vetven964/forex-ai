@@ -36,7 +36,7 @@ app.post('/api/chat', (req, res) => {
     const { message } = req.body;
     const lowerMsg = (message || '').toLowerCase();
     
-    let reply = "🤖 V Trade AI: ខ្ញុំបានទទួលសំណួររបស់បងហើយ។ ប្រព័ន្ធ Background Workers និង ICT Real-time Signal កំពុងដំណើរការធម្មតា ២៤ម៉ោង។ តើមានអ្វីให้ខ្ញុំជួយបន្ថែមទេ?";
+    let reply = "🤖 V Trade AI: ខ្ញុំបានទទួលសំណួររបស់បងហើយ។ ប្រព័ន្ធ Background Workers និង ICT Real-time Signal កំពុងដំណើរការធម្មតា ២៤ម៉ោង។";
 
     if (lowerMsg.includes('សួស្តី') || lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
         reply = "សួស្តីបងប្រុស! ស្វាគមន៍មកកាន់ V Trade AI & Bot v3.0។ តើចង់ឱ្យខ្ញុំជួយពិនិត្យមើលសញ្ញា Trade គូណាមួយដែរទេ?";
@@ -57,7 +57,7 @@ cron.schedule('*/15 * * * *', () => {
 function runAiMarketScanner() {
     const pairs = [
         { name: 'BTC/USDT', basePrice: 65000 },
-        { name: 'XAU/USD (Gold)', basePrice: 2400 },
+        { name: 'XAU/USD (Gold)', basePrice: 4346 },
         { name: 'EUR/USD', basePrice: 1.0850 }
     ];
     
