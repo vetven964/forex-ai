@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V TRADE AI Mini App v5.0.3</title>
+    <!-- ដាក់បញ្ចូល Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .btn-buy { background-color: #22c55e; color: white; }
+        .btn-sell { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>V TRADE AI v5.0.3</h2>
+        <div class="card">
+            <p><strong>សមតុល្យគណនី (Balance):</strong> <span id="user-balance">Loading...</span></p>
+            <p><strong>ទីផ្សារបច្ចុប្បន្ន (Asset):</strong> BTC/USDT</p>
+        </div>
+        
+        <div class="card">
+            <h3>បញ្ជាទិញ-លក់រហ័ស</h3>
+            <button class="btn btn-buy" onclick="executeTrade('BUY')">🟢 BUY (Long)</button>
+            <button class="btn btn-sell" onclick="executeTrade('SELL')">🔴 SELL (Short)</button>
+        </div>
+    </div>
+
+    <script>
+        // เริ่มต้นใช้งาน Telegram WebApp API
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // ពង្រីកផ្ទាំង Mini App ឱ្យពេញអេក្រង់ទូរស័ព្ទ
+
+        // បង្ហាញឈ្មោះអ្នកប្រើប្រាស់ Telegram
+        document.getElementById('user-balance').innerText = "$5,420.00 USDT";
+
+        function executeTrade(action) {
+            // បញ្ជូនទិន្នន័យត្រឡប់ទៅកាន់ Backend Bot វិញ
+            const data = { action: action, asset: "BTCUSDT", timestamp: Date.now() };
+            tg.sendData(JSON.stringify(data)); 
+            tg.close(); // បិទ Mini App ក្រោយពេលបញ្ជា
+        }
+    </script>
+</body>
+</html>
