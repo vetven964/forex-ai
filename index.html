@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="km">
 <head>
@@ -55,6 +54,14 @@
                 </a>
                 <a href="#" onclick="switchTab('signals')" id="nav-signals" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
                     <i class="fa-solid fa-bolt w-5"></i><span>សញ្ញា AI Signals</span>
+                </a>
+                <!-- NEW: TradingView Telegram Bot -->
+                <a href="#" onclick="switchTab('telegram')" id="nav-telegram" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
+                    <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>TradingView Telegram Bot</span>
+                </a>
+                <!-- NEW: FED & Global News -->
+                <a href="#" onclick="switchTab('news')" id="nav-news" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
+                    <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន FED & ពិភពលោក</span>
                 </a>
                 <a href="#" onclick="switchTab('wallet')" id="nav-wallet" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
                     <i class="fa-solid fa-wallet w-5"></i><span>បញ្ញើ និងដកប្រាក់</span>
@@ -203,7 +210,89 @@
                 </div>
             </div>
 
-            <!-- TAB 4: WALLET DEPOSIT & WITHDRAWAL -->
+            <!-- TAB 4 (NEW): TRADINGVIEW TELEGRAM BOT INTEGRATION -->
+            <div id="tab-telegram" class="space-y-6 hidden">
+                <div class="glass-panel p-6 rounded-2xl max-w-2xl mx-auto space-y-6">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-4">
+                        <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl">
+                            <i class="fa-brands fa-telegram text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">ប្រព័ន្ធភ្ជាប់ TradingView ទៅ Telegram Bot</h3>
+                            <p class="text-xs text-gray-400">ផ្ញើសញ្ញា Alert ពី Webhook ទៅកាន់ Telegram Channel ឬ Group របស់អ្នកដោយស្វ័យប្រវត្តិ។</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">Telegram Bot Token</label>
+                            <input type="text" placeholder="ឧទាហរណ៍៖ 712345678:AAH... (ពី BotFather)" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">Telegram Chat ID (Channel / Group ID)</label>
+                            <input type="text" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">TradingView Webhook URL (សម្រាប់យកទៅដាក់ក្នុង Alert)</label>
+                            <div class="flex gap-2">
+                                <input type="text" readonly value="https://api.vtradeai.io/v1/webhook/tv-alert" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-300">
+                                <button onclick="alert('បានចម្លង Webhook URL រួចរាល់!')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-sm rounded-xl font-bold transition">ចម្លង</button>
+                            </div>
+                        </div>
+                        <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">រក្សាទុក និងបើកដំណើរការ Bot</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5 (NEW): FED & GLOBAL ECONOMIC NEWS (ភាសាខ្មែរ) -->
+            <div id="tab-news" class="space-y-6 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">ព័ត៌មានធនាគារកណ្តាល FED និងសេដ្ឋកិច្ចពិភពលោក</h3>
+                        <p class="text-xs text-gray-400">ការធ្វើបច្ចុប្បន្នភាពអត្រាការប្រាក់ សេចក្តីប្រកាសរបស់ FED និងព័ត៌មានមានឥទ្ធិពលលើទីផ្សារ។</p>
+                    </div>
+                    <span class="bg-amber-500/20 text-amber-400 text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Live Updates
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- News Card 1 -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-amber-500">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>ធនាគារកណ្តាលអាមេរិក (FED)</span>
+                            <span>ថ្ងៃនេះ, 08:30</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-white">ប្រធាន FED លោក Jerome Powell បញ្ជាក់ពីជំហររក្សាអត្រាការប្រាក់ដដែល</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">ធនាគារកណ្តាលអាមេរិកសម្រេចចិត្តមិនទាន់លៃតម្រូវអត្រាការប្រាក់ក្នុងពេលឆាប់ៗនេះទេ ដោយសារអតិផរណាចុងក្រោយមានស្ថិរភាពល្អប្រសើរ ដែលធ្វើឱ្យទីផ្សារមាស និង Crypto មានភាពប្រែប្រួលតិចតួច។</p>
+                        <span class="text-[11px] text-blue-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ មធ្យម (Neutral)</span>
+                    </div>
+
+                    <!-- News Card 2 -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-emerald-500">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>ទិន្នន័យសេដ្ឋកិច្ច (CPI Data)</span>
+                            <span>ម្សិលមិញ</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-white">អត្រាអតិផរណា CPI សហរដ្ឋអាមេរិកធ្លាក់ចុះមកនៅកម្រិត 2.8%</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">ទិន្នន័យ CPI ចុងក្រោយបង្ហាញពីការថយចុះនៃសម្ពាធតម្លៃទំនិញ ដែលជាសញ្ញាវិជ្ជមានជំរុញឱ្យវិនិយោគិនងាកមកទិញទ្រព្យប្រថុយប្រថានខ្ពស់ (Risk-on Assets) បន្ថែម។</p>
+                        <span class="text-[11px] text-emerald-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ វិជ្ជមាន (Bullish)</span>
+                    </div>
+
+                    <!-- News Card 3 -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-blue-500">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>ទីផ្សាររូបិយប័ណ្ណ (Forex & Global)</span>
+                            <span>2 ថ្ងៃមុន</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-white">ទស្សនវិស័យអត្រាប្តូរប្រាក់ USD និងតម្រូវការមាសពិភពលោក</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">ធនាគារកណ្តាលធំៗផ្សេងទៀតចាប់ផ្តើមពិចារណាកាត់បន្ថយអត្រាការប្រាក់ ដែលធ្វើឱ្យប្រាក់ដុល្លារអាមេរិក (USD) ប្រឈមមុខនឹងការធ្លាក់ចុះបន្តិចបន្តួចនៅទសវត្សរ៍នេះ។</p>
+                        <span class="text-[11px] text-blue-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ ប្រែប្រួល (Volatile)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: WALLET DEPOSIT & WITHDRAWAL -->
             <div id="tab-wallet" class="space-y-6 hidden">
                 <div class="max-w-xl mx-auto glass-panel p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white">ស្នើសុំបញ្ចូលទឹកប្រាក់ (Deposit Funds)</h3>
@@ -223,7 +312,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: MULTI-ASSET COMPARISON -->
+            <!-- TAB 7: MULTI-ASSET COMPARISON -->
             <div id="tab-compare" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white">ប្រៀបធៀបសញ្ញាទីផ្សារ (Multi-Asset Comparison)</h3>
@@ -237,7 +326,7 @@
                 </div>
             </div>
 
-            <!-- TAB 6: ACADEMY -->
+            <!-- TAB 8: ACADEMY -->
             <div id="tab-academy" class="space-y-6 hidden">
                 <h3 class="text-lg font-bold text-white">មជ្ឈមណ្ឌលអប់រំ និងយុទ្ធសាស្ត្រ (V Trade Academy)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -251,7 +340,7 @@
                 </div>
             </div>
 
-            <!-- TAB 7: AFFILIATE PROGRAM -->
+            <!-- TAB 9: AFFILIATE PROGRAM -->
             <div id="tab-affiliate" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 max-w-xl mx-auto">
                     <h3 class="text-lg font-bold text-white">កម្មវិធីណែនាំមិត្តភក្តិ (Affiliate Program)</h3>
@@ -263,7 +352,7 @@
                 </div>
             </div>
 
-            <!-- TAB 8: SECURITY & 2FA -->
+            <!-- TAB 10: SECURITY & 2FA -->
             <div id="tab-security" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 max-w-xl mx-auto">
                     <h3 class="text-lg font-bold text-white">កម្រិតសុវត្ថិភាពគណនី (Security & 2FA)</h3>
@@ -321,13 +410,17 @@
     <!-- Script Navigation & Modals Logic -->
     <script>
         function switchTab(tabId) {
-            const tabs = ['dashboard', 'markets', 'signals', 'wallet', 'compare', 'academy', 'affiliate', 'security'];
+            const tabs = ['dashboard', 'markets', 'signals', 'telegram', 'news', 'wallet', 'compare', 'academy', 'affiliate', 'security'];
             tabs.forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('nav-' + t).className = "flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition";
+                const tabEl = document.getElementById('tab-' + t);
+                const navEl = document.getElementById('nav-' + t);
+                if(tabEl) tabEl.classList.add('hidden');
+                if(navEl) navEl.className = "flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition";
             });
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('nav-' + tabId).className = "flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition";
+            const activeTab = document.getElementById('tab-' + tabId);
+            const activeNav = document.getElementById('nav-' + tabId);
+            if(activeTab) activeTab.classList.remove('hidden');
+            if(activeNav) activeNav.className = "flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition";
         }
 
         function openModal(modalId) {
