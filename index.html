@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Ultimate - Enterprise Platform</title>
-    <!-- Tailwind CSS CDN for Modern UI -->
+    <title>V Trade AI Ultimate - Live Enterprise Platform</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Kantumruy Pro', sans-serif; background-color: #0b0f19; color: #f3f4f6; }
-        .glass-panel { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -30,7 +30,7 @@
         <div class="flex items-center space-x-4">
             <button onclick="openModal('notificationModal')" class="relative text-gray-400 hover:text-white transition">
                 <i class="fa-solid fa-bell text-xl"></i>
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">3</span>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">1</span>
             </button>
             <div class="flex items-center space-x-2 bg-gray-800/60 px-3 py-1.5 rounded-full border border-gray-700">
                 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="w-7 h-7 rounded-full object-cover" alt="User">
@@ -55,11 +55,9 @@
                 <a href="#" onclick="switchTab('signals')" id="nav-signals" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
                     <i class="fa-solid fa-bolt w-5"></i><span>សញ្ញា AI Signals</span>
                 </a>
-                <!-- NEW: TradingView Telegram Bot -->
                 <a href="#" onclick="switchTab('telegram')" id="nav-telegram" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
                     <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>TradingView Telegram Bot</span>
                 </a>
-                <!-- NEW: FED & Global News -->
                 <a href="#" onclick="switchTab('news')" id="nav-news" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition">
                     <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន FED & ពិភពលោក</span>
                 </a>
@@ -121,20 +119,13 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg text-white">ក្រាហ្វបង្ហាញសមតុល្យសរុប (Portfolio Performance)</h3>
                         <div class="flex space-x-2">
-                            <button class="px-3 py-1 bg-blue-600 text-xs text-white rounded-lg">1D</button>
-                            <button class="px-3 py-1 bg-gray-800 text-xs text-gray-400 rounded-lg">1W</button>
-                            <button class="px-3 py-1 bg-gray-800 text-xs text-gray-400 rounded-lg">1M</button>
-                            <button class="px-3 py-1 bg-gray-800 text-xs text-gray-400 rounded-lg">1Y</button>
+                            <button onclick="updateChart('1D')" class="px-3 py-1 bg-blue-600 text-xs text-white rounded-lg">1D</button>
+                            <button onclick="updateChart('1W')" class="px-3 py-1 bg-gray-800 text-xs text-gray-400 rounded-lg">1W</button>
+                            <button onclick="updateChart('1M')" class="px-3 py-1 bg-gray-800 text-xs text-gray-400 rounded-lg">1M</button>
                         </div>
                     </div>
-                    <div class="h-64 flex items-end justify-between gap-2 pt-6 px-2 border-b border-gray-800">
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[40%]"></div>
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[55%]"></div>
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[45%]"></div>
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[70%]"></div>
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[60%]"></div>
-                        <div class="w-full bg-blue-600/30 hover:bg-blue-600 rounded-t-lg transition h-[85%]"></div>
-                        <div class="w-full bg-blue-600 hover:bg-blue-500 rounded-t-lg transition h-[95%]"></div>
+                    <div class="h-64 flex items-end justify-between gap-2 pt-6 px-2 border-b border-gray-800" id="chart-bars">
+                        <!-- Bars dynamically loaded via JS -->
                     </div>
                 </div>
             </div>
@@ -144,20 +135,7 @@
                 <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div class="relative w-full md:w-96">
                         <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" placeholder="ស្វែងរកកាក់, គូ Forex ឬ មាស..." class="w-full bg-gray-900 border border-gray-700 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <select class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option>គ្រប់ទីផ្សារทั้งหมด</option>
-                            <option>Cryptocurrency</option>
-                            <option>Forex Currencies</option>
-                            <option>Commodities (Gold)</option>
-                        </select>
-                        <select class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option>តម្រៀបតាម (Volume)</option>
-                            <option>តម្លៃខ្ពស់បំផុត</option>
-                            <option>ការប្រែប្រួលខ្ពស់</option>
-                        </select>
+                        <input type="text" id="marketSearch" onkeyup="filterMarkets()" placeholder="ស្វែងរកកាក់, គូ Forex ឬ មាស..." class="w-full bg-gray-900 border border-gray-700 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
                 <div class="glass-panel rounded-2xl overflow-hidden">
@@ -171,21 +149,8 @@
                                 <th class="p-4 text-right">សកម្មភាព</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-800 text-sm">
-                            <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-4 font-bold flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold text-xs">₿</span> BTC / USDT</td>
-                                <td class="p-4">$92,450.00</td>
-                                <td class="p-4 text-emerald-400">+4.25%</td>
-                                <td class="p-4"><span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full text-xs font-bold">STRONG BUY</span></td>
-                                <td class="p-4 text-right"><button class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">ជួញដូរ</button></td>
-                            </tr>
-                            <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-4 font-bold flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">Ξ</span> ETH / USDT</td>
-                                <td class="p-4">$3,420.50</td>
-                                <td class="p-4 text-emerald-400">+2.10%</td>
-                                <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full text-xs font-bold">BUY</span></td>
-                                <td class="p-4 text-right"><button class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">ជួញដូរ</button></td>
-                            </tr>
+                        <tbody id="marketTableBody" class="divide-y divide-gray-800 text-sm">
+                            <!-- Dynamic rows via JS -->
                         </tbody>
                     </table>
                 </div>
@@ -194,23 +159,12 @@
             <!-- TAB 3: AI SIGNALS HUB -->
             <div id="tab-signals" class="space-y-6 hidden">
                 <h3 class="text-lg font-bold text-white">សញ្ញាជួញដូរវិភាគដោយ AI (Live Signals Hub)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="glass-panel p-5 rounded-2xl border border-emerald-500/30">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="font-bold text-white">SOL / USDT (Long Position)</span>
-                            <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-1 rounded font-bold">CONFIDENCE: 94%</span>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-4">AI រកឃើញលំនាំរចនាសម្ព័ន្ធបំបែកតម្លៃឡើងលើ (Bullish Breakout)</p>
-                        <div class="grid grid-cols-3 gap-2 text-xs bg-gray-900/60 p-3 rounded-xl">
-                            <div><span class="text-gray-500">Entry Price:</span><br><b class="text-white">$184.20</b></div>
-                            <div><span class="text-gray-500">Take Profit:</span><br><b class="text-emerald-400">$198.50</b></div>
-                            <div><span class="text-gray-500">Stop Loss:</span><br><b class="text-red-400">$179.00</b></div>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="signalsContainer">
+                    <!-- Dynamic Signals -->
                 </div>
             </div>
 
-            <!-- TAB 4 (NEW): TRADINGVIEW TELEGRAM BOT INTEGRATION -->
+            <!-- TAB 4: TRADINGVIEW TELEGRAM BOT -->
             <div id="tab-telegram" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl max-w-2xl mx-auto space-y-6">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-4">
@@ -219,86 +173,51 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-white">ប្រព័ន្ធភ្ជាប់ TradingView ទៅ Telegram Bot</h3>
-                            <p class="text-xs text-gray-400">ផ្ញើសញ្ញា Alert ពី Webhook ទៅកាន់ Telegram Channel ឬ Group របស់អ្នកដោយស្វ័យប្រវត្តិ។</p>
+                            <p class="text-xs text-gray-400">ផ្ញើសញ្ញា Alert ពី Webhook ទៅកាន់ Telegram Channel ដោយស្វ័យប្រវត្តិ។</p>
                         </div>
                     </div>
 
                     <div class="space-y-4">
                         <div>
                             <label class="text-xs text-gray-400 mb-1 block">Telegram Bot Token</label>
-                            <input type="text" placeholder="ឧទាហរណ៍៖ 712345678:AAH... (ពី BotFather)" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                            <input type="text" id="tgToken" placeholder="ឧទាហរណ៍៖ 712345678:AAH..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">Telegram Chat ID (Channel / Group ID)</label>
-                            <input type="text" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                            <label class="text-xs text-gray-400 mb-1 block">Telegram Chat ID</label>
+                            <input type="text" id="tgChatId" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="text-xs text-gray-400 mb-1 block">TradingView Webhook URL (សម្រាប់យកទៅដាក់ក្នុង Alert)</label>
+                            <label class="text-xs text-gray-400 mb-1 block">TradingView Webhook URL</label>
                             <div class="flex gap-2">
-                                <input type="text" readonly value="https://api.vtradeai.io/v1/webhook/tv-alert" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-300">
-                                <button onclick="alert('បានចម្លង Webhook URL រួចរាល់!')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-sm rounded-xl font-bold transition">ចម្លង</button>
+                                <input type="text" readonly value="https://api.vtradeai.io/v1/webhook/tv-alert" id="webhookUrl" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-300">
+                                <button onclick="copyWebhook()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-sm rounded-xl font-bold transition">ចម្លង</button>
                             </div>
                         </div>
-                        <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">រក្សាទុក និងបើកដំណើរការ Bot</button>
+                        <button onclick="saveTelegramSettings()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">រក្សាទុក និងបើកដំណើរការ Bot</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 5 (NEW): FED & GLOBAL ECONOMIC NEWS (ភាសាខ្មែរ) -->
+            <!-- TAB 5: FED & GLOBAL NEWS -->
             <div id="tab-news" class="space-y-6 hidden">
                 <div class="flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-bold text-white">ព័ត៌មានធនាគារកណ្តាល FED និងសេដ្ឋកិច្ចពិភពលោក</h3>
-                        <p class="text-xs text-gray-400">ការធ្វើបច្ចុប្បន្នភាពអត្រាការប្រាក់ សេចក្តីប្រកាសរបស់ FED និងព័ត៌មានមានឥទ្ធិពលលើទីផ្សារ។</p>
+                        <p class="text-xs text-gray-400">ការធ្វើបច្ចុប្បន្នភាពអត្រាការប្រាក់ និងសេចក្តីប្រកាសសំខាន់ៗជាភាសាខ្មែរ។</p>
                     </div>
-                    <span class="bg-amber-500/20 text-amber-400 text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Live Updates
-                    </span>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- News Card 1 -->
-                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-amber-500">
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span>ធនាគារកណ្តាលអាមេរិក (FED)</span>
-                            <span>ថ្ងៃនេះ, 08:30</span>
-                        </div>
-                        <h4 class="font-bold text-sm text-white">ប្រធាន FED លោក Jerome Powell បញ្ជាក់ពីជំហររក្សាអត្រាការប្រាក់ដដែល</h4>
-                        <p class="text-xs text-gray-400 leading-relaxed">ធនាគារកណ្តាលអាមេរិកសម្រេចចិត្តមិនទាន់លៃតម្រូវអត្រាការប្រាក់ក្នុងពេលឆាប់ៗនេះទេ ដោយសារអតិផរណាចុងក្រោយមានស្ថិរភាពល្អប្រសើរ ដែលធ្វើឱ្យទីផ្សារមាស និង Crypto មានភាពប្រែប្រួលតិចតួច។</p>
-                        <span class="text-[11px] text-blue-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ មធ្យម (Neutral)</span>
-                    </div>
-
-                    <!-- News Card 2 -->
-                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-emerald-500">
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span>ទិន្នន័យសេដ្ឋកិច្ច (CPI Data)</span>
-                            <span>ម្សិលមិញ</span>
-                        </div>
-                        <h4 class="font-bold text-sm text-white">អត្រាអតិផរណា CPI សហរដ្ឋអាមេរិកធ្លាក់ចុះមកនៅកម្រិត 2.8%</h4>
-                        <p class="text-xs text-gray-400 leading-relaxed">ទិន្នន័យ CPI ចុងក្រោយបង្ហាញពីការថយចុះនៃសម្ពាធតម្លៃទំនិញ ដែលជាសញ្ញាវិជ្ជមានជំរុញឱ្យវិនិយោគិនងាកមកទិញទ្រព្យប្រថុយប្រថានខ្ពស់ (Risk-on Assets) បន្ថែម។</p>
-                        <span class="text-[11px] text-emerald-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ វិជ្ជមាន (Bullish)</span>
-                    </div>
-
-                    <!-- News Card 3 -->
-                    <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-blue-500">
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span>ទីផ្សាររូបិយប័ណ្ណ (Forex & Global)</span>
-                            <span>2 ថ្ងៃមុន</span>
-                        </div>
-                        <h4 class="font-bold text-sm text-white">ទស្សនវិស័យអត្រាប្តូរប្រាក់ USD និងតម្រូវការមាសពិភពលោក</h4>
-                        <p class="text-xs text-gray-400 leading-relaxed">ធនាគារកណ្តាលធំៗផ្សេងទៀតចាប់ផ្តើមពិចារណាកាត់បន្ថយអត្រាការប្រាក់ ដែលធ្វើឱ្យប្រាក់ដុល្លារអាមេរិក (USD) ប្រឈមមុខនឹងការធ្លាក់ចុះបន្តិចបន្តួចនៅទសវត្សរ៍នេះ។</p>
-                        <span class="text-[11px] text-blue-400 font-semibold inline-block pt-1">ផលប៉ះពាល់ទីផ្សារ៖ ប្រែប្រួល (Volatile)</span>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="newsContainer">
+                    <!-- Dynamic News -->
                 </div>
             </div>
 
-            <!-- TAB 6: WALLET DEPOSIT & WITHDRAWAL -->
+            <!-- TAB 6: WALLET -->
             <div id="tab-wallet" class="space-y-6 hidden">
                 <div class="max-w-xl mx-auto glass-panel p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white">ស្នើសុំបញ្ចូលទឹកប្រាក់ (Deposit Funds)</h3>
                     <div>
                         <label class="text-xs text-gray-400 mb-1 block">ជ្រើសរើសប្រព័ន្ធទូទាត់</label>
-                        <select class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none">
+                        <select id="depositMethod" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none">
                             <option>USDT (TRC20 Network)</option>
                             <option>ABA Bank / KHQR</option>
                             <option>Binance Pay</option>
@@ -306,22 +225,30 @@
                     </div>
                     <div>
                         <label class="text-xs text-gray-400 mb-1 block">ចំនួនទឹកប្រាក់ ($ USD)</label>
-                        <input type="number" placeholder="0.00" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none">
+                        <input type="number" id="depositAmount" placeholder="0.00" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white focus:outline-none">
                     </div>
-                    <button class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">បន្តទៅការទូទាត់</button>
+                    <button onclick="processDeposit()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">បន្តទៅការទូទាត់</button>
                 </div>
             </div>
 
-            <!-- TAB 7: MULTI-ASSET COMPARISON -->
+            <!-- TAB 7: COMPARE -->
             <div id="tab-compare" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white">ប្រៀបធៀបសញ្ញាទីផ្សារ (Multi-Asset Comparison)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white"><option>Bitcoin (BTC)</option></select>
-                        <select class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white"><option>Ethereum (ETH)</option></select>
+                        <select id="compAsset1" onchange="runComparison()" class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="SOL">Solana (SOL)</option>
+                        </select>
+                        <select id="compAsset2" onchange="runComparison()" class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-white">
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="SOL">Solana (SOL)</option>
+                        </select>
                     </div>
-                    <div class="p-6 bg-gray-900/40 rounded-xl text-center text-gray-400 text-sm">
-                        ជ្រើសរើសទ្រព្យសកម្មទាំងពីរដើម្បីបង្ហាញតារាងប្រៀបធៀបកម្លាំង Momentum និង Volatility ។
+                    <div id="comparisonResult" class="p-6 bg-gray-900/60 rounded-xl text-sm text-gray-200">
+                        លទ្ធផលប្រៀបធៀបនឹងបង្ហាញទីនេះ...
                     </div>
                 </div>
             </div>
@@ -340,19 +267,19 @@
                 </div>
             </div>
 
-            <!-- TAB 9: AFFILIATE PROGRAM -->
+            <!-- TAB 9: AFFILIATE -->
             <div id="tab-affiliate" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 max-w-xl mx-auto">
                     <h3 class="text-lg font-bold text-white">កម្មវិធីណែនាំមិត្តភក្តិ (Affiliate Program)</h3>
-                    <p class="text-xs text-gray-400">ចែករំលែកតំណភ្ជាប់របស់អ្នកដើម្បីទទួលបានកម្រៃជើងសា 40% ពីប្រតិបត្តិការមិត្តភក្តិ។</p>
+                    <p class="text-xs text-gray-400">ចែករំលែកតំណភ្ជាប់របស់អ្នកដើម្បីទទួលបានកម្រៃជើងសា 40% ។</p>
                     <div class="flex gap-2">
-                        <input type="text" readonly value="https://vtradeai.io/ref/vetven99" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-300">
-                        <button class="bg-blue-600 px-4 py-2 text-white text-sm rounded-xl font-bold">ចម្លង</button>
+                        <input type="text" readonly value="https://vtradeai.io/ref/vetven99" id="refLink" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-300">
+                        <button onclick="copyRef()" class="bg-blue-600 px-4 py-2 text-white text-sm rounded-xl font-bold">ចម្លង</button>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 10: SECURITY & 2FA -->
+            <!-- TAB 10: SECURITY -->
             <div id="tab-security" class="space-y-6 hidden">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 max-w-xl mx-auto">
                     <h3 class="text-lg font-bold text-white">កម្រិតសុវត្ថិភាពគណនី (Security & 2FA)</h3>
@@ -362,7 +289,7 @@
                             <p class="text-xs text-gray-400">ការពារគណនីរបស់អ្នកទ្វេដងពេលចូលប្រើប្រាស់</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked class="sr-only peer">
+                            <input type="checkbox" checked onchange="toggle2FA(this)" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
@@ -374,19 +301,19 @@
 
     <!-- AI Live Support Chat Modal -->
     <div id="chatModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[500px]">
+        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[450px]">
             <div class="p-4 bg-gray-900/80 border-b border-gray-800 flex justify-between items-center">
                 <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-robot text-blue-500"></i> V Trade AI Assistant</h3>
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
+            <div class="flex-1 p-4 overflow-y-auto space-y-3 text-sm" id="chatMessages">
                 <div class="bg-gray-800/60 p-3 rounded-2xl rounded-tl-none max-w-[80%] text-gray-200">
                     សួស្តីបង! តើខ្ញុំអាចជួយអ្វីដល់ការជួញដូរ ឬការកំណត់ប្រព័ន្ធរបស់បងថ្ងៃនេះដែរ?
                 </div>
             </div>
             <div class="p-4 bg-gray-900/80 border-t border-gray-800 flex gap-2">
-                <input type="text" placeholder="វាយសារសួរនាំទីនេះ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                <button class="bg-blue-600 text-white px-4 rounded-xl font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+                <input type="text" id="chatInput" placeholder="វាយសារសួរនាំទីនេះ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 rounded-xl font-bold"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -401,14 +328,30 @@
             <div class="space-y-3 text-xs">
                 <div class="p-3 bg-blue-600/10 border border-blue-500/20 rounded-xl">
                     <b class="text-blue-400 block mb-1">ប្រតិបត្តិការជោគជ័យ</b>
-                    ប្រព័ន្ធបានបញ្ចូលទឹកប្រាក់ចំនួន $1,000 ចូលគណនីជោគជ័យ។
+                    ប្រព័ន្ធបានភ្ជាប់ Telegram Bot និងទិន្នន័យទីផ្សារជោគជ័យ។
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Script Navigation & Modals Logic -->
+    <!-- Core Interactive Logic Script -->
     <script>
+        // Mock Market Data
+        const marketsData = [
+            { name: 'BTC / USDT', symbol: 'BTC', price: '$92,450.00', change: '+4.25%', trend: 'emerald', signal: 'STRONG BUY' },
+            { name: 'ETH / USDT', symbol: 'ETH', price: '$3,420.50', change: '+2.10%', trend: 'emerald', signal: 'BUY' },
+            { name: 'SOL / USDT', symbol: 'SOL', price: '$184.20', change: '+6.80%', trend: 'emerald', signal: 'STRONG BUY' },
+            { name: 'XAU / USD (Gold)', symbol: 'GOLD', price: '$2,380.10', change: '-0.45%', trend: 'red', signal: 'HOLD' }
+        ];
+
+        // Mock News Data
+        const newsData = [
+            { source: 'ធនាគារកណ្តាលអាមេរិក (FED)', time: 'ថ្ងៃនេះ', title: 'ប្រធាន FED លោក Jerome Powell បញ្ជាក់ពីជំហររក្សាអត្រាការប្រាក់ដដែល', desc: 'ធនាគារកណ្តាលសម្រេចចិត្តមិនទាន់លៃតម្រូវអត្រាការប្រាក់ក្នុងពេលឆាប់ៗ ធ្វើឱ្យទីផ្សារមាស និង Crypto មានលំនឹងល្អ។', impact: 'មធ្យម (Neutral)' },
+            { source: 'ទិន្នន័យសេដ្ឋកិច្ច (CPI Data)', time: 'ម្សិលមិញ', title: 'អត្រាអតិផរណា CPI សហរដ្ឋអាមេរិកធ្លាក់ចុះមកនៅកម្រិត 2.8%', desc: 'ទិន្នន័យបង្ហាញពីការថយចុះសម្ពាធតម្លៃទំនិញ ជំរុញឱ្យវិនិយោគិនទិញទ្រព្យប្រថុយប្រថានបន្ថែម។', impact: 'វិជ្ជមាន (Bullish)' },
+            { source: 'ទីផ្សាររូបិយប័ណ្ណ (Forex)', time: '2 ថ្ងៃមុន', title: 'ទស្សនវិស័យអត្រាប្តូរប្រាក់ USD និងតម្រូវការមាសពិភពលោក', desc: 'ធនាគារកណ្តាលធំៗពិចារណាកាត់បន្ថយអត្រាការប្រាក់ ដែលធ្វើឱ្យប្រាក់ដុល្លារមានភាពប្រែប្រួល។', impact: 'ប្រែប្រួល (Volatile)' }
+        ];
+
+        // Switch Tabs Function
         function switchTab(tabId) {
             const tabs = ['dashboard', 'markets', 'signals', 'telegram', 'news', 'wallet', 'compare', 'academy', 'affiliate', 'security'];
             tabs.forEach(t => {
@@ -423,12 +366,124 @@
             if(activeNav) activeNav.className = "flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition";
         }
 
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
+        function openModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+        // Render Market Table
+        function renderMarkets(data) {
+            const tbody = document.getElementById('marketTableBody');
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-gray-800/40 transition">
+                    <td class="p-4 font-bold flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">${item.symbol[0]}</span> ${item.name}</td>
+                    <td class="p-4">${item.price}</td>
+                    <td class="p-4 text-${item.trend === 'emerald' ? 'emerald-400' : 'red-400'}">${item.change}</td>
+                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full text-xs font-bold">${item.signal}</span></td>
+                    <td class="p-4 text-right"><button onclick="alert('ចាប់ផ្តើមបញ្ជាទិញលក់លើ ${item.name}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">ជួញដូរ</button></td>
+                </tr>
+            `).join('');
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+        function filterMarkets() {
+            const query = document.getElementById('marketSearch').value.toLowerCase();
+            const filtered = marketsData.filter(m => m.name.toLowerCase().includes(query));
+            renderMarkets(filtered);
+        }
+
+        // Render News
+        function renderNews() {
+            const container = document.getElementById('newsContainer');
+            container.innerHTML = newsData.map(n => `
+                <div class="glass-panel p-5 rounded-2xl space-y-3 border-l-4 border-amber-500">
+                    <div class="flex justify-between items-center text-xs text-gray-400">
+                        <span>${n.source}</span>
+                        <span>${n.time}</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-white">${n.title}</h4>
+                    <p class="text-xs text-gray-400 leading-relaxed">${n.desc}</p>
+                    <span class="text-[11px] text-blue-400 font-semibold inline-block pt-1">ផលប៉ះពាល់៖ ${n.impact}</span>
+                </div>
+            `).join('');
+        }
+
+        // Render Signals
+        function renderSignals() {
+            const container = document.getElementById('signalsContainer');
+            container.innerHTML = `
+                <div class="glass-panel p-5 rounded-2xl border border-emerald-500/30">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-white">SOL / USDT (Long Position)</span>
+                        <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-1 rounded font-bold">CONFIDENCE: 94%</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-4">AI រកឃើញលំនាំរចនាសម្ព័ន្ធបំបែកតម្លៃឡើងលើ (Bullish Breakout)</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs bg-gray-900/60 p-3 rounded-xl">
+                        <div><span class="text-gray-500">Entry:</span><br><b class="text-white">$184.20</b></div>
+                        <div><span class="text-gray-500">Take Profit:</span><br><b class="text-emerald-400">$198.50</b></div>
+                        <div><span class="text-gray-500">Stop Loss:</span><br><b class="text-red-400">$179.00</b></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Dashboard Chart Generator
+        function updateChart(period) {
+            const bars = document.getElementById('chart-bars');
+            const heights = period === '1D' ? ['40%', '55%', '45%', '70%', '60%', '85%', '95%'] : ['60%', '70%', '50%', '80%', '90%'];
+            bars.innerHTML = heights.map(h => `<div class="w-full bg-blue-600/40 hover:bg-blue-600 rounded-t-lg transition" style="height: ${h}"></div>`).join('');
+        }
+
+        // Actions & Interactions
+        function copyWebhook() {
+            navigator.clipboard.writeText(document.getElementById('webhookUrl').value);
+            alert('បានចម្លង TradingView Webhook URL រួចរាល់!');
+        }
+
+        function saveTelegramSettings() {
+            const token = document.getElementById('tgToken').value;
+            if(!token) { alert('សូមបញ្ចូល Telegram Bot Token ជាមុនសិន!'); return; }
+            alert('ប្រព័ន្ធបានរក្សាទុក និងភ្ជាប់ Telegram Bot ជាមួយ TradingView Webhook រួចរាល់!');
+        }
+
+        function processDeposit() {
+            const amt = document.getElementById('depositAmount').value;
+            const method = document.getElementById('depositMethod').value;
+            if(!amt || amt <= 0) { alert('សូមបញ្ចូលចំនួនទឹកប្រាក់ឱ្យបានត្រឹមត្រូវ!'); return; }
+            alert(`បានស្នើសុំបញ្ញើទឹកប្រាក់ចំនួន $${amt} តាមរយៈ ${method} ជោគជ័យ!`);
+        }
+
+        function runComparison() {
+            const a1 = document.getElementById('compAsset1').value;
+            const a2 = document.getElementById('compAsset2').value;
+            document.getElementById('comparisonResult').innerHTML = `ប្រៀបធៀបរវាង <b>${a1}</b> និង <b>${a2}</b>៖ កម្លាំង Momentum របស់ ${a1} មានកម្រិតខ្ពស់ជាងបន្តិច ព្រមទាំងមានបរិមាណទិញលក់ (Volume) ខ្លាំងជាងក្នុងរយៈពេល ២៤ម៉ោងចុងក្រោយ។`;
+        }
+
+        function copyRef() {
+            navigator.clipboard.writeText(document.getElementById('refLink').value);
+            alert('បានចម្លង Referral Link រួចរាល់!');
+        }
+
+        function toggle2FA(el) {
+            alert(el.checked ? 'បានបើកដំណើរការ Google Authenticator 2FA ជោគជ័យ!' : 'បានបិទ 2FA!');
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const box = document.getElementById('chatMessages');
+            if(!input.value.trim()) return;
+            box.innerHTML += `<div class="bg-blue-600/60 p-3 rounded-2xl rounded-tr-none max-w-[80%] ml-auto text-white">${input.value}</div>`;
+            const userMsg = input.value;
+            input.value = '';
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-gray-800/60 p-3 rounded-2xl rounded-tl-none max-w-[80%] text-gray-200">AI Bot ទទួលសំណួររបស់អ្នកហើយ៖ "${userMsg}" - ប្រព័ន្ធកំពុងដំណើរការឆ្លើយតបស្វ័យប្រវត្តិ។</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            renderMarkets(marketsData);
+            renderNews();
+            renderSignals();
+            updateChart('1D');
         }
     </script>
 </body>
