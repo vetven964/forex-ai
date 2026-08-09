@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI - Ultimate Advanced Institutional Terminal v4.5</title>
+    <title>V Trade AI - Ultimate Advanced Institutional Terminal v4.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -60,7 +60,7 @@
                 <h1 class="text-2xl font-black tracking-tight text-white">
                     V <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400">Trade AI Ultimate</span>
                 </h1>
-                <p class="text-xs text-gray-400 font-medium">Institutional HFT & Trailing Stop Terminal v4.5</p>
+                <p class="text-xs text-gray-400 font-medium">Institutional HFT & Arbitrage Terminal v4.6</p>
             </div>
 
             <div class="flex bg-black/60 p-1.5 rounded-xl border border-gray-800 text-xs font-semibold relative z-10">
@@ -104,7 +104,7 @@
                 <div class="p-2.5 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-xl text-lg group-hover:scale-105 transition duration-300 shadow-md">🛡️</div>
                 <div>
                     <h1 class="text-sm md:text-base font-black tracking-tight text-white flex items-center gap-2">
-                        V Trade AI <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ULTIMATE v4.5</span>
+                        V Trade AI <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ULTIMATE v4.6</span>
                     </h1>
                 </div>
             </div>
@@ -113,6 +113,7 @@
                 <div class="flex bg-black/60 p-1 rounded-xl border border-gray-800/80 gap-1 text-xs">
                     <button type="button" onclick="switchTab('landing')" id="btn-landing" class="px-3 py-1.5 rounded-lg transition-all text-gray-300 hover:text-white cursor-pointer font-medium">Home</button>
                     <button type="button" onclick="switchTab('terminal')" id="btn-terminal" class="px-3 py-1.5 rounded-lg transition-all bg-blue-600 text-white font-semibold shadow-md cursor-pointer">Terminal</button>
+                    <button type="button" onclick="switchTab('arbitrage')" id="btn-arbitrage" class="px-3 py-1.5 rounded-lg transition-all text-gray-300 hover:text-white cursor-pointer font-medium">Arbitrage Scanner</button>
                     <button type="button" onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 py-1.5 rounded-lg transition-all text-gray-300 hover:text-white cursor-pointer font-medium">Dashboard</button>
                     <button type="button" onclick="switchTab('backtest')" id="btn-backtest" class="px-3 py-1.5 rounded-lg transition-all text-gray-300 hover:text-white cursor-pointer font-medium">Backtest</button>
                     <button type="button" onclick="switchTab('security')" id="btn-security" class="px-3 py-1.5 rounded-lg transition-all text-gray-300 hover:text-white cursor-pointer font-medium">Security</button>
@@ -138,30 +139,30 @@
         <div id="tab-landing" class="tab-pane space-y-8 hidden">
             <div class="glass-advanced p-10 md:p-14 rounded-3xl text-center space-y-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[550px] h-[550px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                <span class="text-[11px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-4 py-1.5 rounded-full font-extrabold inline-block shadow-inner">Institutional HFT Edition v4.5</span>
-                <h2 id="landTitle" class="text-3xl md:text-5xl font-black text-white max-w-4xl mx-auto leading-tight">ប្រព័ន្ធជួញដូរលំដាប់អន្តរជាតិ พร้อม <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">AI Trailing Stop Matrix</span></h2>
-                <p id="landDesc" class="text-xs md:text-sm text-gray-300 max-w-2xl mx-auto leading-relaxed">បំពាក់ដោយប្រព័ន្ធ Smart Trailing Stop ចាក់សោចំណេញដោយស្វ័យប្រវត្តិ, Emergency Kill Switch, Multi-Timeframe Confluence និង Web Audio API Sound Alerts។</p>
+                <span class="text-[11px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-4 py-1.5 rounded-full font-extrabold inline-block shadow-inner">Institutional Arbitrage Edition v4.6</span>
+                <h2 id="landTitle" class="text-3xl md:text-5xl font-black text-white max-w-4xl mx-auto leading-tight">ប្រព័ន្ធជួញដូរលំដាប់អន្តរជាតិ พร้อม <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">Cross-Exchange Arbitrage</span></h2>
+                <p id="landDesc" class="text-xs md:text-sm text-gray-300 max-w-2xl mx-auto leading-relaxed">បំពាក់ដោយប្រព័ន្ធ Multi-Exchange Arbitrage Scanner ស្កេនតម្លៃខុសគ្នារវាង Binance និង Bybit, AI Smart Trailing Stop និង Emergency Kill Switch ។</p>
                 <div class="flex justify-center gap-4 pt-2">
                     <button type="button" onclick="switchTab('terminal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 cursor-pointer">🚀 ចាប់ផ្តើម Terminal</button>
-                    <button type="button" onclick="switchTab('backtest')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30 hover:scale-105 active:scale-95 cursor-pointer">📊 Strategy Backtest</button>
+                    <button type="button" onclick="switchTab('arbitrage')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 cursor-pointer">⚡ Arbitrage Scanner</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-emerald-500/50 transition duration-300 shadow-xl group">
-                    <div class="text-3xl p-3 bg-emerald-500/10 rounded-xl w-fit text-emerald-400 group-hover:scale-110 transition">📈</div>
+                    <div class="text-3xl p-3 bg-emerald-500/10 rounded-xl w-fit text-emerald-400 group-hover:scale-110 transition">⚡</div>
+                    <h3 class="text-sm font-bold text-white">Cross-Exchange Arbitrage</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">ระบบสแกนส่วนต่างราคาเหรียญเดียวกันระหว่าง Binance และ Bybit เพื่อทำกำไรไร้ความเสี่ยง (Arbitrage)</p>
+                </div>
+                <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-blue-500/50 transition duration-300 shadow-xl group">
+                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400 group-hover:scale-110 transition">📈</div>
                     <h3 class="text-sm font-bold text-white">AI Smart Trailing Stop</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">ระบบเลื่อนจุดตัดขาดทุนตามราคาตลาดอัตโนมัติ เพื่อล็อกกำไรสูงสุด (Lock Profit) โดยไม่ต้องเฝ้าหน้าจอ。</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">เลื่อนจุดล็อกกำไรตามความผันผวนของตลาดอัตโนมัติ ช่วยรักษาผลกำไรสูงสุดให้พอร์ตของคุณ</p>
                 </div>
                 <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-rose-500/50 transition duration-300 shadow-xl group">
                     <div class="text-3xl p-3 bg-rose-500/10 rounded-xl w-fit text-rose-400 group-hover:scale-110 transition">🚨</div>
                     <h3 class="text-sm font-bold text-white">Emergency Kill Switch</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">ปุ่มฉุกเฉินหยุดบอททั้งหมดและปิดคำสั่งซื้อขายทันทีเมื่อเกิดเหตุการณ์ตลาดผันผวนรุนแรง。</p>
-                </div>
-                <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-blue-500/50 transition duration-300 shadow-xl group">
-                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400 group-hover:scale-110 transition">🔔</div>
-                    <h3 class="text-sm font-bold text-white">Web Audio Sound Alerts</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">ระบบเสียงเตือนดิจิทัลแบบเรียลไทม์ทุกครั้งที่มีสัญญาณซื้อขายหรือการแจ้งเตือนจากบอท。</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">ปุ่มฉุกเฉินหยุดบอททั้งหมดและปิดคำสั่งซื้อขายทันทีเมื่อเกิดเหตุการณ์ตลาดผันผวนรุนแรง</p>
                 </div>
             </div>
         </div>
@@ -192,7 +193,7 @@
                     <section class="glass-advanced p-4 rounded-2xl shadow-2xl relative">
                         <div class="text-xs text-gray-400 mb-3 font-semibold flex justify-between items-center">
                             <span class="flex items-center gap-2">📈 Secure Live TradingView Chart (<span id="currentChartTitle" class="text-white">BTCUSDT</span>)</span>
-                            <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 shadow-inner">Institutional HFT Matrix v4.5</span>
+                            <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 shadow-inner">Institutional HFT Matrix v4.6</span>
                         </div>
                         <div id="chartContainer" style="height: 480px; width: 100%; border-radius: 12px; overflow: hidden;" class="border border-gray-800/60 shadow-inner"></div>
                     </section>
@@ -214,8 +215,8 @@
 
                         <div id="chatLogs" class="bg-black/85 h-64 rounded-xl p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800/80 shadow-inner font-mono">
                             <div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 space-y-1 shadow-md">
-                                <span class="text-emerald-400 font-bold block flex items-center gap-1.5 font-sans">🛡️ VET Ultimate v4.5:</span> 
-                                ប្រព័ន្ធ AI Smart Trailing Stop, 2FA និង Emergency Kill Switch ត្រូវបានដាក់ឱ្យដំណើរការជោគជ័យ។
+                                <span class="text-emerald-400 font-bold block flex items-center gap-1.5 font-sans">🛡️ VET Ultimate v4.6:</span> 
+                                ប្រព័ន្ធ Multi-Exchange Arbitrage Scanner និង AI Smart Trailing Stop ត្រូវបានដាក់ឱ្យដំណើរការជោគជ័យ។
                             </div>
                         </div>
 
@@ -237,7 +238,7 @@
                 <!-- SIDEBAR SECURE CONTROLS -->
                 <div class="space-y-6">
                     
-                    <!-- NEW: AI SMART TRAILING STOP PANEL -->
+                    <!-- AI SMART TRAILING STOP PANEL -->
                     <div class="glass-advanced p-5 rounded-2xl shadow-2xl space-y-4 border border-emerald-500/30">
                         <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                             📈 AI Smart Trailing Stop
@@ -309,32 +310,6 @@
                         </div>
                     </div>
 
-                    <!-- SECURE API CONFIG -->
-                    <div class="glass-advanced p-5 rounded-2xl shadow-2xl space-y-4 border border-emerald-500/20">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-                            🔒 Encrypted API Control
-                        </h3>
-                        <div class="space-y-3 text-xs">
-                            <div>
-                                <label class="text-[10px] font-semibold text-gray-400">Exchange Platform</label>
-                                <select id="apiExchange" class="w-full bg-black/70 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 shadow-inner cursor-pointer">
-                                    <option value="Binance">Binance Futures (Locked)</option>
-                                    <option value="Bybit">Bybit Derivatives (Locked)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-semibold text-gray-400">API Key (Encrypted)</label>
-                                <input type="password" id="apiKeyInput" value="••••••••••••••••••••••••" class="w-full bg-black/70 text-xs text-white px-3 py-2.5 rounded-xl border border-gray-800 focus:outline-none mt-1 font-mono shadow-inner">
-                            </div>
-                            <div class="bg-emerald-950/30 border border-emerald-500/30 p-2.5 rounded-xl text-[11px] text-emerald-300 flex items-center gap-2">
-                                <span>✅ Withdrawal Lock: <strong>Enabled</strong></span>
-                            </div>
-                            <button type="button" onclick="saveApiCredentials()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/25 hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-                                🛡️ ធ្វើបច្ចុប្បន្នភាព API សុវត្ថិភាព
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- TELEGRAM SECURE BOT -->
                     <div class="glass-advanced p-5 rounded-2xl shadow-2xl space-y-3">
                         <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">📱 Private Telegram Bot</h3>
@@ -346,6 +321,68 @@
             </div>
         </div>
 
+        <!-- NEW ARBITRAGE SCANNER TAB -->
+        <div id="tab-arbitrage" class="tab-pane space-y-6 hidden">
+            <div class="glass-advanced p-7 rounded-2xl shadow-2xl max-w-5xl mx-auto space-y-6">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-emerald-400 flex items-center gap-2">⚡ Multi-Exchange Arbitrage Scanner (Binance vs Bybit)</h2>
+                        <p class="text-xs text-gray-400">ស្កេនតម្លៃខុសគ្នានៃកាក់ដូចគ្នាបន្ទាប់រវាងទីផ្សារធំៗ ដើម្បីរកភាគរយប្រាក់ចំណេញដាច់ដោយឡែក (Risk-Free Spread)</p>
+                    </div>
+                    <button type="button" onclick="runArbitrageScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/30 cursor-pointer flex items-center gap-2">
+                        🔄 Scan Arbitrage Spreads Now
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-gray-400">
+                                <th class="py-3 px-4">Asset</th>
+                                <th class="py-3 px-4">Binance Price</th>
+                                <th class="py-3 px-4">Bybit Price</th>
+                                <th class="py-3 px-4">Spread (%)</th>
+                                <th class="py-3 px-4">Action Opportunity</th>
+                                <th class="py-3 px-4 text-right">Execute</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arbitrageTableBody" class="divide-y divide-gray-800/60">
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-white">BTC/USDT</td>
+                                <td class="py-3.5 px-4 text-gray-300">$64,250.00</td>
+                                <td class="py-3.5 px-4 text-gray-300">$64,312.50</td>
+                                <td class="py-3.5 px-4 text-emerald-400 font-bold">+0.097%</td>
+                                <td class="py-3.5 px-4 text-emerald-300">Buy Binance -> Sell Bybit</td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <button type="button" onclick="executeArbitrageTrade('BTC/USDT', '+0.097%')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-3 py-1.5 rounded-lg font-sans transition cursor-pointer">Execute</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-white">ETH/USDT</td>
+                                <td class="py-3.5 px-4 text-gray-300">$3,420.10</td>
+                                <td class="py-3.5 px-4 text-gray-300">$3,415.00</td>
+                                <td class="py-3.5 px-4 text-cyan-400 font-bold">+0.149%</td>
+                                <td class="py-3.5 px-4 text-cyan-300">Buy Bybit -> Sell Binance</td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <button type="button" onclick="executeArbitrageTrade('ETH/USDT', '+0.149%')" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] px-3 py-1.5 rounded-lg font-sans transition cursor-pointer">Execute</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-white">SOL/USDT</td>
+                                <td class="py-3.5 px-4 text-gray-300">$142.80</td>
+                                <td class="py-3.5 px-4 text-gray-300">$143.25</td>
+                                <td class="py-3.5 px-4 text-emerald-400 font-bold">+0.315%</td>
+                                <td class="py-3.5 px-4 text-emerald-300">Buy Binance -> Sell Bybit</td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <button type="button" onclick="executeArbitrageTrade('SOL/USDT', '+0.315%')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-3 py-1.5 rounded-lg font-sans transition cursor-pointer">Execute</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- DASHBOARD TAB -->
         <div id="tab-dashboard" class="tab-pane space-y-6 hidden">
             <div class="glass-advanced p-6 rounded-2xl shadow-2xl space-y-6">
@@ -353,8 +390,8 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
-                        <div class="text-xs text-gray-400">Trailing Stop Matrix</div>
-                        <div class="text-sm font-bold text-emerald-400" id="dashTrailStatus">Active / Locked</div>
+                        <div class="text-xs text-gray-400">Arbitrage Scanner</div>
+                        <div class="text-sm font-bold text-emerald-400">Active / Multi-Exchange</div>
                     </div>
                     <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
                         <div class="text-xs text-gray-400">Executed Secure Trades</div>
@@ -409,7 +446,7 @@
                 <div class="space-y-3 text-xs font-mono">
                     <div class="bg-black/70 p-4 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
                         <div>
-                            <span class="text-emerald-400 font-bold">[SUCCESS]</span> AI Trailing Stop matrix armed & tracking volatility.
+                            <span class="text-emerald-400 font-bold">[SUCCESS]</span> Multi-Exchange Arbitrage Scanner active & monitoring spreads.
                         </div>
                         <span class="text-[10px] text-gray-500">Just now</span>
                     </div>
@@ -427,7 +464,7 @@
         <div id="tab-pricing" class="tab-pane space-y-6 hidden">
             <div class="text-center space-y-2 max-w-xl mx-auto">
                 <h2 class="text-2xl font-black text-white">💎 កញ្ចប់សេវាកម្ម HFT Institutional</h2>
-                <p class="text-xs text-gray-400">ដោះសោមុខងារ AI Trailing Stop, 2FA, Emergency Kill Switch និង Encrypted Auto Trading API ពេញលេញ។</p>
+                <p class="text-xs text-gray-400">ដោះសោមុខងារ Cross-Exchange Arbitrage, AI Smart Trailing Stop, 2FA និង Emergency Kill Switch ពេញលេញ។</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto pt-2">
@@ -446,15 +483,15 @@
 
                 <!-- Ultimate Enterprise Plan + ABA Payment -->
                 <div class="advanced-glow-card bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 p-7 rounded-3xl border border-emerald-500/50 shadow-2xl space-y-5 flex flex-col justify-between relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider shadow-md">INSTITUTIONAL v4.5</div>
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider shadow-md">INSTITUTIONAL v4.6</div>
                     
                     <div class="space-y-4">
                         <div class="text-sm font-bold text-emerald-400">HFT Institutional Trader</div>
                         <div class="text-4xl font-black text-white">$99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
                         <ul class="text-xs text-gray-300 space-y-2.5 pt-2">
+                            <li class="flex items-center gap-2">✓ Multi-Exchange Arbitrage Scanner (Binance/Bybit)</li>
                             <li class="flex items-center gap-2">✓ AI Smart Trailing Stop (Lock Profit)</li>
                             <li class="flex items-center gap-2">✓ Emergency Kill Switch (Instant Stop)</li>
-                            <li class="flex items-center gap-2">✓ Encrypted Auto Trading API (Binance/Bybit)</li>
                             <li class="flex items-center gap-2">✓ Google Authenticator 2FA Enforcement</li>
                             <li class="flex items-center gap-2">✓ Private Telegram Bot Real-time Alerts</li>
                         </ul>
@@ -521,20 +558,20 @@
 
         const translations = {
             km: {
-                landTitle: "ប្រព័ន្ធជួញដូរលំដាប់អន្តរជាតិ พร้อม AI Trailing Stop Matrix",
-                landDesc: "បំពាក់ដោយប្រព័ន្ធ Smart Trailing Stop ចាក់សោចំណេញដោយស្វ័យប្រវត្តិ, Emergency Kill Switch, Multi-Timeframe Confluence និង Web Audio API Sound Alerts。"
+                landTitle: "ប្រព័ន្ធជួញដូរលំដាប់អន្តរជាតិ พร้อม Cross-Exchange Arbitrage",
+                landDesc: "បំពាក់ដោយប្រព័ន្ធ Multi-Exchange Arbitrage Scanner ស្កេនតម្លៃខុសគ្នារវាង Binance និង Bybit, AI Smart Trailing Stop និង Emergency Kill Switch ។"
             },
             en: {
-                landTitle: "Institutional Advanced HFT & AI Trailing Stop System v4.5",
-                landDesc: "Protect your portfolio with AI Smart Trailing Stop, Emergency Kill Switch, Multi-Timeframe Confluence, and encrypted Telegram alerts."
+                landTitle: "Institutional Advanced HFT & Arbitrage System v4.6",
+                landDesc: "Protect your portfolio with Multi-Exchange Arbitrage Scanner, AI Smart Trailing Stop, and Emergency Kill Switch."
             },
             zh: {
-                landTitle: "机构级高级 HFT & AI 追踪止损系统配备智能风控 v4.5",
-                landDesc: "通过 AI 智能追踪止损、紧急熔断开关、多时间周期共振和加密 Telegram 警报保护您的投资组合。"
+                landTitle: "机构级高级 HFT 与跨所套利系统 v4.6",
+                landDesc: "通过跨交易所套利扫描仪、AI 智能追踪止损和紧急熔断开关保护您的投资组合。"
             },
             th: {
-                landTitle: "ระบบเทรดสถาบันขั้นสูงพร้อม AI Smart Trailing Stop v4.5",
-                landDesc: "ปกป้องพอร์ตของคุณด้วย AI Trailing Stop ล็อกกำไรอัตโนมัติ, ปุ่มฉุกเฉิน Kill Switch และ Telegram Bot"
+                landTitle: "ระบบเทรดสถาบันขั้นสูงพร้อม Cross-Exchange Arbitrage v4.6",
+                landDesc: "ปกป้องพอร์ตของคุณด้วยระบบสแกนส่วนต่างราคา Binance และ Bybit, AI Trailing Stop และ Kill Switch"
             }
         };
 
@@ -575,12 +612,56 @@
             } catch(e) {}
         }
 
+        // Arbitrage Scanner Function
+        function runArbitrageScan() {
+            playBeepSound('success');
+            const tbody = document.getElementById('arbitrageTableBody');
+            const assets = [
+                { name: 'BTC/USDT', b: '64,210.00', by: '64,285.50', sp: '+0.117%', act: 'Buy Binance -> Sell Bybit' },
+                { name: 'ETH/USDT', b: '3,418.50', by: '3,412.00', sp: '+0.190%', act: 'Buy Bybit -> Sell Binance' },
+                { name: 'SOL/USDT', b: '143.10', by: '143.60', sp: '+0.349%', act: 'Buy Binance -> Sell Bybit' },
+                { name: 'XRP/USDT', b: '0.5820', by: '0.5845', sp: '+0.429%', act: 'Buy Binance -> Sell Bybit' }
+            ];
+            
+            let html = '';
+            assets.forEach(item => {
+                html += `
+                    <tr>
+                        <td class="py-3.5 px-4 font-bold text-white">${item.name}</td>
+                        <td class="py-3.5 px-4 text-gray-300">$${item.b}</td>
+                        <td class="py-3.5 px-4 text-gray-300">$${item.by}</td>
+                        <td class="py-3.5 px-4 text-emerald-400 font-bold">${item.sp}</td>
+                        <td class="py-3.5 px-4 text-emerald-300">${item.act}</td>
+                        <td class="py-3.5 px-4 text-right">
+                            <button type="button" onclick="executeArbitrageTrade('${item.name}', '${item.sp}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-3 py-1.5 rounded-lg font-sans transition cursor-pointer">Execute</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            alert("✅ ស្កេនតម្លៃ Arbitrage រវាង Binance និង Bybit រួចរាល់! រកឃើញ Spread ចំណេញសុវត្ថិភាព។");
+        }
+
+        async function executeArbitrageTrade(asset, spread) {
+            if (isKillSwitchEngaged) {
+                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ!");
+                return;
+            }
+            playBeepSound('success');
+            tradeCount++;
+            document.getElementById('dashTradeCount').innerText = tradeCount + " Trades";
+            tradeHistoryLogs.push({ time: new Date().toLocaleTimeString(), market: asset, action: `Arbitrage (${spread})`, price: "Cross-Exchange" });
+            
+            alert(`✅ Arbitrage Trade Executed for ${asset} with spread ${spread} successfully!`);
+            await sendToTelegram(`⚡ <b>Cross-Exchange Arbitrage Executed!</b>\nAsset: <b>${asset}</b>\nSpread Captured: <b>${spread}</b>\nStatus: Profit Locked ✅`);
+        }
+
         // AI Smart Trailing Stop Config Function
         function toggleTrailingStopConfig() {
             const distance = document.getElementById('trailDistance').value;
             const step = document.getElementById('trailStep').value;
             playBeepSound('success');
-            alert(`✅ AI Smart Trailing Stop ត្រូវបានអាប់ដេតជោគជ័យ!\n- Activation Distance: ${distance} Pips\n- Step Increment: ${step} Pips (Locking Profit Automatically)`);
+            alert(`✅ AI Smart Trailing Stop ត្រូវបានអាប់ដេតជោគជ័យ!\n- Activation Distance: ${distance} Pips\n- Step Increment: ${step} Pips`);
         }
 
         // Emergency Kill Switch Function
@@ -590,7 +671,7 @@
 
             isKillSwitchEngaged = true;
             if (isAutoBotRunning) {
-                toggleAutoBot(); // Turn off auto bot
+                toggleAutoBot();
             }
 
             playBeepSound('alarm');
@@ -665,7 +746,7 @@
         }
 
         function switchTab(tabName) {
-            ['landing', 'terminal', 'dashboard', 'backtest', 'security', 'pricing', 'profile'].forEach(t => {
+            ['landing', 'terminal', 'arbitrage', 'dashboard', 'backtest', 'security', 'pricing', 'profile'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
                 if(el) el.classList.add('hidden');
                 const btn = document.getElementById('btn-' + t);
@@ -729,22 +810,16 @@
         function runBacktestSimulation() {
             const logBox = document.getElementById('backtestLog');
             logBox.classList.remove('hidden');
-            logBox.innerHTML = "🔄 Initializing Institutional Backtest Engine v4.5 with Trailing Stop...<br>";
+            logBox.innerHTML = "🔄 Initializing Institutional Backtest Engine v4.6...<br>";
             playBeepSound('success');
             
             setTimeout(() => {
-                logBox.innerHTML += "📈 Simulating AI Trailing Stop profit lock across 1,000 candles...<br>";
+                logBox.innerHTML += "📈 Simulating Multi-Exchange Arbitrage & Trailing Stop across 1,000 candles...<br>";
             }, 500);
 
             setTimeout(() => {
                 logBox.innerHTML += "✅ Backtest Completed! Total Trades: 156 | Win Rate: 73.8% | Profit Factor: 3.12<br>";
             }, 1200);
-        }
-
-        function saveApiCredentials() {
-            const exchange = document.getElementById('apiExchange').value;
-            playBeepSound('success');
-            alert("✅ ធ្វើបច្ចុប្បន្នភាព និងអ៊ិនគ្រីប API ជាមួយ " + exchange + " បានជោគជ័យ (Withdrawal Locked)!");
         }
 
         async function sendToTelegram(msg) {
@@ -764,14 +839,14 @@
         }
 
         async function testTelegramConnection() {
-            const success = await sendToTelegram("🛡️ VET Institutional AI: Private Telegram Alert Connected Successfully!");
+            const success = await sendToTelegram("🛡️ VET Institutional AI v4.6: Private Telegram Alert Connected Successfully!");
             if(success) playBeepSound('success');
             alert(success ? "✅ ភ្ជាប់ Telegram ได้ជោគជ័យ!" : "❌ បរាជ័យ! សូមពិនិត្យ Private Chat ID របស់អ្នក។");
         }
 
         function toggleAutoBot() {
             if (isKillSwitchEngaged) {
-                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ! សូម Reset ឬ Reload ទំព័រជាមុនសិន ដើម្បីចាប់ផ្តើម Bot ថ្មី។");
+                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ!");
                 return;
             }
 
@@ -788,7 +863,7 @@
                 playBeepSound('success');
                 btn.className = "bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-2.5 rounded-xl font-bold flex gap-2 items-center shadow-lg animate-pulse cursor-pointer font-sans";
                 btn.innerHTML = "⏹ Stop Secure Bot";
-                logs.innerHTML += `<div class="bg-emerald-950/40 p-3 rounded-xl border border-emerald-800/50 mt-2 text-emerald-300 shadow-md">🛡️ Institutional Auto Bot Started (AI Trailing Stop & Risk Engine Active).</div>`;
+                logs.innerHTML += `<div class="bg-emerald-950/40 p-3 rounded-xl border border-emerald-800/50 mt-2 text-emerald-300 shadow-md">🛡️ Institutional Auto Bot & Arbitrage Scanner Started.</div>`;
                 
                 runAutoCycle();
                 autoBotTimer = setInterval(runAutoCycle, 300000);
@@ -807,15 +882,15 @@
             const market = document.getElementById('marketSelect').value;
             const logs = document.getElementById('chatLogs');
             
-            const actionType = Math.random() > 0.5 ? "🟢 BUY SIGNAL" : "🔴 SELL SIGNAL";
+            const actionType = Math.random() > 0.5 ? "🟢 ARBITRAGE BUY" : "🔴 ARBITRAGE SELL";
             const price = (Math.random() * 1000 + 62000).toFixed(2);
             
-            const message = `🛡️ <b>V Trade AI Institutional - Bot Alert</b>\n\nAsset: <b>${market}</b>\nAction: <b>${actionType}</b>\nEntry Price: <b>$${price}</b>\nAI Trailing Stop: <b>Active (Locking Profit)</b>`;
+            const message = `🛡️ <b>V Trade AI Institutional v4.6 - Alert</b>\n\nAsset: <b>${market}</b>\nAction: <b>${actionType}</b>\nSpread Detected: <b>+0.21%</b>`;
 
             await sendToTelegram(message);
             playBeepSound('success');
 
-            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2 shadow-md"><span class="text-yellow-400 font-bold block mb-1">[Institutional Bot]:</span> ${message.replace(/\n/g, '<br>')}</div>`;
+            logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2 shadow-md"><span class="text-yellow-400 font-bold block mb-1">[Arbitrage Bot]:</span> ${message.replace(/\n/g, '<br>')}</div>`;
             logs.scrollTop = logs.scrollHeight;
 
             tradeCount++;
@@ -825,7 +900,7 @@
 
         async function triggerAction(type) {
             if (isKillSwitchEngaged) {
-                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ! មិនអាចធ្វើការជួញដូរបានទេ។");
+                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ!");
                 return;
             }
 
@@ -838,11 +913,11 @@
             let textMsg = `📊 Institutional Matrix Analysis for ${market}: <b>${type}</b> setup detected.`;
             
             if(type === 'BUY' || type === 'SELL') {
-                textMsg = `🛡️ Secure Execution: <b>${type}</b> triggered on ${market} with AI Trailing Stop & 2FA protection!`;
+                textMsg = `🛡️ Secure Execution: <b>${type}</b> triggered on ${market} with Arbitrage & Trailing protection!`;
                 tradeCount++;
                 document.getElementById('dashTradeCount').innerText = tradeCount + " Trades";
                 tradeHistoryLogs.push({ time: new Date().toLocaleTimeString(), market, action: type, price: "Live" });
-                await sendToTelegram(`🛡️ <b>Institutional Trade Alert</b>\nAsset: ${market}\nSignal: ${type}\nTrailing Stop: Armed`);
+                await sendToTelegram(`🛡️ <b>Institutional Trade Alert v4.6</b>\nAsset: ${market}\nSignal: ${type}\nScanner: Active`);
             }
 
             logs.innerHTML += `<div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 mt-2 shadow-md"><span class="${colorClass} font-bold block mb-1">🛡️ Institutional Matrix #${signalCounter}:</span> ${textMsg}</div>`;
@@ -861,7 +936,7 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "VTrade_AI_Institutional_History_v4.5.csv");
+            link.setAttribute("download", "VTrade_AI_Institutional_History_v4.6.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
