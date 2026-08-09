@@ -85,6 +85,9 @@
             <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium text-left">
                 <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
             </button>
+            <button onclick="switchTab('profile'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
+                <i class="fa-solid fa-user-circle w-5 text-teal-400"></i><span>ប្រវត្តិរូបសង្ខេប (User Profile)</span>
+            </button>
             <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 font-bold text-left">
                 <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto Mirror)</span>
             </button>
@@ -119,7 +122,7 @@
                 <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span>TradingView Chart</span>
             </button>
             <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
-                <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
+                <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Privacy & Cloudflare Shield</span>
             </button>
         </div>
     </div>
@@ -132,6 +135,9 @@
             <nav class="space-y-1.5">
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left">
                     <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+                </button>
+                <button onclick="switchTab('profile')" id="nav-profile" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800/50 transition text-xs text-left border border-teal-500/30">
+                    <i class="fa-solid fa-user-circle w-5 text-teal-400"></i><span>ប្រវត្តិរូបសង្ខេប (User Profile)</span>
                 </button>
                 <button onclick="switchTab('copytrading')" id="nav-copytrading" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/30">
                     <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto)</span>
@@ -167,12 +173,12 @@
                     <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span id="menuChart">TradingView Chart</span>
                 </button>
                 <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Cloudflare v5 & DDoS Shield</span>
+                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Privacy & Security Shield</span>
                 </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
                 <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v5.0</span>
+                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v5.0.3</span>
                 </button>
             </div>
         </aside>
@@ -186,7 +192,7 @@
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400">សមតុល្យគណនី (Balance)</p>
                         <h3 class="text-2xl font-bold mt-1 text-white" id="userBalanceDisplay">$1,250.00</h3>
-                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> Cloudflare v5 Protected</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> Cloudflare v5.0.3 Protected</span>
                     </div>
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500">
                         <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មបច្ចុប្បន្ន</p>
@@ -233,7 +239,43 @@
                 </div>
             </div>
 
-            <!-- NEW TAB: COPY TRADING BOT SETTINGS -->
+            <!-- TAB: USER PROFILE -->
+            <div id="tab-profile" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-teal-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-teal-500/20 text-teal-400 p-3 rounded-xl"><i class="fa-solid fa-user-circle text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">ព័ត៌មានប្រវត្តិរូបអ្នកប្រើប្រាស់ (User Profile Management)</h3>
+                            <p class="text-gray-400">គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន លេខសម្គាល់ និងតំណភ្ជាប់គណនីរបស់អ្នក</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ឈ្មោះពេញ (Full Name)</label>
+                            <input type="text" id="profileFullName" value="VET VEN" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">អ៊ីម៉ែល (Email Address)</label>
+                            <input type="email" id="profileEmail" value="vetven@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">លេខទូរស័ព្ទ (Phone Number)</label>
+                            <input type="text" id="profilePhone" value="+855 12 345 678" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-teal-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">តួនាទី / កម្រិតសិទ្ធិ (Role Level)</label>
+                            <input type="text" id="profileRole" value="👑 System Administrator (v5.0.3)" readonly class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-amber-400 font-bold focus:outline-none">
+                        </div>
+                    </div>
+
+                    <button onclick="saveUserProfile()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-teal-600/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកការផ្លាស់ប្តូរប្រវត្តិរូប (Save Profile)
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB: COPY TRADING BOT SETTINGS -->
             <div id="tab-copytrading" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
@@ -247,7 +289,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">ស្ថានភាព Copy Trading Bot</label>
-                            <select id="copyBotState" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500">
+                            <select id="copyBotStateSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500">
                                 <option value="ACTIVE">🟢 ACTIVE (បើកដំណើរការចម្លងស្វ័យប្រវត្តិ)</option>
                                 <option value="PAUSED">🔴 PAUSED (ផ្អាកបណ្តោះអាសន្ន)</option>
                             </select>
@@ -275,7 +317,7 @@
                 </div>
             </div>
 
-            <!-- NEW TAB: AI SENTIMENT & CONSENSUS FILTER -->
+            <!-- TAB: AI SENTIMENT & CONSENSUS FILTER -->
             <div id="tab-sentiment" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-purple-500/30">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
@@ -375,8 +417,8 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-cyan-500/20 text-cyan-400 p-3 rounded-xl"><i class="fa-solid fa-gears text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.0</h3>
-                            <p class="text-gray-400">កំណត់កម្រិត Risk Level និង Asset ផ្ទាល់ខ្លួន រួចរត់ Backtest ជាមួយទិន្នន័យ v5.0 Engine មុនពេលដាក់ Bot រត់ ២៤ម៉ោង</p>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.0.3</h3>
+                            <p class="text-gray-400">កំណត់កម្រិត Risk Level និង Asset ផ្ទាល់ខ្លួន រួចរត់ Backtest ជាមួយទិន្នន័យ v5 Engine មុនពេលដាក់ Bot រត់ ២៤ម៉ោង</p>
                         </div>
                     </div>
 
@@ -404,7 +446,7 @@
                     </button>
 
                     <div id="backtestResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-emerald-500/40 space-y-2 font-mono">
-                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.0 Successful!</div>
+                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.0.3 Successful!</div>
                         <div class="text-gray-300">Win Rate: <b class="text-white" id="resWinRate">94.8%</b></div>
                         <div class="text-gray-300">Total Trades Tested: <b class="text-white">150 Trades</b></div>
                         <div class="text-gray-300">Estimated Profit Factor: <b class="text-white">3.12</b></div>
@@ -418,7 +460,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-calculator text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.0</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.0.3</h3>
                             <p class="text-gray-400">គណនីទំហំទឹកប្រាក់ប្រឈម (Risk Amount) និងកម្រិត Stop-Loss / Take-Profit ស្វ័យប្រវត្តិមុនពេលចេញ Order</p>
                         </div>
                     </div>
@@ -457,7 +499,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-users-rectangle text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.0 (Viral Growth)</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.0.3 (Viral Growth)</h3>
                             <p class="text-gray-400">ចែករំលែកតំណភ្ជាប់ណែនាំមិត្តភក្តិរបស់អ្នក ដើម្បីទទួលបានប្រាក់រង្វាន់ $5 ក្នុងមួយការបញ្ជាក់ VIP ជោគជ័យ</p>
                         </div>
                     </div>
@@ -486,7 +528,7 @@
             <!-- TAB: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.0</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.0.3</h3>
                     <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
@@ -575,7 +617,7 @@
             <!-- TAB: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.0 (Pricing Plans & Free Trial)</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.0.3 (Pricing Plans & Free Trial)</h3>
                     <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មរចនាឡើងយ៉ាងពិសេស អមដោយគណនីបង់ប្រាក់ផ្ទាល់ខ្លួន (VET VEN)</p>
                 </div>
 
@@ -660,7 +702,7 @@
             <div id="tab-tvchart" class="tab-content space-y-4">
                 <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
-                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.0</h3>
+                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.0.3</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
                     <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
@@ -672,18 +714,22 @@
                 <div class="glass-panel rounded-2xl overflow-hidden h-[450px]" id="tradingview_widget"></div>
             </div>
 
-            <!-- TAB: SECURITY & CLOUDFLARE -->
+            <!-- TAB: PRIVACY & SECURITY -->
             <div id="tab-security" class="tab-content space-y-6 max-w-2xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-red-400"></i> Cloudflare v5.0 & DDoS Protection (Rate Limiting)
+                        <i class="fa-solid fa-shield-halved text-red-400"></i> Privacy & Cloudflare v5.0.3 Security Settings
                     </h3>
-                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend الإصدار v5.0。</p>
+                    <p class="text-gray-400">ការគ្រប់គ្រងភាពឯកជន (Privacy Policy) ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់ v5.0.3។</p>
                     
                     <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-red-500/30">
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-white">DDoS Shield v5 & Rate Limit (200 req/15min)</span>
                             <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">🛡️ ACTIVE v5 (សកម្ម ១០០%)</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-800">
+                            <span class="font-bold text-white">End-to-End Data Encryption (SSL/TLS)</span>
+                            <span class="bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded-full font-bold">🔒 SECURED</span>
                         </div>
                     </div>
                 </div>
@@ -697,6 +743,9 @@
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
             <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
         </button>
+        <button onclick="switchTab('profile')" class="flex flex-col items-center text-teal-400 font-bold">
+            <i class="fa-solid fa-user-circle text-base mb-0.5"></i><span>Profile</span>
+        </button>
         <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold">
             <i class="fa-solid fa-satellite-dish text-base mb-0.5"></i><span>Copy Bot</span>
         </button>
@@ -706,16 +755,13 @@
         <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
             <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
         </button>
-        <button onclick="switchTab('strategy')" class="flex flex-col items-center text-cyan-400 font-bold">
-            <i class="fa-solid fa-gears text-base mb-0.5"></i><span>Strategy</span>
-        </button>
     </div>
 
-    <!-- Modals: Login / 2FA -->
+    <!-- Modals: Login / Sign In / 2FA -->
     <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (Cloudflare v5 Secured)</h3>
+                <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (Cloudflare v5.0.3 Secured)</h3>
                 <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
@@ -784,7 +830,7 @@
     <div id="chatModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[400px] text-xs">
             <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
-                <h3 class="font-bold text-white">AI Support v5.0 (Background Worker Active)</h3>
+                <h3 class="font-bold text-white">AI Support v5.0.3 (Background Worker Active)</h3>
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
@@ -816,8 +862,8 @@
                 pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)",
                 telegram: "Telegram Bot & Webhook",
                 chart: "TradingView Chart",
-                security: "Cloudflare v5 & DDoS Shield",
-                support: "AI Support v5.0"
+                security: "Privacy & Cloudflare Shield",
+                support: "AI Support v5.0.3"
             },
             en: {
                 brand: "V TRADE AI & BOT v5.0.3",
@@ -830,7 +876,7 @@
                 pricing: "Pricing Plans",
                 telegram: "Telegram Bot Setup",
                 chart: "TradingView",
-                security: "Security v5 & DDoS",
+                security: "Privacy & Security",
                 support: "AI Support v5"
             },
             zh: {
@@ -844,7 +890,7 @@
                 pricing: "价格方案",
                 telegram: "电报设置",
                 chart: "图表",
-                security: "安全防御v5",
+                security: "隐私与安全防御v5",
                 support: "支持v5"
             }
         };
@@ -940,20 +986,21 @@
                 document.getElementById('selectedPlanInput').value = savedPlan;
                 document.getElementById('currentPlanDisplay').innerText = savedPlan;
             }
-            if(savedUserName) document.getElementById('tgUserName').value = savedUserName;
+            if(savedUserName) {
+                document.getElementById('tgUserName').value = savedUserName;
+                document.getElementById('profileFullName').value = savedUserName;
+            }
             if(savedCopyState) {
-                document.getElementById('copyBotState').value = savedCopyState;
+                document.getElementById('copyBotStateSelect').value = savedCopyState;
                 document.getElementById('dashCopyStatus').innerText = `Running (${savedMultiplier || '1.0x'})`;
             }
             if(savedMultiplier) document.getElementById('copyMultiplier').value = savedMultiplier;
-        }
+        };
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside nav button').forEach(btn => {
-                if(!btn.id.includes('admin') && !btn.id.includes('strategy') && !btn.id.includes('affiliate') && !btn.id.includes('calculator') && !btn.id.includes('copytrading') && !btn.id.includes('sentiment')) {
-                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left";
-                }
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left";
             });
             
             const targetTab = document.getElementById('tab-' + tabId);
@@ -965,14 +1012,12 @@
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40";
                 } else if(tabId === 'strategy') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40";
-                } else if(tabId === 'calculator') {
+                } else if(tabId === 'calculator' || tabId === 'sentiment') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40";
-                } else if(tabId === 'affiliate') {
+                } else if(tabId === 'affiliate' || tabId === 'copytrading') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40";
-                } else if(tabId === 'copytrading') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40";
-                } else if(tabId === 'sentiment') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40";
+                } else if(tabId === 'profile') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40";
                 } else {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left";
                 }
@@ -999,8 +1044,17 @@
             alert(`បានប្តូរកម្រិតសិទ្ធិរបស់ ${username} ទៅជា "${level}" ដោយជោគជ័យ v5!`);
         }
 
+        function saveUserProfile() {
+            const name = document.getElementById('profileFullName').value;
+            const email = document.getElementById('profileEmail').value;
+            localStorage.setItem('vtrade_logged_user', name);
+            localStorage.setItem('vtrade_tg_username', name);
+            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
+            alert('បានរក្សាទុកព័ត៌មានប្រវត្តិរូបសង្ខេប (User Profile) ដោយជោគជ័យ!');
+        }
+
         function saveCopyTradingSettings() {
-            const state = document.getElementById('copyBotState').value;
+            const state = document.getElementById('copyBotStateSelect').value;
             const multiplier = document.getElementById('copyMultiplier').value;
             localStorage.setItem('vtrade_copy_state', state);
             localStorage.setItem('vtrade_copy_multiplier', multiplier);
@@ -1126,7 +1180,7 @@
             const userMsg = input.value.trim();
             if(!userMsg) return;
 
-            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]" >${userMsg}</div>`;
+            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
 
@@ -1139,12 +1193,12 @@
                 const data = await response.json();
 
                 setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]" >${data.reply}</div>`;
+                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">${data.reply}</div>`;
                     box.scrollTop = box.scrollHeight;
                 }, 300);
             } catch (error) {
                 setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]" >AI Support v5.0.3: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
+                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support v5.0.3: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
                     box.scrollTop = box.scrollHeight;
                 }, 300);
             }
