@@ -34,10 +34,13 @@
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             
-            // កន្លែងកំណត់ Username និង Password តាមចិត្តចង់ (ແບບងាយស្រួល)
+            // កន្លែងកំណត់ Username និង Password តាមចិត្តចង់
             if(user === "admin" && pass === "1234") {
-                alert("Login สำเร็จ!");
-                window.location.href = "index.html"; // ចូលទៅកាន់ទំព័រមេ
+                // 💡 កូដរក្សាទុក Session ដើម្បីកុំឱ្យដាច់ពេល Refresh
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                alert("Login ជោគជ័យ!");
+                window.location.href = "index.html"; 
             } else {
                 alert("ឈ្មោះ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ!");
             }
