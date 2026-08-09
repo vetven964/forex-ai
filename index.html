@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Admin Dashboard & Real-Time Telegram Signal System (v5.0.2 Ultimate)</title>
+    <title>V Trade AI Pro - Admin Dashboard & Real-Time Telegram Signal System (v5.0.3 Ultimate)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js សម្រាប់គ្រប់គ្រង Dashboard Tabs & State -->
@@ -35,7 +35,7 @@
                 <i class="fa-solid fa-robot text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & BOT v5.0.2</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & BOT v5.0.3</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">Real-Time Copy Trading & AI Sentiment Active</span>
                 </p>
@@ -53,8 +53,6 @@
                 <span id="liveClock">00:00:00</span>
             </div>
         </div>
-
-  
         
         <div class="flex items-center space-x-2">
             <!-- Currency Switcher -->
@@ -80,7 +78,7 @@
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.0.2)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.0.3)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
@@ -181,6 +179,7 @@
 
         <!-- Main Workspace Area -->
         <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
+            
             <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="tab-content active space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -204,7 +203,7 @@
                         <h3 class="text-lg font-bold mt-1 text-purple-400 flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Bullish (78% Win)
                         </h3>
-                        <span class="text-xs text-gray-400">Smart Filter v5.2</span>
+                        <span class="text-xs text-gray-400">Smart Filter v5.3</span>
                     </div>
                 </div>
 
@@ -240,7 +239,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-satellite-dish text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Telegram Copy Trading Bot (Auto Mirroring v5.2)</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Telegram Copy Trading Bot (Auto Mirroring v5.3)</h3>
                             <p class="text-gray-400">អនុញ្ញាតឱ្យសមាជិក Copy សញ្ញា ឬ Order ពី Master Trader ចូល Telegram Bot ស្វ័យប្រវត្តិ ១០០%</p>
                         </div>
                     </div>
@@ -282,7 +281,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-brain text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">AI Smart Sentiment & Consensus Signal Filter v5.2</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Smart Sentiment & Consensus Signal Filter v5.3</h3>
                             <p class="text-gray-400">ចម្រាញ់ទិន្នន័យពីព័ត៌មានពិភពលោក និងសន្ទុះទិញលក់ (Market Sentiment) មុននឹងសម្រេចចិត្តផ្ញើ Signal ចូល Telegram</p>
                         </div>
                     </div>
@@ -313,7 +312,7 @@
                 <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
                         <div>
-                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.0.2: User List & Security Control</h3>
+                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.0.3: User List & Security Control</h3>
                             <p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់</p>
                         </div>
                         <button onclick="alert('បានបន្ថែម User ថ្មីដោយជោគជ័យ!')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2">
@@ -532,49 +531,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ផ្នែកនេះគឺជាកូដថ្មីដែលបងត្រូវយកទៅដាក់ជំនួស -->
-<script>
-    // 1. Centralized State Management
-    const AppState = {
-        init: () => {
-            console.log("System Initialized: V Trade AI v5.0.2");
-            AppState.loadUserData();
-            AppState.loadTradeSettings();
-        },
-        
-        loadUserData: () => {
-            const user = localStorage.getItem('vtrade_logged_user');
-            const authEl = document.getElementById('btnAuth');
-            if (user && authEl) {
-                authEl.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${user}</span>`;
-            }
-        },
-
-        loadTradeSettings: () => {
-            const plan = localStorage.getItem('vtrade_selected_plan') || 'Free';
-            const copyState = localStorage.getItem('vtrade_copy_state');
-            const multiplier = localStorage.getItem('vtrade_copy_multiplier') || '1.0x';
-
-            const planEl = document.getElementById('currentPlanDisplay');
-            const statusEl = document.getElementById('dashCopyStatus');
-
-            if (planEl) planEl.innerText = plan;
-            if (copyState === 'active' && statusEl) {
-                statusEl.innerText = `Running (${multiplier})`;
-                statusEl.classList.add('text-green-500'); 
-            }
-        }
-    };
-
-    // 2. Execution on Window Load
-    window.onload = () => {
-        AppState.init();
-        if (typeof updateRealTimeData === 'function') {
-            setInterval(updateRealTimeData, 30000); 
-        }
-    };
-</script>
             
             <!-- TAB: NEWS & LINK CONNECTION -->
             <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
@@ -598,37 +554,6 @@
                             <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                         </a>
                     </div>
-            
-        ​            <script>
-        window.onload = function() { 
-            updateRealTimeData(); 
-            
-            const savedUser = localStorage.getItem('vtrade_logged_user');
-            if(savedUser) {
-                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
-            }
-
-            // ទាញយកកម្រិត VIP ឬ Status ដែលបានកែប្រែពីមុន
-            const savedVipStatus = localStorage.getItem('vtrade_selected_plan');
-            if (savedVipStatus) {
-                const planDisplay = document.getElementById('currentPlanDisplay');
-                if (planDisplay) {
-                    planDisplay.innerText = savedVipStatus;
-                }
-            }
-
-            // ទាញយកស្ថានភាព Copy Trading Bot State
-            const savedCopyState = localStorage.getItem('vtrade_copy_state');
-            const savedMultiplier = localStorage.getItem('vtrade_copy_multiplier');
-            if (savedCopyState) {
-                const copyBotStateEl = document.getElementById('copyBotState');
-                if (copyBotStateEl) copyBotStateEl.value = savedCopyState;
-                
-                const dashCopyStatusEl = document.getElementById('dashCopyStatus');
-                if (dashCopyStatusEl) dashCopyStatusEl.innerText = `Running (${savedMultiplier || '1.0x'})`;
-            }
-        };
-    </script>
                     
                     <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
                         <div class="space-y-2">
@@ -646,7 +571,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- TAB: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
@@ -704,7 +629,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm">Telegram Bot & Real-Time Copy Trading Webhook v5.2</h3>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot & Real-Time Copy Trading Webhook v5.3</h3>
                             <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមការណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot និង Copy Trading Workers ស្វ័យប្រវត្តិ</p>
                         </div>
                     </div>
@@ -727,7 +652,7 @@
                             <input type="text" id="tgChatIdInput" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.2</button>
+                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.3</button>
                 </div>
             </div>
 
@@ -863,7 +788,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI & Bot v5.0.2 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI & Bot v5.0.3 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -881,7 +806,7 @@
 
         const translations = {
             km: {
-                brand: "V TRADE AI & BOT v5.0.2",
+                brand: "V TRADE AI & BOT v5.0.3",
                 headerStatus: "Real-Time Copy Trading & AI Sentiment Active",
                 deposit: "បង់ប្រាក់ (ABA / Account)",
                 auth: "Login",
@@ -895,7 +820,7 @@
                 support: "AI Support v5.0"
             },
             en: {
-                brand: "V TRADE AI & BOT v5.0.2",
+                brand: "V TRADE AI & BOT v5.0.3",
                 headerStatus: "Real-Time Copy Trading & AI Sentiment Active",
                 deposit: "Account Payment",
                 auth: "Login",
@@ -909,7 +834,7 @@
                 support: "AI Support v5"
             },
             zh: {
-                brand: "V TRADE AI v5.0.2",
+                brand: "V TRADE AI v5.0.3",
                 headerStatus: "实时跟单与AI情绪分析激活",
                 deposit: "账户支付",
                 auth: "登录",
@@ -1180,7 +1105,7 @@
             localStorage.setItem('vtrade_tg_chatid', chatId);
             localStorage.setItem('vtrade_tg_username', userName);
 
-            const text = `🔔 **V Trade AI v5.0.2 Real-Time Webhook Active**\n✅ Telegram Bot & Copy Trading (${copyMultiplier}) connected successfully for ${userName}!\n🛡️ Cloudflare v5 Protected`;
+            const text = `🔔 **V Trade AI v5.0.3 Real-Time Webhook Active**\n✅ Telegram Bot & Copy Trading (${copyMultiplier}) connected successfully for ${userName}!\n🛡️ Cloudflare v5 Protected`;
             try {
                 const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST',
@@ -1188,10 +1113,10 @@
                     body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
                 });
                 const d = await res.json();
-                if(d.ok) alert('តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.2 បានជោគជ័យ ១០០%!');
+                if(d.ok) alert('តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.3 បានជោគជ័យ ១០០%!');
                 else alert('បញ្ហា៖ ' + d.description);
             } catch(err) {
-                alert('កំហុសតភ្ជាប់បណ្តាញ v5.2!');
+                alert('កំហុសតភ្ជាប់បណ្តាញ v5.3!');
             }
         }
 
@@ -1219,7 +1144,7 @@
                 }, 300);
             } catch (error) {
                 setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]" >AI Support v5.0.2: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
+                    box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]" >AI Support v5.0.3: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
                     box.scrollTop = box.scrollHeight;
                 }, 300);
             }
