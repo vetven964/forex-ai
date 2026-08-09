@@ -203,41 +203,6 @@
                     </div>
                 </div>
             </div>
-<!-- ផ្នែក HTML ផ្សេងៗរបស់អ្នកនៅខាងលើ... -->
-            
-            <!--Tab Admin Manager និងកូដផ្សេងៗទៀត...-->
-      ​
-    <script>
-        // កូដត្រួតពិនិត្យការ Login
-        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-            document.getElementById('appWrapper').classList.add('hidden');
-            document.getElementById('authWrapper').style.display = 'block';
-        } else {
-            document.getElementById('authWrapper').style.display = 'none';
-            document.getElementById('appWrapper').classList.remove('hidden');
-        }
-    </script>
-       ​ 
-<!-- </body> <!-- បិទ tag body នៅត្រង់នេះ -->
-
-            <!-- ដាក់កូដនេះនៅត្រង់នេះ (មុន tag </body>) -->
-            <!-- TAB 2: ADMIN MANAGER & USER LIST -->)
-    <script>
-        // ឆែកមើលក្នុង Console នៃ Browser (F12 > Console)
-        const status = sessionStorage.getItem('isLoggedIn');
-        console.log("Status Login គឺ៖", status); // មើលថាវាចេញ 'true' ឬ 'null'
-
-        if (status !== 'true') {
-            document.getElementById('appWrapper').classList.add('hidden');
-            document.getElementById('authWrapper').style.display = 'block';
-        } else {
-            document.getElementById('authWrapper').style.display = 'none';
-            document.getElementById('appWrapper').classList.remove('hidden');
-        }
-    </script>
-<!--</body>-->
-<!--</html>  -->
-<!-- TAB 2: ADMIN MANAGER & USER LIST -->)
             
             <!-- TAB 2: ADMIN MANAGER & USER LIST -->
             <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
@@ -292,48 +257,6 @@
                                     </td>
                                     <td class="p-3.5 text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> Secured (2FA)</td>
                                     <td class="p-3.5 font-mono text-gray-400">2026-01-10</td>
-                                    <td class="p-3.5 text-center space-x-2">
-                                        <button onclick="alert('បានកំណត់សិទ្ធិ និងរក្សាទុកសុវត្ថិភាពជោគជ័យ!')" class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition font-bold">កែប្រែ</button>
-                                        <button onclick="confirm('តើបងពិតជាចង់បិទគណនីនេះមែនទេ?') && alert('បានបិទគណនីដោយជោគជ័យ')" class="bg-red-600/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition font-bold">បិទសិទ្ធិ</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-900/50 transition">
-                                    <td class="p-3.5">
-                                        <div class="font-bold text-white">Chinda Trading</div>
-                                        <div class="text-gray-400 text-[11px]">chinda@vtrade.ai</div>
-                                    </td>
-                                    <td class="p-3.5">
-                                        <select onchange="updateUserLevel('Chinda', this.value)" class="bg-blue-500/20 text-blue-400 border border-blue-500/40 font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer">
-                                            <option value="Admin">👑 Admin</option>
-                                            <option value="VIP Pro" selected>💎 VIP Pro ($12.99)</option>
-                                            <option value="Standard">⭐ Standard ($8.99)</option>
-                                            <option value="Basic">🔹 Basic ($4.99)</option>
-                                            <option value="Trial">🆓 Free 7-Day Trial</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3.5 text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> Secured (2FA)</td>
-                                    <td class="p-3.5 font-mono text-gray-400">2026-05-15</td>
-                                    <td class="p-3.5 text-center space-x-2">
-                                        <button onclick="alert('បានកំណត់សិទ្ធិ និងរក្សាទុកសុវត្ថិភាពជោគជ័យ!')" class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition font-bold">កែប្រែ</button>
-                                        <button onclick="confirm('តើបងពិតជាចង់បិទគណនីនេះមែនទេ?') && alert('បានបិទគណនីដោយជោគជ័យ')" class="bg-red-600/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition font-bold">បិទសិទ្ធិ</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-900/50 transition">
-                                    <td class="p-3.5">
-                                        <div class="font-bold text-white">Sokha Trader</div>
-                                        <div class="text-gray-400 text-[11px]">sokha@gmail.com</div>
-                                    </td>
-                                    <td class="p-3.5">
-                                        <select onchange="updateUserLevel('Sokha', this.value)" class="bg-purple-500/20 text-purple-400 border border-purple-500/40 font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer">
-                                            <option value="Admin">👑 Admin</option>
-                                            <option value="VIP Pro">💎 VIP Pro ($12.99)</option>
-                                            <option value="Standard">⭐ Standard ($8.99)</option>
-                                            <option value="Basic">🔹 Basic ($4.99)</option>
-                                            <option value="Trial" selected>🆓 Free 7-Day Trial</option>
-                                        </select>
-                                    </td>
-                                    <td class="p-3.5 text-amber-400 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Unverified</td>
-                                    <td class="p-3.5 font-mono text-gray-400">2026-08-01</td>
                                     <td class="p-3.5 text-center space-x-2">
                                         <button onclick="alert('បានកំណត់សិទ្ធិ និងរក្សាទុកសុវត្ថិភាពជោគជ័យ!')" class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition font-bold">កែប្រែ</button>
                                         <button onclick="confirm('តើបងពិតជាចង់បិទគណនីនេះមែនទេ?') && alert('បានបិទគណនីដោយជោគជ័យ')" class="bg-red-600/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition font-bold">បិទសិទ្ធិ</button>
@@ -424,7 +347,7 @@
                                 <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Crypto Market</span>
                             </div>
                             <h4 class="font-bold text-white text-sm">Bitcoin Breakout Analysis & AI Research Market Trend</h4>
-                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy។</p>
+                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy。</p>
                         </div>
                         <a href="https://www.coindesk.com/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
                             <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
@@ -434,7 +357,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: PRICING PLANS (Free Day 7 Trial, $4.99, $8.99, $12.99) -->
+            <!-- TAB 5: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស (Pricing Plans & Free Trial)</h3>
@@ -449,10 +372,6 @@
                             <h4 class="font-bold text-white text-sm">Free 7-Day Trial</h4>
                             <p class="text-gray-400">សាកល្បងប្រើប្រាស់មុខងារ AI Research និង Telegram Bot ឥតគិតថ្លៃរយៈពេល ៧ថ្ងៃ។</p>
                             <div class="text-2xl font-bold text-white">$0 <span class="text-xs text-gray-400 font-normal">/ ៧ថ្ងៃ</span></div>
-                            <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800 text-[11px]">
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> AI Research មូលដ្ឋាន</li>
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Telegram Signal Bot</li>
-                            </ul>
                         </div>
                         <button onclick="selectPricingPlan('Free 7-Day Trial', 0)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">ជ្រើសរើសសាកល្បង</button>
                     </div>
@@ -464,10 +383,6 @@
                             <h4 class="font-bold text-white text-sm">Basic AI Signal</h4>
                             <p class="text-gray-400">សម្រាប់ Trader ចាប់ផ្តើមដំបូង ចង់បានសញ្ញាទៀងទាត់ប្រចាំថ្ងៃ។</p>
                             <div class="text-2xl font-bold text-white">$4.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
-                            <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800 text-[11px]">
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Telegram Bot ឆាប់រហ័ស</li>
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> វិភាគគ្រីបតូ & ហ្វរិច</li>
-                            </ul>
                         </div>
                         <button onclick="selectPricingPlan('Basic AI Signal ($4.99)', 4.99)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">ទិញកញ្ចប់ $4.99</button>
                     </div>
@@ -479,10 +394,6 @@
                             <h4 class="font-bold text-white text-sm">Standard AI Bot</h4>
                             <p class="text-gray-400">កញ្ចប់ពេញនិយមសម្រាប់ Trader ដែលចង់បានមុខងារកម្រិតខ្ទង់មធ្យម។</p>
                             <div class="text-2xl font-bold text-white">$8.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
-                            <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800 text-[11px]">
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Sideways Filter System</li>
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> ផ្ញើសារក្នុង Telegram ស្វ័យប្រវត្ត ១០០%</li>
-                            </ul>
                         </div>
                         <button onclick="selectPricingPlan('Standard AI Bot ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20">ទិញកញ្ចប់ $8.99</button>
                     </div>
@@ -495,10 +406,6 @@
                             <h4 class="font-bold text-white text-sm">VIP Pro AI & Signal</h4>
                             <p class="text-gray-400">កញ្ចប់កម្រិតខ្ពស់បំផុត ផ្ដល់សិទ្ធិពេញលេញគ្រប់មុខងារទាំងអស់គ្មានដែនកំណត់។</p>
                             <div class="text-2xl font-bold text-white">$12.99 <span class="text-xs text-amber-400 font-normal">/ ខែ</span></div>
-                            <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800 text-[11px]">
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> AI Research កម្រិតខ្ពស់បំផុត</li>
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> VIP Telegram Group & Admin Support</li>
-                            </ul>
                         </div>
                         <button onclick="selectPricingPlan('VIP Pro AI & Signal ($12.99)', 12.99)" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-amber-600/30">ទិញកញ្ចប់ VIP $12.99</button>
                     </div>
@@ -514,16 +421,6 @@
                             <h3 class="font-bold text-white text-sm">Telegram Bot Setup & User Information</h3>
                             <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមការណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
                         </div>
-                    </div>
-
-                    <div class="bg-gray-950 p-4 rounded-xl space-y-2 border border-blue-500/30 text-gray-300">
-                        <h4 class="font-bold text-blue-400 text-sm"><i class="fa-solid fa-book-open"></i> របៀបដំឡើង (Step-by-Step Guide):</h4>
-                        <ol class="list-decimal list-inside space-y-1 text-gray-300">
-                            <li>ចូលទៅកាន់ Telegram រួចស្វែងរកពាក្យ <b class="text-white">@BotFather</b> ដើម្បីបង្កើត Bot ថ្មី និងយក <b class="text-emerald-400">Bot Token</b>។</li>
-                            <li>យក Bot ដែលទើបបង្កើតនោះ ដាក់ចូលទៅក្នុង Telegram Channel ឬ Group ហើយផ្ដល់សិទ្ធិជា <b class="text-white">Admin</b>។</li>
-                            <li>យក <b class="text-emerald-400">Chat ID / Channel ID</b> របស់លោកអ្នក មកបំពេញខាងក្រោម។</li>
-                            <li>ចុចប៊ូតុង "តេស្តតភ្ជាប់ Telegram Bot" ដើម្បីធានាថាវាដំណើរការចេញចូលបានស្រួល។</li>
-                        </ol>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -568,11 +465,6 @@
                                 <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">🟢 BUY</span>
                             </div>
                             <p class="text-gray-400">AI Research: ទីផ្សារហើបចេញពី zone ប្រមូលផ្ដុំ ស្របលក្ខខណ្ឌឡើង!</p>
-                            <div class="grid grid-cols-3 gap-1 bg-gray-900 p-2 rounded-xl text-center">
-                                <div>Entry: <b class="text-white">$93,200</b></div>
-                                <div>TP: <b class="text-emerald-400">$96,500</b></div>
-                                <div>SL: <b class="text-red-400">$91,500</b></div>
-                            </div>
                             <button onclick="sendSignalToTelegram('BTC/USDT', 'BUY ($93,200)')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal ចូល Telegram</button>
                         </div>
 
@@ -582,11 +474,6 @@
                                 <span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-lg font-bold">🔴 SELL</span>
                             </div>
                             <p class="text-gray-400">AI Research: ប៉ះតំបន់ Resistance ខ្លាំង ត្រៀមចុះក្រោម។</p>
-                            <div class="grid grid-cols-3 gap-1 bg-gray-900 p-2 rounded-xl text-center">
-                                <div>Entry: <b class="text-white">$2,410</b></div>
-                                <div>TP: <b class="text-emerald-400">$2,360</b></div>
-                                <div>SL: <b class="text-red-400">$2,430</b></div>
-                            </div>
                             <button onclick="sendSignalToTelegram('XAU/USD', 'SELL ($2,410)')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal ចូល Telegram</button>
                         </div>
 
@@ -595,10 +482,7 @@
                                 <span class="font-bold text-white text-sm">ETH / USDT</span>
                                 <span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-bold">🟡 SIDEWAYS</span>
                             </div>
-                            <p class="text-gray-400">AI Research: ទីផ្សាររត់កណ្ដាលផ្លូវ (Sideways) គ្មានទិសដៅច្បាស់លាស់។ <u>រង់ចាំ (Waiting)</u> ដើម្បីការពារហានិភ័យ។</p>
-                            <div class="bg-gray-900 p-2 rounded-xl text-center text-amber-400 font-bold">
-                                ស្ថានភាព៖ កំពុងរង់ចាំសញ្ញា (No Trade Zone)
-                            </div>
+                            <p class="text-gray-400">AI Research: ទីផ្សាររត់កណ្ដាលផ្លូវ (Sideways) គ្មានទិសដៅច្បាស់លាស់។</p>
                             <button disabled class="w-full bg-gray-800 text-gray-500 font-bold py-2 rounded-xl cursor-not-allowed">បដិសេធការផ្ញើសារ (Sideways)</button>
                         </div>
                     </div>
@@ -634,19 +518,6 @@
                             <span class="font-bold text-white">ស្ថានភាព Two-Factor Authentication (2FA)</span>
                             <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">🛡️ ENABLED (សកម្ម)</span>
                         </div>
-                        <p class="text-gray-400 text-[11px]">រាល់ពេល Login ចូលគណនី ឬทำธุรกรรม ລະບົບនឹងផ្ញើលេខកូដ OTP ទៅកាន់ Telegram/Email ជាប្រចាំ។</p>
-                    </div>
-
-                    <div class="space-y-3 pt-2">
-                        <div>
-                            <label class="text-gray-400 mb-1 block">លេខកូដសម្ងាត់ Security Token</label>
-                            <input type="text" readonly value="VET-SECURE-99482-VERIFIED" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-emerald-400 font-mono font-bold">
-                        </div>
-                        <div>
-                            <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់ថ្មី (New Password)</label>
-                            <input type="password" id="newSecPass" placeholder="បញ្ចូលពាក្យសម្ងាត់ថ្មី..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
-                        </div>
-                        <button onclick="alert('បានរក្សាទុកសុវត្ថិភាព និងប្តូរលេខសម្ងាត់ជោគជ័យ!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">រក្សាទុកការផ្លាស់ប្តូរ</button>
                     </div>
                 </div>
             </div>
