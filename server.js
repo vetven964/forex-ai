@@ -31,7 +31,25 @@ let users = {
 }; 
 let signalsHistory = [];
 
-// --- 1. AI WEBHOOK SERVER & BACKGROUND WORKERS (ICT ADVANCED SIGNAL - 15 MINS) ---
+// --- 1. AI SUPPORT WEB CHAT API (Real-time Smart Reply) ---
+app.post('/api/chat', (req, res) => {
+    const { message } = req.body;
+    const lowerMsg = (message || '').toLowerCase();
+    
+    let reply = "🤖 V Trade AI: ខ្ញុំបានទទួលសំណួររបស់បងហើយ។ ប្រព័ន្ធ Background Workers និង ICT Real-time Signal កំពុងដំណើរការធម្មតា ២៤ម៉ោង។ តើមានអ្វីให้ខ្ញុំជួយបន្ថែមទេ?";
+
+    if (lowerMsg.includes('សួស្តី') || lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
+        reply = "សួស្តីបងប្រុស! ស្វាគមន៍មកកាន់ V Trade AI & Bot v3.0។ តើចង់ឱ្យខ្ញុំជួយពិនិត្យមើលសញ្ញា Trade គូណាមួយដែរទេ?";
+    } else if (lowerMsg.includes('vip') || lowerMsg.includes('បង់ប្រាក់') || lowerMsg.includes('qr')) {
+        reply = "💎 សម្រាប់ការបើកសិទ្ធិ VIP 24/7 បងអាចធ្វើការស្កេនកូដ KHQR ដើម្បី activate ភ្លាមៗ ឬទំនាក់ទំនងមកកាន់ Admin ផ្ទាល់បាន។";
+    } else if (lowerMsg.includes('signal') || lowerMsg.includes('សញ្ញា')) {
+        reply = "📊 ប្រព័ន្ធ AI របស់យើងកំពុងវិភាគទីផ្សារតាមទម្រង់ ICT (OTE, FVG, Order Block) ជាមួយ TP1, TP2, TP3 និង SL ជារៀងរាល់ ១៥នាទីម្ដង!";
+    }
+
+    res.json({ success: true, reply });
+});
+
+// --- 2. AI WEBHOOK SERVER & BACKGROUND WORKERS (ICT ADVANCED SIGNAL - 15 MINS) ---
 cron.schedule('*/15 * * * *', () => {
     runAiMarketScanner();
 });
@@ -79,7 +97,6 @@ function runAiMarketScanner() {
                           `⚙️ Analysis: Real-time Order Block & Liquidity Sweep\n` +
                           `⚡ Status: Active 24/7`;
 
-    // Inline Buttons for Interactive Telegram UI
     const inlineKeyboard = {
         reply_markup: {
             inline_keyboard: [
@@ -107,7 +124,7 @@ function runAiMarketScanner() {
     if(signalsHistory.length > 50) signalsHistory.pop();
 }
 
-// --- 2. TELEGRAM CALLBACK QUERY HANDLER (Button Clicks) ---
+// --- 3. TELEGRAM CALLBACK QUERY HANDLER (Button Clicks) ---
 bot.on('callback_query', (query) => {
     const chatId = query.message.chat.id;
     const data = query.data;
@@ -123,7 +140,7 @@ bot.on('callback_query', (query) => {
     bot.answerCallbackQuery(query.id).catch(() => {});
 });
 
-// --- 3. KHQR INSTANT API VERIFICATION ---
+// --- 4. KHQR INSTANT API VERIFICATION ---
 app.post('/api/khqr/generate', (req, res) => {
     const { chatId, amount } = req.body;
     const mockTransactionId = 'KHQR_' + Math.random().toString(36).substring(7).toUpperCase();
@@ -148,7 +165,7 @@ app.post('/api/khqr/verify', (req, res) => {
     res.json({ success: true, message: "VIP Activated Successfully via KHQR API!" });
 });
 
-// --- 4. BACKTESTING & AI STRATEGY CUSTOMIZER ---
+// --- 5. BACKTESTING & AI STRATEGY CUSTOMIZER ---
 app.post('/api/strategy/save', (req, res) => {
     const { chatId, riskLevel, preferredAsset } = req.body;
     if (!users[chatId]) users[chatId] = { vipStatus: false, balance: 0, referralCode: 'REF_' + chatId };
@@ -163,7 +180,7 @@ app.post('/api/strategy/save', (req, res) => {
     });
 });
 
-// --- 5. AFFILIATE / REFERRAL PROGRAM ---
+// --- 6. AFFILIATE / REFERRAL PROGRAM ---
 app.get('/api/referral/:chatId', (req, res) => {
     const chatId = req.params.chatId;
     if (!users[chatId]) {
