@@ -18,20 +18,24 @@ function switchAuthMode(mode) {
             }
         }
 
-        function handleAuthSubmit() {
-            const email = document.getElementById('authEmail').value.trim();
-            if(!email) {
-                alert("⚠️ សូមបំពេញអ៊ីមែលរបស់អ្នក!");
-                return;
-            }
-            if(authMode === 'register') {
-                const name = document.getElementById('regName').value.trim() || "User";
-                localStorage.setItem('vet_user_name', name);
-                document.getElementById('profileName').innerText = name;
-                alert("✅ ចុះឈ្មោះជោគជ័យ!");
-            }
-            document.getElementById('authWrapper').style.display = 'none';
-            document.getElementById('appWrapper').classList.remove('hidden');
-            switchTab('landing');
-            loadChart("BTCUSDT");
-        }
+       function handleAuthSubmit() {
+    const email = document.getElementById('authEmail').value.trim();
+    if(!email) {
+        alert("⚠️ សូមបំពេញអ៊ីមែលរបស់អ្នក!");
+        return;
+    }
+    if(authMode === 'register') {
+        const name = document.getElementById('regName').value.trim() || "User";
+        localStorage.setItem('vet_user_name', name);
+        document.getElementById('profileName').innerText = name;
+        alert("✅ ចុះឈ្មោះជោគជ័យ!");
+    }
+    
+    // កូដសម្រាប់កត់ត្រាស្ថានភាព Login
+    sessionStorage.setItem('isLoggedIn', 'true');
+
+    document.getElementById('authWrapper').style.display = 'none';
+    document.getElementById('appWrapper').classList.remove('hidden');
+    switchTab('landing');
+    loadChart("BTCUSDT");
+}
