@@ -13,7 +13,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Kantumruy Pro', sans-serif; background-color: #07090e; color: #f3f4f6; }
-        .glass-panel { background: rgba(13, 17, 28, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-panel { background: rgba(13, 17, 28, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -42,7 +42,7 @@
                 <i class="fa-solid fa-wallet"></i><span>ដាក់ប្រាក់</span>
             </button>
             <button onclick="openModal('authModal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-2">
-                <i class="fa-solid fa-user-lock"></i><span id="authButtonText">ចូលគណនី / Sign In</span>
+                <i class="fa-solid fa-user-lock"></i><span id="authButtonText">VET Ven (Online)</span>
             </button>
             <div class="hidden md:flex items-center space-x-2 bg-gray-800/80 pl-2 pr-3 py-1.5 rounded-full border border-gray-700">
                 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="w-7 h-7 rounded-full object-cover" alt="VET Ven">
@@ -87,7 +87,7 @@
             </div>
         </aside>
 
-        <!-- Main Workspace -->
+        <!-- Main Workspace Content Area -->
         <main class="flex-1 p-6 overflow-y-auto">
             
             <!-- TAB 1: DASHBOARD -->
@@ -152,7 +152,7 @@
                 <div class="glass-panel p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                         <div>
-                            <h3 class="font-bold text-white text-sm">AI Analytics Signal Hub (Buy / Sell / Wait)</h3>
+                            <h3 class="font-bold text-white text-sm">AI Analytics Signal Hub (Buy / Sell / Waiting)</h3>
                             <p class="text-xs text-gray-400">ប្រព័ន្ធវិភាគទីផ្សារស្វ័យប្រវត្តិ ជូនដំណឹងពេលដល់ពេលចូលទិញ លក់ ឬរង់ចាំសញ្ញា</p>
                         </div>
                         <button onclick="runAiAnalysis()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
@@ -160,14 +160,14 @@
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="aiSignalsList">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Card 1: BUY Signal -->
                         <div class="glass-panel p-4 rounded-2xl border border-emerald-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">BTC / USDT</span>
                                 <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">🟢 BUY (ទិញចូល)</span>
                             </div>
-                            <p class="text-gray-400">សញ្ញា బల្ង (Strong Bullish Breakout) ទីផ្សារទាមទារឱ្យធ្វើការចូលទិញ។</p>
+                            <p class="text-gray-400">សញ្ញាខ្លាំង (Strong Bullish Breakout) ទីផ្សារទាមទារឱ្យធ្វើការចូលទិញ។</p>
                             <div class="grid grid-cols-3 gap-1 bg-gray-900 p-2 rounded-xl text-center">
                                 <div>Entry: <b class="text-white">$92,400</b></div>
                                 <div>TP: <b class="text-emerald-400">$95,500</b></div>
@@ -197,7 +197,7 @@
                                 <span class="font-bold text-white text-sm">ETH / USDT</span>
                                 <span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-bold">🟡 WAITING (រង់ចាំ)</span>
                             </div>
-                            <p class="text-gray-400">ទីផ្សារកំពុងស្ថិតក្នុងកម្រិត Sideway។ <u>សូមរង់ចាំ</u> រហូតដល់មានសញ្ញាច្បាស់លាស់ ទើបប្រព័ន្ធផ្ញើសារជូនដំណឹង។</p>
+                            <p class="text-gray-400">ទីផ្សារស្ថិតក្នុងកម្រិត Sideway។ <u>សូមរង់ចាំ</u> រហូតដល់មានសញ្ញាត្រូវទើបផ្ញើសារជូនដំណឹង។</p>
                             <div class="bg-gray-900 p-2 rounded-xl text-center text-gray-400">
                                 ស្ថានភាព៖ កំពុងតាមដានតម្លៃ Real-time...
                             </div>
@@ -286,7 +286,7 @@
                             <ul class="space-y-2 text-gray-300 pt-2 border-t border-gray-800">
                                 <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> AI Signal BUY / SELL Real-time</li>
                                 <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> ភ្ជាប់ Telegram Bot ស្វ័យប្រវត្តិ</li>
-                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Win Rate ខ្មត់រហូតដល់ 88%</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-2"></i> Win Rate ខ្ពស់រហូតដល់ 88%</li>
                             </ul>
                         </div>
                         <button onclick="openModal('depositModal')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30">ទិញកញ្ចប់ Pro</button>
