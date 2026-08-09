@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI - Ultimate Advanced Enterprise Terminal v4.3</title>
+    <title>V Trade AI - Ultimate Advanced Enterprise Terminal v4.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
@@ -26,6 +26,12 @@
         }
         .advanced-glow-card { animation: advancedGlow 4s ease-in-out infinite; }
         
+        @keyframes emergencyPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(239, 68, 68, 0.8); }
+        }
+        .emergency-glow { animation: emergencyPulse 1.5s ease-in-out infinite; }
+
         .tab-pane {
             animation: fadeInPane 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -54,7 +60,7 @@
                 <h1 class="text-2xl font-black tracking-tight text-white">
                     V <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400">Trade AI Ultimate</span>
                 </h1>
-                <p class="text-xs text-gray-400 font-medium">Enterprise ICT & 2FA Protected Terminal v4.3</p>
+                <p class="text-xs text-gray-400 font-medium">Enterprise ICT & Kill Switch Terminal v4.4</p>
             </div>
 
             <div class="flex bg-black/60 p-1.5 rounded-xl border border-gray-800 text-xs font-semibold relative z-10">
@@ -98,7 +104,7 @@
                 <div class="p-2.5 bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-xl text-lg group-hover:scale-105 transition duration-300 shadow-md">🛡️</div>
                 <div>
                     <h1 class="text-sm md:text-base font-black tracking-tight text-white flex items-center gap-2">
-                        V Trade AI <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ULTIMATE v4.3</span>
+                        V Trade AI <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ULTIMATE v4.4</span>
                     </h1>
                 </div>
             </div>
@@ -132,9 +138,9 @@
         <div id="tab-landing" class="tab-pane space-y-8 hidden">
             <div class="glass-advanced p-10 md:p-14 rounded-3xl text-center space-y-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[550px] h-[550px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                <span class="text-[11px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-4 py-1.5 rounded-full font-extrabold inline-block shadow-inner">Ultimate Enterprise Edition v4.3</span>
-                <h2 id="landTitle" class="text-3xl md:text-5xl font-black text-white max-w-4xl mx-auto leading-tight">ប្រព័ន្ធវិភាគទីផ្សារ និង Auto Trading កម្រិតខ្ពស់បំផុត <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">Multi-Timeframe & Audio Alert</span></h2>
-                <p id="landDesc" class="text-xs md:text-sm text-gray-300 max-w-2xl mx-auto leading-relaxed">បំពាក់ដោយប្រព័ន្ធ Multi-Timeframe Confluence, Web Audio API Sound Alerts, CSV Trade History Export និង Telegram Bot សុវត្ថិភាពខ្ពស់។</p>
+                <span class="text-[11px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-4 py-1.5 rounded-full font-extrabold inline-block shadow-inner">Ultimate Enterprise Edition v4.4</span>
+                <h2 id="landTitle" class="text-3xl md:text-5xl font-black text-white max-w-4xl mx-auto leading-tight">ប្រព័ន្ធវិភាគទីផ្សារ និង Auto Trading កម្រិតខ្ពស់បំផុត <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">พร้อม Emergency Kill Switch</span></h2>
+                <p id="landDesc" class="text-xs md:text-sm text-gray-300 max-w-2xl mx-auto leading-relaxed">បំពាក់ដោយប្រព័ន្ធ Emergency Kill Switch កាត់ផ្តាច់សកម្មភាពបន្ទាន់, Multi-Timeframe Confluence, Web Audio API Sound Alerts និង Telegram Bot សុវត្ថិភាពខ្ពស់។</p>
                 <div class="flex justify-center gap-4 pt-2">
                     <button type="button" onclick="switchTab('terminal')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 cursor-pointer">🚀 ចាប់ផ្តើម Terminal</button>
                     <button type="button" onclick="switchTab('backtest')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30 hover:scale-105 active:scale-95 cursor-pointer">📊 Strategy Backtest</button>
@@ -142,18 +148,18 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-rose-500/50 transition duration-300 shadow-xl group">
+                    <div class="text-3xl p-3 bg-rose-500/10 rounded-xl w-fit text-rose-400 group-hover:scale-110 transition">🚨</div>
+                    <h3 class="text-sm font-bold text-white">Emergency Kill Switch</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">ปุ่มฉุกเฉินหยุดบอททั้งหมดและปิดคำสั่งซื้อขายทันทีเมื่อเกิดเหตุการณ์ตลาดผันผวนรุนแรง。</p>
+                </div>
                 <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-emerald-500/50 transition duration-300 shadow-xl group">
                     <div class="text-3xl p-3 bg-emerald-500/10 rounded-xl w-fit text-emerald-400 group-hover:scale-110 transition">🌐</div>
                     <h3 class="text-sm font-bold text-white">Multi-Timeframe Analysis</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">วิเคราะห์ทิศทางตลาดพร้อมกันทั้ง 3 กรอบเวลา (15m, 1h, 4h) เพื่อความแม่นยำสูงสุดในการเข้าเทรด。</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">วิเคราะห์ทิศทางตลาดพร้อมกันทั้ง 3 กรอบเวลา (15m, 1h, 4h) เพื่อความแม่นยำสูงสุด。</p>
                 </div>
                 <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-blue-500/50 transition duration-300 shadow-xl group">
-                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400 group-hover:scale-110 transition">📥</div>
-                    <h3 class="text-sm font-bold text-white">Export Trade History (CSV)</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">ดาวน์โหลดประวัติการซื้อขายทั้งหมดเป็นไฟล์ CSV ได้ทันทีเพื่อนำไปวิเคราะห์ผลกำไรย้อนหลัง。</p>
-                </div>
-                <div class="glass-advanced p-6 rounded-2xl space-y-3 hover:border-sky-500/50 transition duration-300 shadow-xl group">
-                    <div class="text-3xl p-3 bg-sky-500/10 rounded-xl w-fit text-sky-400 group-hover:scale-110 transition">🔔</div>
+                    <div class="text-3xl p-3 bg-blue-500/10 rounded-xl w-fit text-blue-400 group-hover:scale-110 transition">🔔</div>
                     <h3 class="text-sm font-bold text-white">Web Audio Sound Alerts</h3>
                     <p class="text-xs text-gray-400 leading-relaxed">ระบบเสียงเตือนดิจิทัลแบบเรียลไทม์ทุกครั้งที่มีสัญญาณซื้อขายหรือการแจ้งเตือนจากบอท。</p>
                 </div>
@@ -162,6 +168,23 @@
 
         <!-- TERMINAL TAB -->
         <div id="tab-terminal" class="tab-pane space-y-6">
+            
+            <!-- EMERGENCY KILL SWITCH PROMINENT BANNER -->
+            <div class="bg-gradient-to-r from-rose-950/80 via-red-950/60 to-gray-950 border border-rose-500/40 p-4 md:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl emergency-glow">
+                <div class="flex items-center gap-3 text-center md:text-left">
+                    <div class="p-3 bg-rose-600/20 border border-rose-500/40 rounded-xl text-2xl animate-bounce">🚨</div>
+                    <div>
+                        <h3 class="text-sm md:text-base font-black text-white flex items-center gap-2 justify-center md:justify-start">
+                            EMERGENCY KILL SWITCH MATRIX <span id="killSwitchStatusBadge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full uppercase font-bold">SYSTEM ACTIVE</span>
+                        </h3>
+                        <p class="text-[11px] text-gray-300">ចុចប៊ូតុងនេះដើម្បីបញ្ឈប់ Bot ទាំងអស់ភ្លាមៗ និងបិទរាល់ Open Orders ការពារដើមទុនពេលមានអាសន្ន។</p>
+                    </div>
+                </div>
+                <button type="button" onclick="triggerEmergencyKillSwitch()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-black px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-rose-600/40 hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-2">
+                    🛑 EMERGENCY STOP ALL
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 <div class="lg:col-span-3 space-y-6">
@@ -192,7 +215,7 @@
                         <div id="chatLogs" class="bg-black/85 h-64 rounded-xl p-4 overflow-y-auto text-xs text-gray-200 space-y-3 border border-gray-800/80 shadow-inner font-mono">
                             <div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 space-y-1 shadow-md">
                                 <span class="text-emerald-400 font-bold block flex items-center gap-1.5 font-sans">🛡️ VET Ultimate AI:</span> 
-                                ប្រព័ន្ធសុវត្ថិភាព 2FA, Multi-Timeframe Confluence និង Audio Alerts ត្រូវបានដំណើរការរួចរាល់។
+                                ប្រព័ន្ធសុវត្ថិភាព 2FA, Multi-Timeframe Confluence និង Emergency Kill Switch ត្រូវបានដំណើរការរួចរាល់។
                             </div>
                         </div>
 
@@ -317,8 +340,8 @@
                         <div class="text-2xl font-black text-emerald-400 font-mono">99.9% (A+)</div>
                     </div>
                     <div class="bg-black/60 p-5 rounded-xl border border-gray-800 space-y-1 shadow-inner">
-                        <div class="text-xs text-gray-400">Unauthorized Attempts</div>
-                        <div class="text-2xl font-black text-cyan-400 font-mono">0 Blocked</div>
+                        <div class="text-xs text-gray-400">Kill Switch Status</div>
+                        <div class="text-sm font-bold text-emerald-400" id="dashKillStatus">Ready / Armed</div>
                     </div>
                 </div>
             </div>
@@ -367,15 +390,9 @@
                     </div>
                     <div class="bg-black/70 p-4 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
                         <div>
-                            <span class="text-emerald-400 font-bold">[SECURE]</span> Binance API Key encrypted & Withdrawal Lock enforced.
+                            <span class="text-rose-400 font-bold">[KILL SWITCH]</span> Emergency Kill Switch protocol ready & armed.
                         </div>
-                        <span class="text-[10px] text-gray-500">2 mins ago</span>
-                    </div>
-                    <div class="bg-black/70 p-4 rounded-xl border border-gray-800 flex justify-between items-center shadow-inner">
-                        <div>
-                            <span class="text-sky-400 font-bold">[TELEGRAM]</span> Private Bot chat binding confirmed successfully.
-                        </div>
-                        <span class="text-[10px] text-gray-500">5 mins ago</span>
+                        <span class="text-[10px] text-gray-500">1 min ago</span>
                     </div>
                 </div>
             </div>
@@ -385,7 +402,7 @@
         <div id="tab-pricing" class="tab-pane space-y-6 hidden">
             <div class="text-center space-y-2 max-w-xl mx-auto">
                 <h2 class="text-2xl font-black text-white">💎 កញ្ចប់សេវាកម្ម Ultimate Enterprise</h2>
-                <p class="text-xs text-gray-400">ដោះសោមុខងារការពារ 2FA, Backtesting Engine និង Encrypted Auto Trading API ពេញលេញ។</p>
+                <p class="text-xs text-gray-400">ដោះសោមុខងារការពារ 2FA, Emergency Kill Switch និង Encrypted Auto Trading API ពេញលេញ។</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto pt-2">
@@ -410,10 +427,10 @@
                         <div class="text-sm font-bold text-emerald-400">Ultimate Algorithmic Trader</div>
                         <div class="text-4xl font-black text-white">$99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
                         <ul class="text-xs text-gray-300 space-y-2.5 pt-2">
+                            <li class="flex items-center gap-2">✓ Emergency Kill Switch (Instant Stop)</li>
                             <li class="flex items-center gap-2">✓ Encrypted Auto Trading API (Binance/Bybit)</li>
                             <li class="flex items-center gap-2">✓ Google Authenticator 2FA Enforcement</li>
                             <li class="flex items-center gap-2">✓ ICT Strategy Backtesting Engine Access</li>
-                            <li class="flex items-center gap-2">✓ Risk Management & Position Size Calculator</li>
                             <li class="flex items-center gap-2">✓ Private Telegram Bot Real-time Alerts</li>
                         </ul>
 
@@ -474,23 +491,24 @@
         let authMode = 'login';
         let tradeCount = 0;
         let tradeHistoryLogs = [];
+        let isKillSwitchEngaged = false;
 
         const translations = {
             km: {
-                landTitle: "ប្រព័ន្ធវិភាគទីផ្សារ និង Auto Trading កម្រិតខ្ពស់បំផុត Multi-Timeframe & Audio Alert",
-                landDesc: "បំពាក់ដោយប្រព័ន្ធ Multi-Timeframe Confluence, Web Audio API Sound Alerts, CSV Trade History Export និង Telegram Bot សុវត្ថិភាពខ្ពស់。"
+                landTitle: "ប្រព័ន្ធវិភាគទីផ្សារ និង Auto Trading កម្រិតខ្ពស់បំផុត พร้อม Emergency Kill Switch",
+                landDesc: "បំពាក់ដោយប្រព័ន្ធ Emergency Kill Switch កាត់ផ្តាច់សកម្មភាពបន្ទាន់, Multi-Timeframe Confluence, Web Audio API Sound Alerts និង Telegram Bot សុវត្ថិភាពខ្ពស់。"
             },
             en: {
-                landTitle: "Ultimate Advanced ICT & Automated Trading System v4.3",
-                landDesc: "Protect your portfolio with Multi-Timeframe Confluence, Web Audio API Alerts, CSV Trade Export, and encrypted Telegram alerts."
+                landTitle: "Ultimate Advanced ICT & Automated Trading System v4.4",
+                landDesc: "Protect your portfolio with Emergency Kill Switch, Multi-Timeframe Confluence, Web Audio API Alerts, and encrypted Telegram alerts."
             },
             zh: {
-                landTitle: "终极高级 ICT & 自动化交易系统配备多时间周期与音频警报 v4.3",
-                landDesc: "通过多时间周期共振、Web Audio API 警报、CSV 交易导出和加密 Telegram 警报保护您的投资组合。"
+                landTitle: "终极高级 ICT & 自动化交易系统配备紧急熔断开关 v4.4",
+                landDesc: "通过紧急熔断开关、多时间周期共振、Web Audio API 警报和加密 Telegram 警报保护您的投资组合。"
             },
             th: {
-                landTitle: "ระบบเทรดอัตโนมัติขั้นสูงสุดพร้อม Multi-Timeframe และ Audio Alert v4.3",
-                landDesc: "ปกป้องพอร์ตของคุณด้วยระบบวิเคราะห์หลายกรอบเวลา, เสียงเตือนดิจิทัล, ส่งออกประวัติเทรด CSV และ Telegram Bot"
+                landTitle: "ระบบเทรดอัตโนมัติขั้นสูงสุดพร้อม Emergency Kill Switch v4.4",
+                landDesc: "ปกป้องพอร์ตของคุณด้วยปุ่มฉุกเฉิน Kill Switch, Multi-Timeframe, เสียงเตือนดิจิทัล และ Telegram Bot"
             }
         };
 
@@ -511,18 +529,49 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 
-                osc.type = type === 'success' ? 'sine' : 'square';
-                osc.frequency.setValueAtTime(type === 'success' ? 880 : 440, audioCtx.currentTime);
+                if (type === 'alarm') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+                } else {
+                    osc.type = type === 'success' ? 'sine' : 'square';
+                    osc.frequency.setValueAtTime(type === 'success' ? 880 : 440, audioCtx.currentTime);
+                }
                 
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (type === 'alarm' ? 0.6 : 0.3));
                 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
+                osc.stop(audioCtx.currentTime + (type === 'alarm' ? 0.6 : 0.3));
             } catch(e) {}
+        }
+
+        // Emergency Kill Switch Function
+        async function triggerEmergencyKillSwitch() {
+            const confirmKill = confirm("🚨 អាសន្ន! តើបងពិតជាចង់កាត់ផ្តាច់សកម្មភាពរាល់ Auto Bot និងបិទ Open Orders ទាំងអស់ជាបន្ទាន់មែនទេ?");
+            if (!confirmKill) return;
+
+            isKillSwitchEngaged = true;
+            if (isAutoBotRunning) {
+                toggleAutoBot(); // Turn off auto bot
+            }
+
+            playBeepSound('alarm');
+
+            document.getElementById('killSwitchStatusBadge').className = "text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2.5 py-0.5 rounded-full uppercase font-bold animate-pulse";
+            document.getElementById('killSwitchStatusBadge').innerText = "ENGAGED / STOPPED";
+            document.getElementById('dashKillStatus').innerText = "ENGAGED (Stopped)";
+            document.getElementById('dashKillStatus').className = "text-sm font-bold text-rose-400";
+
+            const logs = document.getElementById('chatLogs');
+            logs.innerHTML += `<div class="bg-rose-950/60 p-3.5 rounded-xl border border-rose-800 mt-2 text-rose-300 shadow-md">🚨 <b>EMERGENCY KILL SWITCH ACTIVATED:</b> All Auto Bots terminated and Open Orders closed immediately!</div>`;
+            logs.scrollTop = logs.scrollHeight;
+
+            await sendToTelegram("🚨 <b>EMERGENCY KILL SWITCH ENGAGED!</b>\nAll automated trading bots have been safely terminated and positions closed by user command.");
+            alert("🛑 ប្រព័ន្ធ Kill Switch បានដំណើរការជោគជ័យ! រាល់ Bot និង Order ត្រូវបានបិទការពាររួចរាល់។");
         }
 
         function switchAuthMode(mode) {
@@ -553,7 +602,7 @@
                 return;
             }
             if(code2fa.length !== 6) {
-                alert("⚠️ សូមបញ្ចូលកូដ 2FA Authenticator ឱ្យបានត្រឹមត្រូវចំនួន ខ្ទង់!");
+                alert("⚠️ សូមបញ្ចូលកូដ 2FA Authenticator ឱ្យបានត្រឹមត្រូវចំនួន 6 ខ្ទង់!");
                 return;
             }
             if(authMode === 'register') {
@@ -618,7 +667,6 @@
                 });
             }, 100);
 
-            // Randomize Multi-Timeframe status on symbol switch
             const rand = Math.random();
             document.getElementById('tf15m').innerText = rand > 0.3 ? "BULLISH 🟢" : "BEARISH 🔴";
             document.getElementById('tf1h').innerText = rand > 0.4 ? "BULLISH 🟢" : "NEUTRAL 🟡";
@@ -645,7 +693,7 @@
         function runBacktestSimulation() {
             const logBox = document.getElementById('backtestLog');
             logBox.classList.remove('hidden');
-            logBox.innerHTML = "🔄 Initializing Ultimate Backtest Engine v4.3 (1,000 Candles)...<br>";
+            logBox.innerHTML = "🔄 Initializing Ultimate Backtest Engine v4.4 (1,000 Candles)...<br>";
             playBeepSound('success');
             
             setTimeout(() => {
@@ -686,6 +734,11 @@
         }
 
         function toggleAutoBot() {
+            if (isKillSwitchEngaged) {
+                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ! សូម Reset ឬ Reload ទំព័រជាមុនសិន ដើម្បីចាប់ផ្តើម Bot ថ្មី។");
+                return;
+            }
+
             const chatId = document.getElementById('tgChatId').value.trim();
             if(!chatId) {
                 alert("⚠️ សូមបញ្ចូល Private Telegram Chat ID ជាមុនសិន!");
@@ -714,7 +767,7 @@
         }
 
         async function runAutoCycle() {
-            if (!isAutoBotRunning) return;
+            if (!isAutoBotRunning || isKillSwitchEngaged) return;
             const market = document.getElementById('marketSelect').value;
             const logs = document.getElementById('chatLogs');
             
@@ -735,10 +788,15 @@
         }
 
         async function triggerAction(type) {
+            if (isKillSwitchEngaged) {
+                alert("⚠️ ប្រព័ន្ធ Kill Switch កំពុងត្រូវបានបើកដំណើរការ! មិនអាចធ្វើការជួញដូរបានទេ។");
+                return;
+            }
+
             const logs = document.getElementById('chatLogs');
             const market = document.getElementById('marketSelect').value;
             signalCounter++;
-            playBeepSound(type === 'Analyze' ? 'success' : 'success');
+            playBeepSound('success');
             
             let colorClass = type === 'BUY' ? 'text-emerald-400' : (type === 'SELL' ? 'text-rose-400' : 'text-cyan-400');
             let textMsg = `📊 Ultimate Matrix Analysis for ${market}: <b>${type}</b> setup detected.`;
@@ -767,7 +825,7 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "VTrade_AI_History_v4.3.csv");
+            link.setAttribute("download", "VTrade_AI_History_v4.4.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
