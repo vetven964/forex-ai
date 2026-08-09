@@ -6,7 +6,7 @@
     <title>V Trade AI Pro - Admin Dashboard & Telegram Signal System</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Alpine.js សម្រាប់កូដ Advanced Dashboard Tabs & State -->
+    <!-- Alpine.js សម្រាប់គ្រប់គ្រង Dashboard Tabs & State -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -55,6 +55,12 @@
         </div>
 
         <div class="flex items-center space-x-2">
+            <!-- NEW: Currency Switcher -->
+            <select id="currencySelect" onchange="changeCurrency(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold focus:outline-none cursor-pointer">
+                <option value="USD">$ USD</option>
+                <option value="KHR">៛ KHR (រៀល)</option>
+                <option value="EUR">€ EUR</option>
+            </select>
             <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none cursor-pointer">
                 <option value="km">🇰🇭 ខ្មែរ</option>
                 <option value="en">🇬🇧 ENG</option>
@@ -84,6 +90,10 @@
             </button>
             <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 font-bold text-left">
                 <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
+            </button>
+            <!-- NEW MOBILE TAB -->
+            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 bg-purple-500/10 border border-purple-500/30 font-bold text-left">
+                <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
             </button>
             <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 font-bold text-left">
                 <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate & Referral Program</span>
@@ -124,11 +134,13 @@
                 <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20">
                     <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
                 </button>
-                <!-- NEW UPGRADED TAB 1 -->
                 <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20">
                     <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer</span>
                 </button>
-                <!-- NEW UPGRADED TAB 2 -->
+                <!-- NEW SIDEBAR BUTTON -->
+                <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/20">
+                    <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
+                </button>
                 <button onclick="switchTab('affiliate')" id="nav-affiliate" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/20">
                     <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate Program ($5 Bonus)</span>
                 </button>
@@ -279,7 +291,7 @@
                 </div>
             </div>
 
-            <!-- NEW UPGRADED TAB 3: BACKTESTING & AI STRATEGY CUSTOMIZER -->
+            <!-- TAB 3: BACKTESTING & AI STRATEGY CUSTOMIZER -->
             <div id="tab-strategy" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-cyan-500/30">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
@@ -322,7 +334,46 @@
                 </div>
             </div>
 
-            <!-- NEW UPGRADED TAB 4: AFFILIATE / REFERRAL PROGRAM -->
+            <!-- NEW TAB 4: ADVANCED RISK & SL/TP CALCULATOR -->
+            <div id="tab-calculator" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-purple-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-calculator text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator</h3>
+                            <p class="text-gray-400">គណនីទំហំទឹកប្រាក់ប្រឈម (Risk Amount) និងកម្រិត Stop-Loss / Take-Profit ស្វ័យប្រវត្តិមុនពេលចេញ Order</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ទំហំដើមទុន ($ Capital)</label>
+                            <input type="number" id="calcCapital" value="1000" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ភាគរយហានិភ័យ (% Risk per Trade)</label>
+                            <input type="number" id="calcRiskPercent" value="2" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ចម្ងាយ Stop Loss (Pips / Points)</label>
+                            <input type="number" id="calcStopLoss" value="50" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+
+                    <button onclick="calculateTradingRisk()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calculator"></i> គណនីទឹកប្រាក់ខាត និងចំណេញ (Calculate SL/TP)
+                    </button>
+
+                    <div id="calcResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-purple-500/40 space-y-2 font-mono">
+                        <div class="text-purple-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Calculation Results:</div>
+                        <div class="text-gray-300">Max Risk Amount ($): <b class="text-red-400" id="resRiskAmount">$20.00</b></div>
+                        <div class="text-gray-300">Recommended Lot Size: <b class="text-emerald-400" id="resLotSize">0.40 Lots</b></div>
+                        <div class="text-gray-300">Target Take Profit (1:2 Ratio): <b class="text-blue-400" id="resTakeProfit">100 Pips / $40 Profit</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: AFFILIATE / REFERRAL PROGRAM -->
             <div id="tab-affiliate" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
@@ -354,7 +405,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: MARKET SESSIONS -->
+            <!-- TAB 6: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto</h3>
@@ -403,7 +454,7 @@
                 </div>
             </div>
 
-            <!-- TAB 6: NEWS & LINK CONNECTION -->
+            <!-- TAB 7: NEWS & LINK CONNECTION -->
             <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ព័ត៌មានសេដ្ឋកិច្ច និងតំណភ្ជាប់ (News & Link Connection)</h3>
@@ -433,7 +484,7 @@
                                 <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Crypto Market</span>
                             </div>
                             <h4 class="font-bold text-white text-sm">Bitcoin Breakout Analysis & AI Research Market Trend</h4>
-                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy。</p>
+                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy។</p>
                         </div>
                         <a href="https://www.coindesk.com/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
                             <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
@@ -443,7 +494,7 @@
                 </div>
             </div>
 
-            <!-- TAB 7: PRICING PLANS -->
+            <!-- TAB 8: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស (Pricing Plans & Free Trial)</h3>
@@ -494,7 +545,7 @@
                 </div>
             </div>
 
-            <!-- TAB 8: TELEGRAM BOT & WEBHOOK WORKER -->
+            <!-- TAB 9: TELEGRAM BOT & WEBHOOK WORKER -->
             <div id="tab-telegram" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
@@ -527,7 +578,7 @@
                 </div>
             </div>
 
-            <!-- TAB 9: AI RESEARCH & SIGNALS -->
+            <!-- TAB 10: AI RESEARCH & SIGNALS -->
             <div id="tab-signals" class="tab-content space-y-6">
                 <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-3 flex-wrap gap-2">
@@ -571,7 +622,7 @@
                 </div>
             </div>
 
-            <!-- TAB 10: TRADINGVIEW CHART -->
+            <!-- TAB 11: TRADINGVIEW CHART -->
             <div id="tab-tvchart" class="tab-content space-y-4">
                 <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
@@ -587,7 +638,7 @@
                 <div class="glass-panel rounded-2xl overflow-hidden h-[450px]" id="tradingview_widget"></div>
             </div>
 
-            <!-- TAB 11: SECURITY & CLOUDFLARE -->
+            <!-- TAB 12: SECURITY & CLOUDFLARE -->
             <div id="tab-security" class="tab-content space-y-6 max-w-2xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -618,11 +669,11 @@
         <button onclick="switchTab('strategy')" class="flex flex-col items-center text-cyan-400 font-bold">
             <i class="fa-solid fa-gears text-base mb-0.5"></i><span>Strategy</span>
         </button>
+        <button onclick="switchTab('calculator')" class="flex flex-col items-center text-purple-400 font-bold">
+            <i class="fa-solid fa-calculator text-base mb-0.5"></i><span>SL/TP</span>
+        </button>
         <button onclick="switchTab('signals')" class="flex flex-col items-center text-emerald-400">
             <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Signals</span>
-        </button>
-        <button onclick="switchTab('pricing')" class="flex flex-col items-center text-purple-400">
-            <i class="fa-solid fa-tags text-base mb-0.5"></i><span>Pricing</span>
         </button>
     </div>
 
@@ -696,6 +747,8 @@
     <script>
         let tvWidgetInstance = null;
         let activeOtpCode = "889922";
+        let currentCurrency = "USD";
+        let baseUsdBalance = 1250.00;
 
         const translations = {
             km: {
@@ -759,6 +812,16 @@
             document.getElementById('menuChart').innerText = t.chart;
             document.getElementById('menuSecurity').innerText = t.security;
             document.getElementById('menuSupport').innerText = t.support;
+        }
+
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            let displayVal = "";
+            if(curr === 'USD') displayVal = "$" + baseUsdBalance.toLocaleString() + ".00";
+            else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
+            else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
+
+            document.getElementById('userBalanceDisplay').innerText = displayVal;
         }
 
         function toggleMobileMenu() {
@@ -831,7 +894,7 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside nav button').forEach(btn => {
-                if(!btn.id.includes('admin') && !btn.id.includes('strategy') && !btn.id.includes('affiliate')) {
+                if(!btn.id.includes('admin') && !btn.id.includes('strategy') && !btn.id.includes('affiliate') && !btn.id.includes('calculator')) {
                     btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left";
                 }
             });
@@ -845,6 +908,8 @@
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40";
                 } else if(tabId === 'strategy') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40";
+                } else if(tabId === 'calculator') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40";
                 } else if(tabId === 'affiliate') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40";
                 } else {
@@ -881,6 +946,22 @@
             document.getElementById('resWinRate').innerText = winRate;
             document.getElementById('backtestResultCard').classList.remove('hidden');
             alert(`Backtest ជោគជ័យសម្រាប់ ${asset} (${risk})! Win Rate រកឃើញ៖ ${winRate}`);
+        }
+
+        function calculateTradingRisk() {
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
+            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
+
+            const riskAmount = (capital * riskPct) / 100;
+            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
+            const takeProfitVal = slPips * 2;
+            const profitAmount = riskAmount * 2;
+
+            document.getElementById('resRiskAmount').innerText = `$${riskAmount.toFixed(2)}`;
+            document.getElementById('resLotSize').innerText = `${lotSize} Lots`;
+            document.getElementById('resTakeProfit').innerText = `${takeProfitVal} Pips / $${profitAmount.toFixed(2)} Profit`;
+            document.getElementById('calcResultCard').classList.remove('hidden');
         }
 
         function copyRefLink() {
@@ -931,7 +1012,7 @@
         }
 
         function runAIResearchScan() {
-            alert('AI Research Background Worker បានវិផ្សាររួចរាល់ និងត្រៀមផ្ញើសញ្ញា ២៤ម៉ោង!');
+            alert('AI Research Background Worker បានវិភាគទីផ្សាររួចរាល់ និងត្រៀមផ្ញើសញ្ញា ២៤ម៉ោង!');
         }
 
         async function sendSignalToTelegram(pair, actionDesc) {
