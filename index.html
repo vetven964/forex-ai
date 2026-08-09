@@ -555,34 +555,36 @@
                         </a>
                     </div>
             
-           ​window.onload = function() { 
-    updateRealTimeData(); 
-    
-    const savedUser = localStorage.getItem('vtrade_logged_user');
-    if(savedUser) {
-        document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
-    }
+        ​            <script>
+        window.onload = function() { 
+            updateRealTimeData(); 
+            
+            const savedUser = localStorage.getItem('vtrade_logged_user');
+            if(savedUser) {
+                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
+            }
 
-    // ទាញយកកម្រិត VIP ឬ Status ដែលបានកែប្រែពីមុន
-    const savedVipStatus = localStorage.getItem('vtrade_selected_plan');
-    if (savedVipStatus) {
-        const planDisplay = document.getElementById('currentPlanDisplay');
-        if (planDisplay) {
-            planDisplay.innerText = savedVipStatus;
-        }
-    }
+            // ទាញយកកម្រិត VIP ឬ Status ដែលបានកែប្រែពីមុន
+            const savedVipStatus = localStorage.getItem('vtrade_selected_plan');
+            if (savedVipStatus) {
+                const planDisplay = document.getElementById('currentPlanDisplay');
+                if (planDisplay) {
+                    planDisplay.innerText = savedVipStatus;
+                }
+            }
 
-    // ទាញយកស្ថានភាព Copy Trading Bot State
-    const savedCopyState = localStorage.getItem('vtrade_copy_state');
-    const savedMultiplier = localStorage.getItem('vtrade_copy_multiplier');
-    if (savedCopyState) {
-        const copyBotStateEl = document.getElementById('copyBotState');
-        if (copyBotStateEl) copyBotStateEl.value = savedCopyState;
-        
-        const dashCopyStatusEl = document.getElementById('dashCopyStatus');
-        if (dashCopyStatusEl) dashCopyStatusEl.innerText = `Running (${savedMultiplier || '1.0x'})`;
-    }
-};
+            // ទាញយកស្ថានភាព Copy Trading Bot State
+            const savedCopyState = localStorage.getItem('vtrade_copy_state');
+            const savedMultiplier = localStorage.getItem('vtrade_copy_multiplier');
+            if (savedCopyState) {
+                const copyBotStateEl = document.getElementById('copyBotState');
+                if (copyBotStateEl) copyBotStateEl.value = savedCopyState;
+                
+                const dashCopyStatusEl = document.getElementById('dashCopyStatus');
+                if (dashCopyStatusEl) dashCopyStatusEl.innerText = `Running (${savedMultiplier || '1.0x'})`;
+            }
+        };
+    </script>
                     
                     <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
                         <div class="space-y-2">
