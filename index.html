@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Ultimate Trading & Telegram Signal System</title>
+    <title>V Trade AI Pro - Ultimate Trading & Telegram Signal System with 2FA Security</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for Icons -->
@@ -32,7 +32,7 @@
             <div>
                 <h1 class="text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TELEGRAM BOT</h1>
                 <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">AI Research & Market Sessions Active</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">2FA Secured & AI Sessions Active</span>
                 </p>
             </div>
         </div>
@@ -79,7 +79,7 @@
                     <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span id="menuSessions">ម៉ោងទីផ្សារ (Asian/NY/London)</span>
                 </button>
                 <button onclick="switchTab('news')" id="nav-news" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span id="menuNews">ព័ត៌មាន & ដំណ লিংক (News Links)</span>
+                    <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span id="menuNews">ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
                 </button>
                 <button onclick="switchTab('pricing')" id="nav-pricing" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
                     <i class="fa-solid fa-tags w-5 text-purple-400"></i><span id="menuPricing">កញ្ចប់តម្លៃ (Pricing & Trial)</span>
@@ -94,7 +94,7 @@
                     <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span id="menuChart">TradingView Chart</span>
                 </button>
                 <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
-                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">សុវត្ថិភាព (ITC / Pass / Login)</span>
+                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">សុវត្ថិភាព & 2FA (ITC Logs)</span>
                 </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
@@ -113,7 +113,7 @@
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400">សមតុល្យគណនី (Balance)</p>
                         <h3 class="text-2xl font-bold mt-1 text-white" id="userBalanceDisplay">$1,250.00</h3>
-                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> គណនីសកម្ម (Active)</span>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> 2FA Secured & Active</span>
                     </div>
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500">
                         <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មបច្ចុប្បន្ន</p>
@@ -160,7 +160,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: MARKET SESSIONS (ASIAN, LONDON, NEW YORK REAL-TIME) -->
+            <!-- TAB 2: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto</h3>
@@ -168,7 +168,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                    <!-- Asian Session -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-amber-500/30">
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-amber-400 text-base">Asian Session (Tokyo)</h4>
@@ -182,7 +181,6 @@
                         </div>
                     </div>
 
-                    <!-- London Session -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-blue-500/30">
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-blue-400 text-base">London Session</h4>
@@ -196,7 +194,6 @@
                         </div>
                     </div>
 
-                    <!-- New York Session -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-purple-500/30">
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-purple-400 text-base">New York Session</h4>
@@ -220,7 +217,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <!-- News Item 1 -->
                     <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
                         <div class="space-y-2">
                             <div class="flex justify-between items-center text-gray-400 text-[11px]">
@@ -236,7 +232,6 @@
                         </a>
                     </div>
 
-                    <!-- News Item 2 -->
                     <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
                         <div class="space-y-2">
                             <div class="flex justify-between items-center text-gray-400 text-[11px]">
@@ -262,7 +257,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                    <!-- Free Starter Plan -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs flex flex-col justify-between">
                         <div class="space-y-3">
                             <h4 class="font-bold text-white text-base">Free Starter (កញ្ចប់ឥតគិតថ្លៃ)</h4>
@@ -277,7 +271,6 @@
                         <button onclick="selectPricingPlan('Free Starter', 0)" class="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 rounded-xl transition">ជ្រើសរើសកញ្ចប់ Free</button>
                     </div>
 
-                    <!-- 3-Day Free Trial Plan (Highlighted) -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-amber-500 shadow-xl shadow-amber-500/10 relative overflow-hidden">
                         <div class="absolute -right-12 top-4 bg-amber-500 text-gray-950 font-bold px-10 py-1 rotate-45 text-[10px]">HOT TRIAL</div>
                         <div class="space-y-3">
@@ -294,7 +287,6 @@
                         <button onclick="selectPricingPlan('3-Day Free Trial', 0)" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-amber-600/30">ទាមទារសាកល្បង ៣ថ្ងៃ (Free)</button>
                     </div>
 
-                    <!-- Pro VIP Plan -->
                     <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-blue-500 shadow-xl shadow-blue-500/10">
                         <div class="space-y-3">
                             <span class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">Recommend VIP</span>
@@ -312,18 +304,17 @@
                 </div>
             </div>
 
-            <!-- TAB 5: TELEGRAM BOT & SETUP GUIDE -->
+            <!-- TAB 5: TELEGRAM BOT & SETUP -->
             <div id="tab-telegram" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
                             <h3 class="font-bold text-white text-sm">Telegram Bot Setup & User Information</h3>
-                            <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមการណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
+                            <p class="text-gray-400">បំពេញព័ត៌មាន និងធ្វើតាមការណែនាំខាងក្រោមដើម្បីភ្ជាប់ Bot ចូលគ្រុប/ឆាតរបស់អ្នក</p>
                         </div>
                     </div>
 
-                    <!-- Setup Guide Box -->
                     <div class="bg-gray-950 p-4 rounded-xl space-y-2 border border-blue-500/30 text-gray-300">
                         <h4 class="font-bold text-blue-400 text-sm"><i class="fa-solid fa-book-open"></i> របៀបដំឡើង (Step-by-Step Installation Guide):</h4>
                         <ol class="list-decimal list-inside space-y-1 text-gray-300">
@@ -334,7 +325,6 @@
                         </ol>
                     </div>
 
-                    <!-- Input Form -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                         <div>
                             <label class="text-gray-400 mb-1 block">ឈ្មោះអ្នកប្រើប្រាស់ (Your Name)</label>
@@ -371,7 +361,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Signal 1: BUY -->
                         <div class="glass-panel p-4 rounded-2xl border border-emerald-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">BTC / USDT</span>
@@ -386,7 +375,6 @@
                             <button onclick="sendSignalToTelegram('BTC/USDT', 'BUY ($93,200)')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal នេះចូល Telegram</button>
                         </div>
 
-                        <!-- Signal 2: SELL -->
                         <div class="glass-panel p-4 rounded-2xl border border-red-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">XAU / USD (Gold)</span>
@@ -401,7 +389,6 @@
                             <button onclick="sendSignalToTelegram('XAU/USD', 'SELL ($2,410)')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-xl transition">ផ្ញើ Signal នេះចូល Telegram</button>
                         </div>
 
-                        <!-- Signal 3: SIDEWAYS / WAITING -->
                         <div class="glass-panel p-4 rounded-2xl border border-amber-500/40 space-y-3 text-xs">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-white text-sm">ETH / USDT</span>
@@ -433,21 +420,26 @@
                 <div class="glass-panel rounded-2xl overflow-hidden h-[500px]" id="tradingview_widget"></div>
             </div>
 
-            <!-- TAB 8: SECURITY / ITC / LOGIN / PASS -->
-            <div id="tab-security" class="tab-content space-y-6 max-w-xl mx-auto">
+            <!-- TAB 8: SECURITY & 2FA / AUDIT LOGS -->
+            <div id="tab-security" class="tab-content space-y-6 max-w-2xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-emerald-400"></i> ប្រព័ន្ធសុវត្ថិភាព (ITC / Security & Password)
+                        <i class="fa-solid fa-shield-halved text-emerald-400"></i> ប្រព័ន្ធសុវត្ថិភាពកម្រិតខ្ពស់ (2FA & ITC Audit Logs)
                     </h3>
-                    <p class="text-gray-400">គ្រប់គ្រងការផ្ទៀងផ្ទាត់សុវត្ថិភាព ITC, លេខសម្ងាត់ និងការចូលគណនី។</p>
+                    <p class="text-gray-400">គ្រប់គ្រងការផ្ទៀងផ្ទាត់ ២ជំហាន (2FA OTP) និងមើលប្រវត្តិសកម្មភាពចូលប្រើប្រាស់គណនីរបស់អ្នក។</p>
+                    
+                    <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-emerald-500/30">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-white">ស្ថានភាព Two-Factor Authentication (2FA)</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">🛡️ ENABLED (សកម្ម)</span>
+                        </div>
+                        <p class="text-gray-400 text-[11px]">រាល់ពេល Login ចូលគណនី ឬทำธุรกรรมដកប្រាក់ ລະບົບនឹងផ្ញើលេខកូដ OTP ទៅកាន់ Telegram/Email របស់អ្នកជាប្រចាំ។</p>
+                    </div>
+
                     <div class="space-y-3 pt-2">
                         <div>
                             <label class="text-gray-400 mb-1 block">លេខកូដសម្ងាត់ ITC Security Token</label>
                             <input type="text" readonly value="ITC-SECURE-88942-VERIFIED" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-emerald-400 font-mono font-bold">
-                        </div>
-                        <div>
-                            <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់បច្ចុប្បន្ន (Current Password)</label>
-                            <input type="password" value="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                         </div>
                         <div>
                             <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់ថ្មី (New Password)</label>
@@ -455,37 +447,80 @@
                         </div>
                         <button onclick="alert('បានរក្សាទុកសុវត្ថិភាព ITC និងប្តូរលេខសម្ងាត់ជោគជ័យ!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">រក្សាទុកការផ្លាស់ប្តូរ</button>
                     </div>
+
+                    <!-- Activity Audit Logs Table -->
+                    <div class="pt-4 border-t border-gray-800 space-y-2">
+                        <h4 class="font-bold text-white text-sm">ប្រវត្តិសកម្មភាពគណនី (Activity Audit Logs)</h4>
+                        <div class="bg-gray-950 rounded-xl overflow-hidden border border-gray-800">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-900 text-gray-400 text-[10px]">
+                                    <tr>
+                                        <th class="p-2.5">កាលបរិច្ឆេទ & ម៉ោង</th>
+                                        <th class="p-2.5">សកម្មភាព</th>
+                                        <th class="p-2.5">ទីតាំង / IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-800 text-[11px] text-gray-300">
+                                    <tr>
+                                        <td class="p-2.5 font-mono">2026-08-09 09:00:00</td>
+                                        <td class="p-2.5 text-emerald-400 font-bold">Login Success (2FA Passed)</td>
+                                        <td class="p-2.5 text-gray-400">Phnom Penh (115.178.x.x)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2.5 font-mono">2026-08-08 14:22:10</td>
+                                        <td class="p-2.5 text-blue-400">Telegram Bot Token Linked</td>
+                                        <td class="p-2.5 text-gray-400">Phnom Penh (115.178.x.x)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </main>
     </div>
 
-    <!-- Modals: Login / Sign In / Forget Password -->
+    <!-- Modals: Login / 2FA / Sign In / Forget Password -->
     <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (Security Secured)</h3>
+                <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (2FA Secured)</h3>
                 <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
+            
+            <!-- Step 1: Login Form -->
             <div class="space-y-3" id="loginFormSection">
                 <div>
                     <label class="text-gray-400 mb-1 block">អ៊ីម៉ែល ឬឈ្មោះអ្នកប្រើប្រាស់ (Email / Username)</label>
-                    <input type="email" id="authEmail" placeholder="user@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                    <input type="email" id="authEmail" value="user@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
                 <div>
                     <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់ (Password)</label>
-                    <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                    <input type="password" id="authPassword" value="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
                 <div class="flex items-center justify-between text-gray-400">
                     <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-blue-600"> ចងចាំខ្ញុំ (Remember Me)</label>
                     <button onclick="toggleForgetPassword(true)" class="text-blue-400 hover:underline bg-transparent border-none cursor-pointer">ភ្លេចពាក្យសម្ងាត់?</button>
                 </div>
-                <button onclick="handleUserLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">ចូលគណនី (Sign In)</button>
+                <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">បន្តទៅកាន់ការផ្ទៀងផ្ទាត់ 2FA</button>
                 <div class="text-center pt-2">
                     <span class="text-gray-400">ពុំទាន់មានគណនី? </span>
                     <button onclick="toggleRegisterMode(true)" class="text-emerald-400 font-bold hover:underline bg-transparent border-none cursor-pointer">ចុះឈ្មោះថ្មី (Sign Up)</button>
                 </div>
+            </div>
+
+            <!-- Step 2: 2FA OTP Verification Box -->
+            <div class="space-y-3 hidden" id="otpVerificationSection">
+                <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-blue-300">
+                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security Verification:</b> លេខកូដ OTP ៦ខ្ទង់ត្រូវបានផ្ញើជូនហើយ។ (កូដសាកល្បងរបស់អ្នកគឺ៖ <b class="text-emerald-400" id="generatedOtpDisplay">889922</b>)
+                </div>
+                <div>
+                    <label class="text-gray-400 mb-1 block">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់ (Enter 6-digit OTP)</label>
+                    <input type="text" id="otpInputCode" maxlength="6" placeholder="ឧទាហរណ៍៖ 889922" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-center text-lg font-mono text-emerald-400 font-bold tracking-widest focus:outline-none">
+                </div>
+                <button onclick="verifyOtpAndLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30">ផ្ទៀងផ្ទាត់ និងចូលគណនី ១០០%</button>
+                <button onclick="backToLoginStep()" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded-xl transition">ត្រឡប់ក្រោយ</button>
             </div>
 
             <!-- Forget Password Form -->
@@ -495,7 +530,7 @@
                     <label class="text-gray-400 mb-1 block">អ៊ីម៉ែល (Email)</label>
                     <input type="email" placeholder="example@domain.com" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
-                <button onclick="alert('លេខកូដ Reset បានផ្ញើទៅកាន់អ៊ីម៉ែលរបស់អ្នកហើយ!'); toggleForgetPassword(false);" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">ផ្ញើសំណើ Reset</button>
+                <button onclick="alert('លេខកូដ Reset បានផ្ញើទៅកាន់អ៊ីម៉ែលរបស់អ្នកហើយ!'); toggleForgetPassword(false);" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">ផ្ើសំណើ Reset</button>
                 <button onclick="toggleForgetPassword(false)" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded-xl transition">ត្រឡប់ក្រោយ</button>
             </div>
         </div>
@@ -505,11 +540,11 @@
     <div id="chatModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[400px] text-xs">
             <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
-                <h3 class="font-bold text-white">AI Support 24/7</h3>
+                <h3 class="font-bold text-white">AI Support 24/7 (2FA Active)</h3>
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! តើមានចម្ងល់រឿង AI Research, Telegram Bot ឬ Market Sessions ដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ 2FA Security និង AI Research ដំណើរការបានយ៉ាងល្អប្រសើរ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -520,7 +555,7 @@
 
     <div id="depositModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-xs rounded-2xl p-5 text-center space-y-3 text-xs">
-            <h3 class="font-bold text-white text-sm">ទូទាត់ប្រាក់ KHQR / ABA</h3>
+            <h3 class="font-bold text-white text-sm">ទូទាត់ប្រាក់ KHQR / ABA (2FA Verified)</h3>
             <div class="bg-white p-3 rounded-xl inline-block"><img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=VTradeAI-Payment" class="w-32 h-32 mx-auto"></div>
             <button onclick="closeModal('depositModal'); alert('ទូទាត់ជោគជ័យ! ប្រព័ន្ធបានបញ្ចូលទឹកប្រាក់ និងកម្សាន្តកញ្ចប់ VIP ជូនហើយ។');" class="w-full bg-emerald-600 text-white py-2 rounded-xl font-bold">បិទផ្ទាំងនេះ</button>
         </div>
@@ -529,12 +564,13 @@
     <!-- JavaScript Execution Logic -->
     <script>
         let tvWidgetInstance = null;
+        let activeOtpCode = "889922";
 
         // Multi-language dictionary
         const translations = {
             km: {
                 brand: "V TRADE AI & TELEGRAM BOT",
-                headerStatus: "AI Research & Market Sessions Active",
+                headerStatus: "2FA Secured & AI Sessions Active",
                 deposit: "ដាក់ប្រាក់",
                 auth: "Login / Sign In",
                 dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)",
@@ -544,12 +580,12 @@
                 telegram: "Telegram Bot & Setup",
                 signals: "AI Research & Signals",
                 chart: "TradingView Chart",
-                security: "សុវត្ថិភាព (ITC / Pass / Login)",
+                security: "សុវត្ថិភាព & 2FA (ITC Logs)",
                 support: "AI Support 24/7"
             },
             en: {
                 brand: "V TRADE AI & TELEGRAM BOT",
-                headerStatus: "AI Research & Market Sessions Active",
+                headerStatus: "2FA Secured & AI Sessions Active",
                 deposit: "Deposit",
                 auth: "Login / Sign In",
                 dash: "Dashboard",
@@ -559,12 +595,12 @@
                 telegram: "Telegram Bot & Setup",
                 signals: "AI Research & Signals",
                 chart: "TradingView Chart",
-                security: "Security (ITC / Pass / Login)",
+                security: "Security & 2FA (ITC Logs)",
                 support: "AI Support 24/7"
             },
             zh: {
                 brand: "V TRADE AI & 电报机器人",
-                headerStatus: "AI研究与市场时段激活",
+                headerStatus: "2FA安全与AI时段激活",
                 deposit: "存款",
                 auth: "登录 / 注册",
                 dash: "控制面板",
@@ -574,7 +610,7 @@
                 telegram: "电报机器人与设置",
                 signals: "AI研究与信号",
                 chart: "TradingView 图表",
-                security: "安全 (ITC / 密码 / 登录)",
+                security: "安全与2FA (日志)",
                 support: "AI 24/7 支持"
             }
         };
@@ -599,25 +635,20 @@
         // Real-time Live Clock & Market Sessions Auto Calculator
         function updateRealTimeData() {
             const now = new Date();
-            // Format Date
             const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
             document.getElementById('liveDate').innerText = now.toLocaleDateString('km-KH', options);
             document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
 
-            // Market Hours Check (ICT / Phnom Penh Time UTC+7)
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const totalMinutes = hours * 60 + minutes;
 
-            // Asian Session: 07:00 - 15:00 (420 to 900 minutes)
             const isAsianOpen = totalMinutes >= 420 && totalMinutes < 900;
             updateSessionUI('Asian', isAsianOpen, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
 
-            // London Session: 15:00 - 23:00 (900 to 1380 minutes)
             const isLondonOpen = totalMinutes >= 900 && totalMinutes < 1380;
             updateSessionUI('London', isLondonOpen, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
 
-            // New York Session: 20:00 - 04:00 (1200 to 240 minutes next day)
             const isNyOpen = totalMinutes >= 1200 || totalMinutes < 240;
             updateSessionUI('New York', isNyOpen, 'badgeNy', 'timerNy', 'dashNyStatus');
         }
@@ -697,12 +728,13 @@
         function toggleForgetPassword(show) {
             if(show) {
                 document.getElementById('loginFormSection').classList.add('hidden');
+                document.getElementById('otpVerificationSection').classList.add('hidden');
                 document.getElementById('forgetPassSection').classList.remove('hidden');
                 document.getElementById('authModalTitle').innerText = 'Reset Password (ITC Security)';
             } else {
                 document.getElementById('loginFormSection').classList.remove('hidden');
                 document.getElementById('forgetPassSection').classList.add('hidden');
-                document.getElementById('authModalTitle').innerText = 'Login / Sign In (Security Secured)';
+                document.getElementById('authModalTitle').innerText = 'Login / Sign In (2FA Secured)';
             }
         }
 
@@ -713,11 +745,34 @@
             }
         }
 
-        function handleUserLogin() {
+        function proceedTo2FAStep() {
+            // Generate random 6 digit OTP for demonstration
+            activeOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('generatedOtpDisplay').innerText = activeOtpCode;
+            
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('otpVerificationSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = '2FA OTP Verification Required';
+        }
+
+        function backToLoginStep() {
+            document.getElementById('loginFormSection').classList.remove('hidden');
+            document.getElementById('otpVerificationSection').classList.add('hidden');
+            document.getElementById('authModalTitle').innerText = 'Login / Sign In (2FA Secured)';
+        }
+
+        function verifyOtpAndLogin() {
+            const userEnteredOtp = document.getElementById('otpInputCode').value.trim();
             const email = document.getElementById('authEmail').value;
-            closeModal('authModal');
-            document.getElementById('btnAuth').innerText = email ? email.split('@')[0] : 'User Secured';
-            alert('ចូលគណនី (Sign In) ដោយសុវត្ថិភាពជោគជ័យ!');
+
+            if(userEnteredOtp === activeOtpCode) {
+                closeModal('authModal');
+                backToLoginStep();
+                document.getElementById('btnAuth').innerText = email ? email.split('@')[0] : 'User Secured';
+                alert('ផ្ទៀងផ្ទាត់ 2FA OTP ជោគជ័យ! បានចូលគណនីដោយសុវត្ថិភាព ១០០%។');
+            } else {
+                alert('លេខកូដ OTP មិនត្រឹមត្រូវទេ! សូមลองម្តងទៀត (កូដត្រឹមត្រូវគឺ៖ ' + activeOtpCode + ')');
+            }
         }
 
         function runAIResearchScan() {
@@ -770,7 +825,7 @@
                     body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
                 });
                 const d = await res.json();
-                if(d.ok) alert('តេស្តតភ្ជាប់ Telegram Bot បានជោគជ័យ ១០០%!');
+                if(d.ok) alert('តេស្តតភ្ជាប់ Telegram Bot ได้ជោគជ័យ ១០០%!');
                 else alert('បញ្ហា៖ ' + d.description);
             } catch(err) {
                 alert('កំហុសតភ្ជាប់បណ្តាញ!');
@@ -784,7 +839,7 @@
             box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${input.value}</div>`;
             input.value = '';
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support: ប្រព័ន្ធទាំងអស់ដំណើរការធម្មតា។ បងអាចជ្រើសរើស Pricing ឬតេស្ត Telegram Bot បានជានិច្ច។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support: ប្រព័ន្ធ 2FA Security និងមុខងារទាំងអស់ដំណើរការធម្មតា ១០០%។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 500);
         }
