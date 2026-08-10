@@ -1629,6 +1629,23 @@
                 box.scrollTop = box.scrollHeight;
             }, 300);
         }
-    </script>
+    <meta charset="UTF-8">
+    <title>V Trade AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- យកកូដមកដាក់ទីនេះ -->
+    <style>
+        body {
+            padding-bottom: 5rem !important;
+        }
+        @media (max-width: 768px) {
+            nav.fixed, .fixed.bottom-0 {
+                bottom: 0 !important;
+                padding-bottom: env(safe-area-inset-bottom, 15px) !important;
+                background-color: rgba(19, 28, 46, 0.95) !important;
+                backdrop-filter: blur(10px);
+            }
+        }
+    </style>
+</head>
 </body>
 </html>
