@@ -1,5 +1,5 @@
 require('dotenv').config(); // ត្រូវដាក់បន្ទាត់នេះនៅខាងលើគេបង្អស់[cite: 5]
-const express = require('express');
+//const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const cron = require('node-cron');
 const rateLimit = require('express-rate-limit');
@@ -7,7 +7,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+//const PORT = process.env.PORT || 3000;
 
 // Configurations - ទាញយក Token មកប្រើប្រាស់ដោយសុវត្ថិភាពពី .env[cite: 5]
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
