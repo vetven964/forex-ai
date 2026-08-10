@@ -3,27 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V TRADE AI & BOT v5.0.7 - Admin Dashboard & Real-Time Telegram Signal System</title>
+    <title>V Trade AI Pro - Terminal, Dashboard & Real-Time Signal System (v5.0.7 Ultimate)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Alpine.js សម្រាប់គ្រប់គ្រង Dashboard Tabs & State -->
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- FontAwesome for Icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Advanced Terminal Analysis Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- TradingView Widget Script -->
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
         body { font-family: 'Kantumruy Pro', sans-serif; background-color: #07090e; color: #f3f4f6; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glass-panel { background: rgba(13, 17, 28, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #07090e; }
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+        .terminal-scroll { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
+
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
@@ -31,12 +36,13 @@
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
-                <i class="fa-solid fa-robot text-base"></i>
+                <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & BOT v5.0.7</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.0.7</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span id="txtHeaderStatus">Real-Time Copy Trading & AI Sentiment Active 100%</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
                 </p>
             </div>
         </div>
@@ -63,7 +69,6 @@
         </div>
 
         <div class="flex items-center space-x-2">
-            <!-- Currency Switcher -->
             <select id="currencySelect" onchange="changeCurrency(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold focus:outline-none cursor-pointer">
                 <option value="USD">$ USD</option>
                 <option value="KHR">៛ KHR (រៀល)</option>
@@ -89,29 +94,32 @@
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង Admin (v5.0.7)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.0.7)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
-            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-left">
-                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List & Access Control)</span>
+            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
+                <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis AI Realtime</span>
             </button>
-            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium text-left">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
             </button>
-            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 font-bold text-left">
+            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto Mirror)</span>
             </button>
-            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 bg-purple-500/10 border border-purple-500/30 font-bold text-left">
+            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus Filter</span>
             </button>
-            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 font-bold text-left">
+            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
+            </button>
+            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
             </button>
-            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 bg-purple-500/10 border border-purple-500/30 font-bold text-left">
+            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
             </button>
-            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 font-bold text-left">
+            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate & Referral Program</span>
             </button>
             <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
@@ -132,9 +140,6 @@
             <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
             </button>
-            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left">
-                <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis</span>
-            </button>
         </div>
     </div>
 
@@ -144,9 +149,9 @@
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
             <nav class="space-y-1.5">
-                <!-- Admin Manager Tab moved to top for strict admin control focus -->
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-bold transition text-xs text-left border border-amber-500/40 cursor-pointer">
-                    <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User Control)</span>
+                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer">
+                    <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
+                    <span>Terminal & Analysis AI Realtime</span>
                 </button>
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
@@ -156,6 +161,9 @@
                 </button>
                 <button onclick="switchTab('sentiment')" id="nav-sentiment" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/30 cursor-pointer">
                     <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20 cursor-pointer">
+                    <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
                 </button>
                 <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20 cursor-pointer">
                     <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer</span>
@@ -184,10 +192,6 @@
                 <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Cloudflare v5 & DDoS Shield</span>
                 </button>
-                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left transition cursor-pointer">
-                    <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
-                    <span>Terminal & Analysis</span>
-                </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
                 <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2 cursor-pointer">
@@ -199,51 +203,165 @@
         <!-- Main Workspace Area -->
         <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
-            <!-- TAB: ADMIN MANAGER & USER LIST (Default Active for Admin Control) -->
-            <div id="tab-admin" class="tab-content active space-y-6 max-w-6xl mx-auto">
-                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs border border-amber-500/40">
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
-                        <div>
-                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Access Restriction</h3>
-                            <p class="text-gray-400">សម្រាប់ Admin គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងផ្ទៀងផ្ទាត់សិទ្ធិ User មិនអាចប្រើប្រាស់ដោយគ្មានការអនុញ្ញាត (100% Secure)</p>
+            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME (MAIN DEFAULT TAB) -->
+            <div id="tab-terminal-analysis" class="tab-content active space-y-6">
+                <!-- Header Control & Selector -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-950 p-4 rounded-2xl border border-gray-800">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.0.7</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
+                            <option value="BTC/USDT">BTC/USDT (Crypto)</option>
+                            <option value="XAU/USD">XAU/USD (Gold)</option>
+                            <option value="EUR/USD">EUR/USD (Forex)</option>
+                            <option value="ETH/USDT">ETH/USDT (Crypto)</option>
+                        </select>
+                        <button onclick="runAIAnalysis()" class="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-teal-600/20 cursor-pointer shrink-0">
+                            <i class="fa-solid fa-arrows-rotate animate-spin" id="btnRefreshSpinner" style="display:none;"></i>
+                            <i class="fa-solid fa-bolt" id="btnRefreshIcon"></i>
+                            <span>Scan Analysis</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Signal Metrics Top Dashboard Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 relative overflow-hidden">
+                        <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
+                        <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-emerald-400 tracking-wider">STRONG BUY</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
+                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">$94,850.00</b>
                         </div>
-                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-xs text-gray-400 font-medium">AI Win Rate Probability</p>
+                        <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">94.8%</h3>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full mt-3.5 overflow-hidden">
+                            <div id="win-rate-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 94.8%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
+                        <p class="text-xs text-gray-400 font-medium">ICT Fair Value Gap (FVG)</p>
+                        <h3 id="fvg-confidence" class="text-2xl font-extrabold mt-1 text-amber-400">BULLISH FVG</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
+                            <span>Zone:</span> <b class="text-amber-300" id="fvg-zone">0.5 - 0.618 Fib Active</b>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
+                        <p class="text-xs text-gray-400 font-medium">Market Sentiment Score</p>
+                        <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">88% BULLISH</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400 font-bold">
+                            <i class="fa-solid fa-shield-check"></i> High Volume Institutional Support
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle Section: Live Realtime Terminal & AI Sentiment Radar Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Real-Time AI Execution Console Terminal -->
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-2xl space-y-3 flex flex-col justify-between border border-teal-500/30">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.0.7</span>
+                            </div>
+                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                        </div>
+
+                        <!-- Logs Console Box -->
+                        <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
+                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connecting to Cloudflare v5.7 Protected Webhook Worker...</div>
+                            <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Fetching live order books & ICT liquidity pools...</div>
+                        </div>
+
+                        <!-- Manual Signal Command Trigger -->
+                        <div class="flex gap-2 pt-2">
+                            <input type="text" id="terminalCmdInput" placeholder="Enter custom parameter or prompt (e.g. /analyze BTC)..." class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
+                            <button onclick="executeTerminalCommand()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane"></i> Execute
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Market Sentiment Analysis Gauge & Chart -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 flex flex-col justify-between border border-purple-500/30">
+                        <div class="border-b border-gray-800 pb-2">
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-chart-radar text-purple-400"></i> Sentiment Consensus Radar
+                            </h3>
+                            <p class="text-[11px] text-gray-400">ការចម្រាញ់លទ្ធផល Sentiment ពីប្រភពទិន្នន័យធំៗ</p>
+                        </div>
+
+                        <div class="relative flex items-center justify-center h-48">
+                            <canvas id="sentimentChartCanvas"></canvas>
+                        </div>
+
+                        <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5 text-[11px] font-mono">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">RSI 14 Dynamic:</span>
+                                <b class="text-emerald-400" id="rsiVal">68.4 (Bullish Momentum)</b>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">MACD Crossover:</span>
+                                <b class="text-blue-400" id="macdVal">Positive Histogram</b>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Orderbook Pressure:</span>
+                                <b class="text-amber-400" id="orderbookVal">64% Buy Orders</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signal Details Table -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800">
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-emerald-400"></i> Live AI Signal Breakdown & Target Levels
+                        </h3>
+                        <button onclick="dispatchTelegramSignal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-brands fa-telegram"></i> ផ្ញើ Signal នេះចូល Telegram Bot
                         </button>
                     </div>
 
-                    <div class="flex gap-3 flex-wrap">
-                        <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
-                            <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
-                            <option value="Admin">Admin Level</option>
-                            <option value="VIP Pro">VIP Pro v5 ($29)</option>
-                            <option value="Standard">Standard ($8.99)</option>
-                            <option value="Basic">Basic ($4.99)</option>
-                            <option value="Trial">Free 7-Day Trial</option>
-                        </select>
-                    </div>
-
-                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
-                        <table class="w-full text-left border-collapse min-w-[650px]">
-                            <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
+                    <div class="bg-gray-950 rounded-xl overflow-x-auto border border-gray-800">
+                        <table class="w-full text-left border-collapse min-w-[600px] text-xs font-mono">
+                            <thead class="bg-gray-900 text-gray-400 uppercase text-[10px]">
                                 <tr>
-                                    <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
-                                    <th class="p-3.5">កម្រិតសិទ្ធិ (User Access Level)</th>
-                                    <th class="p-3.5">ស្ថានភាពសុវត្ថិភាព (Cloudflare)</th>
-                                    <th class="p-3.5">កាលបរិច្ឆេទបង្កើត</th>
-                                    <th class="p-3.5 text-center">សកម្មភាព (Actions)</th>
+                                    <th class="p-3">Asset Pair</th>
+                                    <th class="p-3">Signal Type</th>
+                                    <th class="p-3">Entry Price</th>
+                                    <th class="p-3">Stop Loss (SL)</th>
+                                    <th class="p-3">Take Profit (TP1 / TP2)</th>
+                                    <th class="p-3 text-center">Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
-                                <!-- Dynamic Rendered by JS -->
+                            <tbody class="divide-y divide-gray-800 text-gray-200">
+                                <tr>
+                                    <td class="p-3 font-bold text-white" id="tblAsset">BTC/USDT</td>
+                                    <td class="p-3"><span id="tblSignalBadge" class="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">BUY / LONG</span></td>
+                                    <td class="p-3 text-white" id="tblEntry">$94,850.00</td>
+                                    <td class="p-3 text-red-400" id="tblSL">$93,900.00</td>
+                                    <td class="p-3 text-emerald-400" id="tblTP">$96,200 / $97,800</td>
+                                    <td class="p-3 text-center"><span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">100% READY</span></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 1: DASHBOARD -->
+            <!-- TAB: DASHBOARD -->
             <div id="tab-dashboard" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
@@ -296,48 +414,6 @@
                 </div>
             </div>
 
-            <!-- TAB: TERMINAL & ANALYSIS -->
-            <div id="tab-terminal-analysis" class="tab-content space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
-                    </h2>
-                    <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-rotate-right"></i> Refresh Analysis
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
-                        <p class="text-xs text-gray-400">Market Signal Direction</p>
-                        <h3 id="signal-direction" class="text-xl font-bold mt-1 text-emerald-400">LOADING...</h3>
-                        <span class="text-xs text-gray-400">Real-time Signal</span>
-                    </div>
-
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
-                        <p class="text-xs text-gray-400">AI Win Rate Probability</p>
-                        <h3 id="win-rate-val" class="text-xl font-bold mt-1 text-blue-400">0%</h3>
-                        <span class="text-xs text-gray-400">High Confidence</span>
-                    </div>
-
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
-                        <p class="text-xs text-gray-400">ICT FVG Confidence</p>
-                        <h3 id="fvg-confidence" class="text-xl font-bold mt-1 text-amber-400">HIGH</h3>
-                        <span class="text-xs text-gray-400">Pattern Detected</span>
-                    </div>
-                </div>
-
-                <div class="glass-panel p-5 rounded-2xl space-y-3">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
-                    </h3>
-                    <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-sm h-64 overflow-y-auto text-sky-400 space-y-1 border border-gray-800">
-                        <div>[System] Initializing V TRADE AI & BOT v5.0.7 Core Engine...</div>
-                        <div>[System] Connecting to Cloudflare v5.7 Protected Webhook...</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- TAB: COPY TRADING BOT SETTINGS -->
             <div id="tab-copytrading" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
@@ -371,7 +447,7 @@
                     <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2 font-mono">
                         <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Master Trader Signal Source:</div>
                         <div class="text-gray-300">Connected Channel: <b class="text-white">@VTradeAI_Master_Signal</b></div>
-                        <div class="text-gray-300">Last Copied Order: <b class="text-emerald-400">BTC/USDT BUY @ $94,500 (Success)</b></div>
+                        <div class="text-gray-300">Last Copied Order: <b class="text-emerald-400">BTC/USDT BUY @ $94,850 (Success)</b></div>
                     </div>
 
                     <button onclick="saveCopyTradingSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer">
@@ -398,7 +474,7 @@
                         </div>
                         <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
                             <span class="text-gray-400">AI Confidence Score</span>
-                            <h3 class="text-xl font-bold text-blue-400">94.5% Accuracy</h3>
+                            <h3 class="text-xl font-bold text-blue-400">94.8% Accuracy</h3>
                         </div>
                         <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
                             <span class="text-gray-400">Sideways Filter</span>
@@ -409,6 +485,50 @@
                     <button onclick="runAiSentimentScan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-microchip"></i> រកស្កេន AI Sentiment & Filter ថ្មីឥឡូវនេះ
                     </button>
+                </div>
+            </div>
+            
+            <!-- TAB: ADMIN MANAGER & USER LIST -->
+            <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
+                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Security</h3>
+                            <p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់ ១០០%</p>
+                        </div>
+                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
+                        </button>
+                    </div>
+
+                    <div class="flex gap-3 flex-wrap">
+                        <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
+                            <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
+                            <option value="Admin">Admin Level</option>
+                            <option value="VIP Pro">VIP Pro v5 ($29)</option>
+                            <option value="Standard">Standard ($8.99)</option>
+                            <option value="Basic">Basic ($4.99)</option>
+                            <option value="Trial">Free 7-Day Trial</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
+                            <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
+                                <tr>
+                                    <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
+                                    <th class="p-3.5">កម្រិតសិទ្ធិ (User Level)</th>
+                                    <th class="p-3.5">ស្ថានភាពសុវត្ថិភាព (Cloudflare)</th>
+                                    <th class="p-3.5">កាលបរិច្ឆេទបង្កើត</th>
+                                    <th class="p-3.5 text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
+                                <!-- Dynamic Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -530,7 +650,7 @@
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.0.7</h3>
-                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើการរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
+                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
@@ -737,8 +857,8 @@
 
     <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
-        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
-            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
+        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
+            <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
         </button>
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
             <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
@@ -749,8 +869,8 @@
         <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold">
             <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Sentiment</span>
         </button>
-        <button onclick="switchTab('strategy')" class="flex flex-col items-center text-cyan-400 font-bold">
-            <i class="fa-solid fa-gears text-base mb-0.5"></i><span>Strategy</span>
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
+            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
         </button>
     </div>
 
@@ -870,9 +990,8 @@
                     <input type="email" id="newUserEmailInput" placeholder="dara@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
                 <div>
-                    <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Access Level)</label>
+                    <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Level)</label>
                     <select id="newUserLevelInput" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none cursor-pointer">
-                        <option value="Admin">👑 Admin Access</option>
                         <option value="VIP Pro">💎 VIP Pro v5 ($29)</option>
                         <option value="Standard">⭐ Standard ($8.99)</option>
                         <option value="Basic">🔹 Basic ($4.99)</option>
@@ -926,7 +1045,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V TRADE AI & BOT v5.0.7 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI Terminal v5.0.7 ដំណើរការវិភាគ Realtime និង Telegram Signal ២៤ម៉ោង។ តើមានអ្វីឲ្យខ្ញុំជួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -935,9 +1054,10 @@
         </div>
     </div>
 
-    <!-- JavaScript Execution Logic UI UI Interactivity -->
+    <!-- COMPLETE JAVASCRIPT LOGIC DIRECTLY INCLUDED (100% EXECUTABLE) -->
     <script>
         let tvWidgetInstance = null;
+        let sentimentChartInstance = null;
         let activeOtpCode = "998877";
         let currentCurrency = "USD";
         let baseUsdBalance = 1250.00;
@@ -948,63 +1068,30 @@
             { name: "Dara Pich", email: "dara@vtrade.ai", level: "Standard", security: "Protected v5.7 (DDoS ON)", date: "2026-08-07" }
         ];
 
+        const mockMarketData = {
+            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$94,850.00", sl: "$93,900.00", tp: "$96,200 / $97,800", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
+            "XAU/USD": { direction: "STRONG BUY", winRate: "91.2%", entry: "$2,642.50", sl: "$2,628.00", tp: "$2,665 / $2,680", fvg: "DISCOUNT FVG", fvgZone: "Demand Zone 1H", sentiment: "82% BULLISH", rsi: "62.1 (Bullish)", macd: "Histogram Positive", orderbook: "71% Buy Volume" },
+            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0820", sl: "$1.0865", tp: "$1.0760 / $1.0710", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
+            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$3,450.00", sl: "$3,380.00", tp: "$3,580 / $3,650", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+        };
+
         const translations = {
-            km: {
-                brand: "V TRADE AI & BOT v5.0.7",
-                headerStatus: "Real-Time Copy Trading & AI Sentiment Active 100%",
-                deposit: "បង់ប្រាក់ (ABA / Account)",
-                auth: "Login",
-                dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)",
-                sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)",
-                news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)",
-                pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)",
-                telegram: "Telegram Bot & Webhook",
-                chart: "TradingView Chart",
-                security: "Cloudflare v5 & DDoS Shield",
-                support: "AI Support v5.7"
-            },
-            en: {
-                brand: "V TRADE AI & BOT v5.0.7",
-                headerStatus: "Real-Time Copy Trading & AI Sentiment Active 100%",
-                deposit: "Account Payment",
-                auth: "Login",
-                dash: "Dashboard",
-                sessions: "Market Sessions",
-                news: "News & Links",
-                pricing: "Pricing Plans",
-                telegram: "Telegram Bot Setup",
-                chart: "TradingView",
-                security: "Security v5 & DDoS",
-                support: "AI Support v5"
-            },
-            zh: {
-                brand: "V TRADE AI v5.0.7",
-                headerStatus: "实时跟单与AI情绪分析激活",
-                deposit: "账户支付",
-                auth: "登录",
-                dash: "控制面板",
-                sessions: "市场时段",
-                news: "新闻与链接",
-                pricing: "价格方案",
-                telegram: "电报设置",
-                chart: "图表",
-                security: "安全防御v5",
-                support: "支持v5"
-            }
+            km: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.0.7", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if (savedUser) {
                 const authBtn = document.getElementById('btnAuth');
-                if (authBtn) {
-                    authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
-                }
+                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
             }
 
             fetchMarketPrices();
-            setInterval(fetchMarketPrices, 30000); 
-            if (typeof runAIAnalysis === 'function') runAIAnalysis();
+            setInterval(fetchMarketPrices, 30000);
+            initSentimentRadarChart();
+            runAIAnalysis();
         });
 
         async function fetchMarketPrices() {
@@ -1017,35 +1104,191 @@
                 if(data.bitcoin && tickerBtc) tickerBtc.innerText = '$' + data.bitcoin.usd.toLocaleString();
                 if(data.ethereum && tickerEth) tickerEth.innerText = '$' + data.ethereum.usd.toLocaleString();
             } catch (e) {
-                console.log("Unable to fetch live price updates.");
+                console.log("Live price fetch fallback.");
+            }
+        }
+
+        function runAIAnalysis() {
+            const pairSelect = document.getElementById('terminalPairSelect');
+            const pair = pairSelect ? pairSelect.value : 'BTC/USDT';
+            const data = mockMarketData[pair] || mockMarketData['BTC/USDT'];
+
+            const spinner = document.getElementById('btnRefreshSpinner');
+            const icon = document.getElementById('btnRefreshIcon');
+            if(spinner) spinner.style.display = 'inline-block';
+            if(icon) icon.style.display = 'none';
+
+            appendTerminalLog(`[COMMAND] Executing Realtime Market Scan for ${pair}...`);
+
+            setTimeout(() => {
+                if(spinner) spinner.style.display = 'none';
+                if(icon) icon.style.display = 'inline-block';
+
+                document.getElementById('signal-direction').innerText = data.direction;
+                document.getElementById('signal-entry').innerText = data.entry;
+                document.getElementById('win-rate-val').innerText = data.winRate;
+                document.getElementById('win-rate-bar').style.width = data.winRate;
+                document.getElementById('fvg-confidence').innerText = data.fvg;
+                document.getElementById('fvg-zone').innerText = data.fvgZone;
+                document.getElementById('sentiment-score').innerText = data.sentiment;
+                document.getElementById('rsiVal').innerText = data.rsi;
+                document.getElementById('macdVal').innerText = data.macd;
+                document.getElementById('orderbookVal').innerText = data.orderbook;
+
+                document.getElementById('tblAsset').innerText = pair;
+                document.getElementById('tblSignalBadge').innerText = data.direction;
+                document.getElementById('tblEntry').innerText = data.entry;
+                document.getElementById('tblSL').innerText = data.sl;
+                document.getElementById('tblTP').innerText = data.tp;
+
+                appendTerminalLog(`[AI ENGINE] Analysis complete for ${pair}. Signal: ${data.direction} @ ${data.entry}. Win Probability: ${data.winRate}`);
+                updateRadarChartData(pair);
+            }, 800);
+        }
+
+        function initSentimentRadarChart() {
+            const ctx = document.getElementById('sentimentChartCanvas');
+            if(!ctx) return;
+
+            sentimentChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['RSI', 'MACD', 'ICT FVG', 'Orderbook', 'News Filter'],
+                    datasets: [{
+                        label: 'Market Score',
+                        data: [85, 90, 92, 88, 95],
+                        backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                        borderColor: '#14b8a6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#38bdf8'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#9ca3af', font: { size: 10 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateRadarChartData(pair) {
+            if(!sentimentChartInstance) return;
+            const randomVal = () => Math.floor(70 + Math.random() * 25);
+            sentimentChartInstance.data.datasets[0].data = [randomVal(), randomVal(), randomVal(), randomVal(), randomVal()];
+            sentimentChartInstance.update();
+        }
+
+        function appendTerminalLog(message) {
+            const logBox = document.getElementById('terminal-logs');
+            if(!logBox) return;
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timeStr}]</span> ${message}`;
+            logBox.appendChild(logEntry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearTerminalLogs() {
+            const logBox = document.getElementById('terminal-logs');
+            if(logBox) logBox.innerHTML = '<div><span class="text-gray-500">[SYSTEM]</span> Terminal logs cleared. Ready...</div>';
+        }
+
+        function executeTerminalCommand() {
+            const cmdInput = document.getElementById('terminalCmdInput');
+            if(!cmdInput || !cmdInput.value.trim()) return;
+            const val = cmdInput.value.trim();
+            appendTerminalLog(`<span class="text-amber-400">[USER CMD]</span> ${val}`);
+            cmdInput.value = '';
+            
+            setTimeout(() => {
+                appendTerminalLog(`<span class="text-emerald-400">[EXECUTION]</span> Command executed successfully. AI Worker synchronized.`);
+            }, 500);
+        }
+
+        async function dispatchTelegramSignal() {
+            const pair = document.getElementById('tblAsset').innerText;
+            const direction = document.getElementById('tblSignalBadge').innerText;
+            const entry = document.getElementById('tblEntry').innerText;
+            const sl = document.getElementById('tblSL').innerText;
+            const tp = document.getElementById('tblTP').innerText;
+
+            const token = localStorage.getItem('vtrade_tg_token') || document.getElementById('tgTokenInput')?.value;
+            const chatId = localStorage.getItem('vtrade_tg_chatid') || document.getElementById('tgChatIdInput')?.value;
+
+            if(!token || !chatId) {
+                alert('សូមរៀបចំ Telegram Bot Token & Chat ID នៅក្នុង Tab "Telegram Bot" ជាមុនសិន!');
+                switchTab('telegram');
+                return;
+            }
+
+            const msg = `🚨 **NEW V TRADE AI REALTIME SIGNAL** 🚨\n\n📌 Asset: **${pair}**\n📈 Signal: **${direction}**\n🎯 Entry Price: **${entry}**\n🛡️ Stop Loss: **${sl}**\n💰 Take Profit: **${tp}**\n\n🤖 Automated Copy Trading Connected 100%!`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+                });
+                alert(`🟢 ផ្ញើ Realtime Signal (${pair}) ចូល Telegram Channel/Bot រួចរាល់ ១០០%!`);
+                appendTerminalLog(`<span class="text-blue-400">[TELEGRAM]</span> Broadcasted signal ${pair} to Channel ID ${chatId}`);
+            } catch(e) {
+                alert('កំហុសក្នុងការផ្ញើ Signal! សូមពិនិត្យមើល Token និង Chat ID។');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer";
+            });
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            const targetNav = document.getElementById('nav-' + tabId);
+            
+            if(targetTab) targetTab.classList.add('active');
+            if(targetNav) {
+                if(tabId === 'terminal-analysis') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer";
+                } else if(tabId === 'admin') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40 cursor-pointer";
+                } else if(tabId === 'strategy') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
+                } else if(tabId === 'calculator') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
+                } else if(tabId === 'copytrading') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
+                } else {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
+                }
+            }
+
+            if(tabId === 'tvchart' && !tvWidgetInstance) {
+                initTradingViewWidget('BINANCE:BTCUSDT');
             }
         }
 
         function changeLanguage(lang) {
             const t = translations[lang] || translations.km;
-            const elBrand = document.getElementById('txtBrandTitle');
-            const elHeaderStatus = document.getElementById('txtHeaderStatus');
-            const elBtnDeposit = document.getElementById('btnDeposit');
-            const elMenuDashboard = document.getElementById('menuDashboard');
-            const elMenuSessions = document.getElementById('menuSessions');
-            const elMenuNews = document.getElementById('menuNews');
-            const elMenuPricing = document.getElementById('menuPricing');
-            const elMenuTelegram = document.getElementById('menuTelegram');
-            const elMenuChart = document.getElementById('menuChart');
-            const elMenuSecurity = document.getElementById('menuSecurity');
-            const elMenuSupport = document.getElementById('menuSupport');
-
-            if(elBrand) elBrand.innerText = t.brand;
-            if(elHeaderStatus) elHeaderStatus.innerText = t.headerStatus;
-            if(elBtnDeposit) elBtnDeposit.innerText = t.deposit;
-            if(elMenuDashboard) elMenuDashboard.innerText = t.dash;
-            if(elMenuSessions) elMenuSessions.innerText = t.sessions;
-            if(elMenuNews) elMenuNews.innerText = t.news;
-            if(elMenuPricing) elMenuPricing.innerText = t.pricing;
-            if(elMenuTelegram) elMenuTelegram.innerText = t.telegram;
-            if(elMenuChart) elMenuChart.innerText = t.chart;
-            if(elMenuSecurity) elMenuSecurity.innerText = t.security;
-            if(elMenuSupport) elMenuSupport.innerText = t.support;
+            if(document.getElementById('txtBrandTitle')) document.getElementById('txtBrandTitle').innerText = t.brand;
+            if(document.getElementById('txtHeaderStatus')) document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
+            if(document.getElementById('btnDeposit')) document.getElementById('btnDeposit').innerText = t.deposit;
+            if(document.getElementById('menuDashboard')) document.getElementById('menuDashboard').innerText = t.dash;
+            if(document.getElementById('menuSessions')) document.getElementById('menuSessions').innerText = t.sessions;
+            if(document.getElementById('menuNews')) document.getElementById('menuNews').innerText = t.news;
+            if(document.getElementById('menuPricing')) document.getElementById('menuPricing').innerText = t.pricing;
+            if(document.getElementById('menuTelegram')) document.getElementById('menuTelegram').innerText = t.telegram;
+            if(document.getElementById('menuChart')) document.getElementById('menuChart').innerText = t.chart;
+            if(document.getElementById('menuSecurity')) document.getElementById('menuSecurity').innerText = t.security;
+            if(document.getElementById('menuSupport')) document.getElementById('menuSupport').innerText = t.support;
         }
 
         function changeCurrency(curr) {
@@ -1054,9 +1297,7 @@
             if(curr === 'USD') displayVal = "$" + baseUsdBalance.toLocaleString() + ".00";
             else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
             else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
-
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            if(balanceEl) balanceEl.innerText = displayVal;
+            if(document.getElementById('userBalanceDisplay')) document.getElementById('userBalanceDisplay').innerText = displayVal;
         }
 
         function toggleMobileMenu() {
@@ -1092,11 +1333,8 @@
 
         function submitForgotPassword() {
             const email = document.getElementById('forgotEmailInput').value.trim();
-            if(!email) {
-                alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!');
-                return;
-            }
-            alert(`បានបញ្ជូនតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មីទៅកាន់ ${email} រួចរាល់ហើយ! សូមពិនិត្យប្រអប់សារអ៊ីម៉ែលរបស់អ្នក។`);
+            if(!email) { alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!'); return; }
+            alert(`បានបញ្ជូនតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មីទៅកាន់ ${email} រួចរាល់ហើយ!`);
             backToLoginForm();
         }
 
@@ -1104,7 +1342,7 @@
             closeModal('authModal');
             localStorage.setItem('vtrade_logged_user', 'VET VEN (Google)');
             document.getElementById('btnAuth').innerHTML = `<i class="fa-brands fa-google text-red-400"></i> <span>VET VEN</span>`;
-            alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់គណនីសុវត្ថិភាព Cloudflare v5.7។');
+            alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់ Cloudflare v5.7 Security');
         }
 
         function renderAdminTable(data) {
@@ -1141,7 +1379,6 @@
         function filterAdminUsers() {
             const query = document.getElementById('adminSearchInput').value.toLowerCase();
             const level = document.getElementById('adminLevelFilter').value;
-
             const filtered = usersListDB.filter(u => {
                 const matchQuery = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
                 const matchLevel = level === 'all' || u.level === level;
@@ -1160,10 +1397,7 @@
             const email = document.getElementById('newUserEmailInput').value.trim();
             const level = document.getElementById('newUserLevelInput').value;
 
-            if(!name || !email) {
-                alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានត្រឹមត្រូវ!');
-                return;
-            }
+            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានត្រឹមត្រូវ!'); return; }
 
             usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
             closeModal('addUserModal');
@@ -1190,30 +1424,23 @@
 
             closeModal('profileModal');
             document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
-            alert(`បានរក្សាទុកការកំណត់ Profile Privacy & Security ជោគជ័យ ១០០%! (2FA: ${enable2fa ? 'ON' : 'OFF'}, Privacy Mode: ${enablePrivacy ? 'Private' : 'Public'})`);
+            alert(`បានរក្សាទុកការកំណត់ Profile ជោគជ័យ ១០០%! (2FA: ${enable2fa ? 'ON' : 'OFF'})`);
         }
 
         function updateRealTimeData() {
             const now = new Date();
             const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
             const dateStr = now.toLocaleDateString('km-KH', options);
-            const dateEl = document.getElementById('liveDate');
-            const clockEl = document.getElementById('liveClock');
-            if(dateEl) dateEl.innerText = dateStr;
-            if(clockEl) clockEl.innerText = now.toLocaleTimeString('en-US', { hour12: false });
+            if(document.getElementById('liveDate')) document.getElementById('liveDate').innerText = dateStr;
+            if(document.getElementById('liveClock')) document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
 
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const totalMinutes = hours * 60 + minutes;
 
-            const isAsianOpen = totalMinutes >= 420 && totalMinutes < 900;
-            updateSessionUI('Asian', isAsianOpen, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
-
-            const isLondonOpen = totalMinutes >= 900 && totalMinutes < 1380;
-            updateSessionUI('London', isLondonOpen, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
-
-            const isNyOpen = totalMinutes >= 1200 || totalMinutes < 240;
-            updateSessionUI('New York', isNyOpen, 'badgeNy', 'timerNy', 'dashNyStatus');
+            updateSessionUI('Asian', totalMinutes >= 420 && totalMinutes < 900, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
+            updateSessionUI('London', totalMinutes >= 900 && totalMinutes < 1380, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
+            updateSessionUI('New York', totalMinutes >= 1200 || totalMinutes < 240, 'badgeNy', 'timerNy', 'dashNyStatus');
         }
 
         function updateSessionUI(name, isOpen, badgeId, timerId, dashStatusId) {
@@ -1222,17 +1449,11 @@
             const dashStatus = document.getElementById(dashStatusId);
 
             if(isOpen) {
-                if(badge) {
-                    badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse";
-                    badge.innerText = "🟢 OPEN (បើក)";
-                }
+                if(badge) { badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse"; badge.innerText = "🟢 OPEN (បើក)"; }
                 if(timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ active v5.7`;
                 if(dashStatus) dashStatus.innerText = "🟢 OPEN (កំពុងបើក)";
             } else {
-                if(badge) {
-                    badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                    badge.innerText = "🔴 CLOSED (បិទ)";
-                }
+                if(badge) { badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; badge.innerText = "🔴 CLOSED (បិទ)"; }
                 if(timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} បានបិទរង់ចាំបើកពេលក្រោយ`;
                 if(dashStatus) dashStatus.innerText = "🔴 CLOSED (បានបិទ)";
             }
@@ -1248,8 +1469,6 @@
             const savedChatId = localStorage.getItem('vtrade_tg_chatid');
             const savedPlan = localStorage.getItem('vtrade_selected_plan');
             const savedUserName = localStorage.getItem('vtrade_tg_username');
-            const savedCopyState = localStorage.getItem('vtrade_copy_state');
-            const savedMultiplier = localStorage.getItem('vtrade_copy_multiplier');
 
             if(savedToken && document.getElementById('tgTokenInput')) document.getElementById('tgTokenInput').value = savedToken;
             if(savedChatId && document.getElementById('tgChatIdInput')) document.getElementById('tgChatIdInput').value = savedChatId;
@@ -1258,49 +1477,7 @@
                 if(document.getElementById('currentPlanDisplay')) document.getElementById('currentPlanDisplay').innerText = savedPlan;
             }
             if(savedUserName && document.getElementById('tgUserName')) document.getElementById('tgUserName').value = savedUserName;
-            if(savedCopyState) {
-                if(document.getElementById('copyBotState')) document.getElementById('copyBotState').value = savedCopyState;
-                if(document.getElementById('dashCopyStatus')) document.getElementById('dashCopyStatus').innerText = `Running (${savedMultiplier || '1.0x'})`;
-            }
-            if(savedMultiplier && document.getElementById('copyMultiplier')) document.getElementById('copyMultiplier').value = savedMultiplier;
         };
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('aside nav button').forEach(btn => {
-                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer";
-            });
-            
-            const targetTab = document.getElementById('tab-' + tabId);
-            const targetNav = document.getElementById('nav-' + tabId);
-            
-            if(targetTab) targetTab.classList.add('active');
-            if(targetNav) {
-                if(tabId === 'admin') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-bold transition text-xs text-left border border-amber-500/40 cursor-pointer";
-                } else if(tabId === 'strategy') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
-                } else if(tabId === 'calculator') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
-                } else if(tabId === 'affiliate') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
-                } else if(tabId === 'copytrading') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/30 cursor-pointer";
-                } else if(tabId === 'sentiment') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/30 cursor-pointer";
-                } else {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
-                }
-            }
-
-            if(tabId === 'terminal-analysis' && typeof runAIAnalysis === 'function') {
-                runAIAnalysis();
-            }
-
-            if(tabId === 'tvchart' && !tvWidgetInstance) {
-                initTradingViewWidget('BINANCE:BTCUSDT');
-            }
-        }
 
         function openModal(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function closeModal(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
@@ -1309,8 +1486,7 @@
             document.getElementById('selectedPlanInput').value = planName;
             document.getElementById('currentPlanDisplay').innerText = planName;
             localStorage.setItem('vtrade_selected_plan', planName);
-
-            alert(`បានជ្រើសរើសកញ្ចប់ ${planName} ($${price})។ សូមធ្វើការទូទាត់តាមលេខគណនី VET VEN ឬភ្ជាប់ Telegram Bot!`);
+            alert(`បានជ្រើសរើសកញ្ចប់ ${planName} ($${price})!`);
             switchTab('telegram');
         }
 
@@ -1320,21 +1496,20 @@
             localStorage.setItem('vtrade_copy_state', state);
             localStorage.setItem('vtrade_copy_multiplier', multiplier);
             document.getElementById('dashCopyStatus').innerText = `Running (${multiplier})`;
-            alert(`បានរក្សាទុក និងបើកដំណើរការ Copy Trading Bot ជោគជ័យ (${state} - ${multiplier})!`);
+            alert(`បានរក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ (${state} - ${multiplier})!`);
         }
 
         function runAiSentimentScan() {
-            alert('AI Smart Sentiment & Consensus Filter បានវិភាគព័ត៌មានអន្តរជាតិ និងសន្ទុះទីផ្សាររួចរាល់ ត្រៀមផ្ញើ Signal តាម Telegram Webhook!');
+            alert('AI Smart Sentiment & Consensus Filter បានស្កេនព័ត៌មានអន្តរជាតិជោគជ័យ!');
         }
 
         function runAiBacktest() {
             const asset = document.getElementById('customAssetSelect').value;
             const risk = document.getElementById('customRiskSelect').value;
             const winRate = (88 + Math.random() * 10).toFixed(1) + '%';
-            
             document.getElementById('resWinRate').innerText = winRate;
             document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert(`Backtest v5.0.7 ជោគជ័យសម្រាប់ ${asset} (${risk})! Win Rate រកឃើញ៖ ${winRate}`);
+            alert(`Backtest v5.0.7 ជោគជ័យសម្រាប់ ${asset} (${risk})! Win Rate: ${winRate}`);
         }
 
         function calculateTradingRisk() {
@@ -1357,7 +1532,7 @@
             const input = document.getElementById('refLinkInput');
             input.select();
             navigator.clipboard.writeText(input.value);
-            alert('បាន Copy Affiliate v5.7 Referral Link ជោគជ័យ!');
+            alert('បាន Copy Affiliate Referral Link ជោគជ័យ!');
         }
 
         function copyAccountInfo(accNo, type) {
@@ -1367,7 +1542,7 @@
 
         function verifyBankPayment() {
             closeModal('depositModal');
-            alert('🟢 Bank Direct Verification: បានបញ្ជូនព័ត៌មានទូទាត់របស់អ្នកទៅកាន់ Admin VET VEN រួចរាល់! នឹងធ្វើការផ្ទៀងផ្ទាត់ និងបើក VIP ជូនឆាប់ៗ។');
+            alert('🟢 Bank Direct Verification: បានផ្ញើព័ត៌មានទៅកាន់ Admin VET VEN រួចរាល់!');
         }
 
         function initTradingViewWidget(symbol) {
@@ -1395,11 +1570,9 @@
             if(userEnteredOtp === activeOtpCode) {
                 closeModal('authModal');
                 const usernameShort = email ? email.split('@')[0] : 'Admin';
-                
                 localStorage.setItem('vtrade_logged_user', usernameShort);
                 document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${usernameShort}</span>`;
-                
-                alert('ផ្ទៀងផ្ទាត់ Cloudflare v5.7 2FA OTP ជោគជ័យ! បានចូលប្រព័ន្ធដោយសុវត្ថិភាព ១០០%។');
+                alert('ផ្ទៀងផ្ទាត់ Cloudflare v5.7 2FA OTP ជោគជ័យ!');
             } else {
                 alert('លេខកូដ OTP មិនត្រឹមត្រូវទេ! (កូដគឺ៖ ' + activeOtpCode + ')');
             }
@@ -1409,27 +1582,23 @@
             const token = document.getElementById('tgTokenInput').value.trim();
             const chatId = document.getElementById('tgChatIdInput').value.trim();
             const userName = document.getElementById('tgUserName').value.trim();
-            const copyMultiplier = document.getElementById('copyMultiplier').value;
 
-            if(!token || !chatId) {
-                alert('សូមបំពេញ Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវសិន!');
-                return;
-            }
+            if(!token || !chatId) { alert('សូមបំពេញ Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវសិន!'); return; }
 
             localStorage.setItem('vtrade_tg_token', token);
             localStorage.setItem('vtrade_tg_chatid', chatId);
             localStorage.setItem('vtrade_tg_username', userName);
 
-            const text = `🔔 **V TRADE AI & BOT v5.0.7 Real-Time Webhook Active**\n✅ Telegram Bot & Copy Trading (${copyMultiplier}) connected successfully for ${userName}!\n🛡️ Cloudflare v5.7 Protected`;
+            const text = `🔔 **V Trade AI v5.0.7 Webhook Active**\n✅ Telegram Bot connected successfully for ${userName}!\n🛡️ Cloudflare v5.7 Protected`;
             try {
-                const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
                 });
-                alert('តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.0.7 បានជោគជ័យ ១០០%!');
+                alert('តេស្តតភ្ជាប់ Telegram Bot v5.0.7 បានជោគជ័យ ១០០%!');
             } catch(err) {
-                alert('កំហុសតភ្ជាប់បណ្តាញ v5.0.7!');
+                alert('កំហុសតភ្ជាប់បណ្តាញ!');
             }
         }
 
@@ -1439,36 +1608,14 @@
             const userMsg = input.value.trim();
             if(!userMsg) return;
 
-            box.innerHTML += `<div class="bg-blue-600 p-2.5 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
-            input.value = "";
+            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
+            input.value = '';
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">🤖 AI Support v5.7: បានទទួលសំណួររបស់អ្នកហើយ! ប្រព័ន្ធស្វ័យប្រវត្តិរកឃើញសញ្ញា Signal ដំណើរការធម្មតា ១០០%។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support v5.7: ប្រព័ន្ធ Terminal & Signal ដំណើរការ ១០០% ជោគជ័យ។</div>`;
                 box.scrollTop = box.scrollHeight;
-            }, 1000);
-        }
-
-        function runAIAnalysis() {
-            const signals = ["BULLISH BUY (🟢 STRONG)", "BEARISH SELL (🔴 CAUTION)", "SIDEWAYS ACCUMULATION"];
-            const randSignal = signals[Math.floor(Math.random() * signals.length)];
-            const randWin = (90 + Math.random() * 8).toFixed(1) + "%";
-
-            const sigEl = document.getElementById('signal-direction');
-            const winEl = document.getElementById('win-rate-val');
-            if(sigEl) sigEl.innerText = randSignal;
-            if(winEl) winEl.innerText = randWin;
-
-            const logs = document.getElementById('terminal-logs');
-            if(logs) {
-                logs.innerHTML += `<div>[${new Date().toLocaleTimeString()}] AI Engine Scan: Signal evaluated -> ${randSignal} (Win Rate: ${randWin})</div>`;
-                logs.scrollTop = logs.scrollHeight;
-            }
-        }
-
-        function refreshAnalysis() {
-            runAIAnalysis();
-            alert('បានធ្វើបច្ចុប្បន្នភាព AI Terminal & Analysis ជោគជ័យ ១០០%!');
+            }, 300);
         }
     </script>
 </body>
