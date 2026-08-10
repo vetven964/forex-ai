@@ -123,9 +123,9 @@
             </button>
             <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
-			</Button>
-			<button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left">
-                 <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis</span>
+            </button>
+            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis</span>
             </button>
         </div>
     </div>
@@ -242,50 +242,52 @@
                     </div>
                 </div>
             </div>
-                <!-- TAB: TERMINAL & ANALYSIS -->
-                <div id="tab-terminal-analysis" class="tab-content hidden space-y-6">
-                    <!-- Header & Refresh Button -->
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
-                        </h2>
-                        <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2">
-                            <i class="fa-solid fa-rotate-right"></i> Refresh Analysis
-                        </button>
+
+            <!-- TAB: TERMINAL & ANALYSIS -->
+            <div id="tab-terminal-analysis" class="tab-content space-y-6">
+                <!-- Header & Refresh Button -->
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
+                    </h2>
+                    <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh Analysis
+                    </button>
+                </div>
+
+                <!-- Analytics Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
+                        <p class="text-xs text-gray-400">Market Signal Direction</p>
+                        <h3 id="signal-direction" class="text-xl font-bold mt-1 text-emerald-400">LOADING...</h3>
+                        <span class="text-xs text-gray-400">Real-time Signal</span>
                     </div>
 
-                    <!-- Analytics Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
-                            <p class="text-xs text-gray-400">Market Signal Direction</p>
-                            <h3 id="signal-direction" class="text-xl font-bold mt-1 text-emerald-400">LOADING...</h3>
-                            <span class="text-xs text-gray-400">Real-time Signal</span>
-                        </div>
-
-                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
-                            <p class="text-xs text-gray-400">AI Win Rate Probability</p>
-                            <h3 id="win-rate-val" class="text-xl font-bold mt-1 text-blue-400">0%</h3>
-                            <span class="text-xs text-gray-400">High Confidence</span>
-                        </div>
-
-                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
-                            <p class="text-xs text-gray-400">ICT FVG Confidence</p>
-                            <h3 id="fvg-confidence" class="text-xl font-bold mt-1 text-amber-400">HIGH</h3>
-                            <span class="text-xs text-gray-400">Pattern Detected</span>
-                        </div>
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-xs text-gray-400">AI Win Rate Probability</p>
+                        <h3 id="win-rate-val" class="text-xl font-bold mt-1 text-blue-400">0%</h3>
+                        <span class="text-xs text-gray-400">High Confidence</span>
                     </div>
 
-                    <!-- Live Terminal Box -->
-                    <div class="glass-panel p-5 rounded-2xl space-y-3">
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
-                        </h3>
-                        <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-sm h-64 overflow-y-auto text-sky-400 space-y-1 border border-gray-800">
-                            <div>[System] Initializing V Trade AI v5.0.7 Core Engine...</div>
-                            <div>[System] Connecting to Cloudflare v5.7 Protected Webhook...</div>
-                        </div>
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
+                        <p class="text-xs text-gray-400">ICT FVG Confidence</p>
+                        <h3 id="fvg-confidence" class="text-xl font-bold mt-1 text-amber-400">HIGH</h3>
+                        <span class="text-xs text-gray-400">Pattern Detected</span>
                     </div>
                 </div>
+
+                <!-- Live Terminal Box -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
+                    </h3>
+                    <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-sm h-64 overflow-y-auto text-sky-400 space-y-1 border border-gray-800">
+                        <div>[System] Initializing V Trade AI v5.0.7 Core Engine...</div>
+                        <div>[System] Connecting to Cloudflare v5.7 Protected Webhook...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB: COPY TRADING BOT SETTINGS -->
             <div id="tab-copytrading" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
@@ -989,6 +991,64 @@
             }
         };
 
+        // --- Session Restoration & Market Prices (បញ្ចូលពី Source 3) ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedUser = localStorage.getItem('vtrade_logged_user');
+            if (savedUser) {
+                const authBtn = document.getElementById('btnAuth');
+                if (authBtn) {
+                    authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
+                }
+            }
+
+            fetchMarketPrices();
+            setInterval(fetchMarketPrices, 30000); 
+            runAIAnalysis();
+        });
+
+        async function fetchMarketPrices() {
+            try {
+                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
+                let data = await res.json();
+                const tickerBtc = document.getElementById('tickerBtc');
+                const tickerEth = document.getElementById('tickerEth');
+                
+                if(data.bitcoin && tickerBtc) tickerBtc.innerText = '$' + data.bitcoin.usd.toLocaleString();
+                if(data.ethereum && tickerEth) tickerEth.innerText = '$' + data.ethereum.usd.toLocaleString();
+            } catch (e) {
+                console.log("Unable to fetch live price updates.");
+            }
+        }
+
+        // --- AI Analysis Logic (បញ្ចូលពី Source 3) ---
+        function refreshAnalysis() {
+            runAIAnalysis();
+        }
+
+        function runAIAnalysis() {
+            const winRateEl = document.getElementById('win-rate-val');
+            const signalEl = document.getElementById('signal-direction');
+            const logs = document.getElementById('terminal-logs'); 
+
+            if (!winRateEl || !signalEl || !logs) return;
+
+            const randomWinRate = (Math.random() * (95 - 78) + 78).toFixed(2);
+            const actions = ["🟢 BUY (LONG)", "🔴 SELL (SHORT)"];
+            const selectedAction = actions[Math.floor(Math.random() * actions.length)];
+
+            winRateEl.innerText = randomWinRate + "%";
+            signalEl.innerText = selectedAction;
+            signalEl.className = selectedAction.includes("BUY") 
+                ? "text-xl font-bold mt-1 text-emerald-400" 
+                : "text-xl font-bold mt-1 text-red-500";
+
+            const timeStr = new Date().toLocaleTimeString();
+            logs.innerHTML += `<div>[${timeStr}] Market scanned successfully.</div>`;
+            logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${selectedAction}</b> | Win Rate: <b class="text-sky-300">${randomWinRate}%</b></div>`;
+            logs.innerHTML += `<div>[${timeStr}] ICT Fair Value Gap (FVG) Pattern Confirmed.</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
         function changeLanguage(lang) {
             const t = translations[lang] || translations.km;
             document.getElementById('txtBrandTitle').innerText = t.brand;
@@ -1019,7 +1079,6 @@
             overlay.classList.toggle('hidden');
         }
 
-        // Toggle Hide and Show Password Function
         function togglePasswordVisibility(inputId, iconId) {
             const inputField = document.getElementById(inputId);
             const iconEl = document.getElementById(iconId);
@@ -1054,7 +1113,6 @@
             backToLoginForm();
         }
 
-        // Sign In to Google Account Simulation
         function loginWithGoogle() {
             closeModal('authModal');
             localStorage.setItem('vtrade_logged_user', 'VET VEN (Google)');
@@ -1062,7 +1120,6 @@
             alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់គណនីសុវត្ថិភាព Cloudflare v5.7។');
         }
 
-        // Render Admin User Table
         function renderAdminTable(data) {
             const tbody = document.getElementById('adminUserTableBody');
             if(!tbody) return;
@@ -1135,7 +1192,6 @@
             }
         }
 
-        // Save Profile Privacy & Security Settings
         function saveProfileSettings() {
             const name = document.getElementById('profileName').value;
             const newPass = document.getElementById('profileNewPass').value;
@@ -1200,11 +1256,6 @@
         window.onload = function() { 
             updateRealTimeData(); 
             renderAdminTable(usersListDB);
-            
-            const savedUser = localStorage.getItem('vtrade_logged_user');
-            if(savedUser) {
-                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
-            }
 
             const savedToken = localStorage.getItem('vtrade_tg_token');
             const savedChatId = localStorage.getItem('vtrade_tg_chatid');
@@ -1253,6 +1304,10 @@
                 } else {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left";
                 }
+            }
+
+            if(tabId === 'terminal-analysis') {
+                runAIAnalysis();
             }
 
             if(tabId === 'tvchart' && !tvWidgetInstance) {
