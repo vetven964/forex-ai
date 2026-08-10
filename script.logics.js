@@ -270,3 +270,17 @@ function saveNewUserToSheet(name, email, level) {
     })
     .catch(err => console.error("Error saving user:", err));
 }
+
+//GoogleSheets
+// ១. ដាក់កូដចាប់ព្រឹត្តិការណ៍ពេលចុច Submit នេះក្នុង File .js
+document.getElementById('yourSubmitButtonId').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // យកតម្លៃពី Input របស់អ្នក (ដូរ ID តាម HTML របស់អ្នក)
+    const name = document.getElementById('userNameInput').value;
+    const email = document.getElementById('userEmailInput').value;
+    const level = document.getElementById('userLevelSelect').value;
+    
+    // ហៅ Function បញ្ជូនទិន្នន័យទៅ Google Sheets
+    saveNewUserToSheet(name, email, level);
+});
