@@ -1,3 +1,4 @@
+require('dotenv').config(); // ត្រូវដាក់បន្ទាត់នេះនៅខាងលើគេបង្អស់[cite: 5]
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const cron = require('node-cron');
@@ -8,8 +9,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configurations
-const TELEGRAM_TOKEN = '8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc';
+// Configurations - ទាញយក Token មកប្រើប្រាស់ដោយសុវត្ថិភាពពី .env[cite: 5]
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 app.use(cors());
