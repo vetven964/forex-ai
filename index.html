@@ -253,7 +253,6 @@
 
             <!-- TAB: TERMINAL & ANALYSIS -->
             <div id="tab-terminal-analysis" class="tab-content space-y-6">
-                <!-- Header & Refresh Button -->
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
@@ -263,7 +262,6 @@
                     </button>
                 </div>
 
-                <!-- Analytics Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
                         <p class="text-xs text-gray-400">Market Signal Direction</p>
@@ -284,7 +282,6 @@
                     </div>
                 </div>
 
-                <!-- Live Terminal Box -->
                 <div class="glass-panel p-5 rounded-2xl space-y-3">
                     <h3 class="text-lg font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
@@ -764,7 +761,6 @@
                 <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
-            <!-- Google Sign In Button -->
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-200 text-gray-900 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md cursor-pointer">
                 <i class="fa-brands fa-google text-red-500"></i> Sign In with Google Account
             </button>
@@ -795,7 +791,6 @@
                 <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 cursor-pointer">បន្តទៅកាន់ការផ្ទៀងផ្ទាត់ 2FA v5</button>
             </div>
 
-            <!-- Forgot Password Section -->
             <div class="space-y-3 hidden" id="forgotPasswordSection">
                 <p class="text-gray-300">សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកដើម្បីទទួលតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មី (Reset Link)៖</p>
                 <div>
@@ -898,7 +893,6 @@
             <p class="text-gray-300">សូមធ្វើការផ្ទេរប្រាក់មកកាន់លេខគណនីខាងក្រោមនេះ រួចផ្ញើ Slip ជូន Admin ដើម្បីបើកសិទ្ធិ VIP ស្វ័យប្រវត្តិ៖</p>
 
             <div class="space-y-3 font-mono">
-                <!-- KHR Account -->
                 <div class="bg-gray-950 p-4 rounded-xl border border-emerald-500/40 flex justify-between items-center">
                     <div>
                         <div class="text-[11px] text-gray-400">ប្រាក់រៀល (KHR Account):</div>
@@ -908,7 +902,6 @@
                     <button onclick="copyAccountInfo('002 145 481', 'KHR')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy KHR</button>
                 </div>
 
-                <!-- USD Account -->
                 <div class="bg-gray-950 p-4 rounded-xl border border-blue-500/40 flex justify-between items-center">
                     <div>
                         <div class="text-[11px] text-gray-400">ប្រាក់ដុល្លារ (USD Account):</div>
@@ -947,7 +940,6 @@
         let currentCurrency = "USD";
         let baseUsdBalance = 1250.00;
 
-        // Mock Database for Admin User List
         let usersListDB = [
             { name: "VET VEN (Owner)", email: "vetven@vtrade.ai", level: "Admin", security: "Protected v5.7 (DDoS ON)", date: "2026-08-09" },
             { name: "Sokha Chan", email: "sokha@vtrade.ai", level: "VIP Pro", security: "Protected v5.7 (DDoS ON)", date: "2026-08-08" },
@@ -999,7 +991,6 @@
             }
         };
 
-        // --- Session Restoration & Market Prices ---
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if (savedUser) {
