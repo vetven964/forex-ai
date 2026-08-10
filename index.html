@@ -42,7 +42,16 @@
             </div>
         </div>
 
-        <div class="hidden xl:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
+        <!-- Live Crypto Ticker Bar & Clock Header -->
+        <div class="hidden lg:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
+            <div class="flex items-center gap-2 text-amber-400 font-mono">
+                <i class="fa-brands fa-bitcoin"></i> BTC: <span id="tickerBtc" class="font-bold text-white">$0.00</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-purple-400 font-mono">
+                <i class="fa-brands fa-ethereum"></i> ETH: <span id="tickerEth" class="font-bold text-white">$0.00</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-blue-400 font-mono">
                 <i class="fa-regular fa-calendar-days"></i>
                 <span id="liveDate">--/--/----</span>
@@ -66,13 +75,13 @@
                 <option value="en">🇬🇧 ENG</option>
                 <option value="zh">🇨🇳 中文</option>
             </select>
-            <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5">
+            <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-wallet"></i><span id="btnDeposit">បង់ប្រាក់ (ABA / Account)</span>
             </button>
-            <button onclick="openModal('authModal')" id="btnAuth" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5">
+            <button onclick="openModal('authModal')" id="btnAuth" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-user-shield"></i><span>Login</span>
             </button>
-            <button onclick="openModal('profileModal')" class="bg-gray-800 hover:bg-gray-700 text-amber-400 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1">
+            <button onclick="openModal('profileModal')" class="bg-gray-800 hover:bg-gray-700 text-amber-400 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer">
                 <i class="fa-solid fa-user-gear"></i>
             </button>
         </div>
@@ -82,7 +91,7 @@
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
             <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.0.7)</h3>
-            <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
             <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium text-left">
@@ -136,52 +145,52 @@
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
             <nav class="space-y-1.5">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
                 </button>
-                <button onclick="switchTab('copytrading')" id="nav-copytrading" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/30">
+                <button onclick="switchTab('copytrading')" id="nav-copytrading" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/30 cursor-pointer">
                     <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto)</span>
                 </button>
-                <button onclick="switchTab('sentiment')" id="nav-sentiment" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/30">
+                <button onclick="switchTab('sentiment')" id="nav-sentiment" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/30 cursor-pointer">
                     <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus</span>
                 </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20">
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20 cursor-pointer">
                     <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
                 </button>
-                <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20">
+                <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20 cursor-pointer">
                     <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer</span>
                 </button>
-                <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/20">
+                <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/20 cursor-pointer">
                     <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
                 </button>
-                <button onclick="switchTab('affiliate')" id="nav-affiliate" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/20">
+                <button onclick="switchTab('affiliate')" id="nav-affiliate" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/20 cursor-pointer">
                     <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate Program ($5 Bonus)</span>
                 </button>
-                <button onclick="switchTab('sessions')" id="nav-sessions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('sessions')" id="nav-sessions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span id="menuSessions">ម៉ោងទីផ្សារ (Asian/NY/London)</span>
                 </button>
-                <button onclick="switchTab('news')" id="nav-news" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('news')" id="nav-news" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span id="menuNews">ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
                 </button>
-                <button onclick="switchTab('pricing')" id="nav-pricing" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('pricing')" id="nav-pricing" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-tags w-5 text-purple-400"></i><span id="menuPricing">កញ្ចប់តម្លៃថ្មី (Pricing)</span>
                 </button>
-                <button onclick="switchTab('telegram')" id="nav-telegram" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('telegram')" id="nav-telegram" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span id="menuTelegram">Telegram Bot & Webhook</span>
                 </button>
-                <button onclick="switchTab('tvchart')" id="nav-tvchart" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('tvchart')" id="nav-tvchart" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span id="menuChart">TradingView Chart</span>
                 </button>
-                <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
+                <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Cloudflare v5 & DDoS Shield</span>
                 </button>
-                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left transition">
+                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left transition cursor-pointer">
                     <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
                     <span>Terminal & Analysis</span>
                 </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
-                <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2">
+                <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2 cursor-pointer">
                     <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v5.7</span>
                 </button>
             </div>
@@ -250,7 +259,7 @@
                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
                     </h2>
-                    <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2">
+                    <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-rotate-right"></i> Refresh Analysis
                     </button>
                 </div>
@@ -302,14 +311,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">ស្ថានភាព Copy Trading Bot</label>
-                            <select id="copyBotState" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500">
+                            <select id="copyBotState" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
                                 <option value="ACTIVE">🟢 ACTIVE (បើកដំណើរការចម្លងស្វ័យប្រវត្តិ)</option>
                                 <option value="PAUSED">🔴 PAUSED (ផ្អាកបណ្តោះអាសន្ន)</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">ទំហំគុណភាគរយទឹកប្រាក់ (Risk Multiplier)</label>
-                            <select id="copyMultiplier" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-emerald-500">
+                            <select id="copyMultiplier" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
                                 <option value="0.5x">0.5x (Safe / ការពារទឹកប្រាក់)</option>
                                 <option value="1.0x" selected>1.0x (Standard / ស្មើ Master Trader)</option>
                                 <option value="2.0x">2.0x (Aggressive / ចំណេញទ្វេដង)</option>
@@ -324,7 +333,7 @@
                         <div class="text-gray-300">Last Copied Order: <b class="text-emerald-400">BTC/USDT BUY @ $94,500 (Success)</b></div>
                     </div>
 
-                    <button onclick="saveCopyTradingSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                    <button onclick="saveCopyTradingSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកការកំណត់ Copy Trading Bot
                     </button>
                 </div>
@@ -356,7 +365,7 @@
                         </div>
                     </div>
 
-                    <button onclick="runAiSentimentScan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2">
+                    <button onclick="runAiSentimentScan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-microchip"></i> រកស្កេន AI Sentiment & Filter ថ្មីឥឡូវនេះ
                     </button>
                 </div>
@@ -370,14 +379,14 @@
                             <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Security</h3>
                             <p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់ ១០០%</p>
                         </div>
-                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2">
+                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
                         </button>
                     </div>
 
                     <div class="flex gap-3 flex-wrap">
                         <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none">
+                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
                             <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
                             <option value="Admin">Admin Level</option>
                             <option value="VIP Pro">VIP Pro v5 ($29)</option>
@@ -420,7 +429,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)</label>
-                            <select id="customAssetSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500">
+                            <select id="customAssetSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
                                 <option value="BTC/USDT">BTC/USDT (Cryptocurrency)</option>
                                 <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
                                 <option value="EUR/USD">EUR/USD (Forex)</option>
@@ -428,7 +437,7 @@
                         </div>
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">កម្រិតប្រឈមហានិភ័យ (Risk Level)</label>
-                            <select id="customRiskSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500">
+                            <select id="customRiskSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
                                 <option value="Low (Conservative)">Low Risk (Conservative - Win Rate ខ្ពស់)</option>
                                 <option value="Medium (Balanced)" selected>Medium Risk (Balanced)</option>
                                 <option value="High (Aggressive)">High Risk (Aggressive - Profit ធំ)</option>
@@ -436,7 +445,7 @@
                         </div>
                     </div>
 
-                    <button onclick="runAiBacktest()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-cyan-600/30 flex items-center justify-center gap-2">
+                    <button onclick="runAiBacktest()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-cyan-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-play"></i> រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server
                     </button>
 
@@ -475,7 +484,7 @@
                         </div>
                     </div>
 
-                    <button onclick="calculateTradingRisk()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2">
+                    <button onclick="calculateTradingRisk()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-calculator"></i> គណនីទឹកប្រាក់ខាត និងចំណេញ (Calculate SL/TP)
                     </button>
 
@@ -514,7 +523,7 @@
                         <label class="text-gray-400 font-bold block">តំណភ្ជាប់ណែនាំរបស់អ្នក (Your Referral Link)</label>
                         <div class="flex gap-2">
                             <input type="text" id="refLinkInput" value="https://t.me/VTradeAIBot?start=REF_VETVEN_V5" readonly class="flex-1 bg-gray-900 border border-gray-700 rounded-xl p-3 text-cyan-400 font-mono font-bold focus:outline-none">
-                            <button onclick="copyRefLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 rounded-xl transition">Copy Link</button>
+                            <button onclick="copyRefLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 rounded-xl transition cursor-pointer">Copy Link</button>
                         </div>
                     </div>
                 </div>
@@ -624,7 +633,7 @@
                             <p class="text-gray-400">សាកល្បងប្រើប្រាស់មុខងារ AI Research និង Telegram Bot ឥតគិតថ្លៃរយៈពេល ៧ថ្ងៃ។</p>
                             <div class="text-2xl font-bold text-white">$0 <span class="text-xs text-gray-400 font-normal">/ ៧ថ្ងៃ</span></div>
                         </div>
-                        <button onclick="selectPricingPlan('Free 7-Day Trial v5', 0)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20">ជ្រើសរើសសាកល្បង</button>
+                        <button onclick="selectPricingPlan('Free 7-Day Trial v5', 0)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">ជ្រើសរើសសាកល្បង</button>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-blue-500/30">
@@ -634,7 +643,7 @@
                             <p class="text-gray-400">សម្រាប់ Trader ចាប់ផ្តើមដំបូង ចង់បានសញ្ញាទៀងទាត់ប្រចាំថ្ងៃ។</p>
                             <div class="text-2xl font-bold text-white">$4.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
                         </div>
-                        <button onclick="selectPricingPlan('Basic AI Signal v5 ($4.99)', 4.99)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">ទិញកញ្ចប់ $4.99</button>
+                        <button onclick="selectPricingPlan('Basic AI Signal v5 ($4.99)', 4.99)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20 cursor-pointer">ទិញកញ្ចប់ $4.99</button>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-purple-500/30">
@@ -644,7 +653,7 @@
                             <p class="text-gray-400">កញ្ចប់ពេញនិយមសម្រាប់ Trader ដែលចង់បានមុខងារកម្រិតខ្ទង់មធ្យម។</p>
                             <div class="text-2xl font-bold text-white">$8.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
                         </div>
-                        <button onclick="selectPricingPlan('Standard AI Bot v5 ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20">ទិញកញ្ចប់ $8.99</button>
+                        <button onclick="selectPricingPlan('Standard AI Bot v5 ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20 cursor-pointer">ទិញកញ្ចប់ $8.99</button>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-amber-500 shadow-xl shadow-amber-500/10 relative overflow-hidden">
@@ -655,7 +664,7 @@
                             <p class="text-gray-400">កញ្ចប់កម្រិតខ្ពស់បំផុត ផ្ដល់សិទ្ធិពេញលេញគ្រប់មុខងារទាំងអស់គ្មានដែនកំណត់។</p>
                             <div class="text-2xl font-bold text-white">$29.00 <span class="text-xs text-amber-400 font-normal">/ ខែ</span></div>
                         </div>
-                        <button onclick="selectPricingPlan('VIP Pro v5.0 AI & Signal ($29.00)', 29)" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-amber-600/30">ទិញកញ្ចប់ VIP $29</button>
+                        <button onclick="selectPricingPlan('VIP Pro v5.0 AI & Signal ($29.00)', 29)" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-amber-600/30 cursor-pointer">ទិញកញ្ចប់ VIP $29</button>
                     </div>
                 </div>
             </div>
@@ -689,7 +698,7 @@
                             <input type="text" id="tgChatIdInput" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
                         </div>
                     </div>
-                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.7</button>
+                    <button onclick="testTelegramIntegration()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 cursor-pointer">តេស្តតភ្ជាប់ Real-Time Webhook & Copy Trading Bot v5.7</button>
                 </div>
             </div>
 
@@ -700,7 +709,7 @@
                         <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.0.7</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
-                    <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+                    <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
                         <option value="BINANCE:BTCUSDT">Bitcoin (BTC/USDT)</option>
                         <option value="BINANCE:ETHUSDT">Ethereum (ETH/USDT)</option>
                         <option value="OANDA:XAUUSD">Gold (XAU/USD)</option>
@@ -753,11 +762,11 @@
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (Cloudflare v5.7 Secured)</h3>
-                <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
             <!-- Google Sign In Button -->
-            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-200 text-gray-900 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-200 text-gray-900 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md cursor-pointer">
                 <i class="fa-brands fa-google text-red-500"></i> Sign In with Google Account
             </button>
 
@@ -775,16 +784,16 @@
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-gray-400">ពាក្យសម្ងាត់ (Password)</label>
-                        <button onclick="showForgotPasswordForm()" class="text-blue-400 hover:underline text-[11px]">ភ្លេចពាក្យសម្ងាត់?</button>
+                        <button onclick="showForgotPasswordForm()" class="text-blue-400 hover:underline text-[11px] cursor-pointer">ភ្លេចពាក្យសម្ងាត់?</button>
                     </div>
                     <div class="relative">
                         <input type="password" id="authPassword" value="password123" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 pr-10 text-white focus:outline-none">
-                        <button type="button" onclick="togglePasswordVisibility('authPassword', 'eyeIcon1')" class="absolute right-3 top-3 text-gray-400 hover:text-white">
+                        <button type="button" onclick="togglePasswordVisibility('authPassword', 'eyeIcon1')" class="absolute right-3 top-3 text-gray-400 hover:text-white cursor-pointer">
                             <i id="eyeIcon1" class="fa-solid fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
-                <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">បន្តទៅកាន់ការផ្ទៀងផ្ទាត់ 2FA v5</button>
+                <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 cursor-pointer">បន្តទៅកាន់ការផ្ទៀងផ្ទាត់ 2FA v5</button>
             </div>
 
             <!-- Forgot Password Section -->
@@ -794,8 +803,8 @@
                     <label class="text-gray-400 mb-1 block">អ៊ីម៉ែលគណនី</label>
                     <input type="email" id="forgotEmailInput" placeholder="example@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
-                <button onclick="submitForgotPassword()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition">ផ្ញើកូដកំណត់ពាក្យសម្ងាត់ថ្មី</button>
-                <button onclick="backToLoginForm()" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded-xl transition">ត្រឡប់ទៅទំព័រ Login វិញ</button>
+                <button onclick="submitForgotPassword()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition cursor-pointer">ផ្ញើកូដកំណត់ពាក្យសម្ងាត់ថ្មី</button>
+                <button onclick="backToLoginForm()" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded-xl transition cursor-pointer">ត្រឡប់ទៅទំព័រ Login វិញ</button>
             </div>
 
             <div class="space-y-3 hidden" id="otpVerificationSection">
@@ -806,7 +815,7 @@
                     <label class="text-gray-400 mb-1 block">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់</label>
                     <input type="text" id="otpInputCode" maxlength="6" placeholder="998877" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-center text-lg font-mono text-emerald-400 font-bold tracking-widest focus:outline-none">
                 </div>
-                <button onclick="verifyOtpAndLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition">ផ្ទៀងផ្ទាត់ និងចូលគណនី v5.7 ១០០%</button>
+                <button onclick="verifyOtpAndLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition cursor-pointer">ផ្ទៀងផ្ទាត់ និងចូលគណនី v5.7 ១០០%</button>
             </div>
         </div>
     </div>
@@ -816,7 +825,7 @@
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-user-gear text-amber-400"></i> Profile Privacy & Security Settings</h3>
-                <button onclick="closeModal('profileModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button onclick="closeModal('profileModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
             <div class="space-y-3">
@@ -828,7 +837,7 @@
                     <label class="text-gray-400 mb-1 block">ប្តូរពាក្យសម្ងាត់ថ្មី (New Password)</label>
                     <div class="relative">
                         <input type="password" id="profileNewPass" placeholder="••••••••" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 pr-10 text-white focus:outline-none">
-                        <button type="button" onclick="togglePasswordVisibility('profileNewPass', 'eyeIcon2')" class="absolute right-3 top-3 text-gray-400 hover:text-white">
+                        <button type="button" onclick="togglePasswordVisibility('profileNewPass', 'eyeIcon2')" class="absolute right-3 top-3 text-gray-400 hover:text-white cursor-pointer">
                             <i id="eyeIcon2" class="fa-solid fa-eye-slash"></i>
                         </button>
                     </div>
@@ -845,7 +854,7 @@
                 </div>
             </div>
 
-            <button onclick="saveProfileSettings()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-600/30">រក្សាទុកការកំណត់ Profile ជោគជ័យ</button>
+            <button onclick="saveProfileSettings()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-600/30 cursor-pointer">រក្សាទុកការកំណត់ Profile ជោគជ័យ</button>
         </div>
     </div>
 
@@ -854,7 +863,7 @@
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-user-plus text-amber-400"></i> បន្ថែមសមាជិកថ្មី (Add User)</h3>
-                <button onclick="closeModal('addUserModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button onclick="closeModal('addUserModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="space-y-3">
                 <div>
@@ -867,7 +876,7 @@
                 </div>
                 <div>
                     <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Level)</label>
-                    <select id="newUserLevelInput" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none">
+                    <select id="newUserLevelInput" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none cursor-pointer">
                         <option value="VIP Pro">💎 VIP Pro v5 ($29)</option>
                         <option value="Standard">⭐ Standard ($8.99)</option>
                         <option value="Basic">🔹 Basic ($4.99)</option>
@@ -875,7 +884,7 @@
                     </select>
                 </div>
             </div>
-            <button onclick="addNewUserRecord()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition">បញ្ជាក់ការបន្ថែម User ថ្មី ១០០%</button>
+            <button onclick="addNewUserRecord()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition cursor-pointer">បញ្ជាក់ការបន្ថែម User ថ្មី ១០០%</button>
         </div>
     </div>
 
@@ -884,7 +893,7 @@
         <div class="glass-panel w-full max-w-lg rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-wallet text-emerald-400"></i> បង់ប្រាក់តាមគណនីធនាគារផ្ទាល់ខ្លួន (VET VEN)</h3>
-                <button onclick="closeModal('depositModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button onclick="closeModal('depositModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
             <p class="text-gray-300">សូមធ្វើការផ្ទេរប្រាក់មកកាន់លេខគណនីខាងក្រោមនេះ រួចផ្ញើ Slip ជូន Admin ដើម្បីបើកសិទ្ធិ VIP ស្វ័យប្រវត្តិ៖</p>
@@ -897,7 +906,7 @@
                         <div class="text-emerald-400 font-bold text-sm tracking-wide">002 145 481</div>
                         <div class="text-white text-[11px]">ឈ្មោះ (Name): <b>VET VEN</b></div>
                     </div>
-                    <button onclick="copyAccountInfo('002 145 481', 'KHR')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition">Copy KHR</button>
+                    <button onclick="copyAccountInfo('002 145 481', 'KHR')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy KHR</button>
                 </div>
 
                 <!-- USD Account -->
@@ -907,11 +916,11 @@
                         <div class="text-blue-400 font-bold text-sm tracking-wide">009 194 195</div>
                         <div class="text-white text-[11px]">ឈ្មោះ (Name): <b>VET VEN</b></div>
                     </div>
-                    <button onclick="copyAccountInfo('009 194 195', 'USD')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition">Copy USD</button>
+                    <button onclick="copyAccountInfo('009 194 195', 'USD')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy USD</button>
                 </div>
             </div>
 
-            <button onclick="verifyBankPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30">ផ្ទៀងផ្ទាត់ការទូទាត់ (Verify Payment)</button>
+            <button onclick="verifyBankPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30 cursor-pointer">ផ្ទៀងផ្ទាត់ការទូទាត់ (Verify Payment)</button>
         </div>
     </div>
 
@@ -920,14 +929,14 @@
         <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[400px] text-xs">
             <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
                 <h3 class="font-bold text-white">AI Support v5.7 (Background Worker Active)</h3>
-                <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+                <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
                 <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI & Bot v5.0.7 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
-                <button onclick="sendChat()" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+                <button onclick="sendChat()" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold cursor-pointer"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -991,7 +1000,7 @@
             }
         };
 
-        // --- Session Restoration & Market Prices (បញ្ចូលពី Source 3) ---
+        // --- Session Restoration & Market Prices ---
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if (savedUser) {
@@ -1020,7 +1029,7 @@
             }
         }
 
-        // --- AI Analysis Logic (បញ្ចូលពី Source 3) ---
+        // --- AI Analysis Logic ---
         function refreshAnalysis() {
             runAIAnalysis();
         }
@@ -1051,17 +1060,29 @@
 
         function changeLanguage(lang) {
             const t = translations[lang] || translations.km;
-            document.getElementById('txtBrandTitle').innerText = t.brand;
-            document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
-            document.getElementById('btnDeposit').innerText = t.deposit;
-            document.getElementById('menuDashboard').innerText = t.dash;
-            document.getElementById('menuSessions').innerText = t.sessions;
-            document.getElementById('menuNews').innerText = t.news;
-            document.getElementById('menuPricing').innerText = t.pricing;
-            document.getElementById('menuTelegram').innerText = t.telegram;
-            document.getElementById('menuChart').innerText = t.chart;
-            document.getElementById('menuSecurity').innerText = t.security;
-            document.getElementById('menuSupport').innerText = t.support;
+            const elBrand = document.getElementById('txtBrandTitle');
+            const elHeaderStatus = document.getElementById('txtHeaderStatus');
+            const elBtnDeposit = document.getElementById('btnDeposit');
+            const elMenuDashboard = document.getElementById('menuDashboard');
+            const elMenuSessions = document.getElementById('menuSessions');
+            const elMenuNews = document.getElementById('menuNews');
+            const elMenuPricing = document.getElementById('menuPricing');
+            const elMenuTelegram = document.getElementById('menuTelegram');
+            const elMenuChart = document.getElementById('menuChart');
+            const elMenuSecurity = document.getElementById('menuSecurity');
+            const elMenuSupport = document.getElementById('menuSupport');
+
+            if(elBrand) elBrand.innerText = t.brand;
+            if(elHeaderStatus) elHeaderStatus.innerText = t.headerStatus;
+            if(elBtnDeposit) elBtnDeposit.innerText = t.deposit;
+            if(elMenuDashboard) elMenuDashboard.innerText = t.dash;
+            if(elMenuSessions) elMenuSessions.innerText = t.sessions;
+            if(elMenuNews) elMenuNews.innerText = t.news;
+            if(elMenuPricing) elMenuPricing.innerText = t.pricing;
+            if(elMenuTelegram) elMenuTelegram.innerText = t.telegram;
+            if(elMenuChart) elMenuChart.innerText = t.chart;
+            if(elMenuSecurity) elMenuSecurity.innerText = t.security;
+            if(elMenuSupport) elMenuSupport.innerText = t.support;
         }
 
         function changeCurrency(curr) {
@@ -1071,23 +1092,26 @@
             else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
             else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
 
-            document.getElementById('userBalanceDisplay').innerText = displayVal;
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if(balanceEl) balanceEl.innerText = displayVal;
         }
 
         function toggleMobileMenu() {
             const overlay = document.getElementById('mobileMenuOverlay');
-            overlay.classList.toggle('hidden');
+            if(overlay) overlay.classList.toggle('hidden');
         }
 
         function togglePasswordVisibility(inputId, iconId) {
             const inputField = document.getElementById(inputId);
             const iconEl = document.getElementById(iconId);
-            if(inputField.type === "password") {
-                inputField.type = "text";
-                iconEl.className = "fa-solid fa-eye text-emerald-400";
-            } else {
-                inputField.type = "password";
-                iconEl.className = "fa-solid fa-eye-slash";
+            if(inputField && iconEl) {
+                if(inputField.type === "password") {
+                    inputField.type = "text";
+                    iconEl.className = "fa-solid fa-eye text-emerald-400";
+                } else {
+                    inputField.type = "password";
+                    iconEl.className = "fa-solid fa-eye-slash";
+                }
             }
         }
 
@@ -1143,8 +1167,8 @@
                         <td class="p-3.5 text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> ${u.security}</td>
                         <td class="p-3.5 font-mono text-gray-400">${u.date}</td>
                         <td class="p-3.5 text-center space-x-2">
-                            <button onclick="alert('បានកែប្រែទិន្នន័យរបស់ ${u.name} ជោគជ័យ!')" class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition font-bold">កែប្រែ</button>
-                            <button onclick="deleteUserRecord(${index})" class="bg-red-600/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition font-bold">លុប</button>
+                            <button onclick="alert('បានកែប្រែទិន្នន័យរបស់ ${u.name} ជោគជ័យ!')" class="bg-blue-600/20 text-blue-400 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition font-bold cursor-pointer">កែប្រែ</button>
+                            <button onclick="deleteUserRecord(${index})" class="bg-red-600/20 text-red-400 px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition font-bold cursor-pointer">លុប</button>
                         </td>
                     </tr>
                 `;
@@ -1264,24 +1288,24 @@
             const savedCopyState = localStorage.getItem('vtrade_copy_state');
             const savedMultiplier = localStorage.getItem('vtrade_copy_multiplier');
 
-            if(savedToken) document.getElementById('tgTokenInput').value = savedToken;
-            if(savedChatId) document.getElementById('tgChatIdInput').value = savedChatId;
+            if(savedToken && document.getElementById('tgTokenInput')) document.getElementById('tgTokenInput').value = savedToken;
+            if(savedChatId && document.getElementById('tgChatIdInput')) document.getElementById('tgChatIdInput').value = savedChatId;
             if(savedPlan) {
-                document.getElementById('selectedPlanInput').value = savedPlan;
-                document.getElementById('currentPlanDisplay').innerText = savedPlan;
+                if(document.getElementById('selectedPlanInput')) document.getElementById('selectedPlanInput').value = savedPlan;
+                if(document.getElementById('currentPlanDisplay')) document.getElementById('currentPlanDisplay').innerText = savedPlan;
             }
-            if(savedUserName) document.getElementById('tgUserName').value = savedUserName;
+            if(savedUserName && document.getElementById('tgUserName')) document.getElementById('tgUserName').value = savedUserName;
             if(savedCopyState) {
-                document.getElementById('copyBotState').value = savedCopyState;
-                document.getElementById('dashCopyStatus').innerText = `Running (${savedMultiplier || '1.0x'})`;
+                if(document.getElementById('copyBotState')) document.getElementById('copyBotState').value = savedCopyState;
+                if(document.getElementById('dashCopyStatus')) document.getElementById('dashCopyStatus').innerText = `Running (${savedMultiplier || '1.0x'})`;
             }
-            if(savedMultiplier) document.getElementById('copyMultiplier').value = savedMultiplier;
+            if(savedMultiplier && document.getElementById('copyMultiplier')) document.getElementById('copyMultiplier').value = savedMultiplier;
         };
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside nav button').forEach(btn => {
-                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left";
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer";
             });
             
             const targetTab = document.getElementById('tab-' + tabId);
@@ -1290,19 +1314,19 @@
             if(targetTab) targetTab.classList.add('active');
             if(targetNav) {
                 if(tabId === 'admin') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40 cursor-pointer";
                 } else if(tabId === 'strategy') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
                 } else if(tabId === 'calculator') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
                 } else if(tabId === 'affiliate') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
                 } else if(tabId === 'copytrading') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
                 } else if(tabId === 'sentiment') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
                 } else {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
                 }
             }
 
@@ -1315,8 +1339,8 @@
             }
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function openModal(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
+        function closeModal(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
         function selectPricingPlan(planName, price) {
             document.getElementById('selectedPlanInput').value = planName;
@@ -1378,7 +1402,7 @@
             alert(`បាន Copy លេខគណនី ${type} (${accNo} - VET VEN) ជោគជ័យ!`);
         }
 
-        async function verifyBankPayment() {
+        function verifyBankPayment() {
             closeModal('depositModal');
             alert('🟢 Bank Direct Verification: បានបញ្ជូនព័ត៌មានទូទាត់របស់អ្នកទៅកាន់ Admin VET VEN រួចរាល់! នឹងធ្វើការផ្ទៀងផ្ទាត់ និងបើក VIP ជូនឆាប់ៗ។');
         }
@@ -1446,7 +1470,7 @@
             }
         }
 
-        async function sendChat() {
+        function sendChat() {
             const input = document.getElementById('chatInput');
             const box = document.getElementById('chatMsgBox');
             const userMsg = input.value.trim();
