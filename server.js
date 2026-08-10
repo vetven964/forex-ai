@@ -294,7 +294,7 @@ app.get('/api/v5/analytics', (req, res) => {
 // ធានាថាមានការกำหนด PORT ត្រឹមត្រូវសម្រាប់ Render
 // Code Delete
 //const PORT = process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🟢 V TRADE AI & BOT v5.0.7 is running smoothly on port ${PORT}`);
 });
