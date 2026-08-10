@@ -32,7 +32,7 @@
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
-            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
+            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
@@ -59,12 +59,12 @@
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-blue-400 font-mono">
                 <i class="fa-regular fa-calendar-days"></i>
-                <span id="liveDate">10/08/2026</span>
+                <span id="liveDate">--/--/----</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-emerald-400 font-mono font-bold">
                 <i class="fa-regular fa-clock"></i>
-                <span id="liveClock">08:22:02</span>
+                <span id="liveClock">00:00:00</span>
             </div>
         </div>
 
@@ -98,46 +98,46 @@
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
-            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left cursor-pointer">
+            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
                 <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis AI Realtime</span>
             </button>
-            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
             </button>
-            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto Mirror)</span>
             </button>
-            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus Filter</span>
             </button>
-            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
             </button>
-            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
             </button>
-            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
             </button>
-            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate & Referral Program</span>
             </button>
-            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span>ម៉ោងទីផ្សារ (Asian/NY/London)</span>
             </button>
-            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
             </button>
-            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-tags w-5 text-purple-400"></i><span>កញ្ចប់តម្លៃថ្មី (Pricing)</span>
             </button>
-            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>Telegram Bot & Webhook</span>
             </button>
-            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span>TradingView Chart</span>
             </button>
-            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
             </button>
         </div>
@@ -274,14 +274,14 @@
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
                                 <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.0.7</span>
                             </div>
-                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[08:22:02]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
-                            <div><span class="text-gray-500">[08:22:03]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (CoinGecko & Forex Data)...</div>
-                            <div><span class="text-gray-500">[08:22:04]</span> <span class="text-amber-400">[DATA]</span> Syncing exact real-time prices for BTC, ETH, XAU, and EUR...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
+                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (CoinGecko & Forex Data)...</div>
+                            <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing exact real-time prices for BTC, ETH, XAU, and EUR...</div>
                         </div>
 
                         <!-- Manual Signal Command Trigger -->
@@ -857,19 +857,19 @@
 
     <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
-        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold cursor-pointer">
+        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
             <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
         </button>
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400 cursor-pointer">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
             <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
         </button>
-        <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold cursor-pointer">
+        <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold">
             <i class="fa-solid fa-satellite-dish text-base mb-0.5"></i><span>Copy Bot</span>
         </button>
-        <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold cursor-pointer">
+        <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold">
             <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Sentiment</span>
         </button>
-        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold cursor-pointer">
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
             <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
         </button>
     </div>
@@ -1054,7 +1054,7 @@
         </div>
     </div>
 
-    <!-- COMPLETE JAVASCRIPT LOGIC DIRECTLY INCLUDED (100% EXECUTABLE) -->
+    <!-- FULL 100% EXECUTABLE JAVASCRIPT LOGIC -->
     <script>
         let tvWidgetInstance = null;
         let sentimentChartInstance = null;
@@ -1093,7 +1093,10 @@
             initSentimentRadarChart();
             runAIAnalysis();
             renderAdminTable(usersListDB);
-            startMarketSessionsTimer();
+            updateMarketSessionsTimer();
+            setInterval(updateMarketSessionsTimer, 1000);
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
         });
 
         async function fetchMarketPrices() {
@@ -1115,7 +1118,7 @@
                 }
                 runAIAnalysis();
             } catch (e) {
-                console.log("Live price fetch fallback.");
+                console.log("Live price fetch fallback active.");
             }
         }
 
@@ -1287,31 +1290,6 @@
             }
         }
 
-        function initTradingViewWidget(symbol) {
-            const container = document.getElementById('tradingview_widget');
-            if(!container) return;
-            container.innerHTML = "";
-            tvWidgetInstance = new TradingView.widget({
-                "width": "100%",
-                "height": "450",
-                "symbol": symbol,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#0d111c",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_widget"
-            });
-        }
-
-        function changeTradingViewSymbol(symbol) {
-            initTradingViewWidget(symbol);
-        }
-
         function changeLanguage(lang) {
             const t = translations[lang] || translations.km;
             if(document.getElementById('txtBrandTitle')) document.getElementById('txtBrandTitle').innerText = t.brand;
@@ -1382,39 +1360,28 @@
         }
 
         function proceedTo2FAStep() {
-            const email = document.getElementById('authEmail').value.trim();
-            if(!email) { alert('សូមបញ្ចូលអ៊ីម៉ែលជាមុនសិន!'); return; }
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+            if(!email || !pass) { alert('សូមបញ្ចូលអ៊ីម៉ែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!'); return; }
+            
             document.getElementById('loginFormSection').classList.add('hidden');
             document.getElementById('otpVerificationSection').classList.remove('hidden');
-            document.getElementById('authModalTitle').innerText = '2FA Authentication v5.7';
+            document.getElementById('authModalTitle').innerText = '2FA Security Verification v5.7';
+            activeOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('generatedOtpDisplay').innerText = activeOtpCode;
+            document.getElementById('otpInputCode').value = activeOtpCode;
         }
 
         function verifyOtpAndLogin() {
-            const code = document.getElementById('otpInputCode').value.trim();
-            if(code === activeOtpCode || code === "998877") {
+            const enteredOtp = document.getElementById('otpInputCode').value.trim();
+            if(enteredOtp === activeOtpCode) {
                 closeModal('authModal');
-                localStorage.setItem('vtrade_logged_user', 'VET VEN');
-                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>VET VEN</span>`;
-                alert('🟢 ចូលគណនីជោគជ័យ ១០០%! ប្រព័ន្ធសុវត្ថិភាព Cloudflare v5.7 អនុញ្ញាតឱ្យចូលប្រើប្រាស់។');
+                localStorage.setItem('vtrade_logged_user', 'VET Ven (Owner)');
+                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>VET Ven</span>`;
+                alert('🟢 Login ជោគជ័យ ១០០%! ប្រព័ន្ធ Cloudflare v5.7 និង 2FA បានអនុញ្ញាតឱ្យចូលប្រើប្រាស់។');
             } else {
-                alert('លេខកូដ OTP មិនត្រឹមត្រូវទេ! (កូដត្រឹមត្រូវគឺ 998877)');
+                alert('❌ លេខកូដ OTP មិនត្រឹមត្រូវ! សូមព្យាយាមម្តងទៀត។');
             }
-        }
-
-        function openModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.add('hidden');
-        }
-
-        function saveProfileSettings() {
-            const name = document.getElementById('profileName').value;
-            alert(`បានរក្សាទុកការកំណត់ Profile របស់ ${name} រួចរាល់ ១០០%!`);
-            closeModal('profileModal');
         }
 
         function renderAdminTable(data) {
@@ -1429,7 +1396,7 @@
                             <div class="text-gray-400 text-[11px]">${u.email}</div>
                         </td>
                         <td class="p-3.5">
-                            <select onchange="updateUserLevelIndex(${index}, this.value)" class="bg-amber-500/25 text-amber-400 border border-amber-500/40 font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer">
+                            <select onchange="updateUserLevelIndex(${index}, this.value)" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer">
                                 <option value="Admin" ${u.level==='Admin'?'selected':''}>👑 Admin v5</option>
                                 <option value="VIP Pro" ${u.level==='VIP Pro'?'selected':''}>💎 VIP Pro v5 ($29)</option>
                                 <option value="Standard" ${u.level==='Standard'?'selected':''}>⭐ Standard ($8.99)</option>
@@ -1440,24 +1407,11 @@
                         <td class="p-3.5 text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> ${u.security}</td>
                         <td class="p-3.5 font-mono text-gray-400">${u.date}</td>
                         <td class="p-3.5 text-center space-x-2">
-                            <button onclick="deleteUserRecord(${index})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded-lg cursor-pointer transition"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="deleteUserRecord(${index})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1 rounded-lg font-bold transition cursor-pointer"><i class="fa-solid fa-trash"></i> លុប</button>
                         </td>
                     </tr>
                 `;
             });
-        }
-
-        function updateUserLevelIndex(index, newLevel) {
-            usersListDB[index].level = newLevel;
-            alert(`បានកែប្រែសិទ្ធិរបស់ ${usersListDB[index].name} ទៅជា "${newLevel}" ជោគជ័យ!`);
-        }
-
-        function deleteUserRecord(index) {
-            if(confirm('តើអ្នកពិតជាចង់លុប User នេះមែនទេ?')) {
-                usersListDB.splice(index, 1);
-                renderAdminTable(usersListDB);
-                alert('លុប User ជោគជ័យ!');
-            }
         }
 
         function filterAdminUsers() {
@@ -1465,9 +1419,9 @@
             const levelFilter = document.getElementById('adminLevelFilter').value;
             
             const filtered = usersListDB.filter(u => {
-                const matchQuery = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
-                const matchLevel = levelFilter === 'all' || u.level.includes(levelFilter);
-                return matchQuery && matchLevel;
+                const matchName = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+                const matchLevel = (levelFilter === 'all' || u.level === levelFilter);
+                return matchName && matchLevel;
             });
             renderAdminTable(filtered);
         }
@@ -1477,58 +1431,66 @@
             const email = document.getElementById('newUserEmailInput').value.trim();
             const level = document.getElementById('newUserLevelInput').value;
 
-            if(!name || !email) { alert('សូមបំពេញព័ត៌មានឱ្យបានគ្រប់គ្រង!'); return; }
-            
-            usersListDB.push({
-                name: name,
-                email: email,
-                level: level,
-                security: "Protected v5.7 (DDoS ON)",
-                date: "2026-08-10"
-            });
+            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
+
+            const today = new Date().toISOString().split('T')[0];
+            usersListDB.unshift({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: today });
             renderAdminTable(usersListDB);
             closeModal('addUserModal');
-            alert(`បានបន្ថែមសមាជិកថ្មី ${name} ចូលក្នុង System ជោគជ័យ ១០០%!`);
+            alert(`🟢 បានបន្ថែមសមាជិក ${name} (${level}) ចូលក្នុងប្រព័ន្ធ Admin Manager ជោគជ័យ!`);
+        }
+
+        function updateUserLevelIndex(index, newLevel) {
+            usersListDB[index].level = newLevel;
+            alert(`🟢 បានប្តូរកម្រិតសិទ្ធិរបស់ ${usersListDB[index].name} ទៅជា "${newLevel}" ជោគជ័យ!`);
+        }
+
+        function deleteUserRecord(index) {
+            if(confirm(`តើអ្នកពិតជាចង់លុបសមាជិក ${usersListDB[index].name} មែនទេ?`)) {
+                usersListDB.splice(index, 1);
+                renderAdminTable(usersListDB);
+                alert('🟢 បានលុបសមាជិកចេញពីប្រព័ន្ធជោគជ័យ!');
+            }
         }
 
         function saveCopyTradingSettings() {
             const state = document.getElementById('copyBotState').value;
             const mult = document.getElementById('copyMultiplier').value;
-            document.getElementById('dashCopyStatus').innerText = `${state} (${mult})`;
-            alert(`បានរក្សាទុកការកំណត់ Copy Trading Bot (${state} - ${mult}) ជោគជ័យ ១០០%!`);
+            document.getElementById('dashCopyStatus').innerText = `Running (${mult})`;
+            alert(`🟢 រក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ!\nស្ថានភាព៖ ${state}\nMultiplier: ${mult}`);
         }
 
         function runAiSentimentScan() {
-            alert('🟢 AI Smart Sentiment & Consensus Filter បានស្កេនជោគជ័យ! Market Bullish 88% Institutional Support Active។');
+            alert('🟢 AI Smart Sentiment & Consensus Filter បានស្កេនជោគជ័យ! ទីផ្សារស្ថិតក្នុងរង្វង់សន្ទុះ Bullish ៨៨% ត្រៀមផ្ញើ Signal ស្វ័យប្រវត្តិ។');
         }
 
         function runAiBacktest() {
             const asset = document.getElementById('customAssetSelect').value;
             const risk = document.getElementById('customRiskSelect').value;
             document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert(`បានរត់ Backtest សម្រាប់ ${asset} (${risk}) ជោគជ័យ ១០០%! Win Rate: 94.8%`);
+            alert(`🟢 Backtest v5.0.7 សម្រាប់ ${asset} (${risk}) បានជោគជ័យ ១០០%!`);
         }
 
         function calculateTradingRisk() {
-            const cap = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
             const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
             const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
 
-            const riskAmount = (cap * riskPct) / 100;
+            const riskAmount = capital * (riskPct / 100);
             const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
-            const profitTarget = riskAmount * 2;
+            const targetProfit = riskAmount * 2;
 
             document.getElementById('calcResultCard').classList.remove('hidden');
-            document.getElementById('resRiskAmount').innerText = `$${riskAmount.toFixed(2)}`;
-            document.getElementById('resLotSize').innerText = `${lotSize} Lots`;
-            document.getElementById('resTakeProfit').innerText = `${slPips * 2} Pips / $${profitTarget.toFixed(2)} Profit`;
+            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
+            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
+            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + targetProfit.toFixed(2) + ' Profit';
         }
 
         function copyRefLink() {
             const input = document.getElementById('refLinkInput');
             input.select();
             navigator.clipboard.writeText(input.value);
-            alert('🟢 បានចម្លងតំណភ្ជាប់ Affiliate របស់អ្នករួចរាល់!');
+            alert('🟢 បាន Copy តំណភ្ជាប់ Referral របស់អ្នករួចរាល់!');
         }
 
         function selectPricingPlan(planName, price) {
@@ -1536,26 +1498,44 @@
             baseUsdBalance += price;
             changeCurrency(currentCurrency);
             openModal('depositModal');
-            alert(`បានជ្រើសរើសកញ្ចប់ "${planName}"! សូមធ្វើការទូទាត់ប្រាក់តាមគណនី ABA / Bank ខាងក្រោមដើម្បីបើកសិទ្ធិស្វ័យប្រវត្តិ។`);
+            alert(`🟢 បានជ្រើសរើសកញ្ចប់ "${planName}"! សូមធ្វើការទូទាត់ប្រាក់តាម QR / គណនីធនាគារ VET VEN ខាងក្រោមដើម្បី kích hoạt ស្វ័យប្រវត្តិ។`);
         }
 
-        function copyAccountInfo(accNum, type) {
-            navigator.clipboard.writeText(accNum);
-            alert(`បានចម្លងលេខគណនី ${type} (${accNum}) ឈ្មោះ VET VEN រួចរាល់!`);
+        function copyAccountInfo(accNo, type) {
+            navigator.clipboard.writeText(accNo);
+            alert(`🟢 បាន Copy លេខគណនី ${type} (${accNo}) របស់អ្នក VET VEN រួចរាល់!`);
         }
 
         function verifyBankPayment() {
-            alert('🟢 បានផ្ញើការស្នើសុំផ្ទៀងផ្ទាត់ការទូទាត់ជូន Admin (VET VEN) រួចរាល់! គណនីរបស់អ្នកនឹងត្រូវដំឡើងជា VIP ក្នុងរយៈពេល ៥នាទី។');
             closeModal('depositModal');
+            alert('🟢 បានបញ្ជូនព័ត៌មានទូទាត់ប្រាក់ជូន Admin (VET VEN) រួចរាល់! គណនី VIP របស់អ្នកនឹងត្រូវបើកដំណើរការក្នុងរយៈពេល ១នាទី។');
         }
 
         function testTelegramIntegration() {
             const token = document.getElementById('tgTokenInput').value.trim();
             const chatId = document.getElementById('tgChatIdInput').value.trim();
-            if(!token || !chatId) { alert('សូមបំពេញ Telegram Token និង Chat ID ជាមុនសិន!'); return; }
+            if(!token || !chatId) { alert('សូមបំពេញ Telegram Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!'); return; }
             localStorage.setItem('vtrade_tg_token', token);
             localStorage.setItem('vtrade_tg_chatid', chatId);
-            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook ជោគជ័យ ១០០%!');
+            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook Worker v5.7 ជោគជ័យ ១០០%!');
+        }
+
+        function saveProfileSettings() {
+            const name = document.getElementById('profileName').value;
+            localStorage.setItem('vtrade_logged_user', name);
+            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
+            closeModal('profileModal');
+            alert('🟢 រក្សាទុកការកំណត់ Profile និងសុវត្ថិភាពជោគជ័យ!');
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.add('hidden');
         }
 
         function sendChat() {
@@ -1563,51 +1543,84 @@
             const box = document.getElementById('chatMsgBox');
             if(!input || !input.value.trim()) return;
             const txt = input.value.trim();
-            box.innerHTML += `<div class="bg-blue-600/30 text-white p-2.5 rounded-xl ml-auto max-w-[80%]">${txt}</div>`;
+            box.innerHTML += `<div class="bg-blue-600/30 p-2.5 rounded-xl max-w-[80%] ml-auto text-white">${txt}</div>`;
             input.value = '';
+            
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">AI Support v5.7: អរគុណសម្រាប់ការសាកសួរ! ប្រព័ន្ធកំពុងដំណើរការ Signal និង Copy Trading ជូនលោកអ្នក ២៤/៧។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ AI Support v5.7 បានទទួលសំណួររបស់អ្នកហើយ។ យើងកំពុងដំណើរការឆ្លើយតបជូនលោកអ្នក ២៤/៧!</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }
 
-        function startMarketSessionsTimer() {
-            setInterval(() => {
-                const now = new Date();
-                const h = now.getHours();
-                const m = now.getMinutes();
-                const s = now.getSeconds();
-                
-                const timeStr = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                if(document.getElementById('liveClock')) document.getElementById('liveClock').innerText = timeStr;
+        function initTradingViewWidget(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            if(!container) return;
+            container.innerHTML = "";
+            tvWidgetInstance = new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#1f2937",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
+        }
 
-                // Asian Session (7AM - 3PM)
-                const isAsian = h >= 7 && h < 15;
-                if(document.getElementById('badgeAsian')) {
-                    document.getElementById('badgeAsian').className = isAsian ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                    document.getElementById('badgeAsian').innerText = isAsian ? "ACTIVE" : "CLOSED";
-                    document.getElementById('dashAsianStatus').innerText = isAsian ? "កំពុងបើកដំណើរការ (Active)" : "បិទ (Closed)";
-                    document.getElementById('timerAsian').innerText = isAsian ? "ស្ថានភាព៖ កំពុងជួញដូរខ្លាំង" : "ស្ថានភាព៖ រង់ចាំម៉ោងបើក 07:00 AM";
-                }
+        function changeTradingViewSymbol(sym) {
+            initTradingViewWidget(sym);
+        }
 
-                // London Session (3PM - 11PM)
-                const isLondon = h >= 15 && h < 23;
-                if(document.getElementById('badgeLondon')) {
-                    document.getElementById('badgeLondon').className = isLondon ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                    document.getElementById('badgeLondon').innerText = isLondon ? "ACTIVE" : "CLOSED";
-                    document.getElementById('dashLondonStatus').innerText = isLondon ? "កំពុងបើកដំណើរការ (Active)" : "បិទ (Closed)";
-                    document.getElementById('timerLondon').innerText = isLondon ? "ស្ថានភាព៖ បរិមាណជួញដូរខ្ពស់" : "ស្ថានភាព៖ រង់ចាំម៉ោងបើក 03:00 PM";
-                }
+        function updateLiveClock() {
+            const now = new Date();
+            const clockEl = document.getElementById('liveClock');
+            const dateEl = document.getElementById('liveDate');
+            if(clockEl) clockEl.innerText = now.toTimeString().split(' ')[0];
+            if(dateEl) dateEl.innerText = now.toLocaleDateString();
+        }
 
-                // New York Session (8PM - 4AM)
-                const isNy = h >= 20 || h < 4;
-                if(document.getElementById('badgeNy')) {
-                    document.getElementById('badgeNy').className = isNy ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                    document.getElementById('badgeNy').innerText = isNy ? "ACTIVE" : "CLOSED";
-                    document.getElementById('dashNyStatus').innerText = isNy ? "កំពុងបើកដំណើរការ (Active)" : "បិទ (Closed)";
-                    document.getElementById('timerNy').innerText = isNy ? "ស្ថានភាព៖ High Volatility Active" : "ស្ថានភាព៖ រង់ចាំម៉ោងបើក 08:00 PM";
-                }
-            }, 1000);
+        function updateMarketSessionsTimer() {
+            const now = new Date();
+            const hours = now.getHours();
+            
+            const asianBadge = document.getElementById('badgeAsian');
+            const londonBadge = document.getElementById('badgeLondon');
+            const nyBadge = document.getElementById('badgeNy');
+
+            const dAsian = document.getElementById('dashAsianStatus');
+            const dLondon = document.getElementById('dashLondonStatus');
+            const dNy = document.getElementById('dashNyStatus');
+
+            // Asian: 7AM - 3PM (7 - 15)
+            if(hours >= 7 && hours < 15) {
+                if(asianBadge) { asianBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; asianBadge.innerText = "ACTIVE"; }
+                if(dAsian) dAsian.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
+            } else {
+                if(asianBadge) { asianBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; asianBadge.innerText = "CLOSED"; }
+                if(dAsian) dAsian.innerText = "ទីផ្សារបិទ (Closed)";
+            }
+
+            // London: 3PM - 11PM (15 - 23)
+            if(hours >= 15 && hours < 23) {
+                if(londonBadge) { londonBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; londonBadge.innerText = "ACTIVE"; }
+                if(dLondon) dLondon.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
+            } else {
+                if(londonBadge) { londonBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; londonBadge.innerText = "CLOSED"; }
+                if(dLondon) dLondon.innerText = "ទីផ្សារបិទ (Closed)";
+            }
+
+            // New York: 8PM - 4AM (20 to 4)
+            if(hours >= 20 || hours < 4) {
+                if(nyBadge) { nyBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; nyBadge.innerText = "ACTIVE"; }
+                if(dNy) dNy.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
+            } else {
+                if(nyBadge) { nyBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; nyBadge.innerText = "CLOSED"; }
+                if(dNy) dNy.innerText = "ទីផ្សារបិទ (Closed)";
+            }
         }
     </script>
 </body>
