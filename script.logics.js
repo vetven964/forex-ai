@@ -214,3 +214,59 @@ function saveNewUserToStorage(name, email, level) {
     savedUsers.push(newUser);
     localStorage.setItem('forexai_users', JSON.stringify(savedUsers));
 }
+
+//Google Sheets
+// ដាក់ URL របស់ Google Apps Script Web App ដែលបាន Deploy រួចនៅទីនេះ
+const WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+
+// ១. ទាញទិន្នន័យពី Google Sheets មកបង្ហាញស្វ័យប្រវត្តិពេល Refresh ទំព័រ
+document.addEventListener('DOMContentLoaded', () => {
+    loadUsersFromSheet();
+});
+
+function loadUsersFromSheet() {
+    fetch(WEB_APP_URL)
+        .then(res => res.json())
+        .then(users => {
+            const tableBody = document.querySelector('tbody');
+            if (!tableBody) return;
+            
+            // សម្អាតตารางចាស់មុននឹងបញ្ចូលទិន្នន័យថ្មី
+            tableBody.innerHTML = '';
+            
+            users.forEach(user => {
+                const newRow = `
+                    <tr>
+                        <td>${user.name}<br><small>${user.email}</small></td>
+                        <td><span class="badge">${user.level}</span></td>
+                        <td>Protected v5.7 (DDoS ON)</td>
+                        <td>${user.date}</td>
+                        <td><button class="btn-delete" style="background:red; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">លុប</button></td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', newRow);
+            });
+        })
+        .catch(err => console.error("Error loading users:", err));
+}
+
+// ២. មុខងារសម្រាប់បញ្ជូន User ថ្មីទៅកាន់ Google Sheets (ត្រូវយកទៅហៅក្នុងព្រឹត្តិការណ៍ Submit របស់ Form)
+function saveNewUserToSheet(name, email, level) {
+    const userData = {
+        name: name,
+        email: email,
+        level: level,
+        date: new Date().toISOString().split('T')[0]
+    };
+
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify(userData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Success:", data);
+        location.reload(); // Refresh ទំព័រស្វ័យប្រវត្តិក្រោយពេល Save ជោគជ័យ
+    })
+    .catch(err => console.error("Error saving user:", err));
+}
