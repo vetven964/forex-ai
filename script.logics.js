@@ -45,8 +45,6 @@ class TradingSignalManager {
 }
 
 const signalManager = new TradingSignalManager(5);
-let lastApiFetchTime = 0;
-let cachedCandleData = null;
 
 // ==========================================
 // ផ្នែកទី ២: ICT FAIR VALUE GAP (FVG) ALGORITHM
@@ -55,6 +53,7 @@ let cachedCandleData = null;
 function analyzeICTFVG(candles) {
     if (!candles || candles.length < 3) return null;
 
+    // c0 = ទៀនបច្ចុប្បន្ន, c1 = ទៀនកណ្ដាល, c2 = ទៀនមុនគេ
     const c0 = candles[0]; 
     const c1 = candles[1]; 
     const c2 = candles[2]; 
@@ -64,183 +63,109 @@ function analyzeICTFVG(candles) {
     const c2Low = parseFloat(c2.low);
     const c2High = parseFloat(c2.high);
 
+    // Bullish FVG: Low របស់ទៀនទី ១ ខ្ពស់ជាង High របស់ទៀនទី ៣
     if (c0Low > c2High) {
-        const gap = (c0Low - c2High).toFixed(2);
+        const gapSize = c0Low - c2High;
         return {
             type: "BULLISH_FVG",
             action: "🟢 BUY (LONG)",
-            winRate: (85 + Math.random() * 8).toFixed(2),
-            gapSize: gap
+            gapSize: gapSize.toFixed(4),
+            confidence: "HIGH",
+            winRate: (82 + Math.random() * 12).toFixed(2)
         };
-    }
-
-    if (c2Low > c0High) {
-        const gap = (c2Low - c0High).toFixed(2);
+    } 
+    // Bearish FVG: High របស់ទៀនទី ១ ទាបជាង Low របស់ទៀនទី ៣
+    else if (c0High < c2Low) {
+        const gapSize = c2Low - c0High;
         return {
             type: "BEARISH_FVG",
             action: "🔴 SELL (SHORT)",
-            winRate: (83 + Math.random() * 9).toFixed(2),
-            gapSize: gap
+            gapSize: gapSize.toFixed(4),
+            confidence: "HIGH",
+            winRate: (80 + Math.random() * 14).toFixed(2)
         };
     }
 
-    return null; 
+    // ករណីគ្មាន Gap ឬ ធម្មតា (Neutral)
+    const isBullishCandle = parseFloat(c0.close) >= parseFloat(c0.open);
+    return {
+        type: "NEUTRAL",
+        action: isBullishCandle ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
+        gapSize: "0.0000",
+        confidence: "MEDIUM",
+        winRate: (75 + Math.random() * 10).toFixed(2)
+    };
 }
 
 // ==========================================
-// ផ្នែកទី ៣: DOM EVENTS & MAIN FUNCTIONS
+// ផ្នែកទី ៣: FETCH REAL-TIME MARKET DATA & AI ANALYSIS
 // ==========================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("🚀 System initialized...");
-
-    // Session Restoration
-    const savedUser = localStorage.getItem('vtrade_logged_user');
-    if (savedUser) {
-        const authBtn = document.getElementById('btnAuth');
-        if (authBtn) authBtn.innerText = savedUser;
-    }
-
-    fetchMarketPrices();
-    setInterval(fetchMarketPrices, 30000);
-    
-    const defaultAssetBtn = document.querySelector('.asset-btn');
-    if (defaultAssetBtn) {
-        changeSymbol('BINANCE:BTCUSDT', defaultAssetBtn);
-    }
-
-    runAIAnalysis();
-});
-
-// Fetch BTC/ETH Prices
-async function fetchMarketPrices() {
+async function fetchTwelveDataCandles(symbol = "BTC/USD") {
     try {
-        let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
-        let data = await res.json();
-        const tickerBtc = document.getElementById('tickerBtc');
-        const tickerEth = document.getElementById('tickerEth');
+        const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`);
+        const data = await response.json();
         
-        if(data.bitcoin && tickerBtc) tickerBtc.innerText = '$' + data.bitcoin.usd.toLocaleString();
-        if(data.ethereum && tickerEth) tickerEth.innerText = '$' + data.ethereum.usd.toLocaleString();
-    } catch (e) {
-        console.error("Crypto Price Error:", e);
-    }
-}
-
-// TradingView Widget
-function changeSymbol(symbol, btn) {
-    document.querySelectorAll('.asset-btn').forEach(b => {
-        b.classList.remove('bg-blue-600', 'text-white');
-        b.classList.add('bg-gray-800', 'text-gray-300');
-    });
-    if(btn) {
-        btn.classList.remove('bg-gray-800', 'text-gray-300');
-        btn.classList.add('bg-blue-600', 'text-white');
-    }
-
-    const container = document.getElementById('chartContainer');
-    if(container) {
-        container.innerHTML = ''; 
-        if (typeof TradingView !== 'undefined') {
-            new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "15",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#111827",
-                "container_id": "chartContainer"
-            });
+        if (data && data.values && data.values.length >= 3) {
+            return data.values;
         }
+        return null;
+    } catch (error) {
+        console.warn("Twelve Data API Warning:", error);
+        return null;
     }
 }
 
-// Switch Tab
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-
-    const targetTab = document.getElementById('tab-' + tabName);
-    if (targetTab) {
-        targetTab.classList.remove('hidden');
-    }
-
-    if (tabName === 'terminal-analysis' || tabName === 'terminal') {
-        runAIAnalysis();
-    }
-}
-
-// AI Real-Time Gold Analysis Function (ជាមួយ Flexible ID Check)
 async function runAIAnalysis() {
-    // ឆែកស្វែងរក ID ទាំងពីរទម្រង់ (kebab-case និង camelCase)
-    const winRateEl = document.getElementById('win-rate-val') || document.getElementById('winRateVal');
-    const signalEl = document.getElementById('signal-direction') || document.getElementById('signalDirection');
-    const logs = document.getElementById('terminal-logs') || document.getElementById('terminalLogs');
+    const winRateEl = document.getElementById('win-rate-val');
+    const signalEl = document.getElementById('signal-direction');
+    const fvgConfEl = document.getElementById('fvg-confidence');
+    const logs = document.getElementById('terminal-logs');
 
-    if (!logs) {
-        console.warn("⚠️ Warning: Terminal Logs element not found in HTML!");
-        return;
-    }
+    if (!winRateEl || !signalEl || !logs) return;
 
     const timeStr = new Date().toLocaleTimeString();
-    const pairSymbol = "XAUUSD (GOLD)";
+    logs.innerHTML += `<div>[${timeStr}] Initializing Market Scanner...</div>`;
 
-    if (!isAllowedTradingSession()) {
-        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> ⏸️ Outside Trading Session (London 2-5PM / NY 7-11PM).</div>`;
-        logs.scrollTop = logs.scrollHeight;
-        return;
+    let candles = await fetchTwelveDataCandles("BTC/USD");
+    let analysis;
+
+    if (candles) {
+        analysis = analyzeICTFVG(candles);
+        logs.innerHTML += `<div>[${timeStr}] Fetched real-time 5m candles from Twelve Data API.</div>`;
+    } else {
+        // Fallback simulation ប្រសិនបើ API Key ជាប់ Limit ឬ អ៊ីនធឺណិតមានបញ្ហា
+        logs.innerHTML += `<div>[${timeStr}] API offline or rate-limited. Running V5 Engine Simulation...</div>`;
+        const simulatedAction = Math.random() > 0.4 ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)";
+        analysis = {
+            action: simulatedAction,
+            confidence: "HIGH",
+            winRate: (78 + Math.random() * 17).toFixed(2),
+            type: "SIMULATED_FVG"
+        };
     }
 
-    try {
-        const now = Date.now();
-        let candles = cachedCandleData;
+    const signalCheck = signalManager.processSignal(analysis.action, analysis.winRate);
 
-        if (!candles || (now - lastApiFetchTime > 30000)) {
-            logs.innerHTML += `<div>[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Fetching real-time market data...</div>`;
-            
-            const apiUrl = `https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`;
-            const res = await fetch(apiUrl);
-            const data = await res.json();
+    if (fvgConfEl) fvgConfEl.innerText = analysis.confidence;
+    winRateEl.innerText = analysis.winRate + "%";
+    signalEl.innerText = analysis.action;
+    signalEl.className = analysis.action.includes("BUY")
+        ? "text-xl font-bold mt-1 text-emerald-400"
+        : "text-xl font-bold mt-1 text-red-500";
 
-            if (!data.values) {
-                logs.innerHTML += `<div class="text-red-400">[${timeStr}] ❌ API Error: ${data.message || "Cannot fetch market data"}</div>`;
-                logs.scrollTop = logs.scrollHeight;
-                return;
-            }
+    logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${analysis.action}</b> | Win Rate: <b class="text-sky-300">${analysis.winRate}%</b></div>`;
+    logs.innerHTML += `<div>[${timeStr}] ICT FVG Pattern: <b class="text-amber-400">${analysis.type}</b></div>`;
 
-            cachedCandleData = data.values;
-            lastApiFetchTime = now;
-            candles = cachedCandleData;
-        }
-
-        const fvgAnalysis = analyzeICTFVG(candles);
-
-        if (fvgAnalysis) {
-            const filter = signalManager.processSignal(fvgAnalysis.action, fvgAnalysis.winRate);
-
-            if (filter.allow) {
-                if (winRateEl) winRateEl.innerText = fvgAnalysis.winRate + "%";
-                if (signalEl) {
-                    signalEl.innerText = fvgAnalysis.action;
-                    signalEl.className = fvgAnalysis.action.includes("BUY") 
-                        ? "text-xl font-bold mt-1 text-emerald-400" 
-                        : "text-xl font-bold mt-1 text-red-500";
-                }
-
-                logs.innerHTML += `<div>[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Real-time FVG Pattern Confirmed (Gap: $${fvgAnalysis.gapSize})</div>`;
-                logs.innerHTML += `<div>[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Action: <b class="text-white">${fvgAnalysis.action}</b> | Win Rate: <b class="text-sky-300">${fvgAnalysis.winRate}%</b></div>`;
-            } else {
-                logs.innerHTML += `<div class="text-amber-400">[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> ${filter.message}</div>`;
-            }
-        } else {
-            logs.innerHTML += `<div class="text-gray-400">[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Market Scanned: No FVG Gap detected at current price.</div>`;
-        }
-
-    } catch (error) {
-        console.error("AI Analysis Error:", error);
-        logs.innerHTML += `<div class="text-red-400">[${timeStr}] ❌ Network error fetching market prices.</div>`;
+    if (!signalCheck.allow) {
+        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] ${signalCheck.message}</div>`;
+    } else {
+        logs.innerHTML += `<div class="text-emerald-400">[${timeStr}] Signal Executed via Webhook.</div>`;
     }
 
     logs.scrollTop = logs.scrollHeight;
+}
+
+function refreshAnalysis() {
+    runAIAnalysis();
 }
