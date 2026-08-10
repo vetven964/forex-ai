@@ -5,11 +5,11 @@
 // API Key របស់បងទទួលបានពី Twelve Data
 const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e"; 
 
-// ឆែកមើលម៉ោង Trading Session (London & NY)
+// ឆែកមើលម៉ោង Trading Session (London & NY - UTC+7)
 function isAllowedTradingSession() {
     const hours = new Date().getHours();
-    const isLondon = (hours >= 14 && hours < 17);  // 14:00 - 17:00
-    const isNewYork = (hours >= 19 && hours < 23); // 19:00 - 23:00
+    const isLondon = (hours >= 14 && hours < 17);  // 14:00 - 17:00 (២:០០ - ៥:០០ ល្ងាច)
+    const isNewYork = (hours >= 19 && hours < 23); // 19:00 - 23:00 (៧:០០ - ១១:០០ យប់)
     return isLondon || isNewYork;
 }
 
@@ -24,9 +24,21 @@ class TradingSignalManager {
     processSignal(newAction, winRate) {
         const now = Date.now();
 
+        // 1. ឆែកមើល Session
+        if (!isAllowedTradingSession()) {
+            return { 
+                allow: false, 
+                message: "⏸️ Outside Trading Session (London/NY). Signal paused." 
+            };
+        }
+
+        // 2. ឆែកមើល Cooldown Lock
         if (this.activeAction && (now - this.lastSignalTime < this.cooldownMs)) {
             const remainingSec = Math.ceil((this.cooldownMs - (now - this.lastSignalTime)) / 1000);
-            return { allow: false, message: `🔒 Signal locked on [${this.activeAction}]. Cooldown: ${remainingSec}s.` };
+            return { 
+                allow: false, 
+                message: `🔒 Signal locked on [${this.activeAction}]. Cooldown: ${remainingSec}s.` 
+            };
         }
 
         this.activeAction = newAction;
@@ -37,6 +49,10 @@ class TradingSignalManager {
 
 const signalManager = new TradingSignalManager(5); // Lock Signal 5 នាទី
 
+// Variable សម្រាប់រៀបចំ Caching ទិន្នន័យ (ការពារ Rate Limit API)
+let lastApiFetchTime = 0;
+let cachedCandleData = null;
+
 // ==========================================
 // ផ្នែកទី ២: ICT FAIR VALUE GAP (FVG) ALGORITHM
 // ==========================================
@@ -45,7 +61,7 @@ const signalManager = new TradingSignalManager(5); // Lock Signal 5 នាទី
 function analyzeICTFVG(candles) {
     if (!candles || candles.length < 3) return null;
 
-    // TwelveData ផ្តល់ទិន្នន័យពីថ្មីទៅចាស់ (0 = Candle បច្ចុប្បន្ន, 1 = Candle មុន, 2 = Candle ២ មុន)
+    // TwelveData: 0 = Candle បច្ចុប្បន្ន, 1 = Candle មុន, 2 = Candle ២ មុន
     const c0 = candles[0]; 
     const c1 = candles[1]; 
     const c2 = candles[2]; 
@@ -55,7 +71,7 @@ function analyzeICTFVG(candles) {
     const c2Low = parseFloat(c2.low);
     const c2High = parseFloat(c2.high);
 
-    // 1. ពិនិត្យមើល Bullish FVG (ចន្លោះប្រហោងឡើងលើ)
+    // 1. Bullish FVG (ចន្លោះប្រហោងឡើងលើ)
     if (c0Low > c2High) {
         const gap = (c0Low - c2High).toFixed(2);
         return {
@@ -66,7 +82,7 @@ function analyzeICTFVG(candles) {
         };
     }
 
-    // 2. ពិនិត្យមើល Bearish FVG (ចន្លោះប្រហោងចុះក្រោម)
+    // 2. Bearish FVG (ចន្លោះប្រហោងចុះក្រោម)
     if (c2Low > c0High) {
         const gap = (c2Low - c0High).toFixed(2);
         return {
@@ -77,16 +93,15 @@ function analyzeICTFVG(candles) {
         };
     }
 
-    return null; // គ្មាន FVG Pattern ទេ
+    return null; 
 }
 
 // ==========================================
 // ផ្នែកទី ៣: DOM EVENTS & MAIN FUNCTIONS
 // ==========================================
 
-// --- ផ្នែកការពារការដាច់ Login ពេល Refresh (Session Restoration) និងដំណើរការទិន្នន័យ ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. ឆែកមើល localStorage ថាតើធ្លាប់ Login រួចរាល់ហើយឬនៅ
+    // Session Restoration
     const savedUser = localStorage.getItem('vtrade_logged_user');
     if (savedUser) {
         const authBtn = document.getElementById('btnAuth');
@@ -96,21 +111,21 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Session restored successfully for user:", savedUser);
     }
 
-    // 2. ដំណើរការទិន្នន័យទីផ្សារ Crypto ពេល Load
+    // Crypto market status
     fetchMarketPrices();
-    setInterval(fetchMarketPrices, 30000); // 30 sec interval
+    setInterval(fetchMarketPrices, 30000); // 30 sec
     
-    // 3. Default load BTC Chart
+    // Default load BTC Chart
     const defaultAssetBtn = document.querySelector('.asset-btn');
     if (defaultAssetBtn) {
         changeSymbol('BINANCE:BTCUSDT', defaultAssetBtn);
     }
 
-    // 4. ដំណើរការវិភាគ AI ទាញយកទិន្នន័យ XAU/USD Real-time
+    // AI Analysis Load
     runAIAnalysis();
 });
 
-// --- Function សម្រាប់ទាញយកតម្លៃទីផ្សារ BTC/ETH ---
+// Fetch BTC/ETH Prices
 async function fetchMarketPrices() {
     try {
         let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd');
@@ -128,7 +143,7 @@ async function fetchMarketPrices() {
     }
 }
 
-// --- Function សម្រាប់រៀបចំ TradingView Chart ---
+// TradingView Widget
 function changeSymbol(symbol, btn) {
     document.querySelectorAll('.asset-btn').forEach(b => {
         b.classList.remove('bg-blue-600', 'text-white');
@@ -158,7 +173,7 @@ function changeSymbol(symbol, btn) {
     }
 }
 
-// --- Function សម្រាប់ប្តូរ Tab ---
+// Switch Tab
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
 
@@ -172,7 +187,7 @@ function switchTab(tabName) {
     }
 }
 
-// --- AI Analysis Logic (សម្រាប់ការវាយបញ្ចូលដោយផ្ទាល់) ---
+// Manual Query Analysis
 async function runRealTimeAnalysis() {
     const inputField = document.getElementById('terminalInput');
     const logsBox = document.getElementById('terminalLogs'); 
@@ -192,7 +207,7 @@ async function runRealTimeAnalysis() {
     }, 1000);
 }
 
-// --- Function សម្រាប់ទាញយកតម្លៃមាស Real-Time និងវិភាគ FVG ---
+// Run AI Real-Time Gold Analysis
 async function runAIAnalysis() {
     const winRateEl = document.getElementById('win-rate-val');
     const signalEl = document.getElementById('signal-direction');
@@ -203,28 +218,43 @@ async function runAIAnalysis() {
     const timeStr = new Date().toLocaleTimeString();
     const pairSymbol = "XAUUSD (GOLD)";
 
-    try {
-        logs.innerHTML += `<div>[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Fetching real-time market data...</div>`;
-        
-        // ទាញយក Candle Data M5 នៃ XAU/USD ពី Twelve Data API
-        const apiUrl = `https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`;
-        const res = await fetch(apiUrl);
-        const data = await res.json();
+    // 1. ឆែកមើល Session សិន
+    if (!isAllowedTradingSession()) {
+        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> ⏸️ Outside Trading Session (London 2-5PM / NY 7-11PM). Signal paused.</div>`;
+        logs.scrollTop = logs.scrollHeight;
+        return;
+    }
 
-        if (!data.values) {
-            logs.innerHTML += `<div class="text-red-400">[${timeStr}] ❌ API Error: ${data.message || "Cannot fetch market data"}</div>`;
-            logs.scrollTop = logs.scrollHeight;
-            return;
+    try {
+        const now = Date.now();
+        let candles = cachedCandleData;
+
+        // 2. ឆែកមើលថាត្រូវ Fetch ថ្មី ឬប្រើ Cache (រង់ចាំយ៉ាងតិច 30s មុន Fetch ម្ដងទៀត)
+        if (!candles || (now - lastApiFetchTime > 30000)) {
+            logs.innerHTML += `<div>[${timeStr}] <b class="text-yellow-400">[${pairSymbol}]</b> Fetching real-time market data...</div>`;
+            
+            const apiUrl = `https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`;
+            const res = await fetch(apiUrl);
+            const data = await res.json();
+
+            if (!data.values) {
+                logs.innerHTML += `<div class="text-red-400">[${timeStr}] ❌ API Error: ${data.message || "Cannot fetch market data"}</div>`;
+                logs.scrollTop = logs.scrollHeight;
+                return;
+            }
+
+            cachedCandleData = data.values;
+            lastApiFetchTime = now;
+            candles = cachedCandleData;
         }
 
-        // វិភាគ FVG Pattern លើ Candle ពិតប្រាកដ
-        const fvgAnalysis = analyzeICTFVG(data.values);
+        // 3. វិភាគ FVG Pattern
+        const fvgAnalysis = analyzeICTFVG(candles);
 
         if (fvgAnalysis) {
             const filter = signalManager.processSignal(fvgAnalysis.action, fvgAnalysis.winRate);
 
             if (filter.allow) {
-                // Update UI ពេលឆ្លងផុត Filter
                 winRateEl.innerText = fvgAnalysis.winRate + "%";
                 signalEl.innerText = fvgAnalysis.action;
                 signalEl.className = fvgAnalysis.action.includes("BUY") 
