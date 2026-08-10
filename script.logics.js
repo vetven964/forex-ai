@@ -1,3 +1,71 @@
+// ==========================================
+// ផ្នែកទី ១: TRADING SESSION & SIGNAL LOCK LOGIC
+// ==========================================
+
+// ឆែកមើលម៉ោង Trading Session (London & NY - UTC+7 Cambodia)
+function isAllowedTradingSession() {
+    const hours = new Date().getHours();
+    const isLondon = (hours >= 14 && hours < 17);  // 14:00 - 17:00 (២:០០ ល្ងាច - ៥:០០ ល្ងាច)
+    const isNewYork = (hours >= 19 && hours < 23); // 19:00 - 23:00 (៧:០០ យប់ - ១១:០០ យប់)
+    return isLondon || isNewYork;
+}
+
+// Class សម្រាប់គ្រប់គ្រង Signal ការពារការ Flip-Flop ដូរចុះឡើង
+class TradingSignalManager {
+    constructor(cooldownMinutes = 5) {
+        this.activeAction = null;
+        this.activeWinRate = null;
+        this.lastSignalTime = 0;
+        this.cooldownMs = cooldownMinutes * 60 * 1000; // Cooldown 5 នាទី
+    }
+
+    processSignal(newAction, winRate, h1Trend = "DOWNTREND") {
+        const now = Date.now();
+
+        // 1. ឆែកម៉ោង Session (London / NY)
+        if (!isAllowedTradingSession()) {
+            return { 
+                allow: false, 
+                reason: "OUTSIDE_SESSION", 
+                message: "⏸️ Outside Session (London/NY). Signal paused." 
+            };
+        }
+
+        // 2. Filter ជាមួយ Trend ធំ H1
+        if (h1Trend === "UPTREND" && newAction.includes("SELL")) {
+            return { allow: false, reason: "COUNTER_TREND", message: "🚫 Counter Trend (H1 is UPTREND). Ignored SELL." };
+        }
+        if (h1Trend === "DOWNTREND" && newAction.includes("BUY")) {
+            return { allow: false, reason: "COUNTER_TREND", message: "🚫 Counter Trend (H1 is DOWNTREND). Ignored BUY." };
+        }
+
+        // 3. Cooldown Lock (បើមាន Signal ហើយ មិនទាន់ផុត 5 នាទី មិនឱ្យដូរ)
+        if (this.activeAction && (now - this.lastSignalTime < this.cooldownMs)) {
+            const remainingSec = Math.ceil((this.cooldownMs - (now - this.lastSignalTime)) / 1000);
+            return { 
+                allow: false, 
+                reason: "SIGNAL_LOCKED", 
+                message: `🔒 Signal locked on [${this.activeAction}]. Wait ${remainingSec}s.` 
+            };
+        }
+
+        // ឆ្លងផុត Filter ➔ ទទួលយក Signal ថ្មី
+        this.activeAction = newAction;
+        this.activeWinRate = winRate;
+        this.lastSignalTime = now;
+
+        return { allow: true, action: newAction, winRate: winRate };
+    }
+}
+
+// បង្កើត Object Signal Manager (កំណត់ Lock ៥ នាទី)
+const signalManager = new TradingSignalManager(5);
+
+
+// ==========================================
+// ផ្នែកទី ២: MAIN LOGIC & DOM EVENTS
+// ==========================================
+
 // --- ផ្នែកការពារការដាច់ Login ពេល Refresh (Session Restoration) និងដំណើរការទិន្នន័យ ---
 document.addEventListener("DOMContentLoaded", () => {
     // 1. ឆែកមើល localStorage ថាតើធ្លាប់ Login រួចរាល់ហើយឬនៅ
@@ -112,31 +180,41 @@ async function runRealTimeAnalysis() {
     }, 1000);
 }
 
-// --- Function សម្រាប់គណនា Win Rate និង Signal (កូដថ្មី) ---
+// --- Function សម្រាប់គណនា Win Rate និង Signal (កូដបានកែសម្រួលរួច) ---
 function runAIAnalysis() {
     const winRateEl = document.getElementById('win-rate-val');
     const signalEl = document.getElementById('signal-direction');
     const logs = document.getElementById('terminal-logs'); 
 
-    // បើគ្មាន Element ទាំងនេះទេ មិនបាច់ដំណើរការ
     if (!winRateEl || !signalEl || !logs) return;
 
-    // គណនាភាគរយឈ្នះចន្លោះ 78% ដល់ 95%
+    // 1. បង្កើត Signal និង Win Rate សាកល្បង
     const randomWinRate = (Math.random() * (95 - 78) + 78).toFixed(2);
     const actions = ["🟢 BUY (LONG)", "🔴 SELL (SHORT)"];
-    const selectedAction = actions[Math.floor(Math.random() * actions.length)];
+    const rawAction = actions[Math.floor(Math.random() * actions.length)];
 
-    // បង្ហាញទិន្នន័យលើ UI
-    winRateEl.innerText = randomWinRate + "%";
-    signalEl.innerText = selectedAction;
-    signalEl.className = selectedAction.includes("BUY") 
-        ? "text-xl font-bold mt-1 text-emerald-400" 
-        : "text-xl font-bold mt-1 text-red-500";
+    // 2. កំណត់ Trend ធំ H1 (បងអាចប្តូរជា "DOWNTREND" ឬ "UPTREND" តាមទីផ្សារជាក់ស្តែង)
+    const currentH1Trend = "DOWNTREND"; 
 
-    // បន្ថែម Log ចូល Terminal
+    // 3. ឆ្លងកាត់ Filter Logic
+    const filterResult = signalManager.processSignal(rawAction, randomWinRate, currentH1Trend);
     const timeStr = new Date().toLocaleTimeString();
-    logs.innerHTML += `<div>[${timeStr}] Market scanned successfully.</div>`;
-    logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${selectedAction}</b> | Win Rate: <b class="text-sky-300">${randomWinRate}%</b></div>`;
-    logs.innerHTML += `<div>[${timeStr}] ICT Fair Value Gap (FVG) Pattern Confirmed.</div>`;
+
+    if (filterResult.allow) {
+        // បើឆ្លងផុត Filter ➔ ឱ្យ Update UI និង Print Signal ផ្លូវការ
+        winRateEl.innerText = filterResult.winRate + "%";
+        signalEl.innerText = filterResult.action;
+        signalEl.className = filterResult.action.includes("BUY") 
+            ? "text-xl font-bold mt-1 text-emerald-400" 
+            : "text-xl font-bold mt-1 text-red-500";
+
+        logs.innerHTML += `<div>[${timeStr}] Market scanned successfully.</div>`;
+        logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${filterResult.action}</b> | Win Rate: <b class="text-sky-300">${filterResult.winRate}%</b></div>`;
+        logs.innerHTML += `<div>[${timeStr}] ICT Fair Value Gap (FVG) Pattern Confirmed.</div>`;
+    } else {
+        // បើត្រូវ Lock ឬ ក្រៅម៉ោង Session ➔ គ្រាន់តែ Log ប្រាប់ តែមិនប្តូរ UI Signal ឡើយ
+        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] ${filterResult.message}</div>`;
+    }
+
     logs.scrollTop = logs.scrollHeight;
 }
