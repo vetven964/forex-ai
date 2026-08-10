@@ -291,3 +291,9 @@ app.get('/api/v5/analytics', (req, res) => {
         marketSentiment: "Bullish Strong"
     });
 });
+// ធានាថាមានការกำหนด PORT ត្រឹមត្រូវសម្រាប់ Render
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`🟢 V TRADE AI & BOT v5.0.7 is running smoothly on port ${PORT}`);
+});
