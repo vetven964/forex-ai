@@ -1,4 +1,3 @@
-require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
@@ -7,8 +6,8 @@ const express = require('express');
 
 const app = express();
 
-// Configurations
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+// Configurations - Fixed Token & Chat ID to prevent crash
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc';
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 app.use(cors());
@@ -33,10 +32,10 @@ app.post('/api/chat', (req, res) => {
     res.json({ success: true, reply: "🤖 V Trade AI: ប្រព័ន្ធកំពុងដំណើរការធម្មតា។" });
 });
 
-// កែសម្រួលត្រង់នេះ៖ ពេលមាន Signal (Buy/Sell) ចូលមក វានឹងបញ្ជូនសារចូល Telegram ភ្លាមៗ
+// Signal Route -> Sends notification directly to Telegram ID 5289934569
 app.post('/api/v5/signal', async (req, res) => {
     const { symbol, price, type, marketState } = req.body;
-    const targetChatId = '5289934569'; // Chat ID របស់បង
+    const targetChatId = '5289934569';
     
     let messageText = `🚨 **AI Signal Alert** 🚨\n\n`;
     messageText += `🔹 Symbol: ${symbol || 'XAUUSD'}\n`;
