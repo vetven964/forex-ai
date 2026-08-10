@@ -2,7 +2,7 @@
 // ផ្នែកទី ១: CONFIG & REAL-TIME API SETTINGS
 // ==========================================
 
-const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e";[cite: 4]
+const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e";[span_0](start_span)[span_0](end_span)
 
 // ឆែកមើលម៉ោង Trading Session (London & NY)
 function isAllowedTradingSession() {
@@ -53,7 +53,6 @@ const signalManager = new TradingSignalManager(5);
 function analyzeICTFVG(candles) {
     if (!candles || candles.length < 3) return null;
 
-    // c0 = ទៀនបច្ចុប្បន្ន, c1 = ទៀនកណ្ដាល, c2 = ទៀនមុនគេ
     const c0 = candles[0]; 
     const c1 = candles[1]; 
     const c2 = candles[2]; 
@@ -66,10 +65,8 @@ function analyzeICTFVG(candles) {
     const c0Close = parseFloat(c0.close);
     const c0Open = parseFloat(c0.open);
     
-    // Trend Filter: កំណត់ទិសដៅទីផ្សាររយៈពេលខ្លី (Bullish Trend ឬ Bearish Trend)
     const isBullishTrend = c0Close >= c0Open;
 
-    // Bullish FVG: Low របស់ទៀនទី ១ ខ្ពស់ជាង High របស់ទៀនទី ៣
     if (c0Low > c2High && isBullishTrend) {
         const gapSize = c0Low - c2High;
         return {
@@ -80,7 +77,6 @@ function analyzeICTFVG(candles) {
             winRate: (82 + Math.random() * 12).toFixed(2)
         };
     } 
-    // Bearish FVG: High របស់ទៀនទី ១ ទាបជាង Low របស់ទៀនទី ៣
     else if (c0High < c2Low && !isBullishTrend) {
         const gapSize = c2Low - c0High;
         return {
@@ -92,7 +88,6 @@ function analyzeICTFVG(candles) {
         };
     }
 
-    // ករណី FVG មិនស្របតាម Trend គឺบังคับឱ្យចេញសញ្ញាស្របតាម Trend ពិតប្រាកដ (Trend Following)
     return {
         type: isBullishTrend ? "BULLISH_TREND" : "BEARISH_TREND",
         action: isBullishTrend ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
@@ -103,20 +98,21 @@ function analyzeICTFVG(candles) {
 }
 
 // ==========================================
-// ផ្នែកទី ៣: FETCH REAL-TIME MARKET DATA & AI ANALYSIS
+// ផ្នែកទី ៣: FETCH REAL-TIME MARKET DATA & AI ANALYSIS (FIXED DYNAMIC PRICE)
 // ==========================================
 
-async function fetchTwelveDataCandles(symbol = "BTC/USD") {
+async function fetchTwelveDataCandles(symbol = "BTC/USDT") {
+    let formattedSymbol = symbol.replace("/USDT", "/USD");
     try {
-        const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`);
+        const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${formattedSymbol}&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`);[span_1](start_span)[span_1](end_span)
         const data = await response.json();
         
-        if (data && data.values && data.values.length >= 3) {
+        if (data && data.values && data.values.length > 0) {
             return data.values;
         }
         return null;
     } catch (error) {
-        console.warn("Twelve Data API Warning:", error);
+        console.warn("Twelve Data API Warning:", error);[span_2](start_span)[span_2](end_span)
         return null;
     }
 }
@@ -126,61 +122,81 @@ async function runAIAnalysis() {
     const signalEl = document.getElementById('signal-direction');
     const fvgConfEl = document.getElementById('fvg-confidence');
     const logs = document.getElementById('terminal-logs');
+    const pairSelect = document.getElementById('terminalPairSelect');
 
     if (!winRateEl || !signalEl || !logs) return;
 
+    const currentPair = pairSelect ? pairSelect.value : 'BTC/USDT';
     const timeStr = new Date().toLocaleTimeString();
-    logs.innerHTML += `<div>[${timeStr}] Initializing Market Scanner...</div>`;
+    logs.innerHTML += `<div>[${timeStr}] Initializing Market Scanner for ${currentPair}...</div>`;[span_3](start_span)[span_3](end_span)
 
-    let candles = await fetchTwelveDataCandles("BTC/USD");
+    let candles = await fetchTwelveDataCandles(currentPair);
     let analysis;
+    let livePrice = null;
 
-    if (candles) {
-        analysis = analyzeICTFVG(candles);
-        logs.innerHTML += `<div>[${timeStr}] Fetched real-time 5m candles from Twelve Data API.</div>`;
+    if (candles && candles.length >= 3) {
+        analysis = analyzeICTFVG(candles);[span_4](start_span)[span_4](end_span)
+        livePrice = parseFloat(candles[0].close); // ទាញតម្លៃ Real-time ចុងក្រោយ
+        logs.innerHTML += `<div>[${timeStr}] Fetched real-time 5m candles. Live Price: $${livePrice.toFixed(2)}</div>`;[span_5](start_span)[span_5](end_span)
     } else {
-        // Fallback simulation ប្រសិនបើ API Key ជាប់ Limit ឬ អ៊ីនធឺណិតមានបញ្ហា
-        logs.innerHTML += `<div>[${timeStr}] API offline or rate-limited. Running V5 Engine Simulation...</div>`;
-        const simulatedAction = Math.random() > 0.4 ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)";
+        logs.innerHTML += `<div>[${timeStr}] API offline or rate-limited. Running V5 Simulation...</div>`;[span_6](start_span)[span_6](end_span)
+        const simulatedAction = Math.random() > 0.4 ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)";[span_7](start_span)[span_7](end_span)
         analysis = {
             action: simulatedAction,
             confidence: "HIGH",
             winRate: (78 + Math.random() * 17).toFixed(2),
             type: "SIMULATED_FVG"
         };
+        livePrice = currentPair.includes('BTC') ? 65057.90 : (currentPair.includes('XAU') ? 2350.00 : 1.0850);
     }
 
-    const signalCheck = signalManager.processSignal(analysis.action, analysis.winRate);
+    const signalCheck = signalManager.processSignal(analysis.action, analysis.winRate);[span_8](start_span)[span_8](end_span)
+    const formattedEntryPrice = `$${livePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4})}`;
 
-    if (fvgConfEl) fvgConfEl.innerText = analysis.confidence;
-    winRateEl.innerText = analysis.winRate + "%";
-    signalEl.innerText = analysis.action;
+    if (fvgConfEl) fvgConfEl.innerText = analysis.confidence;[span_9](start_span)[span_9](end_span)
+    winRateEl.innerText = analysis.winRate + "%";[span_10](start_span)[span_10](end_span)
+    signalEl.innerText = analysis.action;[span_11](start_span)[span_11](end_span)
     signalEl.className = analysis.action.includes("BUY")
-        ? "text-xl font-bold mt-1 text-emerald-400"
-        : "text-xl font-bold mt-1 text-red-500";
+        ? "text-2xl font-extrabold mt-1 text-emerald-400 tracking-wider"
+        : "text-2xl font-extrabold mt-1 text-red-500 tracking-wider";[span_12](start_span)[span_12](end_span)
 
-    logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${analysis.action}</b> | Win Rate: <b class="text-sky-300">${analysis.winRate}%</b></div>`;
-    logs.innerHTML += `<div>[${timeStr}] ICT FVG Pattern: <b class="text-amber-400">${analysis.type}</b></div>`;
+    // អាប់ដេតតម្លៃ Entry លើផ្ទាំង UI ទាំងអស់ដោយស្វ័យប្រវត្តិមិនឱ្យជាប់ Fixed តម្លៃចាស់
+    const sigEntry = document.getElementById('signal-entry');
+    const tblEntry = document.getElementById('tblEntry');
+    const tblAsset = document.getElementById('tblAsset');
+    const tblBadge = document.getElementById('tblSignalBadge');
+
+    if(sigEntry) sigEntry.innerText = formattedEntryPrice;
+    if(tblEntry) tblEntry.innerText = formattedEntryPrice;
+    if(tblAsset) tblAsset.innerText = currentPair;
+    if(tblBadge) tblBadge.innerText = analysis.action;
+
+    logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${analysis.action}</b> | Entry: <b class="text-emerald-300">${formattedEntryPrice}</b> | Win Rate: <b class="text-sky-300">${analysis.winRate}%</b></div>`;[span_13](start_span)[span_13](end_span)
 
     if (!signalCheck.allow) {
-        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] ${signalCheck.message}</div>`;
+        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] ${signalCheck.message}</div>`;[span_14](start_span)[span_14](end_span)
     } else {
-        logs.innerHTML += `<div class="text-emerald-400">[${timeStr}] Signal Executed via Webhook.</div>`;
+        logs.innerHTML += `<div class="text-emerald-400">[${timeStr}] Signal Executed via Webhook.</div>`;[span_15](start_span)[span_15](end_span)
     }
 
-    logs.scrollTop = logs.scrollHeight;
+    logs.scrollTop = logs.scrollHeight;[span_16](start_span)[span_16](end_span)
 }
 
 function refreshAnalysis() {
     runAIAnalysis();
 }
-//Update code new
-// ១. រត់ស្វ័យប្រវត្តិពេល Refresh ទំព័រ ដើម្បីទាញទិន្នន័យមកបង្ហាញវិញ
+
+// ==========================================
+// ផ្នែកទី ៤: LOCALSTORAGE & GOOGLE SHEETS DATABASE SYNC
+// ==========================================
+
+const WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"; // ដាក់ URL របស់អ្នកទីនេះ եើបប្រើ Google Sheets
+
 document.addEventListener('DOMContentLoaded', () => {
     loadUsersFromStorage();
+    // loadUsersFromSheet(); // បើកដំណើរការបើប្រើ Google Sheets
 });
 
-// ២. មុខងារទាញទិន្នន័យពី localStorage មកបង្ហាញក្នុង Table
 function loadUsersFromStorage() {
     let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
     const tableBody = document.querySelector('tbody');
@@ -200,57 +216,18 @@ function loadUsersFromStorage() {
     });
 }
 
-// ៣. មុខងាររក្សាទុកពេលបន្ថែម User ថ្មី (ត្រូវហៅ Function នេះពេលចុចប៊ូតុង Submit)
 function saveNewUserToStorage(name, email, level) {
     let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
-    
     const newUser = {
         name: name,
         email: email,
         level: level,
-        date: new Date().toISOString().split('T')[0] // កាលបរិច្ឆេទថ្ងៃនេះ
+        date: new Date().toISOString().split('T')[0]
     };
-
     savedUsers.push(newUser);
     localStorage.setItem('forexai_users', JSON.stringify(savedUsers));
 }
 
-//Google Sheets
-// ដាក់ URL របស់ Google Apps Script Web App ដែលបាន Deploy រួចនៅទីនេះ
-const WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
-
-// ១. ទាញទិន្នន័យពី Google Sheets មកបង្ហាញស្វ័យប្រវត្តិពេល Refresh ទំព័រ
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsersFromSheet();
-});
-
-function loadUsersFromSheet() {
-    fetch(WEB_APP_URL)
-        .then(res => res.json())
-        .then(users => {
-            const tableBody = document.querySelector('tbody');
-            if (!tableBody) return;
-            
-            // សម្អាតตารางចាស់មុននឹងបញ្ចូលទិន្នន័យថ្មី
-            tableBody.innerHTML = '';
-            
-            users.forEach(user => {
-                const newRow = `
-                    <tr>
-                        <td>${user.name}<br><small>${user.email}</small></td>
-                        <td><span class="badge">${user.level}</span></td>
-                        <td>Protected v5.7 (DDoS ON)</td>
-                        <td>${user.date}</td>
-                        <td><button class="btn-delete" style="background:red; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">លុប</button></td>
-                    </tr>
-                `;
-                tableBody.insertAdjacentHTML('beforeend', newRow);
-            });
-        })
-        .catch(err => console.error("Error loading users:", err));
-}
-
-// ២. មុខងារសម្រាប់បញ្ជូន User ថ្មីទៅកាន់ Google Sheets (ត្រូវយកទៅហៅក្នុងព្រឹត្តិការណ៍ Submit របស់ Form)
 function saveNewUserToSheet(name, email, level) {
     const userData = {
         name: name,
@@ -259,6 +236,9 @@ function saveNewUserToSheet(name, email, level) {
         date: new Date().toISOString().split('T')[0]
     };
 
+    // រក្សាទុកក្នុង localStorage ជាកន្លែងបម្រុងទុកសិន
+    saveNewUserToStorage(name, email, level);
+
     fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify(userData)
@@ -266,21 +246,24 @@ function saveNewUserToSheet(name, email, level) {
     .then(res => res.json())
     .then(data => {
         console.log("Success:", data);
-        location.reload(); // Refresh ទំព័រស្វ័យប្រវត្តិក្រោយពេល Save ជោគជ័យ
+        location.reload();
     })
-    .catch(err => console.error("Error saving user:", err));
+    .catch(err => {
+        console.error("Error saving user to sheet:", err);
+        location.reload();
+    });
 }
 
-//GoogleSheets
-// ១. ដាក់កូដចាប់ព្រឹត្តិការណ៍ពេលចុច Submit នេះក្នុង File .js
-document.getElementById('yourSubmitButtonId').addEventListener('click', function(e) {
-    e.preventDefault();
-    
-    // យកតម្លៃពី Input របស់អ្នក (ដូរ ID តាម HTML របស់អ្នក)
-    const name = document.getElementById('userNameInput').value;
-    const email = document.getElementById('userEmailInput').value;
-    const level = document.getElementById('userLevelSelect').value;
-    
-    // ហៅ Function បញ្ជូនទិន្នន័យទៅ Google Sheets
-    saveNewUserToSheet(name, email, level);
+// ភ្ជាប់ព្រឹត្តិការណ៍ Submit Form បន្ថែមសមាជិក (ត្រូវធានាថាមាន ID ត្រូវគ្នាក្នុង HTML)
+document.addEventListener('click', function(e) {
+    if(e.target && e.target.id === 'yourSubmitButtonId') {
+        e.preventDefault();
+        const nameField = document.getElementById('userNameInput');
+        const emailField = document.getElementById('userEmailInput');
+        const levelField = document.getElementById('userLevelSelect');
+
+        if(nameField && emailField && levelField) {
+            saveNewUserToSheet(nameField.value, emailField.value, levelField.value);
+        }
+    }
 });
