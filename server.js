@@ -1,6 +1,5 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const cron = require('node-cron');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const path = require('path');
@@ -34,9 +33,25 @@ app.post('/api/chat', (req, res) => {
     res.json({ success: true, reply: "🤖 V Trade AI: ប្រព័ន្ធកំពុងដំណើរការធម្មតា។" });
 });
 
-app.post('/api/v5/signal', (req, res) => {
-    const { symbol, price, type } = req.body;
-    res.json({ success: true, message: "Signal Generated", data: { version: "v5.0.7", status: "HIGH_PROBABILITY" } });
+// កែសម្រួលត្រង់នេះ៖ ពេលមាន Signal (Buy/Sell) ចូលមក វានឹងបញ្ជូនសារចូល Telegram ភ្លាមៗ
+app.post('/api/v5/signal', async (req, res) => {
+    const { symbol, price, type, marketState } = req.body;
+    const targetChatId = '5289934569'; // Chat ID របស់បង
+    
+    let messageText = `🚨 **AI Signal Alert** 🚨\n\n`;
+    messageText += `🔹 Symbol: ${symbol || 'XAUUSD'}\n`;
+    messageText += `🔹 Price: ${price || 'N/A'}\n`;
+    messageText += `🔹 Signal Type: **${type || 'BUY/SELL'}**\n`;
+    messageText += `🔹 Condition: ${marketState || 'Active'}\n`;
+    messageText += `⏱ Status: Real-time Notification`;
+
+    try {
+        await bot.sendMessage(targetChatId, messageText, { parse_mode: 'Markdown' });
+        res.json({ success: true, message: "Signal Received & Sent to Telegram Successfully" });
+    } catch (error) {
+        console.error('Error sending telegram message:', error);
+        res.status(500).json({ success: false, error: "Failed to send telegram message" });
+    }
 });
 
 app.get('/api/v5/analytics', (req, res) => {
@@ -55,16 +70,11 @@ app.get('/api/referral/:chatId', (req, res) => {
     res.json({ success: true, earnings: 0 });
 });
 
-// --- AI SCANNER ---
-cron.schedule('*/15 * * * *', () => {
-    console.log('Running AI Scanner...');
-});
-
 // --- TELEGRAM BOT HANDLERS ---
 bot.on('callback_query', (query) => bot.answerCallbackQuery(query.id).catch(() => {}));
 bot.onText(/\/start/, (msg) => bot.sendMessage(msg.chat.id, "ស្វាគមន៍មកកាន់ V TRADE AI!"));
 
-// --- SERVER START (ចុងក្រោយបង្អស់) ---
+// --- SERVER START ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🟢 V TRADE AI & BOT v5.0.7 is running smoothly on port ${PORT}`);
