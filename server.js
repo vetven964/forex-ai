@@ -225,10 +225,10 @@ app.listen(PORT, () => {
 // ==========================================
 // V TRADE AI & BOT v5.0.7 - Advanced Modules
 // ==========================================
-
-const express = require('express');
-const app = express();
-app.use(express.json());
+//កូដលុបចេញ
+//const express = require('express');
+//const app = express();
+//app.use(express.json());
 
 // 1. AI Multi-Timeframe Confluence & Smart RR Calculator Engine
 function calculateAdvancedSignal(symbol, entryPrice, direction) {
