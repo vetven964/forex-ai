@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="km" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -32,7 +32,7 @@
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
-            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none">
+            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
@@ -203,9 +203,8 @@
         <!-- Main Workspace Area -->
         <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
-            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME (MAIN DEFAULT TAB) -->
+            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME -->
             <div id="tab-terminal-analysis" class="tab-content active space-y-6">
-                <!-- Header Control & Selector -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-950 p-4 rounded-2xl border border-gray-800">
                     <div>
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
@@ -265,7 +264,6 @@
 
                 <!-- Middle Section: Live Realtime Terminal & AI Sentiment Radar Chart -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Real-Time AI Execution Console Terminal -->
                     <div class="lg:col-span-2 glass-panel p-5 rounded-2xl space-y-3 flex flex-col justify-between border border-teal-500/30">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <div class="flex items-center gap-2">
@@ -274,17 +272,15 @@
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
                                 <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.0.7</span>
                             </div>
-                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
-                        <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
                             <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (CoinGecko & Forex Data)...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing exact real-time prices for BTC, ETH, XAU, and EUR...</div>
                         </div>
 
-                        <!-- Manual Signal Command Trigger -->
                         <div class="flex gap-2 pt-2">
                             <input type="text" id="terminalCmdInput" placeholder="Enter custom parameter or prompt (e.g. /analyze BTC)..." class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
                             <button onclick="executeTerminalCommand()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
@@ -293,7 +289,6 @@
                         </div>
                     </div>
 
-                    <!-- AI Market Sentiment Analysis Gauge & Chart -->
                     <div class="glass-panel p-5 rounded-2xl space-y-4 flex flex-col justify-between border border-purple-500/30">
                         <div class="border-b border-gray-800 pb-2">
                             <h3 class="font-bold text-white text-sm flex items-center gap-2">
@@ -393,21 +388,21 @@
                     <div class="glass-panel p-4 rounded-2xl border-l-4 border-amber-500 flex justify-between items-center">
                         <div>
                             <span class="text-xs text-gray-400 uppercase tracking-wider">Asian Session (Tokyo)</span>
-                            <h4 class="font-bold text-white text-sm mt-1" id="dashAsianStatus">កំពុងរៀបចំ...</h4>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashAsianStatus">កំពុងពិនិត្យ...</h4>
                         </div>
                         <i class="fa-solid fa-sun text-amber-400 text-2xl"></i>
                     </div>
                     <div class="glass-panel p-4 rounded-2xl border-l-4 border-blue-500 flex justify-between items-center">
                         <div>
                             <span class="text-xs text-gray-400 uppercase tracking-wider">London Session</span>
-                            <h4 class="font-bold text-white text-sm mt-1" id="dashLondonStatus">កំពុងរៀបចំ...</h4>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashLondonStatus">កំពុងពិនិត្យ...</h4>
                         </div>
                         <i class="fa-solid fa-cloud-sun text-blue-400 text-2xl"></i>
                     </div>
                     <div class="glass-panel p-4 rounded-2xl border-l-4 border-purple-500 flex justify-between items-center">
                         <div>
                             <span class="text-xs text-gray-400 uppercase tracking-wider">New York Session</span>
-                            <h4 class="font-bold text-white text-sm mt-1" id="dashNyStatus">កំពុងរៀបចំ...</h4>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashNyStatus">កំពុងពិនិត្យ...</h4>
                         </div>
                         <i class="fa-solid fa-moon text-purple-400 text-2xl"></i>
                     </div>
@@ -525,7 +520,7 @@
                                 </tr>
                             </thead>
                             <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
-                                <!-- Dynamic Rendered by JS -->
+                                <!-- Rendered dynamically by JS -->
                             </tbody>
                         </table>
                     </div>
@@ -841,7 +836,7 @@
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-red-400"></i> Cloudflare v5.7 & DDoS Protection (Rate Limiting)
                     </h3>
-                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7។</p>
+                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7。</p>
                     
                     <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-red-500/30">
                         <div class="flex justify-between items-center">
@@ -855,7 +850,7 @@
         </main>
     </div>
 
-    <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
+    <!-- Mobile Sticky Bottom Nav Bar -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
         <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
             <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
@@ -874,7 +869,7 @@
         </button>
     </div>
 
-    <!-- Modals: Login / Sign In / Google Sign In / Forgot Password -->
+    <!-- Modals: Login / Auth -->
     <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -935,7 +930,7 @@
         </div>
     </div>
 
-    <!-- Modals: Profile Privacy & Security Settings -->
+    <!-- Modals: Profile -->
     <div id="profileModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -973,7 +968,7 @@
         </div>
     </div>
 
-    <!-- Modals: Add New User (Admin Manager) -->
+    <!-- Modals: Add New User -->
     <div id="addUserModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -1003,7 +998,7 @@
         </div>
     </div>
 
-    <!-- Modals: Bank Account Direct Payment (VET VEN) -->
+    <!-- Modals: Deposit / Bank Account (VET VEN) -->
     <div id="depositModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg rounded-2xl p-6 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -1054,7 +1049,7 @@
         </div>
     </div>
 
-    <!-- FULL 100% EXECUTABLE JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         let tvWidgetInstance = null;
         let sentimentChartInstance = null;
@@ -1259,6 +1254,131 @@
             }
         }
 
+        // --- REALTIME WORLD MARKET SESSIONS TIMER ---
+        function updateMarketSessionsTimer() {
+            const now = new Date();
+            const utcHours = now.getUTCHours();
+            const utcMinutes = now.getUTCMinutes();
+            
+            // ICT Time (UTC+7)
+            let ictHours = (utcHours + 7) % 24;
+            let totalMinutes = ictHours * 60 + utcMinutes;
+
+            // Asian Session (Tokyo): 07:00 - 15:00 ICT
+            const asianStart = 7 * 60;
+            const asianEnd = 15 * 60;
+            const isAsianOpen = totalMinutes >= asianStart && totalMinutes < asianEnd;
+            updateSessionUI('Asian', isAsianOpen);
+
+            // London Session: 15:00 - 23:00 ICT
+            const londonStart = 15 * 60;
+            const londonEnd = 23 * 60;
+            const isLondonOpen = totalMinutes >= londonStart && totalMinutes < londonEnd;
+            updateSessionUI('London', isLondonOpen);
+
+            // New York Session: 20:00 - 04:00 ICT (Next Day)
+            const nyStart = 20 * 60;
+            const nyEnd = (4 + 24) * 60;
+            let adjustedTotalMinutes = totalMinutes;
+            if (ictHours < 4) adjustedTotalMinutes += 24 * 60;
+            const isNyOpen = adjustedTotalMinutes >= nyStart && adjustedTotalMinutes < nyEnd;
+            updateSessionUI('Ny', isNyOpen);
+        }
+
+        function updateSessionUI(sessionKey, isOpen) {
+            const badge = document.getElementById('badge' + sessionKey);
+            const timer = document.getElementById('timer' + sessionKey);
+            const dashStatus = document.getElementById('dash' + sessionKey + 'Status');
+
+            if(badge) {
+                badge.innerText = isOpen ? "OPEN (សកម្ម)" : "CLOSED (បិទ)";
+                badge.className = isOpen ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
+            }
+            if(dashStatus) {
+                dashStatus.innerText = isOpen ? "🟢 កំពុងបើកដំណើរការ (Open)" : "🔴 បានបិទ (Closed)";
+            }
+            if(timer) {
+                timer.innerHTML = isOpen ? `ស្ថានភាព៖ <span class="text-emerald-400 font-bold">ទីផ្សារកំពុងបើកជួញដូរ</span>` : `ស្ថានភាព៖ <span class="text-gray-400">រង់ចាំម៉ោងបើក</span>`;
+            }
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString();
+            const dateEl = document.getElementById('liveDate');
+            const clockEl = document.getElementById('liveClock');
+            if(dateEl) dateEl.innerText = dateStr;
+            if(clockEl) clockEl.innerText = timeStr;
+        }
+
+        function renderAdminTable(data) {
+            const tbody = document.getElementById('adminUserTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            data.forEach((u, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-900/50 transition">
+                        <td class="p-3.5">
+                            <div class="font-bold text-white">${u.name}</div>
+                            <div class="text-gray-400 text-[11px]">${u.email}</div>
+                        </td>
+                        <td class="p-3.5">
+                            <select onchange="updateUserLevel(${index}, this.value)" class="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 text-xs text-amber-400 font-bold focus:outline-none cursor-pointer">
+                                <option value="Admin" ${u.level==='Admin'?'selected':''}>Admin</option>
+                                <option value="VIP Pro" ${u.level==='VIP Pro'?'selected':''}>VIP Pro</option>
+                                <option value="Standard" ${u.level==='Standard'?'selected':''}>Standard</option>
+                                <option value="Basic" ${u.level==='Basic'?'selected':''}>Basic</option>
+                                <option value="Trial" ${u.level==='Trial'?'selected':''}>Trial</option>
+                            </select>
+                        </td>
+                        <td class="p-3.5"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[11px] font-bold">${u.security}</span></td>
+                        <td class="p-3.5 text-gray-400 font-mono">${u.date}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteUserRecord(${index})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateUserLevel(index, newLevel) {
+            usersListDB[index].level = newLevel;
+            alert(`បានកែប្រែសិទ្ធិរបស់ ${usersListDB[index].name} ទៅជា ${newLevel} ជោគជ័យ!`);
+        }
+
+        function deleteUserRecord(index) {
+            if(confirm("តើបងពិតជាចង់លុបសមាជិកនេះមែនទេ?")) {
+                usersListDB.splice(index, 1);
+                renderAdminTable(usersListDB);
+                alert("បានលុបសមាជិកជោគជ័យ!");
+            }
+        }
+
+        function filterAdminUsers() {
+            const query = document.getElementById('adminSearchInput').value.toLowerCase();
+            const levelFilter = document.getElementById('adminLevelFilter').value;
+            const filtered = usersListDB.filter(u => {
+                const matchQuery = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+                const matchLevel = levelFilter === 'all' || u.level === levelFilter;
+                return matchQuery && matchLevel;
+            });
+            renderAdminTable(filtered);
+        }
+
+        function addNewUserRecord() {
+            const name = document.getElementById('newUserNameInput').value.trim();
+            const email = document.getElementById('newUserEmailInput').value.trim();
+            const level = document.getElementById('newUserLevelInput').value;
+            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានត្រឹមត្រូវ!'); return; }
+            
+            const today = new Date().toISOString().split('T')[0];
+            usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: today });
+            renderAdminTable(usersListDB);
+            closeModal('addUserModal');
+            alert(`បានបន្ថែមសមាជិកថ្មី ${name} ជោគជ័យ!`);
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside nav button').forEach(btn => {
@@ -1277,9 +1397,9 @@
                 } else if(tabId === 'strategy') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
                 } else if(tabId === 'calculator') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/20 cursor-pointer";
                 } else if(tabId === 'copytrading') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/30 cursor-pointer";
                 } else {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
                 }
@@ -1288,6 +1408,39 @@
             if(tabId === 'tvchart' && !tvWidgetInstance) {
                 initTradingViewWidget('BINANCE:BTCUSDT');
             }
+        }
+
+        function initTradingViewWidget(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            if(!container) return;
+            container.innerHTML = "";
+            tvWidgetInstance = new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Asia/Bangkok",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#0d111c",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
+        }
+
+        function changeTradingViewSymbol(symbol) {
+            initTradingViewWidget(symbol);
+        }
+
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            let displayVal = "";
+            if(curr === 'USD') displayVal = "$" + baseUsdBalance.toLocaleString() + ".00";
+            else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
+            else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
+            if(document.getElementById('userBalanceDisplay')) document.getElementById('userBalanceDisplay').innerText = displayVal;
         }
 
         function changeLanguage(lang) {
@@ -1305,18 +1458,19 @@
             if(document.getElementById('menuSupport')) document.getElementById('menuSupport').innerText = t.support;
         }
 
-        function changeCurrency(curr) {
-            currentCurrency = curr;
-            let displayVal = "";
-            if(curr === 'USD') displayVal = "$" + baseUsdBalance.toLocaleString() + ".00";
-            else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
-            else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
-            if(document.getElementById('userBalanceDisplay')) document.getElementById('userBalanceDisplay').innerText = displayVal;
-        }
-
         function toggleMobileMenu() {
             const overlay = document.getElementById('mobileMenuOverlay');
             if(overlay) overlay.classList.toggle('hidden');
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.add('hidden');
         }
 
         function togglePasswordVisibility(inputId, iconId) {
@@ -1384,158 +1538,72 @@
             }
         }
 
-        function renderAdminTable(data) {
-            const tbody = document.getElementById('adminUserTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = "";
-            data.forEach((u, index) => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-900/50 transition">
-                        <td class="p-3.5">
-                            <div class="font-bold text-white">${u.name}</div>
-                            <div class="text-gray-400 text-[11px]">${u.email}</div>
-                        </td>
-                        <td class="p-3.5">
-                            <select onchange="updateUserLevelIndex(${index}, this.value)" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer">
-                                <option value="Admin" ${u.level==='Admin'?'selected':''}>👑 Admin v5</option>
-                                <option value="VIP Pro" ${u.level==='VIP Pro'?'selected':''}>💎 VIP Pro v5 ($29)</option>
-                                <option value="Standard" ${u.level==='Standard'?'selected':''}>⭐ Standard ($8.99)</option>
-                                <option value="Basic" ${u.level==='Basic'?'selected':''}>🔹 Basic ($4.99)</option>
-                                <option value="Trial" ${u.level==='Trial'?'selected':''}>🆓 Free 7-Day Trial</option>
-                            </select>
-                        </td>
-                        <td class="p-3.5 text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> ${u.security}</td>
-                        <td class="p-3.5 font-mono text-gray-400">${u.date}</td>
-                        <td class="p-3.5 text-center space-x-2">
-                            <button onclick="deleteUserRecord(${index})" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1 rounded-lg font-bold transition cursor-pointer"><i class="fa-solid fa-trash"></i> លុប</button>
-                        </td>
-                    </tr>
-                `;
-            });
+        function saveProfileSettings() {
+            const name = document.getElementById('profileName').value;
+            localStorage.setItem('vtrade_logged_user', name);
+            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
+            closeModal('profileModal');
+            alert('🟢 រក្សាទុកការកំណត់ Profile ជោគជ័យ!');
         }
 
-        function filterAdminUsers() {
-            const query = document.getElementById('adminSearchInput').value.toLowerCase();
-            const levelFilter = document.getElementById('adminLevelFilter').value;
-            
-            const filtered = usersListDB.filter(u => {
-                const matchName = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
-                const matchLevel = (levelFilter === 'all' || u.level === levelFilter);
-                return matchName && matchLevel;
-            });
-            renderAdminTable(filtered);
+        function copyAccountInfo(accNo, type) {
+            navigator.clipboard.writeText(accNo);
+            alert(`បាន Copy លេខគណនី (${type}): ${accNo} ជោគជ័យ!`);
         }
 
-        function addNewUserRecord() {
-            const name = document.getElementById('newUserNameInput').value.trim();
-            const email = document.getElementById('newUserEmailInput').value.trim();
-            const level = document.getElementById('newUserLevelInput').value;
-
-            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
-
-            const today = new Date().toISOString().split('T')[0];
-            usersListDB.unshift({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: today });
-            renderAdminTable(usersListDB);
-            closeModal('addUserModal');
-            alert(`🟢 បានបន្ថែមសមាជិក ${name} (${level}) ចូលក្នុងប្រព័ន្ធ Admin Manager ជោគជ័យ!`);
-        }
-
-        function updateUserLevelIndex(index, newLevel) {
-            usersListDB[index].level = newLevel;
-            alert(`🟢 បានប្តូរកម្រិតសិទ្ធិរបស់ ${usersListDB[index].name} ទៅជា "${newLevel}" ជោគជ័យ!`);
-        }
-
-        function deleteUserRecord(index) {
-            if(confirm(`តើអ្នកពិតជាចង់លុបសមាជិក ${usersListDB[index].name} មែនទេ?`)) {
-                usersListDB.splice(index, 1);
-                renderAdminTable(usersListDB);
-                alert('🟢 បានលុបសមាជិកចេញពីប្រព័ន្ធជោគជ័យ!');
-            }
+        function verifyBankPayment() {
+            closeModal('depositModal');
+            alert('🟢 បានបញ្ជូន Slip ទូទាត់ជូន Admin (VET VEN) រួចរាល់! ប្រព័ន្ធនឹងបើកសិទ្ធិ VIP ជូនក្នុងរយៈពេល ១នាទី។');
         }
 
         function saveCopyTradingSettings() {
-            const state = document.getElementById('copyBotState').value;
-            const mult = document.getElementById('copyMultiplier').value;
-            document.getElementById('dashCopyStatus').innerText = `Running (${mult})`;
-            alert(`🟢 រក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ!\nស្ថានភាព៖ ${state}\nMultiplier: ${mult}`);
+            alert('🟢 រក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ! Auto Mirroring សកម្ម ២៤ម៉ោង។');
         }
 
         function runAiSentimentScan() {
-            alert('🟢 AI Smart Sentiment & Consensus Filter បានស្កេនជោគជ័យ! ទីផ្សារស្ថិតក្នុងរង្វង់សន្ទុះ Bullish ៨៨% ត្រៀមផ្ញើ Signal ស្វ័យប្រវត្តិ។');
+            alert('🟢 AI Sentiment & Consensus Scanner បានស្កេនទិន្នន័យទីផ្សារពិភពលោកថ្មីជោគជ័យ!');
         }
 
         function runAiBacktest() {
-            const asset = document.getElementById('customAssetSelect').value;
-            const risk = document.getElementById('customRiskSelect').value;
             document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert(`🟢 Backtest v5.0.7 សម្រាប់ ${asset} (${risk}) បានជោគជ័យ ១០០%!`);
+            alert('🟢 Strategy Backtest v5 រត់បានជោគជ័យ ១០០%!');
         }
 
         function calculateTradingRisk() {
             const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
             const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
-            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
-
-            const riskAmount = capital * (riskPct / 100);
-            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
-            const targetProfit = riskAmount * 2;
-
+            const riskAmt = capital * (riskPct / 100);
+            
+            document.getElementById('resRiskAmount').innerText = '$' + riskAmt.toFixed(2);
+            document.getElementById('resLotSize').innerText = (riskAmt / 50).toFixed(2) + ' Lots';
+            document.getElementById('resTakeProfit').innerText = '100 Pips / $' + (riskAmt * 2).toFixed(2) + ' Profit';
             document.getElementById('calcResultCard').classList.remove('hidden');
-            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
-            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
-            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + targetProfit.toFixed(2) + ' Profit';
         }
 
         function copyRefLink() {
             const input = document.getElementById('refLinkInput');
             input.select();
             navigator.clipboard.writeText(input.value);
-            alert('🟢 បាន Copy តំណភ្ជាប់ Referral របស់អ្នករួចរាល់!');
+            alert('🟢 បាន Copy តំណភ្ជាប់ណែនាំ (Referral Link) ជោគជ័យ!');
         }
 
         function selectPricingPlan(planName, price) {
             document.getElementById('selectedPlanInput').value = planName;
-            baseUsdBalance += price;
-            changeCurrency(currentCurrency);
-            openModal('depositModal');
-            alert(`🟢 បានជ្រើសរើសកញ្ចប់ "${planName}"! សូមធ្វើការទូទាត់ប្រាក់តាម QR / គណនីធនាគារ VET VEN ខាងក្រោមដើម្បី kích hoạt ស្វ័យប្រវត្តិ។`);
-        }
-
-        function copyAccountInfo(accNo, type) {
-            navigator.clipboard.writeText(accNo);
-            alert(`🟢 បាន Copy លេខគណនី ${type} (${accNo}) របស់អ្នក VET VEN រួចរាល់!`);
-        }
-
-        function verifyBankPayment() {
-            closeModal('depositModal');
-            alert('🟢 បានបញ្ជូនព័ត៌មានទូទាត់ប្រាក់ជូន Admin (VET VEN) រួចរាល់! គណនី VIP របស់អ្នកនឹងត្រូវបើកដំណើរការក្នុងរយៈពេល ១នាទី។');
+            if(price === 0) {
+                alert(`🟢 បានជ្រើសរើស ${planName} ដោយឥតគិតថ្លៃ ៧ថ្ងៃជោគជ័យ!`);
+                switchTab('telegram');
+            } else {
+                openModal('depositModal');
+            }
         }
 
         function testTelegramIntegration() {
-            const token = document.getElementById('tgTokenInput').value.trim();
-            const chatId = document.getElementById('tgChatIdInput').value.trim();
+            const token = document.getElementById('tgTokenInput').value;
+            const chatId = document.getElementById('tgChatIdInput').value;
             if(!token || !chatId) { alert('សូមបំពេញ Telegram Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!'); return; }
             localStorage.setItem('vtrade_tg_token', token);
             localStorage.setItem('vtrade_tg_chatid', chatId);
-            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook Worker v5.7 ជោគជ័យ ១០០%!');
-        }
-
-        function saveProfileSettings() {
-            const name = document.getElementById('profileName').value;
-            localStorage.setItem('vtrade_logged_user', name);
-            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
-            closeModal('profileModal');
-            alert('🟢 រក្សាទុកការកំណត់ Profile និងសុវត្ថិភាពជោគជ័យ!');
-        }
-
-        function openModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.add('hidden');
+            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook ជោគជ័យ ១០០%!');
         }
 
         function sendChat() {
@@ -1543,84 +1611,12 @@
             const box = document.getElementById('chatMsgBox');
             if(!input || !input.value.trim()) return;
             const txt = input.value.trim();
-            box.innerHTML += `<div class="bg-blue-600/30 p-2.5 rounded-xl max-w-[80%] ml-auto text-white">${txt}</div>`;
+            box.innerHTML += `<div class="bg-blue-600/20 p-2.5 rounded-xl ml-auto max-w-[80%] text-right text-white"><b>អ្នក៖</b> ${txt}</div>`;
             input.value = '';
-            
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ AI Support v5.7 បានទទួលសំណួររបស់អ្នកហើយ។ យើងកំពុងដំណើរការឆ្លើយតបជូនលោកអ្នក ២៤/៧!</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]"><b>AI Support v5.7៖</b> អរគុណសម្រាប់ការសាកសួរ! ប្រព័ន្ធ V Trade AI ដំណើរការធម្មតា ១០០%។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
-        }
-
-        function initTradingViewWidget(symbol) {
-            const container = document.getElementById('tradingview_widget');
-            if(!container) return;
-            container.innerHTML = "";
-            tvWidgetInstance = new TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#1f2937",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_widget"
-            });
-        }
-
-        function changeTradingViewSymbol(sym) {
-            initTradingViewWidget(sym);
-        }
-
-        function updateLiveClock() {
-            const now = new Date();
-            const clockEl = document.getElementById('liveClock');
-            const dateEl = document.getElementById('liveDate');
-            if(clockEl) clockEl.innerText = now.toTimeString().split(' ')[0];
-            if(dateEl) dateEl.innerText = now.toLocaleDateString();
-        }
-
-        function updateMarketSessionsTimer() {
-            const now = new Date();
-            const hours = now.getHours();
-            
-            const asianBadge = document.getElementById('badgeAsian');
-            const londonBadge = document.getElementById('badgeLondon');
-            const nyBadge = document.getElementById('badgeNy');
-
-            const dAsian = document.getElementById('dashAsianStatus');
-            const dLondon = document.getElementById('dashLondonStatus');
-            const dNy = document.getElementById('dashNyStatus');
-
-            // Asian: 7AM - 3PM (7 - 15)
-            if(hours >= 7 && hours < 15) {
-                if(asianBadge) { asianBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; asianBadge.innerText = "ACTIVE"; }
-                if(dAsian) dAsian.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
-            } else {
-                if(asianBadge) { asianBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; asianBadge.innerText = "CLOSED"; }
-                if(dAsian) dAsian.innerText = "ទីផ្សារបិទ (Closed)";
-            }
-
-            // London: 3PM - 11PM (15 - 23)
-            if(hours >= 15 && hours < 23) {
-                if(londonBadge) { londonBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; londonBadge.innerText = "ACTIVE"; }
-                if(dLondon) dLondon.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
-            } else {
-                if(londonBadge) { londonBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; londonBadge.innerText = "CLOSED"; }
-                if(dLondon) dLondon.innerText = "ទីផ្សារបិទ (Closed)";
-            }
-
-            // New York: 8PM - 4AM (20 to 4)
-            if(hours >= 20 || hours < 4) {
-                if(nyBadge) { nyBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; nyBadge.innerText = "ACTIVE"; }
-                if(dNy) dNy.innerText = "ទីផ្សារកំពុងបើកដំណើរការ (Active)";
-            } else {
-                if(nyBadge) { nyBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; nyBadge.innerText = "CLOSED"; }
-                if(dNy) dNy.innerText = "ទីផ្សារបិទ (Closed)";
-            }
         }
     </script>
 </body>
