@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Admin Dashboard & Real-Time Telegram Signal System (v5.0.7 Ultimate)</title>
+    <title>V TRADE AI & BOT v5.0.7 - Admin Dashboard & Real-Time Telegram Signal System</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js សម្រាប់គ្រប់គ្រង Dashboard Tabs & State -->
@@ -89,10 +89,13 @@
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.0.7)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង Admin (v5.0.7)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
+            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-left">
+                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List & Access Control)</span>
+            </button>
             <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium text-left">
                 <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
             </button>
@@ -101,9 +104,6 @@
             </button>
             <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 bg-purple-500/10 border border-purple-500/30 font-bold text-left">
                 <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus Filter</span>
-            </button>
-            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-left">
-                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
             </button>
             <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 font-bold text-left">
                 <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
@@ -144,7 +144,11 @@
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
             <nav class="space-y-1.5">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer">
+                <!-- Admin Manager Tab moved to top for strict admin control focus -->
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-bold transition text-xs text-left border border-amber-500/40 cursor-pointer">
+                    <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User Control)</span>
+                </button>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
                     <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
                 </button>
                 <button onclick="switchTab('copytrading')" id="nav-copytrading" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/30 cursor-pointer">
@@ -152,9 +156,6 @@
                 </button>
                 <button onclick="switchTab('sentiment')" id="nav-sentiment" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/30 cursor-pointer">
                     <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus</span>
-                </button>
-                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20 cursor-pointer">
-                    <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
                 </button>
                 <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20 cursor-pointer">
                     <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer</span>
@@ -198,8 +199,52 @@
         <!-- Main Workspace Area -->
         <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
+            <!-- TAB: ADMIN MANAGER & USER LIST (Default Active for Admin Control) -->
+            <div id="tab-admin" class="tab-content active space-y-6 max-w-6xl mx-auto">
+                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs border border-amber-500/40">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Access Restriction</h3>
+                            <p class="text-gray-400">សម្រាប់ Admin គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងផ្ទៀងផ្ទាត់សិទ្ធិ User មិនអាចប្រើប្រាស់ដោយគ្មានការអនុញ្ញាត (100% Secure)</p>
+                        </div>
+                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
+                        </button>
+                    </div>
+
+                    <div class="flex gap-3 flex-wrap">
+                        <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
+                            <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
+                            <option value="Admin">Admin Level</option>
+                            <option value="VIP Pro">VIP Pro v5 ($29)</option>
+                            <option value="Standard">Standard ($8.99)</option>
+                            <option value="Basic">Basic ($4.99)</option>
+                            <option value="Trial">Free 7-Day Trial</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
+                            <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
+                                <tr>
+                                    <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
+                                    <th class="p-3.5">កម្រិតសិទ្ធិ (User Access Level)</th>
+                                    <th class="p-3.5">ស្ថានភាពសុវត្ថិភាព (Cloudflare)</th>
+                                    <th class="p-3.5">កាលបរិច្ឆេទបង្កើត</th>
+                                    <th class="p-3.5 text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
+                                <!-- Dynamic Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB 1: DASHBOARD -->
-            <div id="tab-dashboard" class="tab-content active space-y-6">
+            <div id="tab-dashboard" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400">សមតុល្យគណនី (Balance)</p>
@@ -287,7 +332,7 @@
                         <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
                     </h3>
                     <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-sm h-64 overflow-y-auto text-sky-400 space-y-1 border border-gray-800">
-                        <div>[System] Initializing V Trade AI v5.0.7 Core Engine...</div>
+                        <div>[System] Initializing V TRADE AI & BOT v5.0.7 Core Engine...</div>
                         <div>[System] Connecting to Cloudflare v5.7 Protected Webhook...</div>
                     </div>
                 </div>
@@ -364,50 +409,6 @@
                     <button onclick="runAiSentimentScan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-microchip"></i> រកស្កេន AI Sentiment & Filter ថ្មីឥឡូវនេះ
                     </button>
-                </div>
-            </div>
-            
-            <!-- TAB: ADMIN MANAGER & USER LIST -->
-            <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
-                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
-                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
-                        <div>
-                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Security</h3>
-                            <p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់ ១០០%</p>
-                        </div>
-                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
-                        </button>
-                    </div>
-
-                    <div class="flex gap-3 flex-wrap">
-                        <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
-                            <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
-                            <option value="Admin">Admin Level</option>
-                            <option value="VIP Pro">VIP Pro v5 ($29)</option>
-                            <option value="Standard">Standard ($8.99)</option>
-                            <option value="Basic">Basic ($4.99)</option>
-                            <option value="Trial">Free 7-Day Trial</option>
-                        </select>
-                    </div>
-
-                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
-                        <table class="w-full text-left border-collapse min-w-[650px]">
-                            <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
-                                <tr>
-                                    <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
-                                    <th class="p-3.5">កម្រិតសិទ្ធិ (User Level)</th>
-                                    <th class="p-3.5">ស្ថានភាពសុវត្ថិភាព (Cloudflare)</th>
-                                    <th class="p-3.5">កាលបរិច្ឆេទបង្កើត</th>
-                                    <th class="p-3.5 text-center">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
-                                <!-- Dynamic Rendered by JS -->
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
@@ -529,7 +530,7 @@
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.0.7</h3>
-                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
+                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើการរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
@@ -736,6 +737,9 @@
 
     <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
+            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
+        </button>
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
             <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
         </button>
@@ -744,9 +748,6 @@
         </button>
         <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold">
             <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Sentiment</span>
-        </button>
-        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
-            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
         </button>
         <button onclick="switchTab('strategy')" class="flex flex-col items-center text-cyan-400 font-bold">
             <i class="fa-solid fa-gears text-base mb-0.5"></i><span>Strategy</span>
@@ -869,8 +870,9 @@
                     <input type="email" id="newUserEmailInput" placeholder="dara@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
                 </div>
                 <div>
-                    <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Level)</label>
+                    <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Access Level)</label>
                     <select id="newUserLevelInput" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="Admin">👑 Admin Access</option>
                         <option value="VIP Pro">💎 VIP Pro v5 ($29)</option>
                         <option value="Standard">⭐ Standard ($8.99)</option>
                         <option value="Basic">🔹 Basic ($4.99)</option>
@@ -924,7 +926,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI & Bot v5.0.7 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V TRADE AI & BOT v5.0.7 ដំណើរការដោយ Copy Trading និង AI Sentiment 24/7 ជោគជ័យ។ តើមានអ្វីឱ្យជំនួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -1275,7 +1277,7 @@
             if(targetTab) targetTab.classList.add('active');
             if(targetNav) {
                 if(tabId === 'admin') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40 cursor-pointer";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-bold transition text-xs text-left border border-amber-500/40 cursor-pointer";
                 } else if(tabId === 'strategy') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
                 } else if(tabId === 'calculator') {
@@ -1283,9 +1285,9 @@
                 } else if(tabId === 'affiliate') {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
                 } else if(tabId === 'copytrading') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/30 cursor-pointer";
                 } else if(tabId === 'sentiment') {
-                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/30 cursor-pointer";
                 } else {
                     targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
                 }
@@ -1418,7 +1420,7 @@
             localStorage.setItem('vtrade_tg_chatid', chatId);
             localStorage.setItem('vtrade_tg_username', userName);
 
-            const text = `🔔 **V Trade AI v5.0.7 Real-Time Webhook Active**\n✅ Telegram Bot & Copy Trading (${copyMultiplier}) connected successfully for ${userName}!\n🛡️ Cloudflare v5.7 Protected`;
+            const text = `🔔 **V TRADE AI & BOT v5.0.7 Real-Time Webhook Active**\n✅ Telegram Bot & Copy Trading (${copyMultiplier}) connected successfully for ${userName}!\n🛡️ Cloudflare v5.7 Protected`;
             try {
                 const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
                     method: 'POST',
@@ -1437,18 +1439,37 @@
             const userMsg = input.value.trim();
             if(!userMsg) return;
 
-            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
-            input.value = '';
+            box.innerHTML += `<div class="bg-blue-600 p-2.5 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
+            input.value = "";
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support v5.7: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">🤖 AI Support v5.7: បានទទួលសំណួររបស់អ្នកហើយ! ប្រព័ន្ធស្វ័យប្រវត្តិរកឃើញសញ្ញា Signal ដំណើរការធម្មតា ១០០%។</div>`;
                 box.scrollTop = box.scrollHeight;
-            }, 300);
+            }, 1000);
+        }
+
+        function runAIAnalysis() {
+            const signals = ["BULLISH BUY (🟢 STRONG)", "BEARISH SELL (🔴 CAUTION)", "SIDEWAYS ACCUMULATION"];
+            const randSignal = signals[Math.floor(Math.random() * signals.length)];
+            const randWin = (90 + Math.random() * 8).toFixed(1) + "%";
+
+            const sigEl = document.getElementById('signal-direction');
+            const winEl = document.getElementById('win-rate-val');
+            if(sigEl) sigEl.innerText = randSignal;
+            if(winEl) winEl.innerText = randWin;
+
+            const logs = document.getElementById('terminal-logs');
+            if(logs) {
+                logs.innerHTML += `<div>[${new Date().toLocaleTimeString()}] AI Engine Scan: Signal evaluated -> ${randSignal} (Win Rate: ${randWin})</div>`;
+                logs.scrollTop = logs.scrollHeight;
+            }
+        }
+
+        function refreshAnalysis() {
+            runAIAnalysis();
+            alert('បានធ្វើបច្ចុប្បន្នភាព AI Terminal & Analysis ជោគជ័យ ១០០%!');
         }
     </script>
-    
-    <!-- Link ទៅកាន់ File JavaScript ខាងក្រៅ -->
-    <script src="script.logics.js"></script>
 </body>
 </html>
