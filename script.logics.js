@@ -174,3 +174,43 @@ async function runAIAnalysis() {
 function refreshAnalysis() {
     runAIAnalysis();
 }
+//Update code new
+// ១. រត់ស្វ័យប្រវត្តិពេល Refresh ទំព័រ ដើម្បីទាញទិន្នន័យមកបង្ហាញវិញ
+document.addEventListener('DOMContentLoaded', () => {
+    loadUsersFromStorage();
+});
+
+// ២. មុខងារទាញទិន្នន័យពី localStorage មកបង្ហាញក្នុង Table
+function loadUsersFromStorage() {
+    let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
+    const tableBody = document.querySelector('tbody');
+    if (!tableBody) return;
+    
+    savedUsers.forEach(user => {
+        const newRow = `
+            <tr>
+                <td>${user.name}<br><small>${user.email}</small></td>
+                <td><span class="badge">${user.level}</span></td>
+                <td>Protected v5.7 (DDoS ON)</td>
+                <td>${user.date}</td>
+                <td><button class="btn-delete" style="background:red; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">លុប</button></td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('beforeend', newRow);
+    });
+}
+
+// ៣. មុខងាររក្សាទុកពេលបន្ថែម User ថ្មី (ត្រូវហៅ Function នេះពេលចុចប៊ូតុង Submit)
+function saveNewUserToStorage(name, email, level) {
+    let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
+    
+    const newUser = {
+        name: name,
+        email: email,
+        level: level,
+        date: new Date().toISOString().split('T')[0] // កាលបរិច្ឆេទថ្ងៃនេះ
+    };
+
+    savedUsers.push(newUser);
+    localStorage.setItem('forexai_users', JSON.stringify(savedUsers));
+}
