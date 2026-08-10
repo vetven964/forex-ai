@@ -123,6 +123,9 @@
             </button>
             <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
+			</Button>
+			<button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left">
+                 <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis</span>
             </button>
         </div>
     </div>
@@ -172,6 +175,10 @@
                 <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left">
                     <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Cloudflare v5 & DDoS Shield</span>
                 </button>
+                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 hover:bg-gray-800 text-left transition">
+                    <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
+                    <span>Terminal & Analysis</span>
+                </button>
             </nav>
             <div class="pt-4 border-t border-gray-800">
                 <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2">
@@ -209,7 +216,7 @@
                         <span class="text-xs text-gray-400">Smart Filter v5.7</span>
                     </div>
                 </div>
-
+                
                 <!-- Market Sessions Mini Overview widget -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="glass-panel p-4 rounded-2xl border-l-4 border-amber-500 flex justify-between items-center">
@@ -235,7 +242,50 @@
                     </div>
                 </div>
             </div>
+                <!-- TAB: TERMINAL & ANALYSIS -->
+                <div id="tab-terminal-analysis" class="tab-content hidden space-y-6">
+                    <!-- Header & Refresh Button -->
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Market Sentiment Analysis
+                        </h2>
+                        <button onclick="refreshAnalysis()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Refresh Analysis
+                        </button>
+                    </div>
 
+                    <!-- Analytics Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
+                            <p class="text-xs text-gray-400">Market Signal Direction</p>
+                            <h3 id="signal-direction" class="text-xl font-bold mt-1 text-emerald-400">LOADING...</h3>
+                            <span class="text-xs text-gray-400">Real-time Signal</span>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                            <p class="text-xs text-gray-400">AI Win Rate Probability</p>
+                            <h3 id="win-rate-val" class="text-xl font-bold mt-1 text-blue-400">0%</h3>
+                            <span class="text-xs text-gray-400">High Confidence</span>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
+                            <p class="text-xs text-gray-400">ICT FVG Confidence</p>
+                            <h3 id="fvg-confidence" class="text-xl font-bold mt-1 text-amber-400">HIGH</h3>
+                            <span class="text-xs text-gray-400">Pattern Detected</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Terminal Box -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-3">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-code text-sky-400"></i> Real-Time AI Execution Terminal
+                        </h3>
+                        <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-sm h-64 overflow-y-auto text-sky-400 space-y-1 border border-gray-800">
+                            <div>[System] Initializing V Trade AI v5.0.7 Core Engine...</div>
+                            <div>[System] Connecting to Cloudflare v5.7 Protected Webhook...</div>
+                        </div>
+                    </div>
+                </div>
             <!-- TAB: COPY TRADING BOT SETTINGS -->
             <div id="tab-copytrading" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
