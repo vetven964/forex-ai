@@ -723,7 +723,7 @@
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-red-400"></i> Cloudflare v5.7 & DDoS Protection (Rate Limiting)
                     </h3>
-                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend الإصدار v5.7។</p>
+                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7។</p>
                     
                     <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-red-500/30">
                         <div class="flex justify-between items-center">
@@ -940,7 +940,7 @@
         </div>
     </div>
 
-    <!-- JavaScript Execution Logic -->
+    <!-- JavaScript Execution Logic UI UI Interactivity -->
     <script>
         let tvWidgetInstance = null;
         let activeOtpCode = "998877";
@@ -1011,7 +1011,7 @@
 
             fetchMarketPrices();
             setInterval(fetchMarketPrices, 30000); 
-            runAIAnalysis();
+            if (typeof runAIAnalysis === 'function') runAIAnalysis();
         });
 
         async function fetchMarketPrices() {
@@ -1026,35 +1026,6 @@
             } catch (e) {
                 console.log("Unable to fetch live price updates.");
             }
-        }
-
-        // --- AI Analysis Logic ---
-        function refreshAnalysis() {
-            runAIAnalysis();
-        }
-
-        function runAIAnalysis() {
-            const winRateEl = document.getElementById('win-rate-val');
-            const signalEl = document.getElementById('signal-direction');
-            const logs = document.getElementById('terminal-logs'); 
-
-            if (!winRateEl || !signalEl || !logs) return;
-
-            const randomWinRate = (Math.random() * (95 - 78) + 78).toFixed(2);
-            const actions = ["🟢 BUY (LONG)", "🔴 SELL (SHORT)"];
-            const selectedAction = actions[Math.floor(Math.random() * actions.length)];
-
-            winRateEl.innerText = randomWinRate + "%";
-            signalEl.innerText = selectedAction;
-            signalEl.className = selectedAction.includes("BUY") 
-                ? "text-xl font-bold mt-1 text-emerald-400" 
-                : "text-xl font-bold mt-1 text-red-500";
-
-            const timeStr = new Date().toLocaleTimeString();
-            logs.innerHTML += `<div>[${timeStr}] Market scanned successfully.</div>`;
-            logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${selectedAction}</b> | Win Rate: <b class="text-sky-300">${randomWinRate}%</b></div>`;
-            logs.innerHTML += `<div>[${timeStr}] ICT Fair Value Gap (FVG) Pattern Confirmed.</div>`;
-            logs.scrollTop = logs.scrollHeight;
         }
 
         function changeLanguage(lang) {
@@ -1329,7 +1300,7 @@
                 }
             }
 
-            if(tabId === 'terminal-analysis') {
+            if(tabId === 'terminal-analysis' && typeof runAIAnalysis === 'function') {
                 runAIAnalysis();
             }
 
@@ -1475,17 +1446,18 @@
             const userMsg = input.value.trim();
             if(!userMsg) return;
 
-            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]" >${userMsg}</div>`;
+            box.innerHTML += `<div class="bg-blue-600 p-2 rounded-xl text-white ml-auto max-w-[80%]">${userMsg}</div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]" >AI Support v5.7: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2 rounded-xl text-gray-200 max-w-[80%]">AI Support v5.7: Copy Trading និង AI Sentiment Filter ដំណើរការធម្មតា ១០០%.</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 300);
         }
     </script>
-     <!-- ត្រូវប្រាកដថាឈ្មោះក្នុង src ត្រូវគ្នាជាមួយឈ្មោះ File JS របស់បង -->
-   <!-- <script src="script.logics.js"></script>-->
+    
+    <!-- Link ទៅកាន់ File JavaScript ខាងក្រៅ -->
+    <script src="script.logics.js"></script>
 </body>
 </html>
