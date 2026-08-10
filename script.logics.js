@@ -2,7 +2,7 @@
 // ផ្នែកទី ១: CONFIG & REAL-TIME API SETTINGS
 // ==========================================
 
-const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e"; 
+const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e";[cite: 4]
 
 // ឆែកមើលម៉ោង Trading Session (London & NY)
 function isAllowedTradingSession() {
@@ -47,7 +47,7 @@ class TradingSignalManager {
 const signalManager = new TradingSignalManager(5);
 
 // ==========================================
-// ផ្នែកទី ២: ICT FAIR VALUE GAP (FVG) ALGORITHM
+// ផ្នែកទី ២: ICT FAIR VALUE GAP (FVG) & TREND FILTER ALGORITHM
 // ==========================================
 
 function analyzeICTFVG(candles) {
@@ -63,8 +63,14 @@ function analyzeICTFVG(candles) {
     const c2Low = parseFloat(c2.low);
     const c2High = parseFloat(c2.high);
 
+    const c0Close = parseFloat(c0.close);
+    const c0Open = parseFloat(c0.open);
+    
+    // Trend Filter: កំណត់ទិសដៅទីផ្សាររយៈពេលខ្លី (Bullish Trend ឬ Bearish Trend)
+    const isBullishTrend = c0Close >= c0Open;
+
     // Bullish FVG: Low របស់ទៀនទី ១ ខ្ពស់ជាង High របស់ទៀនទី ៣
-    if (c0Low > c2High) {
+    if (c0Low > c2High && isBullishTrend) {
         const gapSize = c0Low - c2High;
         return {
             type: "BULLISH_FVG",
@@ -75,7 +81,7 @@ function analyzeICTFVG(candles) {
         };
     } 
     // Bearish FVG: High របស់ទៀនទី ១ ទាបជាង Low របស់ទៀនទី ៣
-    else if (c0High < c2Low) {
+    else if (c0High < c2Low && !isBullishTrend) {
         const gapSize = c2Low - c0High;
         return {
             type: "BEARISH_FVG",
@@ -86,11 +92,10 @@ function analyzeICTFVG(candles) {
         };
     }
 
-    // ករណីគ្មាន Gap ឬ ធម្មតា (Neutral)
-    const isBullishCandle = parseFloat(c0.close) >= parseFloat(c0.open);
+    // ករណី FVG មិនស្របតាម Trend គឺบังคับឱ្យចេញសញ្ញាស្របតាម Trend ពិតប្រាកដ (Trend Following)
     return {
-        type: "NEUTRAL",
-        action: isBullishCandle ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
+        type: isBullishTrend ? "BULLISH_TREND" : "BEARISH_TREND",
+        action: isBullishTrend ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
         gapSize: "0.0000",
         confidence: "MEDIUM",
         winRate: (75 + Math.random() * 10).toFixed(2)
