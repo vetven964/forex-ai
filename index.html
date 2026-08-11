@@ -58,7 +58,7 @@
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-yellow-400 font-mono">
-                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$2,650.40</span>
+                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$4,426.40</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-blue-400 font-mono">
@@ -1450,11 +1450,14 @@
         function updateMarketSessionsTimer() {
             const now = new Date();
             const utcHour = now.getUTCHours();
-            const utcDay = now.getUTCDay();
+            const utcDay = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
             const isWeekend = (utcDay === 0 || utcDay === 6);
 
+            // Asian Session: 00:00 UTC to 08:00 UTC (07:00 AM - 03:00 PM ICT)
             const asianActive = !isWeekend && (utcHour >= 0 && utcHour < 8);
+            // London Session: 08:00 UTC to 16:00 UTC (03:00 PM - 11:00 PM ICT)
             const londonActive = !isWeekend && (utcHour >= 8 && utcHour < 16);
+            // New York Session: 13:00 UTC to 21:00 UTC (08:00 PM - 04:00 AM ICT)
             const nyActive = !isWeekend && (utcHour >= 13 && utcHour < 21);
 
             updateSessionUI('Asian', asianActive, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
