@@ -58,7 +58,7 @@
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-yellow-400 font-mono">
-                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$2,650.40</span>
+                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$4,385.88</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
             <div class="flex items-center gap-2 text-blue-400 font-mono">
@@ -219,8 +219,8 @@
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
-                            <option value="BTC/USDT">BTC/USDT (Crypto)</option>
                             <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
+                            <option value="BTC/USDT">BTC/USDT (Crypto)</option>
                             <option value="EUR/USD">EUR/USD (Forex)</option>
                             <option value="ETH/USDT">ETH/USDT (Crypto)</option>
                         </select>
@@ -238,15 +238,15 @@
                         <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
                         <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-emerald-400 tracking-wider">STRONG BUY</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
-                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">$65,057.90</b>
+                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">$4,385.88</b>
                         </div>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400 font-medium">AI Win Rate Probability</p>
-                        <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">94.8%</h3>
+                        <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">92.5%</h3>
                         <div class="w-full bg-gray-800 h-1.5 rounded-full mt-3.5 overflow-hidden">
-                            <div id="win-rate-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 94.8%;"></div>
+                            <div id="win-rate-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 92.5%;"></div>
                         </div>
                     </div>
 
@@ -254,13 +254,13 @@
                         <p class="text-xs text-gray-400 font-medium">ICT Fair Value Gap (FVG)</p>
                         <h3 id="fvg-confidence" class="text-2xl font-extrabold mt-1 text-amber-400">BULLISH FVG</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
-                            <span>Zone:</span> <b class="text-amber-300" id="fvg-zone">0.5 - 0.618 Fib Active</b>
+                            <span>Zone:</span> <b class="text-amber-300" id="fvg-zone">0.618 Fib Support</b>
                         </div>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
                         <p class="text-xs text-gray-400 font-medium">Market Sentiment Score</p>
-                        <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">88% BULLISH</h3>
+                        <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">86% BULLISH</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400 font-bold">
                             <i class="fa-solid fa-shield-check"></i> High Volume Institutional Support
                         </div>
@@ -283,14 +283,13 @@
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
-                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (CoinGecko & Forex Data)...</div>
-                            <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing exact real-time prices for BTC, ETH, XAU, and EUR...</div>
+                            <div><span class="text-gray-500">[07:34:47]</span> <span class="text-blue-400">[AI ENGINE]</span> Analysis complete for XAU/USD. Signal: STRONG BUY @ $4,385.87. Win Probability: 92.5%</div>
+                            <div><span class="text-gray-500">[07:35:16]</span> <span class="text-emerald-400">[COMMAND]</span> Executing Realtime Market Scan for XAU/USD...</div>
                         </div>
 
                         <!-- Manual Signal Command Trigger -->
                         <div class="flex gap-2 pt-2">
-                            <input type="text" id="terminalCmdInput" placeholder="Enter custom parameter or prompt (e.g. /analyze BTC)..." class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
+                            <input type="text" id="terminalCmdInput" placeholder="Enter custom parameter or prompt (e.g. /analyze XAU)..." class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
                             <button onclick="executeTerminalCommand()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                                 <i class="fa-solid fa-paper-plane"></i> Execute
                             </button>
@@ -313,7 +312,7 @@
                         <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5 text-[11px] font-mono">
                             <div class="flex justify-between">
                                 <span class="text-gray-400">RSI 14 Dynamic:</span>
-                                <b class="text-emerald-400" id="rsiVal">68.4 (Bullish Momentum)</b>
+                                <b class="text-emerald-400" id="rsiVal">76.26 (Bullish Momentum)</b>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">MACD Crossover:</span>
@@ -321,7 +320,7 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Orderbook Pressure:</span>
-                                <b class="text-amber-400" id="orderbookVal">64% Buy Orders</b>
+                                <b class="text-amber-400" id="orderbookVal">72% Buy Orders</b>
                             </div>
                         </div>
                     </div>
@@ -352,11 +351,11 @@
                             </thead>
                             <tbody class="divide-y divide-gray-800 text-gray-200">
                                 <tr>
-                                    <td class="p-3 font-bold text-white" id="tblAsset">BTC/USDT</td>
-                                    <td class="p-3"><span id="tblSignalBadge" class="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">BUY / LONG</span></td>
-                                    <td class="p-3 text-white" id="tblEntry">$65,057.90</td>
-                                    <td class="p-3 text-red-400" id="tblSL">$64,100.00</td>
-                                    <td class="p-3 text-emerald-400" id="tblTP">$66,500 / $68,200</td>
+                                    <td class="p-3 font-bold text-white" id="tblAsset">XAU/USD</td>
+                                    <td class="p-3"><span id="tblSignalBadge" class="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">STRONG BUY</span></td>
+                                    <td class="p-3 text-white" id="tblEntry">$4,385.88</td>
+                                    <td class="p-3 text-red-400" id="tblSL">$4,340.66</td>
+                                    <td class="p-3 text-emerald-400" id="tblTP">$4,412.54 / $4,450.00</td>
                                     <td class="p-3 text-center"><span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">100% READY</span></td>
                                 </tr>
                             </tbody>
@@ -386,7 +385,7 @@
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
                         <p class="text-xs text-gray-400">AI Sentiment Consensus</p>
                         <h3 class="text-lg font-bold mt-1 text-purple-400 flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Bullish (78% Win)
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Bullish (86% Win)
                         </h3>
                         <span class="text-xs text-gray-400">Smart Filter v5.7</span>
                     </div>
@@ -451,7 +450,7 @@
                     <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2 font-mono">
                         <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Master Trader Signal Source:</div>
                         <div class="text-gray-300">Connected Channel: <b class="text-white">@VTradeAI_Master_Signal</b></div>
-                        <div class="text-gray-300">Last Copied Order: <b class="text-emerald-400">BTC/USDT BUY @ $65,057 (Success)</b></div>
+                        <div class="text-gray-300">Last Copied Order: <b class="text-emerald-400">XAU/USD STRONG BUY @ $4,385.88 (Success)</b></div>
                     </div>
 
                     <button onclick="saveCopyTradingSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer">
@@ -474,11 +473,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
                             <span class="text-gray-400">Global News Sentiment</span>
-                            <h3 class="text-xl font-bold text-emerald-400">🟢 BULLISH (82%)</h3>
+                            <h3 class="text-xl font-bold text-emerald-400">🟢 BULLISH (86%)</h3>
                         </div>
                         <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
                             <span class="text-gray-400">AI Confidence Score</span>
-                            <h3 class="text-xl font-bold text-blue-400">94.8% Accuracy</h3>
+                            <h3 class="text-xl font-bold text-blue-400">92.5% Accuracy</h3>
                         </div>
                         <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
                             <span class="text-gray-400">Sideways Filter</span>
@@ -551,8 +550,8 @@
                         <div>
                             <label class="text-gray-400 mb-1 block font-bold">ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)</label>
                             <select id="customAssetSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
-                                <option value="BTC/USDT">BTC/USDT (Cryptocurrency)</option>
                                 <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
+                                <option value="BTC/USDT">BTC/USDT (Cryptocurrency)</option>
                                 <option value="EUR/USD">EUR/USD (Forex)</option>
                             </select>
                         </div>
@@ -572,7 +571,7 @@
 
                     <div id="backtestResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-emerald-500/40 space-y-2 font-mono">
                         <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.0.7 Successful!</div>
-                        <div class="text-gray-300">Win Rate: <b class="text-white" id="resWinRate">94.8%</b></div>
+                        <div class="text-gray-300">Win Rate: <b class="text-white" id="resWinRate">92.5%</b></div>
                         <div class="text-gray-300">Total Trades Tested: <b class="text-white">150 Trades</b></div>
                         <div class="text-gray-300">Estimated Profit Factor: <b class="text-white">3.12</b></div>
                     </div>
@@ -831,9 +830,9 @@
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
                     <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="OANDA:XAUUSD">Gold (XAU/USD)</option>
                         <option value="BINANCE:BTCUSDT">Bitcoin (BTC/USDT)</option>
                         <option value="BINANCE:ETHUSDT">Ethereum (ETH/USDT)</option>
-                        <option value="OANDA:XAUUSD">Gold (XAU/USD)</option>
                     </select>
                 </div>
                 <div class="glass-panel rounded-2xl overflow-hidden h-[450px]" id="tradingview_widget"></div>
@@ -1073,10 +1072,10 @@
         ];
 
         let mockMarketData = {
-            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$2,650.40", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
+            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$4,385.88", sl: "$4,340.66", tp: "$4,412.54 / $4,450.00", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "76.26 (Strong Buy)", macd: "Bullish Divergence", orderbook: "72% Buy Orders" },
+            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$63,938.00", sl: "$63,100.00", tp: "$65,500 / $67,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
             "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
-            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,872.91", sl: "$1,840.00", tp: "$1,930 / $1,980", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
 
         const translations = {
@@ -1101,49 +1100,54 @@
             setInterval(updateMarketSessionsTimer, 1000);
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+            initTradingViewWidget('OANDA:XAUUSD');
         });
 
-        // មុខងារប្តូរ Tab ផ្សេងៗ
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            const target = document.getElementById('tab-' + tabId);
-            if (target) target.classList.add('active');
-
-            if (tabId === 'tvchart' && !tvWidgetInstance) {
-                initTradingViewWidget("BINANCE:BTCUSDT");
+        async function fetchMarketPrices() {
+            try {
+                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether-gold&vs_currencies=usd');
+                let data = await res.json();
+                const tickerBtc = document.getElementById('tickerBtc');
+                const tickerEth = document.getElementById('tickerEth');
+                const tickerXau = document.getElementById('tickerXau');
+                
+                if(data.bitcoin && tickerBtc) {
+                    let btcVal = data.bitcoin.usd;
+                    tickerBtc.innerText = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    mockMarketData["BTC/USDT"].entry = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+                if(data.ethereum && tickerEth) {
+                    let ethVal = data.ethereum.usd;
+                    tickerEth.innerText = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    mockMarketData["ETH/USDT"].entry = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+                if(data['tether-gold'] && tickerXau) {
+                    let xauVal = data['tether-gold'].usd;
+                    tickerXau.innerText = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    mockMarketData["XAU/USD"].entry = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+                runAIAnalysis();
+            } catch (e) {
+                console.log("Live price fetch fallback active.");
             }
         }
 
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenuOverlay');
-            if (menu) menu.classList.toggle('hidden');
-        }
-
-        function openModal(modalId) {
-            const m = document.getElementById(modalId);
-            if (m) m.classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if (m) m.classList.add('hidden');
-        }
-
-        // មុខងារវិភាគទីផ្សារ និងទាញតម្លៃ Entry ត្រឹមត្រូវ (Fixed Price Entry)
         function runAIAnalysis() {
+            const pairSelect = document.getElementById('terminalPairSelect');
+            const pair = pairSelect ? pairSelect.value : 'XAU/USD';
+            const data = mockMarketData[pair] || mockMarketData['XAU/USD'];
+
             const spinner = document.getElementById('btnRefreshSpinner');
             const icon = document.getElementById('btnRefreshIcon');
-            if (spinner) spinner.style.display = 'inline-block';
-            if (icon) icon.style.display = 'none';
+            if(spinner) spinner.style.display = 'inline-block';
+            if(icon) icon.style.display = 'none';
+
+            appendTerminalLog(`[COMMAND] Executing Realtime Market Scan for ${pair}...`);
 
             setTimeout(() => {
-                if (spinner) spinner.style.display = 'none';
-                if (icon) icon.style.display = 'inline-block';
+                if(spinner) spinner.style.display = 'none';
+                if(icon) icon.style.display = 'inline-block';
 
-                const pair = document.getElementById('terminalPairSelect').value;
-                const data = mockMarketData[pair] || mockMarketData["BTC/USDT"];
-
-                // កែតម្រូវតម្លៃ Entry និងទិន្នន័យទាំងអស់ឱ្យត្រឹមត្រូវទៅតាម Asset នីមួយៗ
                 document.getElementById('signal-direction').innerText = data.direction;
                 document.getElementById('signal-entry').innerText = data.entry;
                 document.getElementById('win-rate-val').innerText = data.winRate;
@@ -1151,6 +1155,9 @@
                 document.getElementById('fvg-confidence').innerText = data.fvg;
                 document.getElementById('fvg-zone').innerText = data.fvgZone;
                 document.getElementById('sentiment-score').innerText = data.sentiment;
+                document.getElementById('rsiVal').innerText = data.rsi;
+                document.getElementById('macdVal').innerText = data.macd;
+                document.getElementById('orderbookVal').innerText = data.orderbook;
 
                 document.getElementById('tblAsset').innerText = pair;
                 document.getElementById('tblSignalBadge').innerText = data.direction;
@@ -1158,114 +1165,251 @@
                 document.getElementById('tblSL').innerText = data.sl;
                 document.getElementById('tblTP').innerText = data.tp;
 
-                document.getElementById('rsiVal').innerText = data.rsi;
-                document.getElementById('macdVal').innerText = data.macd;
-                document.getElementById('orderbookVal').innerText = data.orderbook;
-
-                appendTerminalLog(`[AI ENGINE] Successfully scanned ${pair}. Price Entry updated: ${data.entry} | Status: OK.`);
-            }, 500);
+                appendTerminalLog(`[AI ENGINE] Analysis complete for ${pair}. Signal: ${data.direction} @ ${data.entry}. Win Probability: ${data.winRate}`);
+                updateRadarChartData(pair);
+            }, 800);
         }
 
-        function appendTerminalLog(text) {
-            const box = document.getElementById('terminal-logs');
-            if (box) {
-                const timeStr = new Date().toTimeString().split(' ')[0];
-                box.innerHTML += `<div><span class="text-gray-500">[${timeStr}]</span> ${text}</div>`;
-                box.scrollTop = box.scrollHeight;
-            }
+        function initSentimentRadarChart() {
+            const ctx = document.getElementById('sentimentChartCanvas');
+            if(!ctx) return;
+
+            sentimentChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['RSI', 'MACD', 'ICT FVG', 'Orderbook', 'News Filter'],
+                    datasets: [{
+                        label: 'Market Score',
+                        data: [85, 90, 92, 88, 95],
+                        backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                        borderColor: '#14b8a6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#38bdf8'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#9ca3af', font: { size: 10 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateRadarChartData(pair) {
+            if(!sentimentChartInstance) return;
+            const randomVal = () => Math.floor(70 + Math.random() * 25);
+            sentimentChartInstance.data.datasets[0].data = [randomVal(), randomVal(), randomVal(), randomVal(), randomVal()];
+            sentimentChartInstance.update();
+        }
+
+        function appendTerminalLog(message) {
+            const logBox = document.getElementById('terminal-logs');
+            if(!logBox) return;
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timeStr}]</span> ${message}`;
+            logBox.appendChild(logEntry);
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
         function clearTerminalLogs() {
-            const box = document.getElementById('terminal-logs');
-            if (box) box.innerHTML = `<div><span class="text-gray-500">[SYSTEM]</span> Terminal logs cleared. Ready for commands.</div>`;
+            const logBox = document.getElementById('terminal-logs');
+            if(logBox) logBox.innerHTML = '<div><span class="text-gray-500">[SYSTEM]</span> Terminal logs cleared. Ready...</div>';
         }
 
         function executeTerminalCommand() {
-            const input = document.getElementById('terminalCmdInput');
-            if (input && input.value.trim() !== '') {
-                appendTerminalLog(`<span class="text-white">[USER COMMAND]</span> ${input.value}`);
-                setTimeout(() => {
-                    appendTerminalLog(`<span class="text-emerald-400">[EXECUTION SUCCESS]</span> Command processed by v5.7 AI Core.`);
-                }, 400);
-                input.value = '';
-            }
+            const cmdInput = document.getElementById('terminalCmdInput');
+            if(!cmdInput || !cmdInput.value.trim()) return;
+            const val = cmdInput.value.trim();
+            appendTerminalLog(`<span class="text-amber-400">[USER CMD]</span> ${val}`);
+            cmdInput.value = '';
+            
+            setTimeout(() => {
+                appendTerminalLog(`<span class="text-emerald-400">[EXECUTION]</span> Command executed successfully. AI Worker synchronized.`);
+            }, 500);
         }
 
-        // Initializing Sentiment Radar Chart
-        function initSentimentRadarChart() {
-            const ctx = document.getElementById('sentimentChartCanvas');
-            if (ctx) {
-                sentimentChartInstance = new Chart(ctx, {
-                    type: 'radar',
-                    data: {
-                        labels: ['Momentum', 'Volume', 'Orderbook', 'RSI Score', 'ICT FVG', 'Macro News'],
-                        datasets: [{
-                            label: 'Consensus v5',
-                            data: [85, 90, 78, 88, 92, 80],
-                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                            borderColor: '#3b82f6',
-                            pointBackgroundColor: '#10b981',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            r: {
-                                grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                                angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                                ticks: { display: false }
-                            }
-                        },
-                        plugins: { legend: { display: false } }
-                    }
+        async function dispatchTelegramSignal() {
+            const pair = document.getElementById('tblAsset').innerText;
+            const direction = document.getElementById('tblSignalBadge').innerText;
+            const entry = document.getElementById('tblEntry').innerText;
+            const sl = document.getElementById('tblSL').innerText;
+            const tp = document.getElementById('tblTP').innerText;
+
+            const token = localStorage.getItem('vtrade_tg_token') || document.getElementById('tgTokenInput')?.value;
+            const chatId = localStorage.getItem('vtrade_tg_chatid') || document.getElementById('tgChatIdInput')?.value;
+
+            if(!token || !chatId) {
+                alert('សូមរៀបចំ Telegram Bot Token & Chat ID នៅក្នុង Tab "Telegram Bot" ជាមុនសិន!');
+                switchTab('telegram');
+                return;
+            }
+
+            const msg = `🚨 **NEW V TRADE AI REALTIME SIGNAL** 🚨\n\n📌 Asset: **${pair}**\n📈 Signal: **${direction}**\n🎯 Entry Price: **${entry}**\n🛡️ Stop Loss: **${sl}**\n💰 Take Profit: **${tp}**\n\n🤖 Automated Copy Trading Connected 100%!`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
                 });
+                alert(`🟢 ផ្ញើ Realtime Signal (${pair}) ចូល Telegram Channel/Bot រួចរាល់ ១០០%!`);
+                appendTerminalLog(`<span class="text-blue-400">[TELEGRAM]</span> Broadcasted signal ${pair} to Channel ID ${chatId}`);
+            } catch(e) {
+                alert('កំហុសក្នុងការផ្ញើ Signal! សូមពិនិត្យមើល Token និង Chat ID។');
             }
         }
 
-        // TradingView Widget Initializer
-        function initTradingViewWidget(symbol) {
-            const container = document.getElementById('tradingview_widget');
-            if (container) {
-                container.innerHTML = "";
-                tvWidgetInstance = new TradingView.widget({
-                    "width": "100%",
-                    "height": "450",
-                    "symbol": symbol,
-                    "interval": "D",
-                    "timezone": "Etc/UTC",
-                    "theme": "dark",
-                    "style": "1",
-                    "locale": "en",
-                    "toolbar_bg": "#0f172a",
-                    "enable_publishing": false,
-                    "hide_side_toolbar": false,
-                    "allow_symbol_change": true,
-                    "container_id": "tradingview_widget"
-                });
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer";
+            });
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            const targetNav = document.getElementById('nav-' + tabId);
+            
+            if(targetTab) targetTab.classList.add('active');
+            if(targetNav) {
+                if(tabId === 'terminal-analysis') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer";
+                } else if(tabId === 'admin') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40 cursor-pointer";
+                } else if(tabId === 'strategy') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
+                } else if(tabId === 'calculator') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
+                } else if(tabId === 'copytrading') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
+                } else {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
+                }
+            }
+
+            if(tabId === 'tvchart' && !tvWidgetInstance) {
+                initTradingViewWidget('OANDA:XAUUSD');
             }
         }
 
-        function changeTradingViewSymbol(sym) {
-            initTradingViewWidget(sym);
+        function changeLanguage(lang) {
+            const t = translations[lang] || translations.km;
+            if(document.getElementById('txtBrandTitle')) document.getElementById('txtBrandTitle').innerText = t.brand;
+            if(document.getElementById('txtHeaderStatus')) document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
+            if(document.getElementById('btnDeposit')) document.getElementById('btnDeposit').innerText = t.deposit;
+            if(document.getElementById('menuDashboard')) document.getElementById('menuDashboard').innerText = t.dash;
+            if(document.getElementById('menuSessions')) document.getElementById('menuSessions').innerText = t.sessions;
+            if(document.getElementById('menuNews')) document.getElementById('menuNews').innerText = t.news;
+            if(document.getElementById('menuPricing')) document.getElementById('menuPricing').innerText = t.pricing;
+            if(document.getElementById('menuTelegram')) document.getElementById('menuTelegram').innerText = t.telegram;
+            if(document.getElementById('menuChart')) document.getElementById('menuChart').innerText = t.chart;
+            if(document.getElementById('menuSecurity')) document.getElementById('menuSecurity').innerText = t.security;
+            if(document.getElementById('menuSupport')) document.getElementById('menuSupport').innerText = t.support;
         }
 
-        // Admin User Table Management
-        function renderAdminTable(dataArray) {
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            let displayVal = "";
+            if(curr === 'USD') displayVal = "$" + baseUsdBalance.toLocaleString() + ".00";
+            else if(curr === 'KHR') displayVal = "៛ " + (baseUsdBalance * 4100).toLocaleString();
+            else if(curr === 'EUR') displayVal = "€ " + (baseUsdBalance * 0.92).toFixed(2);
+            if(document.getElementById('userBalanceDisplay')) document.getElementById('userBalanceDisplay').innerText = displayVal;
+        }
+
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            if(overlay) overlay.classList.toggle('hidden');
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const inputField = document.getElementById(inputId);
+            const iconEl = document.getElementById(iconId);
+            if(inputField && iconEl) {
+                if(inputField.type === "password") {
+                    inputField.type = "text";
+                    iconEl.className = "fa-solid fa-eye text-emerald-400";
+                } else {
+                    inputField.type = "password";
+                    iconEl.className = "fa-solid fa-eye-slash";
+                }
+            }
+        }
+
+        function showForgotPasswordForm() {
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('forgotPasswordSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = 'Forgot Password Recovery';
+        }
+
+        function backToLoginForm() {
+            document.getElementById('forgotPasswordSection').classList.add('hidden');
+            document.getElementById('loginFormSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = 'Login / Sign In (Cloudflare v5.7 Secured)';
+        }
+
+        function submitForgotPassword() {
+            const email = document.getElementById('forgotEmailInput').value.trim();
+            if(!email) { alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!'); return; }
+            alert(`បានបញ្ជូនតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មីទៅកាន់ ${email} រួចរាល់ហើយ!`);
+            backToLoginForm();
+        }
+
+        function loginWithGoogle() {
+            closeModal('authModal');
+            localStorage.setItem('vtrade_logged_user', 'VET VEN (Google)');
+            document.getElementById('btnAuth').innerHTML = `<i class="fa-brands fa-google text-red-400"></i> <span>VET VEN</span>`;
+            alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់ Cloudflare v5.7 Security');
+        }
+
+        function proceedTo2FAStep() {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPassword').value;
+            if(!email || !pass) { alert('សូមបញ្ចូលអ៊ីម៉ែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!'); return; }
+            
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('otpVerificationSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = '2FA Security Verification v5.7';
+            activeOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('generatedOtpDisplay').innerText = activeOtpCode;
+            document.getElementById('otpInputCode').value = activeOtpCode;
+        }
+
+        function verifyOtpAndLogin() {
+            const enteredOtp = document.getElementById('otpInputCode').value.trim();
+            if(enteredOtp === activeOtpCode) {
+                closeModal('authModal');
+                localStorage.setItem('vtrade_logged_user', 'VET Ven (Owner)');
+                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>VET Ven</span>`;
+                alert('🟢 Login ជោគជ័យ ១០០%! ប្រព័ន្ធ Cloudflare v5.7 និង 2FA បានអនុញ្ញាតឱ្យចូលប្រើប្រាស់។');
+            } else {
+                alert('❌ លេខកូដ OTP មិនត្រឹមត្រូវ! សូមព្យាយាមម្តងទៀត។');
+            }
+        }
+
+        function renderAdminTable(data) {
             const tbody = document.getElementById('adminUserTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            dataArray.forEach((u, idx) => {
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            data.forEach((u, index) => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-900/60 transition">
-                        <td class="p-3.5 font-bold text-white">${u.name}<br><span class="text-[10px] text-gray-400 font-normal">${u.email}</span></td>
-                        <td class="p-3.5"><span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">${u.level}</span></td>
-                        <td class="p-3.5 text-emerald-400 font-mono">${u.security}</td>
-                        <td class="p-3.5 font-mono text-gray-400">${u.date}</td>
-                        <td class="p-3.5 text-center space-x-1">
-                            <button onclick="editUserItem(${idx})" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-2 py-1 rounded text-[11px] transition cursor-pointer">Edit</button>
-                            <button onclick="deleteUserItem(${idx})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-2 py-1 rounded text-[11px] transition cursor-pointer">Lock</button>
+                    <tr class="hover:bg-gray-900/50 transition">
+                        <td class="p-3.5">
+                            <div class="font-bold text-white">${u.name}</div>
+                            <div class="text-gray-400 text-[10px]">${u.email}</div>
+                        </td>
+                        <td class="p-3.5"><span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full font-bold">${u.level}</span></td>
+                        <td class="p-3.5 text-emerald-400">${u.security}</td>
+                        <td class="p-3.5 font-mono">${u.date}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteAdminUser(${index})" class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-2.5 py-1 rounded-lg transition cursor-pointer">លុប</button>
                         </td>
                     </tr>
                 `;
@@ -1273,278 +1417,191 @@
         }
 
         function filterAdminUsers() {
-            const keyword = document.getElementById('adminSearchInput').value.toLowerCase();
-            const levelFilter = document.getElementById('adminLevelFilter').value;
+            const searchVal = document.getElementById('adminSearchInput').value.toLowerCase();
+            const levelVal = document.getElementById('adminLevelFilter').value;
             const filtered = usersListDB.filter(u => {
-                const matchKey = u.name.toLowerCase().includes(keyword) || u.email.toLowerCase().includes(keyword);
-                const matchLvl = levelFilter === 'all' || u.level.includes(levelFilter);
-                return matchKey && matchLvl;
+                const matchSearch = u.name.toLowerCase().includes(searchVal) || u.email.toLowerCase().includes(searchVal);
+                const matchLevel = levelVal === 'all' || u.level === levelVal;
+                return matchSearch && matchLevel;
             });
             renderAdminTable(filtered);
         }
 
         function addNewUserRecord() {
-            const name = document.getElementById('newUserNameInput').value;
-            const email = document.getElementById('newUserEmailInput').value;
+            const name = document.getElementById('newUserNameInput').value.trim();
+            const email = document.getElementById('newUserEmailInput').value.trim();
             const level = document.getElementById('newUserLevelInput').value;
-            if (name && email) {
-                usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
+            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
+
+            usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
+            renderAdminTable(usersListDB);
+            closeModal('addUserModal');
+            alert('🟢 បានបន្ថែមសមាជិកថ្មីជោគជ័យ ១០០%!');
+        }
+
+        function deleteAdminUser(index) {
+            if(confirm('តើអ្នកពិតជាចង់លុបសមាជិកនេះមែនទេ?')) {
+                usersListDB.splice(index, 1);
                 renderAdminTable(usersListDB);
-                closeModal('addUserModal');
-                alert('បន្ថែមសមាជិកថ្មីដោយជោគជ័យ!');
-            } else {
-                alert('សូមបំពេញព័ត៌មានឱ្យបានគ្រប់គ្រាន់។');
+                alert('🟢 បានលុបសមាជិកចេញពី System ជោគជ័យ!');
             }
-        }
-
-        function deleteUserItem(idx) {
-            if (confirm('តើបងពិតជាចង់ចាក់សោរ (Lock) សមាជិកនេះមែនទេ?')) {
-                usersListDB.splice(idx, 1);
-                renderAdminTable(usersListDB);
-                alert('បានចាក់សោរគណនីដោយជោគជ័យ!');
-            }
-        }
-
-        function editUserItem(idx) {
-            const u = usersListDB[idx];
-            const newName = prompt('កែសម្រួលឈ្មោះសមាជិក:', u.name);
-            if (newName) {
-                usersListDB[idx].name = newName;
-                renderAdminTable(usersListDB);
-                alert('រក្សាទុកការកែប្រែដោយជោគជ័យ!');
-            }
-        }
-
-        // Live Market Prices & Clocks
-        function fetchMarketPrices() {
-            const randomBtc = (65000 + Math.random() * 120).toFixed(2);
-            const randomEth = (1910 + Math.random() * 20).toFixed(2);
-            const randomXau = (2645 + Math.random() * 8).toFixed(2);
-
-            if (document.getElementById('tickerBtc')) document.getElementById('tickerBtc').innerText = `$${randomBtc}`;
-            if (document.getElementById('tickerEth')) document.getElementById('tickerEth').innerText = `$${randomEth}`;
-            if (document.getElementById('tickerXau')) document.getElementById('tickerXau').innerText = `$${randomXau}`;
-        }
-
-        function updateLiveClock() {
-            const now = new Date();
-            if (document.getElementById('liveClock')) document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
-            if (document.getElementById('liveDate')) document.getElementById('liveDate').innerText = now.toISOString().split('T')[0];
         }
 
         function updateMarketSessionsTimer() {
             const now = new Date();
-            const hour = now.getUTCHours() + 7; // ICT Time (UTC+7)
+            const utcHour = now.getUTCHours();
+            const utcDay = now.getUTCDay();
+            const isWeekend = (utcDay === 0 || utcDay === 6);
 
-            const asianOpen = hour >= 7 && hour < 15;
-            const londonOpen = hour >= 15 && hour < 23;
-            const nyOpen = hour >= 20 || hour < 4;
+            const asianActive = !isWeekend && (utcHour >= 0 && utcHour < 8);
+            const londonActive = !isWeekend && (utcHour >= 8 && utcHour < 16);
+            const nyActive = !isWeekend && (utcHour >= 13 && utcHour < 21);
 
-            setSessionStatus('Asian', asianOpen, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
-            setSessionStatus('London', londonOpen, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
-            setSessionStatus('New York', nyOpen, 'badgeNy', 'timerNy', 'dashNyStatus');
+            updateSessionUI('Asian', asianActive, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
+            updateSessionUI('London', londonActive, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
+            updateSessionUI('New York', nyActive, 'badgeNy', 'timerNy', 'dashNyStatus');
         }
 
-        function setSessionStatus(name, isOpen, badgeId, timerId, dashId) {
+        function updateSessionUI(name, isActive, badgeId, timerId, dashStatusId) {
             const badge = document.getElementById(badgeId);
             const timer = document.getElementById(timerId);
-            const dash = document.getElementById(dashId);
+            const dashStat = document.getElementById(dashStatusId);
 
-            if (badge) {
-                if (isOpen) {
-                    badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400";
-                    badge.innerText = "🟢 OPEN";
-                    if (timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ`;
-                    if (dash) dash.innerText = "🟢 ACTIVE (បើក)";
-                } else {
-                    badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                    badge.innerText = "🔴 CLOSED";
-                    if (timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} បានបិទ`;
-                    if (dash) dash.innerText = "🔴 CLOSED (បិទ)";
-                }
+            if(badge) {
+                badge.innerText = isActive ? "OPEN (សកម្ម)" : "CLOSED (បិទ)";
+                badge.className = isActive ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
+            }
+            if(timer) {
+                timer.innerText = isActive ? `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ` : `ស្ថានភាព៖ បិទដំណើរការ (Weekend / Closed)`;
+            }
+            if(dashStat) {
+                dashStat.innerText = isActive ? "🟢 OPEN (បើកដំណើរការ)" : "🔴 CLOSED (បិទ)";
             }
         }
 
-        // Currency Converter & Language
-        function changeCurrency(curr) {
-            currentCurrency = curr;
-            const disp = document.getElementById('userBalanceDisplay');
-            if (disp) {
-                if (curr === 'KHR') disp.innerText = `៛ ${(baseUsdBalance * 4100).toLocaleString()}`;
-                else if (curr === 'EUR') disp.innerText = `€ ${(baseUsdBalance * 0.92).toFixed(2)}`;
-                else disp.innerText = `$${baseUsdBalance.toFixed(2)}`;
-            }
+        function updateLiveClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('km-KH');
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            if(document.getElementById('liveDate')) document.getElementById('liveDate').innerText = dateStr;
+            if(document.getElementById('liveClock')) document.getElementById('liveClock').innerText = timeStr;
         }
 
-        function changeLanguage(lang) {
-            const t = translations[lang] || translations['km'];
-            if (document.getElementById('txtBrandTitle')) document.getElementById('txtBrandTitle').innerText = t.brand;
-            if (document.getElementById('txtHeaderStatus')) document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
-            if (document.getElementById('btnDeposit')) document.getElementById('btnDeposit').innerText = t.deposit;
-            if (document.getElementById('menuDashboard')) document.getElementById('menuDashboard').innerText = t.dash;
-            if (document.getElementById('menuSessions')) document.getElementById('menuSessions').innerText = t.sessions;
-            if (document.getElementById('menuNews')) document.getElementById('menuNews').innerText = t.news;
-            if (document.getElementById('menuPricing')) document.getElementById('menuPricing').innerText = t.pricing;
-            if (document.getElementById('menuTelegram')) document.getElementById('menuTelegram').innerText = t.telegram;
-            if (document.getElementById('menuChart')) document.getElementById('menuChart').innerText = t.chart;
-            if (document.getElementById('menuSecurity')) document.getElementById('menuSecurity').innerText = t.security;
-            if (document.getElementById('menuSupport')) document.getElementById('menuSupport').innerText = t.support;
+        function initTradingViewWidget(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            if(!container) return;
+            container.innerHTML = "";
+            tvWidgetInstance = new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Asia/Phnom_Penh",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#0d111c",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
         }
 
-        // Additional Interactive Features
-        function selectPricingPlan(planName, price) {
-            document.getElementById('selectedPlanInput').value = planName;
-            openModal('depositModal');
-            alert(`បានជ្រើសរើសកញ្ចប់ ${planName} ដោយជោគជ័យ! សូមធ្វើការទូទាត់ប្រាក់តាមគណនីធនាគារខាងក្រោម។`);
+        function changeTradingViewSymbol(symbol) {
+            initTradingViewWidget(symbol);
         }
 
-        function copyAccountInfo(accNo, type) {
-            navigator.clipboard.writeText(accNo);
-            alert(`បានចម្លងលេខគណនី ${type} (${accNo}) របស់ VET VEN ជោគជ័យ!`);
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.add('hidden');
+        }
+
+        function copyAccountInfo(accNum, type) {
+            navigator.clipboard.writeText(accNum);
+            alert(`បានចម្លងលេខគណនី ${type} (${accNum}) ជូន VET VEN រួចរាល់!`);
         }
 
         function verifyBankPayment() {
-            alert('✅ ផ្ទៀងផ្ទាត់ការទូទាត់ជោគជ័យ! ລະບົບ Cloudflare v5.7 បានបើកសិទ្ធិ VIP ជូនបងដោយស្វ័យប្រវត្តិហើយ។');
+            alert('🟢 បានបញ្ជូនសំណើផ្ទៀងផ្ទាត់ Slip ទៅកាន់ Admin (VET VEN) រួចរាល់! សិទ្ធិ VIP នឹងបើកជូនក្នុងរយៈពេល ១នាទី។');
             closeModal('depositModal');
         }
 
-        function dispatchTelegramSignal() {
-            const token = document.getElementById('tgTokenInput').value;
-            const chatId = document.getElementById('tgChatIdInput').value;
-            if (!token || !chatId) {
-                alert('⚠️ សូមបញ្ចូល Telegram Bot Token និង Chat ID ជាមុនសិននៅក្នុងផ្ទាំង Telegram Bot & Webhook!');
-                switchTab('telegram');
-                return;
-            }
-            alert('🚀 Signal ត្រូវបានបញ្ជូនចូល Telegram Channel របស់អ្នកដោយជោគជ័យ ១០០%!');
-        }
-
-        function testTelegramIntegration() {
-            const token = document.getElementById('tgTokenInput').value;
-            const chatId = document.getElementById('tgChatIdInput').value;
-            if (token && chatId) {
-                localStorage.setItem('tg_bot_token', token);
-                localStorage.setItem('tg_chat_id', chatId);
-                alert('✅ Telegram Bot & Copy Trading Webhook v5.7 បានតភ្ជាប់ដោយជោគជ័យ!');
-            } else {
-                alert('⚠️ សូមបំពេញព័ត៌មាន Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវ។');
-            }
-        }
-
         function saveCopyTradingSettings() {
-            const state = document.getElementById('copyBotState').value;
-            const mult = document.getElementById('copyMultiplier').value;
-            alert(`✅ រក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ!\n- ស្ថានភាព៖ ${state}\n- ភាគរយ៖ ${mult}`);
+            alert('🟢 រក្សាទុកការកំណត់ Copy Trading Bot ចូល Server ជោគជ័យ ១០០%!');
         }
 
         function runAiSentimentScan() {
-            alert('🔍 AI Smart Sentiment Scan កំពុងដំណើរការ... លទ្ធផល៖ សន្ទុះទីផ្សារស្ថិតក្នុងកម្រិត Bullish ខ្ពស់ (88%)!');
+            alert('🟢 AI Sentiment Scanner បានស្កេនទិន្នន័យពិភពលោក និងអាប់ដេត Consensus ថ្មីរួចរាល់!');
         }
 
         function runAiBacktest() {
-            const asset = document.getElementById('customAssetSelect').value;
-            const risk = document.getElementById('customRiskSelect').value;
             document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert(`✅ Backtest សម្រាប់ ${asset} (${risk}) បានជោគជ័យ ១០០%!`);
+            alert('🟢 រត់ Backtest v5 Engine ជោគជ័យ! Strategy ត្រូវបានរក្សាទុក។');
         }
 
         function calculateTradingRisk() {
-            const cap = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
             const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
-            const riskAmt = (cap * riskPct) / 100;
-            const lotSize = (riskAmt / 50).toFixed(2);
+            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
 
-            document.getElementById('resRiskAmount').innerText = `$${riskAmt.toFixed(2)}`;
-            document.getElementById('resLotSize').innerText = `${lotSize} Lots`;
+            const riskAmount = capital * (riskPct / 100);
+            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
+            const targetProfit = riskAmount * 2;
+
+            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
+            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
+            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + targetProfit.toFixed(2) + ' Profit';
             document.getElementById('calcResultCard').classList.remove('hidden');
         }
 
         function copyRefLink() {
-            const linkInput = document.getElementById('refLinkInput');
-            linkInput.select();
-            navigator.clipboard.writeText(linkInput.value);
-            alert('📋 បានចម្លង Referral Link របស់អ្នកជោគជ័យ!');
+            const input = document.getElementById('refLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('🟢 បានចម្លងតំណភ្ជាប់ Affiliate របស់អ្នករួចរាល់!');
         }
 
-        function togglePasswordVisibility(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash';
-            }
+        function testTelegramIntegration() {
+            const token = document.getElementById('tgTokenInput').value.trim();
+            const chatId = document.getElementById('tgChatIdInput').value.trim();
+            if(!token || !chatId) { alert('សូមបំពេញ Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!'); return; }
+            localStorage.setItem('vtrade_tg_token', token);
+            localStorage.setItem('vtrade_tg_chatid', chatId);
+            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook Worker v5.7 ជោគជ័យ ១០០%!');
         }
 
-        function proceedTo2FAStep() {
-            document.getElementById('loginFormSection').classList.add('hidden');
-            document.getElementById('otpVerificationSection').classList.remove('hidden');
-            document.getElementById('authModalTitle').innerText = "2FA Security Verification (v5.7)";
-        }
-
-        function verifyOtpAndLogin() {
-            const code = document.getElementById('otpInputCode').value;
-            if (code === activeOtpCode || code.length === 6) {
-                localStorage.setItem('vtrade_logged_user', 'VET Ven');
-                localStorage.setItem('isLoggedIn', 'true');
-                alert('✅ Login ជោគជ័យ ១០០%! স্বাগতম VET Ven ចូលកាន់ប្រព័ន្ធ Terminal v5.0.7។');
-                closeModal('authModal');
-                location.reload();
-            } else {
-                alert('❌ លេខកូដ OTP មិនត្រឹមត្រូវទេ សូមព្យាយាមម្តងទៀត។');
-            }
-        }
-
-        function showForgotPasswordForm() {
-            document.getElementById('loginFormSection').classList.add('hidden');
-            document.getElementById('forgotPasswordSection').classList.remove('hidden');
-        }
-
-        function backToLoginForm() {
-            document.getElementById('forgotPasswordSection').classList.add('hidden');
-            document.getElementById('loginFormSection').classList.remove('hidden');
-        }
-
-        function submitForgotPassword() {
-            const email = document.getElementById('forgotEmailInput').value;
-            if (email) {
-                alert(`✅ តំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មី (Reset Link) ត្រូវបានផ្ញើទៅកាន់ ${email} រួចរាល់ហើយ!`);
-                backToLoginForm();
-            } else {
-                alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកជាមុនសិន។');
-            }
-        }
-
-        function loginWithGoogle() {
-            localStorage.setItem('vtrade_logged_user', 'VET Ven (Google)');
-            localStorage.setItem('isLoggedIn', 'true');
-            alert('✅ Google Sign In ជោគជ័យ ១០០%!');
-            closeModal('authModal');
-            location.reload();
-        }
-
-        function saveProfileSettings() {
-            const name = document.getElementById('profileName').value;
-            localStorage.setItem('vtrade_logged_user', name);
-            alert('✅ រក្សាទុកការកំណត់ Profile ជោគជ័យ!');
-            closeModal('profileModal');
-            location.reload();
+        function selectPricingPlan(planName, price) {
+            document.getElementById('selectedPlanInput').value = planName;
+            switchTab('telegram');
+            alert(`🟢 បានជ្រើសរើសកញ្ចប់ ${planName} រួចរាល់! សូមបំពេញ Telegram Bot Token ដើម្បីចាប់ផ្តើម។`);
         }
 
         function sendChat() {
             const input = document.getElementById('chatInput');
             const box = document.getElementById('chatMsgBox');
-            if (input && input.value.trim() !== '') {
-                box.innerHTML += `<div class="bg-blue-600/30 p-2.5 rounded-xl ml-auto max-w-[80%] text-right">${input.value}</div>`;
-                const userQuery = input.value;
-                input.value = '';
-                setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">🤖 AI Support v5.7: បានទទួលសំណួររបស់អ្នក "${userQuery}"។ ប្រព័ន្ធកំពុងដំណើរការវិភាគជូន ២៤ម៉ោង!</div>`;
-                    box.scrollTop = box.scrollHeight;
-                }, 500);
-            }
+            if(!input || !input.value.trim()) return;
+            const userMsg = input.value.trim();
+            
+            box.innerHTML += `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${userMsg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.0.7 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+        }
+
+        function saveProfileSettings() {
+            const name = document.getElementById('profileName  ').value;
+            localStorage.setItem('vtrade_logged_user', name);
+            alert('🟢 រក្សាទុក Profile និងការកំណត់សុវត្ថិភាពជោគជ័យ!');
+            closeModal('profileModal');
         }
     </script>
 </body>
