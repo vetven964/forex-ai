@@ -1018,19 +1018,19 @@
                 <div class="bg-gray-950 p-4 rounded-xl border border-emerald-500/40 flex justify-between items-center">
                     <div>
                         <div class="text-[11px] text-gray-400">ប្រាក់រៀល (KHR Account):</div>
-                        <div class="text-emerald-400 font-bold text-sm tracking-wide">••••••481</div>
+                        <div class="text-emerald-400 font-bold text-sm tracking-wide">002 145 481</div>
                         <div class="text-white text-[11px]">ឈ្មោះ (Name): <b>VET VEN</b></div>
                     </div>
-                    <button onclick="copyAccountInfo('••••••481', 'KHR')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy KHR</button>
+                    <button onclick="copyAccountInfo('002 145 481', 'KHR')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy KHR</button>
                 </div>
 
                 <div class="bg-gray-950 p-4 rounded-xl border border-blue-500/40 flex justify-between items-center">
                     <div>
                         <div class="text-[11px] text-gray-400">ប្រាក់ដុល្លារ (USD Account):</div>
-                        <div class="text-blue-400 font-bold text-sm tracking-wide">••••••195</div>
+                        <div class="text-blue-400 font-bold text-sm tracking-wide">009 194 195</div>
                         <div class="text-white text-[11px]">ឈ្មោះ (Name): <b>VET VEN</b></div>
                     </div>
-                    <button onclick="copyAccountInfo('••••••195', 'USD')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy USD</button>
+                    <button onclick="copyAccountInfo('009 194 195', 'USD')" class="bg-blue-600 hover:bg-blue-500 text-white font-sans font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">Copy USD</button>
                 </div>
             </div>
 
@@ -1364,7 +1364,7 @@
             closeModal('authModal');
             localStorage.setItem('vtrade_logged_user', 'VET VEN (Google)');
             document.getElementById('btnAuth').innerHTML = `<i class="fa-brands fa-google text-red-400"></i> <span>VET VEN</span>`;
-            alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់ server-side security');
+            alert('🟢 Sign In with Google Account ជោគជ័យ ១០០%! បានតភ្ជាប់ Cloudflare v5.7 Security');
         }
 
         function proceedTo2FAStep() {
@@ -1386,7 +1386,7 @@
                 closeModal('authModal');
                 localStorage.setItem('vtrade_logged_user', 'VET Ven (Owner)');
                 document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>VET Ven</span>`;
-                alert('🟢 Login ជោគជ័យ ១០០%! ប្រព័ន្ធ server-side security and 2FA បានអនុញ្ញាតឱ្យចូលប្រើប្រាស់។');
+                alert('🟢 Login ជោគជ័យ ១០០%! ប្រព័ន្ធ Cloudflare v5.7 និង 2FA បានអនុញ្ញាតឱ្យចូលប្រើប្រាស់។');
             } else {
                 alert('❌ លេខកូដ OTP មិនត្រឹមត្រូវ! សូមព្យាយាមម្តងទៀត។');
             }

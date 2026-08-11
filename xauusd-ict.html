@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V TRADE AI — XAUUSD MTF ICT</title>
+<style>
+body{margin:0;background:#07111f;color:#eaf2ff;font-family:Inter,system-ui,sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:20px}
+h1{margin:0 0 6px}.muted{color:#8ea1bb}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.card{background:#0d1b2d;border:1px solid #20334c;border-radius:14px;padding:16px}
+.value{font-size:25px;font-weight:800;margin-top:8px}
+.signal{font-size:32px}.buy{color:#43e18b}.sell{color:#ff6978}.wait{color:#ffd166}
+.cols{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #20334c;text-align:left}
+.badge{padding:4px 8px;border-radius:99px;background:#152943}.row{display:flex;justify-content:space-between;gap:12px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}
+@media(max-width:500px){.wrap{padding:12px}.grid{grid-template-columns:1fr}.value{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>V TRADE AI — XAUUSD</h1>
+  <div class="muted">MTF ICT: Liquidity → MSS/BOS → FVG/OB → Execution</div>
+  <div class="grid">
+    <div class="card"><div class="muted">LIVE PRICE</div><div id="price" class="value">—</div></div>
+    <div class="card"><div class="muted">SIGNAL</div><div id="signal" class="value signal wait">WAIT</div></div>
+    <div class="card"><div class="muted">ENTRY</div><div id="entry" class="value">—</div></div>
+    <div class="card"><div class="muted">CONFIDENCE</div><div id="confidence" class="value">—</div></div>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <h2>ICT Structure</h2>
+      <table>
+        <thead><tr><th>TF</th><th>Bias</th><th>Liquidity</th><th>MSS</th><th>BOS</th></tr></thead>
+        <tbody id="tf"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Execution</h2>
+      <div class="row"><span>SL</span><b id="sl">—</b></div><br>
+      <div class="row"><span>TP1</span><b id="tp1">—</b></div>
+      <div class="row"><span>TP2</span><b id="tp2">—</b></div>
+      <div class="row"><span>TP3</span><b id="tp3">—</b></div>
+      <hr style="border-color:#20334c">
+      <div class="row"><span>FVG</span><b id="fvg">—</b></div>
+      <div class="row"><span>Order Block</span><b id="ob">—</b></div>
+      <div class="row"><span>Premium/Discount</span><b id="pd">—</b></div>
+    </div>
+  </div>
+  <p class="muted">⚠️ Analysis only. Broker price/spread can differ. Verify before any manual or automated order.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=x=>x==null?'—':Number(x).toFixed(2);
+async function load(){
+  const r=await fetch('/api/analysis/xauusd',{cache:'no-store'});
+  const a=await r.json();
+  $('price').textContent=fmt(a.livePrice);
+  $('signal').textContent=a.signal;
+  $('signal').className='value signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');
+  $('entry').textContent=fmt(a.entry);
+  $('confidence').textContent=a.confidence!=null?a.confidence+'%':'—';
+  $('sl').textContent=fmt(a.stopLoss);
+  (a.takeProfit||[]).forEach((x,i)=>{if($('tp'+(i+1)))$('tp'+(i+1)).textContent=fmt(x)});
+  $('fvg').textContent=a.ict?.fvg?.found?`${a.ict.fvg.type} ${fmt(a.ict.fvg.low)}–${fmt(a.ict.fvg.high)}`:'Not confirmed';
+  $('ob').textContent=a.ict?.orderBlock?.found?`${a.ict.orderBlock.type} ${fmt(a.ict.orderBlock.low)}–${fmt(a.ict.orderBlock.high)}`:'Not confirmed';
+  $('pd').textContent=a.ict?.premiumDiscount||'—';
+  $('tf').innerHTML=Object.entries(a.timeframes||{}).map(([tf,x])=>`<tr><td>${tf}</td><td><span class="badge">${x.structure?.bias||'—'}</span></td><td>${x.sweep?.detail||'—'}</td><td>${x.structure?.mss||'—'}</td><td>${x.structure?.bos||'—'}</td></tr>`).join('');
+}
+load().catch(e=>console.error(e)); setInterval(()=>load().catch(()=>{}),15000);
+</script>
+</body>
+</html>
