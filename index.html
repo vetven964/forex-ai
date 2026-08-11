@@ -47,26 +47,26 @@
             </div>
         </div>
 
-        <!-- Live Crypto & Gold Ticker Bar & Clock Header -->
-        <div class="hidden lg:flex items-center space-x-3 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
-            <div class="flex items-center gap-1.5 text-amber-400 font-mono">
+        <!-- Live Crypto Ticker Bar & Clock Header -->
+        <div class="hidden lg:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
+            <div class="flex items-center gap-2 text-amber-400 font-mono">
                 <i class="fa-brands fa-bitcoin"></i> BTC: <span id="tickerBtc" class="font-bold text-white">$65,057.90</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
-            <div class="flex items-center gap-1.5 text-yellow-400 font-mono">
-                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$2,654.20</span>
-            </div>
-            <div class="h-3 w-[1px] bg-gray-800"></div>
-            <div class="flex items-center gap-1.5 text-purple-400 font-mono">
+            <div class="flex items-center gap-2 text-purple-400 font-mono">
                 <i class="fa-brands fa-ethereum"></i> ETH: <span id="tickerEth" class="font-bold text-white">$1,919.60</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
-            <div class="flex items-center gap-1.5 text-blue-400 font-mono">
+            <div class="flex items-center gap-2 text-yellow-400 font-mono">
+                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$2,650.40</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-blue-400 font-mono">
                 <i class="fa-regular fa-calendar-days"></i>
                 <span id="liveDate">--/--/----</span>
             </div>
             <div class="h-3 w-[1px] bg-gray-800"></div>
-            <div class="flex items-center gap-1.5 text-emerald-400 font-mono font-bold">
+            <div class="flex items-center gap-2 text-emerald-400 font-mono font-bold">
                 <i class="fa-regular fa-clock"></i>
                 <span id="liveClock">00:00:00</span>
             </div>
@@ -102,46 +102,46 @@
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
-            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left cursor-pointer">
+            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
                 <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis AI Realtime</span>
             </button>
-            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
             </button>
-            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto Mirror)</span>
             </button>
-            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus Filter</span>
             </button>
-            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
             </button>
-            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
             </button>
-            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
             </button>
-            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate & Referral Program</span>
             </button>
-            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span>ម៉ោងទីផ្សារ (Asian/NY/London)</span>
             </button>
-            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
             </button>
-            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-tags w-5 text-purple-400"></i><span>កញ្ចប់តម្លៃថ្មី (Pricing)</span>
             </button>
-            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>Telegram Bot & Webhook</span>
             </button>
-            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span>TradingView Chart</span>
             </button>
-            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left cursor-pointer">
+            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
                 <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
             </button>
         </div>
@@ -207,7 +207,7 @@
         <!-- Main Workspace Area -->
         <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
-            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME (MAIN DEFAULT TAB) -->
+            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME -->
             <div id="tab-terminal-analysis" class="tab-content active space-y-6">
                 <!-- Header Control & Selector -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-950 p-4 rounded-2xl border border-gray-800">
@@ -284,7 +284,7 @@
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
                             <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.0.7 Realtime Core Engine...</div>
-                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (Gold XAU/USD, Crypto & Forex Data)...</div>
+                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to Live REST APIs (CoinGecko & Forex Data)...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing exact real-time prices for BTC, ETH, XAU, and EUR...</div>
                         </div>
 
@@ -666,7 +666,7 @@
                         <p class="text-gray-400">ទីផ្សារតំបន់អាស៊ីចាប់ផ្តើមបើកដំណើរការដំបូងគេក្នុងមួយថ្ងៃ។</p>
                         <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
                             <div>ម៉ោងបើក៖ <b class="text-white">07:00 AM (ICT)</b></div>
-                            <div>ម៉ោងបិទ៖ <b class="text-white">04:00 PM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">03:00 PM (ICT)</b></div>
                             <div class="pt-2 text-amber-400" id="timerAsian">ស្ថានភាព៖ កំពុងគណនា...</div>
                         </div>
                     </div>
@@ -679,7 +679,7 @@
                         <p class="text-gray-400">ទីផ្សារអឺរ៉ុបដែលមានបរិមាណជួញដូរខ្លាំងជាងគេប្រចាំថ្ងៃ។</p>
                         <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
                             <div>ម៉ោងបើក៖ <b class="text-white">03:00 PM (ICT)</b></div>
-                            <div>ម៉ោងបិទ៖ <b class="text-white">12:00 AM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">11:00 PM (ICT)</b></div>
                             <div class="pt-2 text-blue-400" id="timerLondon">ស្ថានភាព៖ កំពុងគណនា...</div>
                         </div>
                     </div>
@@ -692,7 +692,7 @@
                         <p class="text-gray-400">ទីផ្សារអាមេរិកដែលមានការប្រែប្រួលតម្លៃខ្លាំងក្លាជាងគេ (High Volatility)។</p>
                         <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
                             <div>ម៉ោងបើក៖ <b class="text-white">08:00 PM (ICT)</b></div>
-                            <div>ម៉ោងបិទ៖ <b class="text-white">05:00 AM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">04:00 AM (ICT)</b></div>
                             <div class="pt-2 text-purple-400" id="timerNy">ស្ថានភាព៖ កំពុងគណនា...</div>
                         </div>
                     </div>
@@ -774,7 +774,7 @@
                             <p class="text-gray-400">កញ្ចប់ពេញនិយមសម្រាប់ Trader ដែលចង់បានមុខងារកម្រិតខ្ទង់មធ្យម។</p>
                             <div class="text-2xl font-bold text-white">$8.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
                         </div>
-                        <button onclick="selectPricingPlan('Standard AI Bot v5 ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20 cursor-pointer">ទិញកញ្ចប់ $8.99</button>
+                        <button onclick="selectPricingPlan('Standard AI Bot v5 ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20 cursor-pointer">ទិញកញ្ចប់ $8.99</button>
                     </div>
 
                     <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-amber-500 shadow-xl shadow-amber-500/10 relative overflow-hidden">
@@ -861,19 +861,19 @@
 
     <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
-        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold cursor-pointer">
+        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
             <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
         </button>
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400 cursor-pointer">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
             <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
         </button>
-        <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold cursor-pointer">
+        <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold">
             <i class="fa-solid fa-satellite-dish text-base mb-0.5"></i><span>Copy Bot</span>
         </button>
-        <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold cursor-pointer">
+        <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold">
             <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Sentiment</span>
         </button>
-        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold cursor-pointer">
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
             <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
         </button>
     </div>
@@ -1074,8 +1074,8 @@
 
         let mockMarketData = {
             "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$2,654.20", sl: "$2,625.00", tp: "$2,690 / $2,720", fvg: "DISCOUNT FVG", fvgZone: "Demand Zone 1H", sentiment: "85% BULLISH", rsi: "64.2 (Bullish)", macd: "Histogram Positive", orderbook: "74% Buy Volume" },
-            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0845", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
+            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$2,650.40", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
+            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
             "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
 
@@ -1103,13 +1103,13 @@
             setInterval(updateLiveClock, 1000);
         });
 
-        // Real-time API fetching for Crypto, Gold (XAU/USD) & Forex
         async function fetchMarketPrices() {
             try {
-                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether&vs_currencies=usd');
+                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether-gold&vs_currencies=usd');
                 let data = await res.json();
                 const tickerBtc = document.getElementById('tickerBtc');
                 const tickerEth = document.getElementById('tickerEth');
+                const tickerXau = document.getElementById('tickerXau');
                 
                 if(data.bitcoin && tickerBtc) {
                     let btcVal = data.bitcoin.usd;
@@ -1121,15 +1121,11 @@
                     tickerEth.innerText = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     mockMarketData["ETH/USDT"].entry = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 }
-
-                // Dynamic live live gold price simulation / real-time variation
-                const tickerXau = document.getElementById('tickerXau');
-                if(tickerXau) {
-                    let currentXau = 2654.20 + (Math.random() * 4 - 2);
-                    tickerXau.innerText = '$' + currentXau.toFixed(2);
-                    mockMarketData["XAU/USD"].entry = '$' + currentXau.toFixed(2);
+                if(data['tether-gold'] && tickerXau) {
+                    let xauVal = data['tether-gold'].usd;
+                    tickerXau.innerText = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    mockMarketData["XAU/USD"].entry = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 }
-
                 runAIAnalysis();
             } catch (e) {
                 console.log("Live price fetch fallback active.");
@@ -1398,27 +1394,22 @@
             }
         }
 
-        // Fully completed renderAdminTable function
         function renderAdminTable(data) {
             const tbody = document.getElementById('adminUserTableBody');
             if(!tbody) return;
             tbody.innerHTML = "";
             data.forEach((u, index) => {
-                let badgeColor = "bg-blue-500/20 text-blue-400";
-                if(u.level === "Admin") badgeColor = "bg-amber-500/20 text-amber-400";
-                if(u.level === "VIP Pro") badgeColor = "bg-purple-500/20 text-purple-400";
-
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-900/50 transition">
                         <td class="p-3.5">
                             <div class="font-bold text-white">${u.name}</div>
-                            <div class="text-gray-400 text-[11px] font-mono">${u.email}</div>
+                            <div class="text-gray-400 text-[10px]">${u.email}</div>
                         </td>
-                        <td class="p-3.5"><span class="px-2 py-0.5 rounded font-bold ${badgeColor}">${u.level}</span></td>
-                        <td class="p-3.5 text-emerald-400 font-mono text-[11px]"><i class="fa-solid fa-shield-halved"></i> ${u.security}</td>
-                        <td class="p-3.5 text-gray-400 font-mono text-[11px]">${u.date}</td>
+                        <td class="p-3.5"><span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full font-bold">${u.level}</span></td>
+                        <td class="p-3.5 text-emerald-400">${u.security}</td>
+                        <td class="p-3.5 font-mono">${u.date}</td>
                         <td class="p-3.5 text-center">
-                            <button onclick="deleteUserRecord(${index})" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2.5 py-1 rounded-lg transition cursor-pointer text-xs"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="deleteAdminUser(${index})" class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-2.5 py-1 rounded-lg transition cursor-pointer">លុប</button>
                         </td>
                     </tr>
                 `;
@@ -1426,12 +1417,12 @@
         }
 
         function filterAdminUsers() {
-            const query = document.getElementById('adminSearchInput').value.toLowerCase();
-            const levelFilter = document.getElementById('adminLevelFilter').value;
+            const searchVal = document.getElementById('adminSearchInput').value.toLowerCase();
+            const levelVal = document.getElementById('adminLevelFilter').value;
             const filtered = usersListDB.filter(u => {
-                const matchQuery = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
-                const matchLevel = levelFilter === 'all' || u.level === levelFilter;
-                return matchQuery && matchLevel;
+                const matchSearch = u.name.toLowerCase().includes(searchVal) || u.email.toLowerCase().includes(searchVal);
+                const matchLevel = levelVal === 'all' || u.level === levelVal;
+                return matchSearch && matchLevel;
             });
             renderAdminTable(filtered);
         }
@@ -1442,173 +1433,61 @@
             const level = document.getElementById('newUserLevelInput').value;
             if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
 
-            usersListDB.push({
-                name: name,
-                email: email,
-                level: level,
-                security: "Protected v5.7 (DDoS ON)",
-                date: new Date().toISOString().split('T')[0]
-            });
-            closeModal('addUserModal');
+            usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
             renderAdminTable(usersListDB);
-            alert(`🟢 បានបន្ថែមសមាជិក ${name} (${level}) ចូលក្នុងប្រព័ន្ធ Admin Manager ជោគជ័យ!`);
+            closeModal('addUserModal');
+            alert('🟢 បានបន្ថែមសមាជិកថ្មីជោគជ័យ ១០០%!');
         }
 
-        function deleteUserRecord(index) {
+        function deleteAdminUser(index) {
             if(confirm('តើអ្នកពិតជាចង់លុបសមាជិកនេះមែនទេ?')) {
                 usersListDB.splice(index, 1);
                 renderAdminTable(usersListDB);
+                alert('🟢 បានលុបសមាជិកចេញពី System ជោគជ័យ!');
             }
         }
 
-        function openModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if(m) m.classList.add('hidden');
-        }
-
-        function copyAccountInfo(accNum, type) {
-            navigator.clipboard.writeText(accNum);
-            alert(`🟢 បាន Copy លេខគណនី ${type} (${accNum}) របស់ VET VEN រួចរាល់!`);
-        }
-
-        function verifyBankPayment() {
-            alert('🟢 បានបញ្ជូនសំណើផ្ទៀងផ្ទាត់ការទូទាត់ជូន Admin (VET VEN) រួចរាល់! សិទ្ធិ VIP នឹងបើកជូនក្នុងរយៈពេល ១នាទី។');
-            closeModal('depositModal');
-        }
-
-        function selectPricingPlan(planName, price) {
-            document.getElementById('selectedPlanInput').value = planName;
-            switchTab('telegram');
-            alert(`🟢 បានជ្រើសរើសកញ្ចប់ "${planName}" រួចរាល់! សូមបំពេញ Telegram Bot Token & Chat ID ដើម្បីចាប់ផ្តើមបម្រើការងារ។`);
-        }
-
-        function testTelegramIntegration() {
-            const token = document.getElementById('tgTokenInput').value.trim();
-            const chatId = document.getElementById('tgChatIdInput').value.trim();
-            if(!token || !chatId) { alert('សូមបញ្ចូល Telegram Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!'); return; }
-            
-            localStorage.setItem('vtrade_tg_token', token);
-            localStorage.setItem('vtrade_tg_chatid', chatId);
-            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot Webhook & Copy Trading Workers ជោគជ័យ ១០០%!');
-        }
-
-        function saveCopyTradingSettings() {
-            const state = document.getElementById('copyBotState').value;
-            const multi = document.getElementById('copyMultiplier').value;
-            document.getElementById('dashCopyStatus').innerText = `${state} (${multi})`;
-            alert(`🟢 រក្សាទុកការកំណត់ Copy Trading Bot ជោគជ័យ! ស្ថានភាព៖ ${state} | Multiplier: ${multi}`);
-        }
-
-        function runAiSentimentScan() {
-            alert('🟢 AI Smart Sentiment & Consensus Filter បានស្កេនរួចរាល់! ទីផ្សារស្ថិតក្នុងកម្រិត Bullish 82% ស្ថេរភាពខ្ពស់។');
-        }
-
-        function runAiBacktest() {
-            document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert('🟢 Backtest v5.0.7 ដំណើរការបានយ៉ាងល្អឥតខ្ចោះ!');
-        }
-
-        function calculateTradingRisk() {
-            const cap = parseFloat(document.getElementById('calcCapital').value) || 1000;
-            const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
-            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
-
-            const riskAmount = cap * (riskPct / 100);
-            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
-            const profitTarget = riskAmount * 2;
-
-            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
-            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
-            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + profitTarget.toFixed(2) + ' Profit';
-            document.getElementById('calcResultCard').classList.remove('hidden');
-        }
-
-        function copyRefLink() {
-            const input = document.getElementById('refLinkInput');
-            input.select();
-            navigator.clipboard.writeText(input.value);
-            alert('🟢 បាន Copy តំណភ្ជាប់ Referral របស់អ្នករួចរាល់!');
-        }
-
-        function sendChat() {
-            const input = document.getElementById('chatInput');
-            const box = document.getElementById('chatMsgBox');
-            if(!input || !input.value.trim()) return;
-            const text = input.value.trim();
-
-            box.innerHTML += `<div class="bg-blue-600/30 p-2.5 rounded-xl max-w-[80%] ml-auto text-white">${text}</div>`;
-            input.value = '';
-
-            setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ AI Support v5.7 បានទទួលសំណើរបស់អ្នកហើយ។ យើងនឹងឆ្លើយតបជូនភ្លាមៗ!</div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 600);
-        }
-
-        // Real-time market sessions countdown timer
         function updateMarketSessionsTimer() {
             const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const totalSec = hours * 3600 + minutes * 60 + seconds;
+            const utcHour = now.getUTCHours();
+            const utcDay = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
+            const isWeekend = (utcDay === 0 || utcDay === 6);
 
-            // Asian Session: 07:00 - 16:00 ICT
-            const asianStart = 7 * 3600, asianEnd = 16 * 3600;
-            if(totalSec >= asianStart && totalSec < asianEnd) {
-                document.getElementById('badgeAsian').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400";
-                document.getElementById('badgeAsian').innerText = "OPEN";
-                document.getElementById('timerAsian').innerText = "ស្ថានភាព៖ កំពុងដំណើរការធម្មតា (Active)";
-                document.getElementById('dashAsianStatus').innerText = "Open (Tokyo Active)";
-            } else {
-                document.getElementById('badgeAsian').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                document.getElementById('badgeAsian').innerText = "CLOSED";
-                document.getElementById('timerAsian').innerText = "ស្ថានភាព៖ បិទ (Closed)";
-                document.getElementById('dashAsianStatus').innerText = "Closed";
+            // Asian Session: 00:00 UTC to 08:00 UTC (07:00 AM - 03:00 PM ICT)
+            const asianActive = !isWeekend && (utcHour >= 0 && utcHour < 8);
+            // London Session: 08:00 UTC to 16:00 UTC (03:00 PM - 11:00 PM ICT)
+            const londonActive = !isWeekend && (utcHour >= 8 && utcHour < 16);
+            // New York Session: 13:00 UTC to 21:00 UTC (08:00 PM - 04:00 AM ICT)
+            const nyActive = !isWeekend && (utcHour >= 13 && utcHour < 21);
+
+            updateSessionUI('Asian', asianActive, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
+            updateSessionUI('London', londonActive, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
+            updateSessionUI('New York', nyActive, 'badgeNy', 'timerNy', 'dashNyStatus');
+        }
+
+        function updateSessionUI(name, isActive, badgeId, timerId, dashStatusId) {
+            const badge = document.getElementById(badgeId);
+            const timer = document.getElementById(timerId);
+            const dashStat = document.getElementById(dashStatusId);
+
+            if(badge) {
+                badge.innerText = isActive ? "OPEN (សកម្ម)" : "CLOSED (បិទ)";
+                badge.className = isActive ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
             }
-
-            // London Session: 15:00 - 00:00 ICT
-            const londonStart = 15 * 3600, londonEnd = 24 * 3600;
-            if(totalSec >= londonStart || totalSec < 0 * 3600) {
-                document.getElementById('badgeLondon').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400";
-                document.getElementById('badgeLondon').innerText = "OPEN";
-                document.getElementById('timerLondon').innerText = "ស្ថានភាព៖ កំពុងដំណើរការខ្លាំង (High Volatility)";
-                document.getElementById('dashLondonStatus').innerText = "Open (London Active)";
-            } else {
-                document.getElementById('badgeLondon').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                document.getElementById('badgeLondon').innerText = "CLOSED";
-                document.getElementById('timerLondon').innerText = "ស្ថានភាព៖ បិទ (Closed)";
-                document.getElementById('dashLondonStatus').innerText = "Closed";
+            if(timer) {
+                timer.innerText = isActive ? `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ` : `ស្ថានភាព៖ បិទដំណើរការ (Weekend / Closed)`;
             }
-
-            // New York Session: 20:00 - 05:00 ICT
-            const nyStart = 20 * 3600, nyEnd = 5 * 3600;
-            if(totalSec >= nyStart || totalSec < nyEnd) {
-                document.getElementById('badgeNy').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400";
-                document.getElementById('badgeNy').innerText = "OPEN";
-                document.getElementById('timerNy').innerText = "ស្ថានភាព៖ កំពុងបើកទូលំទូលាយ (Overlap Active)";
-                document.getElementById('dashNyStatus').innerText = "Open (NY Active)";
-            } else {
-                document.getElementById('badgeNy').className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
-                document.getElementById('badgeNy').innerText = "CLOSED";
-                document.getElementById('timerNy').innerText = "ស្ថានភាព៖ បិទ (Closed)";
-                document.getElementById('dashNyStatus').innerText = "Closed";
+            if(dashStat) {
+                dashStat.innerText = isActive ? "🟢 OPEN (បើកដំណើរការ)" : "🔴 CLOSED (បិទ)";
             }
         }
 
         function updateLiveClock() {
             const now = new Date();
-            const dateStr = now.toLocaleDateString();
-            const timeStr = now.toTimeString().split(' ')[0];
-            const dateEl = document.getElementById('liveDate');
-            const clockEl = document.getElementById('liveClock');
-            if(dateEl) dateEl.innerText = dateStr;
-            if(clockEl) clockEl.innerText = timeStr;
+            const dateStr = now.toLocaleDateString('km-KH');
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            if(document.getElementById('liveDate')) document.getElementById('liveDate').innerText = dateStr;
+            if(document.getElementById('liveClock')) document.getElementById('liveClock').innerText = timeStr;
         }
 
         function initTradingViewWidget(symbol) {
@@ -1616,10 +1495,9 @@
             if(!container) return;
             container.innerHTML = "";
             tvWidgetInstance = new TradingView.widget({
-                "width": "100%",
-                "height": "450",
+                "autosize": true,
                 "symbol": symbol,
-                "interval": "15",
+                "interval": "D",
                 "timezone": "Asia/Phnom_Penh",
                 "theme": "dark",
                 "style": "1",
@@ -1636,12 +1514,97 @@
             initTradingViewWidget(symbol);
         }
 
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if(m) m.classList.add('hidden');
+        }
+
+        function copyAccountInfo(accNum, type) {
+            navigator.clipboard.writeText(accNum);
+            alert(`បានចម្លងលេខគណនី ${type} (${accNum}) ជូន VET VEN រួចរាល់!`);
+        }
+
+        function verifyBankPayment() {
+            alert('🟢 បានបញ្ជូនសំណើផ្ទៀងផ្ទាត់ Slip ទៅកាន់ Admin (VET VEN) រួចរាល់! សិទ្ធិ VIP នឹងបើកជូនក្នុងរយៈពេល ១នាទី។');
+            closeModal('depositModal');
+        }
+
+        function saveCopyTradingSettings() {
+            alert('🟢 រក្សាទុកការកំណត់ Copy Trading Bot ចូល Server ជោគជ័យ ១០០%!');
+        }
+
+        function runAiSentimentScan() {
+            alert('🟢 AI Sentiment Scanner បានស្កេនទិន្នន័យពិភពលោក និងអាប់ដេត Consensus ថ្មីរួចរាល់!');
+        }
+
+        function runAiBacktest() {
+            document.getElementById('backtestResultCard').classList.remove('hidden');
+            alert('🟢 រត់ Backtest v5 Engine ជោគជ័យ! Strategy ត្រូវបានរក្សាទុក។');
+        }
+
+        function calculateTradingRisk() {
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
+            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
+
+            const riskAmount = capital * (riskPct / 100);
+            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
+            const targetProfit = riskAmount * 2;
+
+            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
+            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
+            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + targetProfit.toFixed(2) + ' Profit';
+            document.getElementById('calcResultCard').classList.remove('hidden');
+        }
+
+        function copyRefLink() {
+            const input = document.getElementById('refLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('🟢 បានចម្លងតំណភ្ជាប់ Affiliate របស់អ្នករួចរាល់!');
+        }
+
+        function testTelegramIntegration() {
+            const token = document.getElementById('tgTokenInput').value.trim();
+            const chatId = document.getElementById('tgChatIdInput').value.trim();
+            if(!token || !chatId) { alert('សូមបំពេញ Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!'); return; }
+            localStorage.setItem('vtrade_tg_token', token);
+            localStorage.setItem('vtrade_tg_chatid', chatId);
+            alert('🟢 តេស្តតភ្ជាប់ Telegram Bot & Webhook Worker v5.7 ជោគជ័យ ១០០%!');
+        }
+
+        function selectPricingPlan(planName, price) {
+            document.getElementById('selectedPlanInput').value = planName;
+            switchTab('telegram');
+            alert(`🟢 បានជ្រើសរើសកញ្ចប់ ${planName} រួចរាល់! សូមបំពេញ Telegram Bot Token ដើម្បីចាប់ផ្តើម។`);
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const box = document.getElementById('chatMsgBox');
+            if(!input || !input.value.trim()) return;
+            const userMsg = input.value.trim();
+            
+            box.innerHTML += `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${userMsg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.0.7 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+        }
+
         function saveProfileSettings() {
             const name = document.getElementById('profileName').value;
             localStorage.setItem('vtrade_logged_user', name);
-            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
+            alert('🟢 រក្សាទុក Profile និងការកំណត់សុវត្ថិភាពជោគជ័យ!');
             closeModal('profileModal');
-            alert('🟢 រក្សាទុកការកំណត់ Profile និង Security ជោគជ័យ!');
         }
     </script>
 </body>
