@@ -78,7 +78,7 @@ let tvWidgetInstance = null;
                 icon.style.display = 'inline-block';
 
                 const pair = document.getElementById('terminalPairSelect').value;
-                const info = mockMarketData[pair] || mockMarketData["BTC/USDT"];
+                const info = mockMarketData[pair] || mockMarketData["XAU/USD"];
 
                 document.getElementById('signal-direction').innerText = info.direction;
                 document.getElementById('signal-entry').innerText = info.entry;

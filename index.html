@@ -219,8 +219,8 @@
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
+                            <option value="XAU/USD" selected>XAU/USD (Gold - មាស)</option>
                             <option value="BTC/USDT">BTC/USDT (Crypto)</option>
-                            <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
                             <option value="EUR/USD">EUR/USD (Forex)</option>
                             <option value="ETH/USDT">ETH/USDT (Crypto)</option>
                         </select>
@@ -1071,7 +1071,7 @@
 
         let mockMarketData = {
             "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$2,650.40", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
+            "XAU/USD": { direction: "WAIT", winRate: "—", entry: "$—", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
             "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
             "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
@@ -1102,37 +1102,51 @@
 
         async function fetchMarketPrices() {
             try {
-                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether-gold&vs_currencies=usd');
-                let data = await res.json();
-                const tickerBtc = document.getElementById('tickerBtc');
-                const tickerEth = document.getElementById('tickerEth');
-                const tickerXau = document.getElementById('tickerXau');
-                
-                if(data.bitcoin && tickerBtc) {
-                    let btcVal = data.bitcoin.usd;
-                    tickerBtc.innerText = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    mockMarketData["BTC/USDT"].entry = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                // BTC/ETH are optional dashboard tickers; XAUUSD MUST come from the server
+                // using a spot XAU/USD market feed, not the crypto-backed XAUT token.
+                const [cryptoRes, xauRes] = await Promise.allSettled([
+                    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd'),
+                    fetch('/api/market/xauusd')
+                ]);
+
+                if (cryptoRes.status === 'fulfilled' && cryptoRes.value.ok) {
+                    const data = await cryptoRes.value.json();
+                    const tickerBtc = document.getElementById('tickerBtc');
+                    const tickerEth = document.getElementById('tickerEth');
+                    if(data.bitcoin && tickerBtc) {
+                        const btcVal = data.bitcoin.usd;
+                        tickerBtc.innerText = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        mockMarketData['BTC/USDT'].entry = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
+                    if(data.ethereum && tickerEth) {
+                        const ethVal = data.ethereum.usd;
+                        tickerEth.innerText = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        mockMarketData['ETH/USDT'].entry = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
                 }
-                if(data.ethereum && tickerEth) {
-                    let ethVal = data.ethereum.usd;
-                    tickerEth.innerText = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    mockMarketData["ETH/USDT"].entry = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                }
-                if(data['tether-gold'] && tickerXau) {
-                    let xauVal = data['tether-gold'].usd;
-                    tickerXau.innerText = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    mockMarketData["XAU/USD"].entry = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                if (xauRes.status === 'fulfilled' && xauRes.value.ok) {
+                    const xau = await xauRes.value.json();
+                    if (xau.success && Number.isFinite(Number(xau.price))) {
+                        const xauVal = Number(xau.price);
+                        const tickerXau = document.getElementById('tickerXau');
+                        if (tickerXau) tickerXau.innerText = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        mockMarketData['XAU/USD'].entry = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        mockMarketData['XAU/USD'].direction = 'WAIT';
+                        mockMarketData['XAU/USD'].winRate = '—';
+                    }
                 }
                 runAIAnalysis();
             } catch (e) {
-                console.log("Live price fetch fallback active.");
+                console.warn('Live market fetch failed:', e);
+                runAIAnalysis();
             }
         }
 
         function runAIAnalysis() {
             const pairSelect = document.getElementById('terminalPairSelect');
-            const pair = pairSelect ? pairSelect.value : 'BTC/USDT';
-            const data = mockMarketData[pair] || mockMarketData['BTC/USDT'];
+            const pair = pairSelect ? pairSelect.value : 'XAU/USD';
+            const data = mockMarketData[pair] || mockMarketData['XAU/USD'];
 
             const spinner = document.getElementById('btnRefreshSpinner');
             const icon = document.getElementById('btnRefreshIcon');
@@ -1280,7 +1294,7 @@
             }
 
             if(tabId === 'tvchart' && !tvWidgetInstance) {
-                initTradingViewWidget('BINANCE:BTCUSDT');
+                initTradingViewWidget('OANDA:XAUUSD');
             }
         }
 
