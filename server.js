@@ -13,6 +13,8 @@ const HOST = '0.0.0.0';
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
+const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || APP_BASE_URL)
   .split(',').map(s => s.trim()).filter(Boolean);
@@ -36,12 +38,13 @@ app.use('/api/', rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, 
 app.use(express.static(path.join(__dirname)));
 
 const cache = new Map();
+const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 
 async function fetchJson(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const r = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'V-Trade-AI/5.0.7' } });
+    const r = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'V-Trade-AI/5.1.0' } });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.json();
   } finally { clearTimeout(timer); }
@@ -62,14 +65,89 @@ async function fetchYahooCandles(symbol, interval, range = '5d') {
   return candles;
 }
 
+function brokerFeedFresh() {
+  return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
+}
+
+function brokerLivePrice() {
+  if (!brokerFeedFresh()) return null;
+  const q = brokerFeed.quote;
+  const bid = Number(q.bid), ask = Number(q.ask), last = Number(q.last);
+  const mid = Number.isFinite(bid) && Number.isFinite(ask) && bid > 0 && ask > 0 ? (bid + ask) / 2 : last;
+  if (!Number.isFinite(mid) || mid <= 0) return null;
+  return {
+    price: round2(mid), bid: round2(bid), ask: round2(ask), spread: Number(q.spread) || round2(ask-bid),
+    source: 'VT Markets MT5', sourceDetail: brokerFeed.symbol || 'XAUUSD',
+    priceAsOf: new Date(Number(q.serverTime || brokerFeed.receivedAt)).toISOString(),
+    ageSec: Math.round((Date.now()-brokerFeed.receivedAt)/1000), stale: false
+  };
+}
+
+function parseBrokerCandles(tf) {
+  if (!brokerFeedFresh() || !brokerFeed.timeframes?.[tf]) return null;
+  const arr = brokerFeed.timeframes[tf];
+  if (!Array.isArray(arr) || arr.length < 30) return null;
+  return arr.map(x => ({ t:Number(x.t), o:Number(x.o), h:Number(x.h), l:Number(x.l), c:Number(x.c) }))
+    .filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite));
+}
+
 async function getXauPrice() {
-  try {
-    const d = await fetchJson('https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1d&interval=1m');
-    const r = d?.chart?.result?.[0];
-    const p = Number(r?.meta?.regularMarketPrice);
-    if (Number.isFinite(p)) return { price: p, source: 'Yahoo Finance' };
-  } catch (_) {}
-  throw new Error('XAUUSD price unavailable');
+  // Primary: XAUS live XAU/USD spot (no API key, 30s cache, freshness metadata).
+  // Fallbacks: Gold-API, then Yahoo. Never use a hard-coded/simulated gold price.
+  const sources = [
+    {
+      name: 'XAUS',
+      url: `https://xaus.com/api/v1/spot?compact=1&fresh=${Date.now()}`,
+      parse: d => Number(d?.spot_usd_oz),
+      meta: d => ({
+        asOf: d?.price_as_of || d?.updated_at || null,
+        stale: d?.stale === true || d?.data_state?.status === 'stale',
+        sourceDetail: d?.price_source || d?.data_state?.source || 'upstream'
+      })
+    },
+    {
+      name: 'Gold-API',
+      url: `https://api.gold-api.com/price/XAU?fresh=${Date.now()}`,
+      parse: d => Number(d?.price ?? d?.value ?? d?.rate),
+      meta: d => ({ asOf: d?.updated_at || d?.timestamp || null, stale: false, sourceDetail: 'gold-api' })
+    },
+    {
+      name: 'Yahoo Finance',
+      url: `https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1d&interval=1m&nocache=${Date.now()}`,
+      parse: d => Number(d?.chart?.result?.[0]?.meta?.regularMarketPrice),
+      meta: d => ({
+        asOf: d?.chart?.result?.[0]?.meta?.regularMarketTime
+          ? new Date(d.chart.result[0].meta.regularMarketTime * 1000).toISOString()
+          : null,
+        stale: false,
+        sourceDetail: 'Yahoo Finance'
+      })
+    }
+  ];
+
+  const errors = [];
+  for (const src of sources) {
+    try {
+      const d = await fetchJson(src.url);
+      const price = src.parse(d);
+      if (!Number.isFinite(price) || price <= 0 || price > 10000) throw new Error('invalid price');
+      const meta = src.meta(d);
+      const ageSec = meta.asOf ? Math.max(0, (Date.now() - Date.parse(meta.asOf)) / 1000) : null;
+      // A quote older than 10 minutes is not suitable for an execution signal.
+      if (meta.stale && ageSec != null && ageSec > 600) throw new Error(`stale ${Math.round(ageSec)}s`);
+      return {
+        price: round2(price),
+        source: src.name,
+        sourceDetail: meta.sourceDetail,
+        priceAsOf: meta.asOf,
+        ageSec: ageSec == null ? null : Math.round(ageSec),
+        stale: !!meta.stale
+      };
+    } catch (e) {
+      errors.push(`${src.name}: ${e.message}`);
+    }
+  }
+  throw new Error(`XAUUSD price unavailable (${errors.join('; ')})`);
 }
 
 function avg(a) { return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
@@ -161,13 +239,17 @@ function analyzeTF(c) {
 }
 
 async function buildXauAnalysis() {
-  const [m5,m15,h1,h4] = await Promise.all([
-    fetchYahooCandles('XAUUSD=X','5m','5d'),
-    fetchYahooCandles('XAUUSD=X','15m','10d'),
-    fetchYahooCandles('XAUUSD=X','1h','1mo'),
-    fetchYahooCandles('XAUUSD=X','4h','3mo')
-  ]);
-  const live = await getXauPrice();
+  // Broker-native mode is authoritative for execution signals.
+  // Never silently mix VT Markets prices with Yahoo/reference candles.
+  const m5=parseBrokerCandles('M5');
+  const m15=parseBrokerCandles('M15');
+  const h1=parseBrokerCandles('H1');
+  const h4=parseBrokerCandles('H4');
+  const live=brokerLivePrice();
+  if (!live || !m5 || !m15 || !h1 || !h4) {
+    throw new Error('VT Markets MT5 feed not ready');
+  }
+  const feedMode='VT Markets MT5';
 
   const tfs={M5:analyzeTF(m5),M15:analyzeTF(m15),H1:analyzeTF(h1),H4:analyzeTF(h4)};
   const score={bull:0,bear:0};
@@ -185,33 +267,53 @@ async function buildXauAnalysis() {
   const ob=orderBlock(m5,bias==='BULLISH'?'BULLISH':bias==='BEARISH'?'BEARISH':'NONE');
   const a=exec.atr || 5;
 
-  // Conservative execution model: only emit a setup when M15/H1/H4 agree.
   const htfBull=[tfs.M15,tfs.H1,tfs.H4].filter(x=>x.structure.bias==='BULLISH').length;
   const htfBear=[tfs.M15,tfs.H1,tfs.H4].filter(x=>x.structure.bias==='BEARISH').length;
-  const confirmedBull=bias==='BULLISH' && htfBull>=2 && exec.sweep.bias==='BULLISH';
-  const confirmedBear=bias==='BEARISH' && htfBear>=2 && exec.sweep.bias==='BEARISH';
+
+  // Do not create a setup from stale candles or a distant FVG.
+  const candleAgeSec = m5.length ? Math.max(0, (Date.now()-m5[m5.length-1].t)/1000) : Infinity;
+  const candlesFresh = candleAgeSec <= 15*60;
+  const fvgMid = f.found ? (f.low+f.high)/2 : null;
+  const fvgDistanceOk = fvgMid == null || Math.abs(fvgMid-live.price) <= Math.max(a*3, 12);
+  const confirmedBull=bias==='BULLISH' && htfBull>=2 && exec.sweep.bias==='BULLISH' && candlesFresh;
+  const confirmedBear=bias==='BEARISH' && htfBear>=2 && exec.sweep.bias==='BEARISH' && candlesFresh;
 
   let signal='WAIT', entry=null, sl=null, tp=[];
   if (confirmedBull) {
     signal='BUY';
-    entry=round2(f.found && f.type==='BULLISH' ? (f.low+f.high)/2 : live.price);
+    entry=round2(f.found && f.type==='BULLISH' && fvgDistanceOk ? fvgMid : live.price);
     sl=round2(entry-Math.max(a*1.25,2.5));
     const r=entry-sl; tp=[round2(entry+r),round2(entry+r*2),round2(entry+r*3)];
   } else if (confirmedBear) {
     signal='SELL';
-    entry=round2(f.found && f.type==='BEARISH' ? (f.low+f.high)/2 : live.price);
+    entry=round2(f.found && f.type==='BEARISH' && fvgDistanceOk ? fvgMid : live.price);
     sl=round2(entry+Math.max(a*1.25,2.5));
     const r=sl-entry; tp=[round2(entry-r),round2(entry-r*2),round2(entry-r*3)];
   }
 
+  const maxScore=12;
+  const confidence=Math.min(99, Math.round((Math.max(score.bull,score.bear)/maxScore)*100));
+  const swingHigh=exec.structure.swingHigh, swingLow=exec.structure.swingLow;
+  const mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow)) ? (swingHigh+swingLow)/2 : live.price;
+
   return {
     symbol:'XAUUSD',
-    livePrice:round2(live.price),
+    feedMode,
+    brokerConnected: brokerFeedFresh(),
+    bid: live.bid ?? null,
+    ask: live.ask ?? null,
+    spread: live.spread ?? null,
+    livePrice:live.price,
     source:live.source,
+    sourceDetail:live.sourceDetail,
+    priceAsOf:live.priceAsOf,
+    priceAgeSec:live.ageSec,
+    stalePrice:live.stale,
+    candleAgeSec:Math.round(candleAgeSec),
     timestamp:Date.now(),
     signal,
     bias,
-    confidence:Math.round((Math.max(score.bull,score.bear)/(4*2))*100),
+    confidence,
     entry, stopLoss:sl, takeProfit:tp,
     ict:{
       liquiditySweep:exec.sweep,
@@ -219,10 +321,10 @@ async function buildXauAnalysis() {
       bos:exec.structure.bos,
       fvg:f,
       orderBlock:ob,
-      premiumDiscount: live.price > avg([exec.structure.swingHigh||live.price,exec.structure.swingLow||live.price]) ? 'PREMIUM' : 'DISCOUNT'
+      premiumDiscount: live.price > mid ? 'PREMIUM' : 'DISCOUNT'
     },
     timeframes:tfs,
-    riskNote:'Educational/analysis signal. Verify broker price, spread, session and risk before any order.'
+    riskNote:'Indicative market analysis only. XAUUSD broker quotes, spread and CFD/spot feeds can differ. Verify the broker price before any order.'
   };
 }
 
@@ -251,13 +353,41 @@ async function maybeTelegramAlert(a) {
 
 app.get('/health',(_req,res)=>res.json({ok:true}));
 app.get('/api/health',(_req,res)=>res.json({
-  ok:true, telegramConfigured:!!bot, ictEngine:'mtf-v1',
-  dataFeed:'Yahoo XAUUSD=X', render:!!process.env.RENDER
+  ok:true, telegramConfigured:!!bot, ictEngine:'mtf-v2-vtmarkets-mt5',
+  dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
+  mt5Connected:brokerFeedFresh(),
+  mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
+  render:!!process.env.RENDER
 }));
 
+app.post('/api/v5/mt5/quote', (req,res) => {
+  try {
+    if (!MT5_BRIDGE_API_KEY || req.get('x-vtrade-key') !== MT5_BRIDGE_API_KEY) return res.status(401).json({success:false,error:'Unauthorized'});
+    const q=req.body || {};
+    if (String(q.symbol || '').toUpperCase() !== String(process.env.MT5_SYMBOL || 'XAUUSD').toUpperCase()) return res.status(400).json({success:false,error:'Unsupported symbol'});
+    const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTime=Number(q.serverTime);
+    if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid<=0 || ask<=0 || ask<bid) return res.status(400).json({success:false,error:'Invalid quote'});
+    brokerFeed.quote={bid,ask,last,spread:Number(q.spread)||ask-bid,serverTime:Number.isFinite(serverTime)?serverTime:Date.now()};
+    brokerFeed.timeframes=q.timeframes || {};
+    brokerFeed.receivedAt=Date.now();
+    brokerFeed.symbol=String(q.symbol);
+    res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
+  } catch(e){ res.status(400).json({success:false,error:'Invalid MT5 payload'}); }
+});
+
+app.get('/api/v5/mt5/status',(_req,res)=>{
+  const q=brokerFeed.quote;
+  res.json({success:true,connected:brokerFeedFresh(),symbol:brokerFeed.symbol,ageSec:q?Math.round((Date.now()-brokerFeed.receivedAt)/1000):null,bid:q?.bid??null,ask:q?.ask??null,spread:q?.spread??null});
+});
+
 app.get('/api/market/xauusd',async(_req,res)=>{
-  try { const p=await getXauPrice(); res.json({success:true,symbol:'XAUUSD',price:round2(p.price),source:p.source,timestamp:Date.now()}); }
-  catch(e){ res.status(503).json({success:false,error:'XAUUSD market data unavailable'}); }
+  const p=brokerLivePrice();
+  if (!p) return res.status(503).json({success:false,error:'VT Markets MT5 feed unavailable or stale'});
+  res.json({
+    success:true,symbol:'XAUUSD',price:p.price,bid:p.bid,ask:p.ask,spread:p.spread,
+    source:p.source,sourceDetail:p.sourceDetail,priceAsOf:p.priceAsOf,
+    priceAgeSec:p.ageSec,stale:p.stale,timestamp:Date.now()
+  });
 });
 
 app.get('/api/analysis/xauusd',async(_req,res)=>{
@@ -277,6 +407,21 @@ app.post('/api/telegram/test',async(_req,res)=>{
     await bot.sendMessage(TELEGRAM_CHAT_ID,'✅ V TRADE AI Telegram test — connection OK.');
     res.json({success:true});
   } catch(e){ res.status(500).json({success:false,error:'Telegram test failed'}); }
+});
+app.post('/api/v5/signal',async(req,res)=>{
+  try {
+    if(!bot || !TELEGRAM_CHAT_ID) throw new Error('Telegram not configured');
+    const a = await buildXauAnalysis();
+    const requested = String(req.body?.type || '').toUpperCase();
+    if (requested && requested !== 'WAIT' && requested !== a.signal) {
+      return res.status(409).json({success:false,error:`Current engine signal is ${a.signal}, not ${requested}`,analysis:a});
+    }
+    await bot.sendMessage(TELEGRAM_CHAT_ID, telegramText(a), {parse_mode:'Markdown'});
+    res.json({success:true,analysis:a});
+  } catch(e) {
+    console.error('Manual Telegram signal:', e.message);
+    res.status(500).json({success:false,error:e.message || 'Telegram send failed'});
+  }
 });
 
 app.post('/telegram/webhook',async(req,res)=>{

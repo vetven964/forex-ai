@@ -39,7 +39,7 @@
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.0.7</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.1.0</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
@@ -50,7 +50,7 @@
         <!-- Live Crypto Ticker Bar & Clock Header -->
         <div class="hidden lg:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
                 <div class="flex items-center gap-2 text-yellow-400 font-mono">
-                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">$4,426.40</span>
+                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">LIVE —</span>
             </div>
             <div class="flex items-center gap-2 text-amber-400 font-mono">
                 <i class="fa-brands fa-bitcoin"></i> BTC: <span id="tickerBtc" class="font-bold text-white">$65,057.90</span>
@@ -1071,15 +1071,15 @@
 
         let mockMarketData = {
             "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "XAU/USD": { direction: "WAIT", winRate: "—", entry: "$—", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
+            "XAU/USD": { direction: "WAIT", winRate: "N/A", entry: "LIVE —", sl: "—", tp: "—", fvg: "Live ICT scan", fvgZone: "—", sentiment: "—", rsi: "Live", macd: "Live", orderbook: "N/A" },
             "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
             "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v5.0.7", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v5.1.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.1.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.1.0", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1100,40 +1100,52 @@
             setInterval(updateLiveClock, 1000);
         });
 
+        let latestXauAnalysis = null;
+
+        function formatUsd(value) {
+            return Number.isFinite(Number(value))
+                ? '$' + Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+                : '—';
+        }
+
         async function fetchMarketPrices() {
             try {
-                // BTC/ETH are optional dashboard tickers; XAUUSD MUST come from the server
-                // using a spot XAU/USD market feed, not the crypto-backed XAUT token.
                 const [cryptoRes, xauRes] = await Promise.allSettled([
-                    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd'),
-                    fetch('/api/market/xauusd')
+                    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd', {cache:'no-store'}),
+                    fetch('/api/analysis/xauusd', {cache:'no-store'})
                 ]);
 
                 if (cryptoRes.status === 'fulfilled' && cryptoRes.value.ok) {
                     const data = await cryptoRes.value.json();
                     const tickerBtc = document.getElementById('tickerBtc');
                     const tickerEth = document.getElementById('tickerEth');
-                    if(data.bitcoin && tickerBtc) {
-                        const btcVal = data.bitcoin.usd;
-                        tickerBtc.innerText = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                        mockMarketData['BTC/USDT'].entry = '$' + btcVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    }
-                    if(data.ethereum && tickerEth) {
-                        const ethVal = data.ethereum.usd;
-                        tickerEth.innerText = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                        mockMarketData['ETH/USDT'].entry = '$' + ethVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    }
+                    if(data.bitcoin && tickerBtc) tickerBtc.innerText = formatUsd(data.bitcoin.usd);
+                    if(data.ethereum && tickerEth) tickerEth.innerText = formatUsd(data.ethereum.usd);
                 }
 
                 if (xauRes.status === 'fulfilled' && xauRes.value.ok) {
                     const xau = await xauRes.value.json();
-                    if (xau.success && Number.isFinite(Number(xau.price))) {
-                        const xauVal = Number(xau.price);
+                    if (xau.success && Number.isFinite(Number(xau.livePrice))) {
+                        latestXauAnalysis = xau;
                         const tickerXau = document.getElementById('tickerXau');
-                        if (tickerXau) tickerXau.innerText = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                        mockMarketData['XAU/USD'].entry = '$' + xauVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                        mockMarketData['XAU/USD'].direction = 'WAIT';
-                        mockMarketData['XAU/USD'].winRate = '—';
+                        if (tickerXau) tickerXau.innerText = formatUsd(xau.livePrice);
+
+                        // XAU values on the dashboard now come ONLY from the server ICT engine.
+                        mockMarketData['XAU/USD'] = {
+                            direction: xau.signal || 'WAIT',
+                            winRate: 'N/A',
+                            entry: xau.entry != null ? formatUsd(xau.entry) : formatUsd(xau.livePrice),
+                            sl: xau.stopLoss != null ? formatUsd(xau.stopLoss) : '—',
+                            tp: (xau.takeProfit || []).length ? xau.takeProfit.map(formatUsd).join(' / ') : '—',
+                            fvg: xau.ict?.fvg?.found ? `${xau.ict.fvg.type} FVG` : 'Not confirmed',
+                            fvgZone: xau.ict?.fvg?.found ? `${formatUsd(xau.ict.fvg.low)} – ${formatUsd(xau.ict.fvg.high)}` : '—',
+                            sentiment: xau.bias ? `${xau.confidence}% ${xau.bias}` : '—',
+                            rsi: 'Live MTF',
+                            macd: xau.ict?.mss || 'Live MTF',
+                            orderbook: 'Not used'
+                        };
+                        const age = Number.isFinite(Number(xau.priceAgeSec)) ? ` | price age ${xau.priceAgeSec}s` : '';
+                        appendTerminalLog(`[DATA] XAUUSD ${formatUsd(xau.livePrice)} | ${xau.source || 'live'}${age} | ${xau.stalePrice ? 'STALE' : 'FRESH'}`);
                     }
                 }
                 runAIAnalysis();
@@ -1153,32 +1165,35 @@
             if(spinner) spinner.style.display = 'inline-block';
             if(icon) icon.style.display = 'none';
 
-            appendTerminalLog(`[COMMAND] Executing Realtime Market Scan for ${pair}...`);
+            appendTerminalLog(`[COMMAND] Realtime Market Scan: ${pair}...`);
 
             setTimeout(() => {
                 if(spinner) spinner.style.display = 'none';
                 if(icon) icon.style.display = 'inline-block';
 
-                document.getElementById('signal-direction').innerText = data.direction;
-                document.getElementById('signal-entry').innerText = data.entry;
-                document.getElementById('win-rate-val').innerText = data.winRate;
-                document.getElementById('win-rate-bar').style.width = data.winRate;
-                document.getElementById('fvg-confidence').innerText = data.fvg;
-                document.getElementById('fvg-zone').innerText = data.fvgZone;
-                document.getElementById('sentiment-score').innerText = data.sentiment;
-                document.getElementById('rsiVal').innerText = data.rsi;
-                document.getElementById('macdVal').innerText = data.macd;
-                document.getElementById('orderbookVal').innerText = data.orderbook;
+                const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=value; };
+                set('signal-direction', data.direction);
+                set('signal-entry', data.entry);
+                set('win-rate-val', data.winRate);
+                const bar=document.getElementById('win-rate-bar');
+                if(bar) bar.style.width = data.winRate === 'N/A' ? '0%' : data.winRate;
+                set('fvg-confidence', data.fvg);
+                set('fvg-zone', data.fvgZone);
+                set('sentiment-score', data.sentiment);
+                set('rsiVal', data.rsi);
+                set('macdVal', data.macd);
+                set('orderbookVal', data.orderbook);
 
-                document.getElementById('tblAsset').innerText = pair;
-                document.getElementById('tblSignalBadge').innerText = data.direction;
-                document.getElementById('tblEntry').innerText = data.entry;
-                document.getElementById('tblSL').innerText = data.sl;
-                document.getElementById('tblTP').innerText = data.tp;
+                set('tblAsset', pair);
+                set('tblSignalBadge', data.direction);
+                set('tblEntry', data.entry);
+                set('tblSL', data.sl);
+                set('tblTP', data.tp);
 
-                appendTerminalLog(`[AI ENGINE] Analysis complete for ${pair}. Signal: ${data.direction} @ ${data.entry}. Win Probability: ${data.winRate}`);
+                const source = pair === 'XAU/USD' && latestXauAnalysis ? ` | ${latestXauAnalysis.source}` : '';
+                appendTerminalLog(`[AI ENGINE] ${pair}: ${data.direction} @ ${data.entry}${source}`);
                 updateRadarChartData(pair);
-            }, 800);
+            }, 300);
         }
 
         function initSentimentRadarChart() {

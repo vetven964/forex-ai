@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: v-trade-ai-terminal
+    name: v-trade-ai
     runtime: node
     plan: free
     buildCommand: npm install
@@ -9,21 +9,23 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: RENDER
+        value: "true"
+      - key: PORT
+        value: "10000"
       - key: APP_BASE_URL
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: MT5_BRIDGE_API_KEY
+        generateValue: true
+      - key: MT5_SYMBOL
+        value: XAUUSD
+      - key: MT5_MAX_AGE_MS
+        value: "15000"
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: TELEGRAM_WEBHOOK_SECRET
-        sync: false
-      - key: TWELVE_DATA_API_KEY
-        sync: false
-      - key: BANK_NAME
-        sync: false
-      - key: BANK_ACCOUNT_KHR
-        sync: false
-      - key: BANK_ACCOUNT_USD
         sync: false
