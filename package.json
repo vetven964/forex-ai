@@ -1,6 +1,6 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "description": "V Trade AI & Bot Enterprise Version",
   "main": "server.js",
   "scripts": {

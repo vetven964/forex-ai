@@ -43,31 +43,6 @@ app.use(express.static(path.join(__dirname)));
 const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 
-async function fetchJson(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const r = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'V-Trade-AI/5.1.0' } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  } finally { clearTimeout(timer); }
-}
-
-async function fetchYahooCandles(symbol, interval, range = '5d') {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=${interval}`;
-  const data = await fetchJson(url);
-  const result = data?.chart?.result?.[0];
-  if (!result) throw new Error(`No candle data for ${symbol} ${interval}`);
-  const q = result.indicators?.quote?.[0];
-  const ts = result.timestamp || [];
-  const candles = [];
-  for (let i = 0; i < ts.length; i++) {
-    const o = Number(q?.open?.[i]), h = Number(q?.high?.[i]), l = Number(q?.low?.[i]), c = Number(q?.close?.[i]);
-    if ([o,h,l,c].every(Number.isFinite)) candles.push({ t: ts[i] * 1000, o, h, l, c });
-  }
-  return candles;
-}
-
 function brokerFeedFresh() {
   return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
 }
@@ -92,65 +67,6 @@ function parseBrokerCandles(tf) {
   if (!Array.isArray(arr) || arr.length < 30) return null;
   return arr.map(x => ({ t:Number(x.t), o:Number(x.o), h:Number(x.h), l:Number(x.l), c:Number(x.c) }))
     .filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite));
-}
-
-async function getXauPrice() {
-  // Primary: XAUS live XAU/USD spot (no API key, 30s cache, freshness metadata).
-  // Fallbacks: Gold-API, then Yahoo. Never use a hard-coded/simulated gold price.
-  const sources = [
-    {
-      name: 'XAUS',
-      url: `https://xaus.com/api/v1/spot?compact=1&fresh=${Date.now()}`,
-      parse: d => Number(d?.spot_usd_oz),
-      meta: d => ({
-        asOf: d?.price_as_of || d?.updated_at || null,
-        stale: d?.stale === true || d?.data_state?.status === 'stale',
-        sourceDetail: d?.price_source || d?.data_state?.source || 'upstream'
-      })
-    },
-    {
-      name: 'Gold-API',
-      url: `https://api.gold-api.com/price/XAU?fresh=${Date.now()}`,
-      parse: d => Number(d?.price ?? d?.value ?? d?.rate),
-      meta: d => ({ asOf: d?.updated_at || d?.timestamp || null, stale: false, sourceDetail: 'gold-api' })
-    },
-    {
-      name: 'Yahoo Finance',
-      url: `https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1d&interval=1m&nocache=${Date.now()}`,
-      parse: d => Number(d?.chart?.result?.[0]?.meta?.regularMarketPrice),
-      meta: d => ({
-        asOf: d?.chart?.result?.[0]?.meta?.regularMarketTime
-          ? new Date(d.chart.result[0].meta.regularMarketTime * 1000).toISOString()
-          : null,
-        stale: false,
-        sourceDetail: 'Yahoo Finance'
-      })
-    }
-  ];
-
-  const errors = [];
-  for (const src of sources) {
-    try {
-      const d = await fetchJson(src.url);
-      const price = src.parse(d);
-      if (!Number.isFinite(price) || price <= 0 || price > 10000) throw new Error('invalid price');
-      const meta = src.meta(d);
-      const ageSec = meta.asOf ? Math.max(0, (Date.now() - Date.parse(meta.asOf)) / 1000) : null;
-      // A quote older than 10 minutes is not suitable for an execution signal.
-      if (meta.stale && ageSec != null && ageSec > 600) throw new Error(`stale ${Math.round(ageSec)}s`);
-      return {
-        price: round2(price),
-        source: src.name,
-        sourceDetail: meta.sourceDetail,
-        priceAsOf: meta.asOf,
-        ageSec: ageSec == null ? null : Math.round(ageSec),
-        stale: !!meta.stale
-      };
-    } catch (e) {
-      errors.push(`${src.name}: ${e.message}`);
-    }
-  }
-  throw new Error(`XAUUSD price unavailable (${errors.join('; ')})`);
 }
 
 function avg(a) { return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
@@ -363,11 +279,20 @@ app.get('/api/health',(_req,res)=>res.json({
   render:!!process.env.RENDER
 }));
 
+function isAllowedXauSymbol(symbol) {
+  const incoming = String(symbol || '').trim().toUpperCase();
+  const configured = String(process.env.MT5_SYMBOL || 'XAUUSD').trim().toUpperCase();
+  // VT Markets may append a suffix (e.g. XAUUSD-STDc). Keep the bridge XAU-only.
+  if (!incoming || !incoming.startsWith('XAUUSD')) return false;
+  if (configured === 'XAUUSD') return true;
+  return incoming === configured;
+}
+
 app.post('/api/v5/mt5/quote', (req,res) => {
   try {
     if (!MT5_BRIDGE_API_KEY || req.get('x-vtrade-key') !== MT5_BRIDGE_API_KEY) return res.status(401).json({success:false,error:'Unauthorized'});
     const q=req.body || {};
-    if (String(q.symbol || '').toUpperCase() !== String(process.env.MT5_SYMBOL || 'XAUUSD').toUpperCase()) return res.status(400).json({success:false,error:'Unsupported symbol'});
+    if (!isAllowedXauSymbol(q.symbol)) return res.status(400).json({success:false,error:'Unsupported symbol'});
     const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTime=Number(q.serverTime);
     if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid<=0 || ask<=0 || ask<bid) return res.status(400).json({success:false,error:'Invalid quote'});
     brokerFeed.quote={bid,ask,last,spread:Number(q.spread)||ask-bid,serverTime:Number.isFinite(serverTime)?serverTime:Date.now()};
@@ -380,7 +305,18 @@ app.post('/api/v5/mt5/quote', (req,res) => {
 
 app.get('/api/v5/mt5/status',(_req,res)=>{
   const q=brokerFeed.quote;
-  res.json({success:true,connected:brokerFeedFresh(),symbol:brokerFeed.symbol,ageSec:q?Math.round((Date.now()-brokerFeed.receivedAt)/1000):null,bid:q?.bid??null,ask:q?.ask??null,spread:q?.spread??null});
+  res.json({
+    success:true,
+    connected:brokerFeedFresh(),
+    feedMode:'VT Markets MT5',
+    authoritative:true,
+    symbol:brokerFeed.symbol,
+    ageSec:q?Math.round((Date.now()-brokerFeed.receivedAt)/1000):null,
+    maxAgeMs:MT5_MAX_AGE_MS,
+    bid:q?.bid??null,
+    ask:q?.ask??null,
+    spread:q?.spread??null
+  });
 });
 
 app.get('/api/market/xauusd',async(_req,res)=>{
@@ -436,8 +372,13 @@ app.post('/telegram/webhook',async(req,res)=>{
 
 if(bot){
   bot.onText(/^\/price$/,async msg=>{
-    try { const p=await getXauPrice(); await bot.sendMessage(msg.chat.id,`💰 XAUUSD live: ${p.price.toFixed(2)}\nSource: ${p.source}`); }
-    catch(_){ await bot.sendMessage(msg.chat.id,'⚠️ XAUUSD price unavailable.'); }
+    try {
+      const p=brokerLivePrice();
+      if (!p) throw new Error('VT Markets MT5 feed unavailable or stale');
+      await bot.sendMessage(msg.chat.id,`💰 XAUUSD live: ${p.price.toFixed(2)}\nBid: ${p.bid.toFixed(2)} | Ask: ${p.ask.toFixed(2)}\nSource: VT Markets MT5 | Age: ${p.ageSec}s`);
+    } catch(_) {
+      await bot.sendMessage(msg.chat.id,'⚠️ XAUUSD MT5 feed unavailable/stale.');
+    }
   });
   bot.onText(/^\/signal$/,async msg=>{
     try { const a=await buildXauAnalysis(); await bot.sendMessage(msg.chat.id,telegramText(a),{parse_mode:'Markdown'}); }
