@@ -65,8 +65,15 @@ function parseBrokerCandles(tf) {
   if (!brokerFeedFresh() || !brokerFeed.timeframes?.[tf]) return null;
   const arr = brokerFeed.timeframes[tf];
   if (!Array.isArray(arr) || arr.length < 30) return null;
-  return arr.map(x => ({ t:Number(x.t), o:Number(x.o), h:Number(x.h), l:Number(x.l), c:Number(x.c) }))
-    .filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite));
+  // Accept both the normalized server shape (t/o/h/l/c) and the Python
+  // MT5 bridge shape (time/open/high/low/close).
+  return arr.map(x => ({
+    t: Number(x.t ?? x.time),
+    o: Number(x.o ?? x.open),
+    h: Number(x.h ?? x.high),
+    l: Number(x.l ?? x.low),
+    c: Number(x.c ?? x.close)
+  })).filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite));
 }
 
 function avg(a) { return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
@@ -296,7 +303,8 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTime=Number(q.serverTime);
     if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid<=0 || ask<=0 || ask<bid) return res.status(400).json({success:false,error:'Invalid quote'});
     brokerFeed.quote={bid,ask,last,spread:Number(q.spread)||ask-bid,serverTime:Number.isFinite(serverTime)?serverTime:Date.now()};
-    brokerFeed.timeframes=q.timeframes || {};
+    // Python bridge v2 sends MTF candles under `bars`; older builds used `timeframes`.
+    brokerFeed.timeframes=q.timeframes || q.bars || {};
     brokerFeed.receivedAt=Date.now();
     brokerFeed.symbol=String(q.symbol);
     res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
