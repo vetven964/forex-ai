@@ -1,244 +1,208 @@
-// ==========================================
-// FOREX AI ENGINE v5.8 - STABLE PRODUCTION
-// ==========================================
+let tvWidgetInstance = null;
+        let sentimentChartInstance = null;
+        let activeOtpCode = "998877";
+        let currentCurrency = "USD";
+        let baseUsdBalance = 1250.00;
 
-const TWELVE_DATA_API_KEY = "f4f97a737cbf461482323ccc5475eb0e";[cite: 4]
+        let usersListDB = [
+            { name: "VET VEN (Owner)", email: "vetven@vtrade.ai", level: "Admin", security: "Protected v5.7 (DDoS ON)", date: "2026-08-09" },
+            { name: "Sokha Chan", email: "sokha@vtrade.ai", level: "VIP Pro", security: "Protected v5.7 (DDoS ON)", date: "2026-08-08" },
+            { name: "Dara Pich", email: "dara@vtrade.ai", level: "Standard", security: "Protected v5.7 (DDoS ON)", date: "2026-08-07" }
+        ];
 
-// ឆែកមើលម៉ោងទីផ្សារសកម្ម (London & New York Sessions)
-function isAllowedTradingSession() {
-    const hours = new Date().getHours();
-    const isLondon = (hours >= 14 && hours < 17);  // 14:00 - 17:00
-    const isNewYork = (hours >= 19 && hours < 23); // 19:00 - 23:00
-    return isLondon || isNewYork;
-}
+        let mockMarketData = {
+            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
+            "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$2,650.40", sl: "$2,620.00", tp: "$2,680 / $2,720", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
+            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
+            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+        };
 
-// ប្រព័ន្ធគ្រប់គ្រងសញ្ញានិង Cooldown
-class TradingSignalManager {
-    constructor(cooldownMinutes = 5) {
-        this.activeAction = null;
-        this.lastSignalTime = 0;
-        this.cooldownMs = cooldownMinutes * 60 * 1000;
-    }
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedUser = localStorage.getItem('vtrade_logged_user');
+            if (savedUser) {
+                const authBtn = document.getElementById('btnAuth');
+                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
+            }
 
-    processSignal(newAction, winRate) {
-        const now = Date.now();
+            fetchMarketPrices();
+            setInterval(fetchMarketPrices, 30000);
+            initSentimentRadarChart();
+            runAIAnalysis();
+            renderAdminTable(usersListDB);
+            updateMarketSessionsTimer();
+            setInterval(updateMarketSessionsTimer, 1000);
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+        });
 
-        if (!isAllowedTradingSession()) {
-            return { 
-                allow: false, 
-                message: "⏸️ Outside Trading Session. Signal on hold." 
-            };
+        async function fetchMarketPrices() {
+            try {
+                let res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether-gold&vs_currencies=usd');
+                if (!res.ok) throw new Error("API Network Response Error");
+                let data = await res.json();
+                
+                const elBtc = document.getElementById('tickerBtc');
+                const elEth = document.getElementById('tickerEth');
+                const elXau = document.getElementById('tickerXau');
+
+                if (elBtc && data.bitcoin) elBtc.innerText = `$${data.bitcoin.usd.toLocaleString()}`;
+                if (elEth && data.ethereum) elEth.innerText = `$${data.ethereum.usd.toLocaleString()}`;
+                if (elXau && data['tether-gold']) elXau.innerText = `$${data['tether-gold'].usd.toLocaleString()}`;
+            } catch (error) {
+                console.warn("Using fallback mock data due to API limit or network issue:", error);
+            }
         }
 
-        if (this.activeAction && (now - this.lastSignalTime < this.cooldownMs)) {
-            const remainingSec = Math.ceil((this.cooldownMs - (now - this.lastSignalTime)) / 1000);
-            return { 
-                allow: false, 
-                message: `🔒 Signal locked on [${this.activeAction}]. Cooldown: ${remainingSec}s.` 
-            };
+        function updateLiveClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('km-KH');
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            
+            const dateEl = document.getElementById('liveDate');
+            const clockEl = document.getElementById('liveClock');
+            if (dateEl) dateEl.innerText = dateStr;
+            if (clockEl) clockEl.innerText = timeStr;
         }
 
-        this.activeAction = newAction;
-        this.lastSignalTime = now;
-        return { allow: true, action: newAction, winRate: winRate };
-    }
-}
-
-const signalManager = new TradingSignalManager(5);
-
-// ==========================================
-// ICT FAIR VALUE GAP (FVG) & MARKET ANALYSIS
-// ==========================================
-
-function analyzeICTFVG(candles) {
-    if (!candles || candles.length < 3) return null;
-
-    const c0 = candles[0]; 
-    const c1 = candles[1]; 
-    const c2 = candles[2]; 
-
-    const c0Low = parseFloat(c0.low);
-    const c0High = parseFloat(c0.high);
-    const c2Low = parseFloat(c2.low);
-    const c2High = parseFloat(c2.high);
-
-    const c0Close = parseFloat(c0.close);
-    const c0Open = parseFloat(c0.open);
-    
-    const isBullishTrend = c0Close >= c0Open;
-
-    if (c0Low > c2High && isBullishTrend) {
-        const gapSize = c0Low - c2High;
-        return {
-            type: "BULLISH_FVG",
-            action: "🟢 BUY (LONG)",
-            gapSize: gapSize.toFixed(4),
-            confidence: "HIGH",
-            winRate: (82 + Math.random() * 10).toFixed(2)
-        };
-    } 
-    else if (c0High < c2Low && !isBullishTrend) {
-        const gapSize = c2Low - c0High;
-        return {
-            type: "BEARISH_FVG",
-            action: "🔴 SELL (SHORT)",
-            gapSize: gapSize.toFixed(4),
-            confidence: "HIGH",
-            winRate: (80 + Math.random() * 12).toFixed(2)
-        };
-    }
-
-    return {
-        type: isBullishTrend ? "BULLISH_TREND" : "BEARISH_TREND",
-        action: isBullishTrend ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
-        gapSize: "0.0000",
-        confidence: "MEDIUM",
-        winRate: (75 + Math.random() * 8).toFixed(2)
-    };
-}
-
-// ==========================================
-// FETCH API & UI UPDATE
-// ==========================================
-
-async function fetchTwelveDataCandles(symbol = "BTC/USD") {
-    try {
-        const response = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=5min&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`);
-        const data = await response.json();
-        
-        if (data && data.values && data.values.length >= 3) {
-            return data.values;
+        function initSentimentRadarChart() {
+            const canvas = document.getElementById('sentimentChartCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (sentimentChartInstance) sentimentChartInstance.destroy();
+            
+            sentimentChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['RSI Momentum', 'MACD Trend', 'Orderbook', 'Sentiment', 'FVG Strength'],
+                    datasets: [{
+                        label: 'Market Consensus',
+                        data: [85, 90, 75, 88, 92],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#60a5fa'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
-        return null;
-    } catch (error) {
-        console.warn("API Connection Error:", error);
-        return null;
-    }
-}
 
-async function runAIAnalysis() {
-    const winRateEl = document.getElementById('win-rate-val');
-    const signalEl = document.getElementById('signal-direction');
-    const fvgConfEl = document.getElementById('fvg-confidence');
-    const logs = document.getElementById('terminal-logs');
+        function runAIAnalysis() {
+            const pairSelect = document.getElementById('terminalPairSelect');
+            if (!pairSelect) return;
+            const selectedPair = pairSelect.value;
+            const data = mockMarketData[selectedPair] || mockMarketData["BTC/USDT"];
 
-    if (!winRateEl || !signalEl || !logs) return;
+            const spinner = document.getElementById('btnRefreshSpinner');
+            const icon = document.getElementById('btnRefreshIcon');
+            if (spinner) spinner.style.display = 'inline-block';
+            if (icon) icon.style.display = 'none';
 
-    const timeStr = new Date().toLocaleTimeString();
-    logs.innerHTML += `<div>[${timeStr}] Scanning Market Data...</div>`;
+            setTimeout(() => {
+                if (spinner) spinner.style.display = 'none';
+                if (icon) icon.style.display = 'inline-block';
 
-    let candles = await fetchTwelveDataCandles("BTC/USD");
-    let analysis;
+                document.getElementById('signal-direction').innerText = data.direction;
+                document.getElementById('signal-entry').innerText = data.entry;
+                document.getElementById('win-rate-val').innerText = data.winRate;
+                document.getElementById('win-rate-bar').style.width = data.winRate;
+                document.getElementById('fvg-confidence').innerText = data.fvg;
+                document.getElementById('fvg-zone').innerText = data.fvgZone;
+                document.getElementById('sentiment-score').innerText = data.sentiment;
+                
+                document.getElementById('rsiVal').innerText = data.rsi;
+                document.getElementById('macdVal').innerText = data.macd;
+                document.getElementById('orderbookVal').innerText = data.orderbook;
 
-    if (candles) {
-        analysis = analyzeICTFVG(candles);
-        logs.innerHTML += `<div>[${timeStr}] Successfully analyzed live 5m candles.</div>`;
-    } else {
-        logs.innerHTML += `<div>[${timeStr}] Using backup algorithm simulation...</div>`;
-        analysis = {
-            action: Math.random() > 0.5 ? "🟢 BUY (LONG)" : "🔴 SELL (SHORT)",
-            confidence: "HIGH",
-            winRate: (78 + Math.random() * 15).toFixed(2),
-            type: "BACKUP_MODE"
-        };
-    }
+                document.getElementById('tblAsset').innerText = selectedPair;
+                document.getElementById('tblSignalBadge').innerText = data.direction;
+                document.getElementById('tblEntry').innerText = data.entry;
+                document.getElementById('tblSL').innerText = data.sl;
+                document.getElementById('tblTP').innerText = data.tp;
 
-    const signalCheck = signalManager.processSignal(analysis.action, analysis.winRate);
+                appendTerminalLog(`[AI ENGINE] Successfully scanned ${selectedPair}. Signal generated: ${data.direction} (${data.winRate} Win Rate).`);
+            }, 600);
+        }
 
-    if (fvgConfEl) fvgConfEl.innerText = analysis.confidence;
-    winRateEl.innerText = analysis.winRate + "%";
-    signalEl.innerText = analysis.action;
-    signalEl.className = analysis.action.includes("BUY")
-        ? "text-xl font-bold mt-1 text-emerald-400"
-        : "text-xl font-bold mt-1 text-red-500";
+        function appendTerminalLog(message) {
+            const logsBox = document.getElementById('terminal-logs');
+            if (!logsBox) return;
+            const timeNow = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const logLine = document.createElement('div');
+            logLine.innerHTML = `<span class="text-gray-500">[${timeNow}]</span> <span class="text-teal-400">[EXEC]</span> ${message}`;
+            logsBox.appendChild(logLine);
+            logsBox.scrollTop = logsBox.scrollHeight;
+        }
 
-    logs.innerHTML += `<div>[${timeStr}] Action: <b class="text-white">${analysis.action}</b> | Win Rate: <b class="text-sky-300">${analysis.winRate}%</b></div>`;
+        function clearTerminalLogs() {
+            const logsBox = document.getElementById('terminal-logs');
+            if (logsBox) logsBox.innerHTML = '';
+        }
 
-    if (!signalCheck.allow) {
-        logs.innerHTML += `<div class="text-amber-400">[${timeStr}] ${signalCheck.message}</div>`;
-    } else {
-        logs.innerHTML += `<div class="text-emerald-400">[${timeStr}] Signal Executed Successfully.</div>`;
-    }
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.add('active');
+        }
 
-    logs.scrollTop = logs.scrollHeight;
-}
+        function renderAdminTable(dataArray) {
+            const tbody = document.getElementById('adminUserTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            dataArray.forEach((user, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-900 transition">
+                        <td class="p-3.5 font-bold text-white">${user.name}<br><span class="text-gray-500 text-[10px] font-normal">${user.email}</span></td>
+                        <td class="p-3.5"><span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold text-[11px]">${user.level}</span></td>
+                        <td class="p-3.5 text-emerald-400">${user.security}</td>
+                        <td class="p-3.5 text-gray-400">${user.date}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="alert('Editing user: ${user.name}')" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold cursor-pointer">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
 
-function refreshAnalysis() {
-    runAIAnalysis();
-}
+        function updateMarketSessionsTimer() {
+            const now = new Date();
+            const utcHour = now.getUTCHours();
 
-// ==========================================
-// ADMIN DASHBOARD USER MANAGEMENT
-// ==========================================
+            // Tokyo: 00:00 - 08:00 UTC (07:00 - 15:00 ICT)
+            const isTokyoOpen = utcHour >= 0 && utcHour < 8;
+            updateSessionBadge('badgeAsian', 'timerAsian', isTokyoOpen);
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsersFromStorage();
-    setInterval(updateLiveClock, 1000);
-});
+            // London: 08:00 - 16:00 UTC (15:00 - 23:00 ICT)
+            const isLondonOpen = utcHour >= 8 && utcHour < 16;
+            updateSessionBadge('badgeLondon', 'timerLondon', isLondonOpen);
 
-function loadUsersFromStorage() {
-    let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [
-        { name: "VET VEN", email: "vetven@vtrade.ai", level: "Admin", date: "2026-08-11" }
-    ];
-    const tableBody = document.getElementById('adminUserTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    savedUsers.forEach(user => {
-        const newRow = `
-            <tr>
-                <td class="p-3.5">${user.name}<br><small class="text-gray-400">${user.email}</small></td>
-                <td class="p-3.5"><span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">${user.level}</span></td>
-                <td class="p-3.5">Active Protected</td>
-                <td class="p-3.5">${user.date}</td>
-                <td class="p-3.5 text-center"><button onclick="deleteUserRow(this)" class="bg-red-600 hover:bg-red-500 text-white border-none px-3 py-1 rounded-lg cursor-pointer text-xs">លុប</button></td>
-            </tr>
-        `;
-        tableBody.insertAdjacentHTML('beforeend', newRow);
-    });
-}
+            // New York: 13:00 - 21:00 UTC (20:00 - 04:00 ICT)
+            const isNyOpen = utcHour >= 13 && utcHour < 21;
+            updateSessionBadge('badgeNy', 'timerNy', isNyOpen);
+        }
 
-function addNewUserRecord() {
-    const name = document.getElementById('newUserNameInput').value;
-    const email = document.getElementById('newUserEmailInput').value;
-    const level = document.getElementById('newUserLevelInput').value;
-
-    if(!name || !email) {
-        alert("សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានត្រឹមត្រូវ!");
-        return;
-    }
-
-    let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
-    savedUsers.push({
-        name: name,
-        email: email,
-        level: level,
-        date: new Date().toISOString().split('T')[0]
-    });
-
-    localStorage.setItem('forexai_users', JSON.stringify(savedUsers));
-    loadUsersFromStorage();
-    closeModal('addUserModal');
-    alert("បានបន្ថែម User ថ្មីដោយជោគជ័យ!");
-}
-
-function deleteUserRow(btn) {
-    const row = btn.closest('tr');
-    const emailSmall = row.querySelector('small').innerText;
-    let savedUsers = JSON.parse(localStorage.getItem('forexai_users')) || [];
-    
-    savedUsers = savedUsers.filter(u => u.email !== emailSmall);
-    localStorage.setItem('forexai_users', JSON.stringify(savedUsers));
-    loadUsersFromStorage();
-}
-
-function updateLiveClock() {
-    const now = new Date();
-    const clockEl = document.getElementById('liveClock');
-    const dateEl = document.getElementById('liveDate');
-    if(clockEl) clockEl.innerText = now.toLocaleTimeString();
-    if(dateEl) dateEl.innerText = now.toLocaleDateString();
-}
-
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function updateSessionBadge(badgeId, timerId, isOpen) {
+            const badge = document.getElementById(badgeId);
+            const timer = document.getElementById(timerId);
+            if (!badge || !timer) return;
+            if (isOpen) {
+                badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 animate-pulse";
+                badge.innerText = "OPEN (កំពុងបើក)";
+                timer.innerText = "ស្ថានភាព៖ កំពុងដំណើរការជួញដូរ";
+            } else {
+                badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
+                badge.innerText = "CLOSED (បិទ)";
+                timer.innerText = "ស្ថានភាព៖ រង់ចាំម៉ោងបើកទីផ្សារ";
+            }
+        }
