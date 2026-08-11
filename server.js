@@ -2,30 +2,57 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const express = require('express');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 10000);
+const HOST = '0.0.0.0';
+
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || APP_BASE_URL || '')
+  .split(',')
+  .map(v => v.trim())
+  .filter(Boolean);
 
-if (!TELEGRAM_TOKEN) {
-  console.warn('⚠️ TELEGRAM_TOKEN is not set. Telegram bot will be disabled.');
-}
+const bot = TELEGRAM_TOKEN
+  ? new TelegramBot(TELEGRAM_TOKEN, { polling: process.env.RENDER ? false : true })
+  : null;
 
-const bot = TELEGRAM_TOKEN ? new TelegramBot(TELEGRAM_TOKEN, { polling: true }) : null;
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(helmet({
+  contentSecurityPolicy: false, // TradingView/Tailwind CDN are used by the existing frontend.
+  crossOriginEmbedderPolicy: false
+}));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 150 });
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS origin not allowed'));
+  }
+}));
+
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false, limit: '50kb' }));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 150,
+  standardHeaders: true,
+  legacyHeaders: false
+});
 app.use('/api/', limiter);
 
-const users = {
-  [TELEGRAM_CHAT_ID || 'unknown']: { vipStatus: true, balance: 0 }
-};
+app.use(express.static(path.join(__dirname)));
+
 let signalsHistory = [];
 let cachedGold = { price: null, source: null, timestamp: 0 };
 
@@ -33,7 +60,11 @@ async function fetchJson(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: { 'User-Agent': 'V-Trade-AI/5.0.7' }
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } finally {
@@ -42,10 +73,11 @@ async function fetchJson(url, options = {}) {
 }
 
 async function getXauUsd() {
-  // Prefer Twelve Data when an API key is configured.
   if (process.env.TWELVE_DATA_API_KEY) {
     try {
-      const data = await fetchJson(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${encodeURIComponent(process.env.TWELVE_DATA_API_KEY)}`);
+      const data = await fetchJson(
+        `https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${encodeURIComponent(process.env.TWELVE_DATA_API_KEY)}`
+      );
       const price = Number(data.price);
       if (Number.isFinite(price)) {
         cachedGold = { price, source: 'Twelve Data', timestamp: Date.now() };
@@ -56,13 +88,16 @@ async function getXauUsd() {
     }
   }
 
-  // Public Yahoo Finance chart feed fallback. This is a market-data fallback,
-  // not a broker execution price; spreads can differ by broker.
   try {
-    const data = await fetchJson('https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1d&interval=1m');
+    const data = await fetchJson(
+      'https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD=X?range=1d&interval=1m'
+    );
     const result = data?.chart?.result?.[0];
     const meta = result?.meta;
-    const price = Number(meta?.regularMarketPrice ?? result?.indicators?.quote?.[0]?.close?.filter(Number.isFinite).at(-1));
+    const closes = result?.indicators?.quote?.[0]?.close || [];
+    const lastClose = [...closes].reverse().find(Number.isFinite);
+    const price = Number(meta?.regularMarketPrice ?? lastClose);
+
     if (Number.isFinite(price)) {
       cachedGold = { price, source: 'Yahoo Finance', timestamp: Date.now() };
       return cachedGold;
@@ -79,11 +114,11 @@ function formatSignal({ symbol = 'XAUUSD', price, type = 'WAIT', marketState = '
   const emoji = type === 'BUY' ? '🟢' : type === 'SELL' ? '🔴' : '🟡';
   return `${emoji} *V TRADE AI — XAUUSD SIGNAL*\n\n` +
     `🔹 *Symbol:* ${symbol}\n` +
-    `💰 *Price:* ${price ?? 'N/A'}\n` +
+    `💰 *Live Price:* ${price ?? 'N/A'}\n` +
     `📊 *Signal:* *${type}*\n` +
     `🌐 *Market:* ${marketState}\n` +
     `⏱ *Time:* ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Phnom_Penh' })}\n\n` +
-    `⚠️ For analysis only — manage risk carefully.`;
+    `⚠️ Analysis only. Broker entry may differ because of spread/liquidity.`;
 }
 
 async function sendTelegram(text, chatId = TELEGRAM_CHAT_ID) {
@@ -92,30 +127,99 @@ async function sendTelegram(text, chatId = TELEGRAM_CHAT_ID) {
   return bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
 }
 
-app.get('/api/health', async (_req, res) => {
-  res.json({ ok: true, telegramConfigured: !!bot, chatConfigured: !!TELEGRAM_CHAT_ID });
+function maskAccount(value) {
+  if (!value) return null;
+  const s = String(value).replace(/\s+/g, '');
+  if (s.length <= 4) return '••••';
+  return `${'•'.repeat(Math.max(2, s.length - 4))}${s.slice(-4)}`;
+}
+
+/* Keep /health extremely cheap for Render health checks. */
+app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
+
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    environment: process.env.RENDER ? 'render' : 'local',
+    telegramConfigured: !!bot,
+    marketDataConfigured: !!process.env.TWELVE_DATA_API_KEY
+  });
 });
 
 app.get('/api/market/xauusd', async (_req, res) => {
   try {
     const market = await getXauUsd();
-    res.json({ success: true, symbol: 'XAUUSD', ...market });
+    res.json({
+      success: true,
+      symbol: 'XAUUSD',
+      price: Number(market.price.toFixed(2)),
+      source: market.source,
+      timestamp: market.timestamp,
+      stale: !!market.stale
+    });
   } catch (error) {
     res.status(503).json({ success: false, symbol: 'XAUUSD', error: error.message });
   }
 });
 
+/*
+ * IMPORTANT:
+ * This endpoint intentionally returns WAIT until a real ICT engine is connected.
+ * It must not manufacture a fake entry/win-rate/SL/TP from stale hardcoded values.
+ */
+app.get('/api/analysis/xauusd', async (_req, res) => {
+  try {
+    const market = await getXauUsd();
+    res.json({
+      success: true,
+      symbol: 'XAUUSD',
+      livePrice: Number(market.price.toFixed(2)),
+      source: market.source,
+      timestamp: market.timestamp,
+      signal: 'WAIT',
+      entry: null,
+      stopLoss: null,
+      takeProfit: [],
+      confidence: null,
+      ict: {
+        marketStructure: 'PENDING_OHLC',
+        liquidity: 'PENDING_OHLC',
+        orderBlock: 'PENDING_OHLC',
+        fairValueGap: 'PENDING_OHLC',
+        premiumDiscount: 'PENDING_OHLC',
+        note: 'Connect a multi-timeframe OHLC feed before generating a real ICT setup.'
+      }
+    });
+  } catch (error) {
+    res.status(503).json({ success: false, symbol: 'XAUUSD', error: error.message });
+  }
+});
+
+app.get('/api/payment-info', (_req, res) => {
+  // Public UI receives only masked account numbers.
+  res.json({
+    success: true,
+    bankName: process.env.BANK_NAME || 'Configured Bank',
+    khrAccountMasked: maskAccount(process.env.BANK_ACCOUNT_KHR),
+    usdAccountMasked: maskAccount(process.env.BANK_ACCOUNT_USD),
+    note: 'Full payment details should only be shown inside an authenticated member area.'
+  });
+});
+
 app.post('/api/chat', (req, res) => {
-  const { message } = req.body || {};
-  res.json({ success: true, reply: `🤖 V Trade AI: បានទទួលសារ${message ? ` “${String(message).slice(0, 80)}”` : ''}។` });
+  const message = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
+  res.json({
+    success: true,
+    reply: `🤖 V Trade AI: បានទទួលសារ${message ? ` “${message.slice(0, 80)}”` : ''}។`
+  });
 });
 
 app.post('/api/telegram/test', async (_req, res) => {
   try {
-    await sendTelegram('✅ *V TRADE AI*: Telegram Bot connection test successful.');
+    await sendTelegram('✅ *V TRADE AI*: Telegram connection test successful.');
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Telegram test failed' });
   }
 });
 
@@ -123,78 +227,91 @@ app.post('/api/v5/signal', async (req, res) => {
   try {
     const body = req.body || {};
     let price = body.price;
+
     if (!price && (!body.symbol || body.symbol === 'XAUUSD' || body.symbol === 'XAU/USD')) {
       try { price = (await getXauUsd()).price; } catch (_) {}
     }
+
+    const numericPrice = Number(price);
     const signal = {
       symbol: body.symbol || 'XAUUSD',
-      price: Number.isFinite(Number(price)) ? Number(price).toFixed(2) : 'N/A',
-      type: String(body.type || 'WAIT').toUpperCase(),
+      price: Number.isFinite(numericPrice) ? numericPrice.toFixed(2) : 'N/A',
+      type: ['BUY', 'SELL', 'WAIT'].includes(String(body.type || '').toUpperCase())
+        ? String(body.type).toUpperCase()
+        : 'WAIT',
       marketState: body.marketState || 'Real-time'
     };
-    const text = formatSignal(signal);
+
     signalsHistory.unshift({ ...signal, timestamp: Date.now() });
     signalsHistory = signalsHistory.slice(0, 100);
-    await sendTelegram(text);
-    res.json({ success: true, message: 'Signal sent to Telegram', signal });
+
+    if (signal.type !== 'WAIT') {
+      await sendTelegram(formatSignal(signal));
+    }
+
+    res.json({ success: true, signal });
   } catch (error) {
-    console.error('Telegram signal error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Signal error:', error.message);
+    res.status(500).json({ success: false, error: 'Signal processing failed' });
   }
 });
 
-app.get('/api/v5/analytics', (_req, res) => {
-  res.json({ winRate: '—', totalSignalsToday: signalsHistory.length, marketSentiment: 'Live' });
+/* Telegram webhook for Render; local development can still use polling. */
+app.post('/telegram/webhook', async (req, res) => {
+  if (!bot) return res.status(503).json({ ok: false });
+  if (TELEGRAM_WEBHOOK_SECRET &&
+      req.get('x-telegram-bot-api-secret-token') !== TELEGRAM_WEBHOOK_SECRET) {
+    return res.status(401).json({ ok: false });
+  }
+
+  try {
+    await bot.processUpdate(req.body);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Telegram webhook error:', error.message);
+    res.sendStatus(200);
+  }
 });
 
-app.get('/api/signals', (_req, res) => res.json({ success: true, signals: signalsHistory }));
-
-app.post('/api/khqr/generate', (req, res) => res.json({ success: true, qrString: '000201...' }));
-app.get('/api/referral/:chatId', (req, res) => res.json({ success: true, earnings: 0 }));
-
 if (bot) {
-  bot.on('polling_error', (error) => console.error('Telegram polling error:', error.message));
-  bot.on('callback_query', (query) => bot.answerCallbackQuery(query.id).catch(() => {}));
-
-  bot.onText(/^\/start(?:\s+.*)?$/i, async (msg) => {
-    const name = msg.from?.first_name || 'Trader';
-    await bot.sendMessage(msg.chat.id,
-      `សួស្តី ${name} 👋\n\n` +
-      `🤖 *V TRADE AI Bot*\n` +
-      `💰 XAUUSD Live Market\n\n` +
-      `Commands:\n` +
-      `/price — តម្លៃ Gold បច្ចុប្បន្ន\n` +
-      `/signal — ផ្ញើ market signal\n` +
-      `/status — ពិនិត្យ Bot`,
-      { parse_mode: 'Markdown' });
+  bot.onText(/^\/start$/, msg => {
+    bot.sendMessage(msg.chat.id,
+      '🤖 V TRADE AI v5.0.7\\n/price — XAUUSD live price\\n/signal — current signal state\\n/status — server status'
+    );
   });
 
-  bot.onText(/^\/price$/i, async (msg) => {
+  bot.onText(/^\/price$/, async msg => {
     try {
-      const market = await getXauUsd();
-      await bot.sendMessage(msg.chat.id, `🟡 *XAUUSD LIVE*\n\n💰 Price: *$${market.price.toFixed(2)}*\n📡 Source: ${market.source}${market.stale ? ' (cached)' : ''}\n⏱ ${new Date(market.timestamp).toLocaleString('en-GB', { timeZone: 'Asia/Phnom_Penh' })}`, { parse_mode: 'Markdown' });
-    } catch (e) {
-      await bot.sendMessage(msg.chat.id, `⚠️ មិនអាចទាញ XAUUSD បានទេ៖ ${e.message}`);
+      const m = await getXauUsd();
+      await bot.sendMessage(msg.chat.id, `💰 XAUUSD: ${m.price.toFixed(2)}\\nSource: ${m.source}`);
+    } catch {
+      await bot.sendMessage(msg.chat.id, '⚠️ XAUUSD price unavailable.');
     }
   });
 
-  bot.onText(/^\/signal$/i, async (msg) => {
+  bot.onText(/^\/signal$/, async msg => {
     try {
-      const market = await getXauUsd();
-      // This command reports price only. A BUY/SELL signal must come from the strategy engine.
-      const text = formatSignal({ price: market.price.toFixed(2), type: 'WAIT', marketState: 'Live — strategy not triggered' });
-      await bot.sendMessage(msg.chat.id, text, { parse_mode: 'Markdown' });
-    } catch (e) {
-      await bot.sendMessage(msg.chat.id, `⚠️ ${e.message}`);
+      const m = await getXauUsd();
+      await bot.sendMessage(msg.chat.id,
+        formatSignal({ symbol: 'XAUUSD', price: m.price.toFixed(2), type: 'WAIT', marketState: 'Waiting for confirmed ICT setup' }),
+        { parse_mode: 'Markdown' }
+      );
+    } catch {
+      await bot.sendMessage(msg.chat.id, '⚠️ XAUUSD signal unavailable.');
     }
   });
 
-  bot.onText(/^\/status$/i, async (msg) => {
-    await bot.sendMessage(msg.chat.id, `🟢 *V TRADE AI Bot Online*\n📡 Telegram: Connected\n🟡 XAUUSD: Live feed available\n🌐 Server: Online`, { parse_mode: 'Markdown' });
+  bot.onText(/^\/status$/, msg => {
+    bot.sendMessage(msg.chat.id, `🟢 V TRADE AI server online\\nTelegram: connected\\nTime: ${new Date().toISOString()}`);
   });
+
+  if (process.env.RENDER && APP_BASE_URL && TELEGRAM_WEBHOOK_SECRET) {
+    bot.setWebHook(`${APP_BASE_URL}/telegram/webhook`, {
+      secret_token: TELEGRAM_WEBHOOK_SECRET
+    }).catch(err => console.error('Webhook setup failed:', err.message));
+  }
 }
 
-app.listen(PORT, () => {
-  console.log(`🟢 V TRADE AI server running on port ${PORT}`);
-  console.log(`Telegram: ${bot ? 'configured' : 'disabled'}`);
+app.listen(PORT, HOST, () => {
+  console.log(`V TRADE AI listening on http://${HOST}:${PORT}`);
 });

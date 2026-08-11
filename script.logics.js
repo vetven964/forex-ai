@@ -12,10 +12,10 @@ let tvWidgetInstance = null;
 
         // កែសម្រួលទិន្នន័យសញ្ញា និងតម្លៃ Entry ឱ្យមានភាពច្បាស់លាស់ និងត្រឹមត្រូវ
         let mockMarketData = {
-           "XAU/USD": { direction: "STRONG BUY", winRate: "92.5%", entry: "$4,426.40", sl: "$4,226.00", tp: "$4,480 / $4,490", fvg: "BULLISH FVG", fvgZone: "0.618 Fib Support", sentiment: "86% BULLISH", rsi: "64.2 (Bullish Momentum)", macd: "Positive Histogram", orderbook: "72% Buy Orders" },
-            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
-            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+            "XAU/USD": { direction: "WAIT", winRate: "—", entry: "LIVE → loading…", sl: "—", tp: "—", fvg: "Pending OHLC", fvgZone: "Pending OHLC", sentiment: "—", rsi: "—", macd: "—", orderbook: "—" },
+            "BTC/USDT": { direction: "WAIT", winRate: "—", entry: "LIVE → loading…", sl: "—", tp: "—", fvg: "Pending OHLC", fvgZone: "Pending OHLC", sentiment: "—", rsi: "—", macd: "—", orderbook: "—" },
+            "EUR/USD": { direction: "WAIT", winRate: "—", entry: "LIVE → loading…", sl: "—", tp: "—", fvg: "Pending OHLC", fvgZone: "—", sentiment: "—", rsi: "—", macd: "—", orderbook: "—" },
+            "ETH/USDT": { direction: "WAIT", winRate: "—", entry: "LIVE → loading…", sl: "—", tp: "—", fvg: "Pending OHLC", fvgZone: "—", sentiment: "—", rsi: "—", macd: "—", orderbook: "—" }
         };
 
         const translations = {
@@ -23,6 +23,32 @@ let tvWidgetInstance = null;
             en: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
             zh: { brand: "V TRADE AI TERMINAL v5.0.7", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
+
+        async function refreshLiveXauUsd() {
+            try {
+                const res = await fetch('/api/analysis/xauusd', { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) throw new Error('XAUUSD API unavailable');
+                const data = await res.json();
+                const live = Number(data.livePrice);
+                if (!Number.isFinite(live)) throw new Error('Invalid XAUUSD price');
+
+                mockMarketData["XAU/USD"].entry = '$' + live.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                mockMarketData["XAU/USD"].direction = data.signal || "WAIT";
+                mockMarketData["XAU/USD"].winRate = data.confidence ? data.confidence + '%' : '—';
+                mockMarketData["XAU/USD"].sl = data.stopLoss ? '$' + Number(data.stopLoss).toFixed(2) : '—';
+                mockMarketData["XAU/USD"].tp = Array.isArray(data.takeProfit) && data.takeProfit.length
+                    ? data.takeProfit.map(v => '$' + Number(v).toFixed(2)).join(' / ')
+                    : '—';
+                mockMarketData["XAU/USD"].fvg = data.ict?.fairValueGap || 'Pending OHLC';
+                mockMarketData["XAU/USD"].fvgZone = data.ict?.premiumDiscount || 'Pending OHLC';
+
+                const pair = document.getElementById('terminalPairSelect')?.value;
+                if (pair === 'XAU/USD') refreshTerminalAnalysis();
+                logToTerminal(`[LIVE PRICE] XAUUSD ${mockMarketData["XAU/USD"].entry} via ${data.source}${data.stale ? ' (stale)' : ''}`);
+            } catch (e) {
+                logToTerminal('[LIVE PRICE] XAUUSD unavailable — no fake entry used.');
+            }
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             const savedUser = localStorage.getItem('vtrade_logged_user');
@@ -32,6 +58,8 @@ let tvWidgetInstance = null;
             }
 
             fetchMarketPrices();
+            refreshLiveXauUsd();
+            setInterval(refreshLiveXauUsd, 15000);
             setInterval(fetchMarketPrices, 30000);
             initSentimentRadarChart();
             runAIAnalysis();
