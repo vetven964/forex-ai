@@ -1,4 +1,4 @@
-# V TRADE AI v5.0.7 — Security / XAUUSD audit
+# V TRADE AI v5.1.4 — Security / XAUUSD audit
 
 ## Fixed in this patch
 - XAUUSD entry is no longer a hardcoded fake price; frontend reads `/api/analysis/xauusd`.
@@ -29,3 +29,11 @@ Set these in Render Environment, never in Git:
 `BANK_ACCOUNT_KHR`, `BANK_ACCOUNT_USD`.
 
 Render recommends environment variables/secrets for credentials, and HTTP health checks can use `/health`.
+
+
+## v5.1.4 Telegram session security
+- End users can connect their own Telegram bot from the UI.
+- Bot tokens are not stored in localStorage or embedded in served HTML/JavaScript.
+- Tokens are held only in server memory for the active session.
+- Render restarts clear active user Telegram sessions.
+- Persistent encrypted per-user integrations still require a database and encryption key.

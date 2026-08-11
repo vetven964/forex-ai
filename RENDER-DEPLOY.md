@@ -1,4 +1,4 @@
-# V-TRADE AI v5.1.2 — Render + VT Markets MT5
+# V-TRADE AI v5.1.4 — Render + VT Markets MT5
 
 ## 1) Deploy to Render
 - Create a new **Web Service** from this repository/ZIP contents.
@@ -13,9 +13,12 @@
 - `MT5_BRIDGE_API_KEY` = long random secret (must match the MT5 EA input)
 - `MT5_SYMBOL` = `XAUUSD` (change to your exact VT Markets symbol if your account uses a suffix)
 - `MT5_MAX_AGE_MS` = `15000`
-- `TELEGRAM_TOKEN` = your bot token
-- `TELEGRAM_CHAT_ID` = target chat ID
-- `TELEGRAM_WEBHOOK_SECRET` = long random secret
+- `TELEGRAM_TOKEN` = optional owner/admin fallback bot token
+- `TELEGRAM_CHAT_ID` = optional owner/admin fallback chat ID
+- `TELEGRAM_WEBHOOK_SECRET` = optional; used only for the owner/admin webhook mode
+
+### End-user Telegram
+End users do **not** need to edit Render Environment Variables. They can enter their own Bot Token + Chat ID in the website's Telegram Setup tab. The token is kept server-side in memory for that active session and is never stored in browser localStorage.
 
 ## 3) MT5 WebRequest
 In MT5: Tools -> Options -> Expert Advisors -> Allow WebRequest for listed URL. Add the exact Render URL.

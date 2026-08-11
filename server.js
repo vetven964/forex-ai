@@ -5,11 +5,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const TelegramBot = require('node-telegram-bot-api');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = Number(process.env.PORT || 10000);
 const HOST = '0.0.0.0';
 
+// Telegram is user-configurable. Tokens are never sent to the browser and are kept
+// only in server memory for the active session. Optional env credentials remain
+// supported for owner/admin fallback deployments.
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
@@ -25,6 +29,48 @@ const ALLOWED_ORIGINS = [...new Set([
 const bot = TELEGRAM_TOKEN
   ? new TelegramBot(TELEGRAM_TOKEN, { polling: process.env.RENDER ? false : true })
   : null;
+
+// Per-user Telegram connections. The bot token is server-side only.
+// Render restarts clear this in-memory map; users can reconnect from Telegram Setup.
+const telegramSessions = new Map();
+const telegramAlertKeys = new Map();
+const MAX_TELEGRAM_SESSIONS = 1000;
+
+function sessionIdFrom(req) {
+  const id = String(req.get('x-vtrade-session') || '').trim();
+  return /^[a-f0-9]{48,96}$/i.test(id) ? id : null;
+}
+
+function createSessionId() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function getSessionConfig(req) {
+  const sid = sessionIdFrom(req);
+  return sid ? telegramSessions.get(sid) || null : null;
+}
+
+function setSessionConfig(sid, config) {
+  if (telegramSessions.size >= MAX_TELEGRAM_SESSIONS && !telegramSessions.has(sid)) {
+    const oldest = telegramSessions.keys().next().value;
+    if (oldest) telegramSessions.delete(oldest);
+  }
+  telegramSessions.set(sid, config);
+}
+
+function maskChatId(chatId) {
+  const s = String(chatId || '');
+  return s.length <= 4 ? '••••' : `${s.slice(0, 2)}••••${s.slice(-2)}`;
+}
+
+function activeTelegramConfig(req) {
+  const session = getSessionConfig(req);
+  if (session) return session;
+  if (bot && TELEGRAM_CHAT_ID) {
+    return { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_CONFIGURED', session: false };
+  }
+  return null;
+}
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -266,25 +312,30 @@ function telegramText(a) {
     `⚠️ ${a.riskNote}`;
 }
 
-let lastAlertKey='';
-
-async function maybeTelegramAlert(a) {
-  if (!bot || !TELEGRAM_CHAT_ID || a.signal==='WAIT') return false;
+async function maybeTelegramAlert(a, tg, sessionId) {
+  if (!tg || !tg.bot || !tg.chatId || a.signal==='WAIT') return false;
   const key=`${a.signal}:${a.entry}:${a.stopLoss}:${a.takeProfit.join(',')}`;
-  if (key===lastAlertKey) return false;
-  lastAlertKey=key;
-  await bot.sendMessage(TELEGRAM_CHAT_ID, telegramText(a), {parse_mode:'Markdown'});
+  const dedupeKey = sessionId || `env:${tg.chatId}`;
+  if (telegramAlertKeys.get(dedupeKey) === key) return false;
+  telegramAlertKeys.set(dedupeKey, key);
+  await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});
   return true;
 }
 
 app.get('/health',(_req,res)=>res.json({ok:true}));
-app.get('/api/health',(_req,res)=>res.json({
-  ok:true, telegramConfigured:!!bot, ictEngine:'mtf-v2-vtmarkets-mt5',
-  dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
-  mt5Connected:brokerFeedFresh(),
-  mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
-  render:!!process.env.RENDER
-}));
+app.get('/api/health',(req,res)=>{
+  const tg = activeTelegramConfig(req);
+  res.json({
+    ok:true,
+    telegramConfigured:!!tg,
+    telegramMode:getSessionConfig(req)?'user-session':(bot&&TELEGRAM_CHAT_ID?'env-fallback':'not-configured'),
+    ictEngine:'mtf-v2-vtmarkets-mt5',
+    dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
+    mt5Connected:brokerFeedFresh(),
+    mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
+    render:!!process.env.RENDER
+  });
+});
 
 function isAllowedXauSymbol(symbol) {
   const incoming = String(symbol || '').trim().toUpperCase();
@@ -337,33 +388,93 @@ app.get('/api/market/xauusd',async(_req,res)=>{
   });
 });
 
-app.get('/api/analysis/xauusd',async(_req,res)=>{
+app.get('/api/analysis/xauusd',async(req,res)=>{
   try {
     const a=await buildXauAnalysis();
-    res.json({success:true,...a});
-    maybeTelegramAlert(a).catch(e=>console.error('Telegram alert:',e.message));
+    const tg = activeTelegramConfig(req);
+    const sid = sessionIdFrom(req);
+    res.json({success:true,...a,telegramConfigured:!!tg});
+    maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
     console.error('ICT analysis:',e.message);
     res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});
   }
 });
 
-app.post('/api/telegram/test',async(_req,res)=>{
-  try {
-    if(!bot||!TELEGRAM_CHAT_ID) throw new Error('Telegram not configured');
-    await bot.sendMessage(TELEGRAM_CHAT_ID,'✅ V TRADE AI Telegram test — connection OK.');
-    res.json({success:true});
-  } catch(e){ res.status(500).json({success:false,error:'Telegram test failed'}); }
+app.get('/api/telegram/session',(req,res)=>{
+  const sid = sessionIdFrom(req) || createSessionId();
+  res.set('Cache-Control','no-store');
+  res.json({success:true,sessionId:sid,connected:!!telegramSessions.get(sid)});
 });
+
+app.get('/api/telegram/status',async(req,res)=>{
+  const sid=sessionIdFrom(req);
+  const tg=getSessionConfig(req);
+  if (!tg) {
+    return res.json({success:true,connected:false,configured:!!(bot&&TELEGRAM_CHAT_ID),mode:(bot&&TELEGRAM_CHAT_ID)?'env-fallback':'not-configured'});
+  }
+  res.json({success:true,connected:true,mode:'user-session',botUsername:tg.botUsername,chatId:maskChatId(tg.chatId),connectedAt:tg.connectedAt});
+});
+
+app.post('/api/telegram/connect',async(req,res)=>{
+  try {
+    const token=String(req.body?.token||'').trim();
+    const chatId=String(req.body?.chatId||'').trim();
+    if (!token || !chatId) return res.status(400).json({success:false,error:'Bot Token and Chat ID are required'});
+    if (token.length < 20 || token.length > 200) return res.status(400).json({success:false,error:'Invalid Telegram bot token format'});
+
+    const testBot=new TelegramBot(token,{polling:false});
+    const me=await testBot.getMe();
+    if (!me?.is_bot) throw new Error('The provided token is not a Telegram bot token');
+    const chat=await testBot.getChat(chatId);
+    if (!chat?.id) throw new Error('Chat not found. Open the bot and press Start, or add the bot to the group/channel first.');
+
+    const sid=sessionIdFrom(req) || createSessionId();
+    setSessionConfig(sid,{
+      bot:testBot,
+      chatId,
+      botUsername:me.username || me.first_name || 'Telegram Bot',
+      connectedAt:new Date().toISOString()
+    });
+    res.set('Cache-Control','no-store');
+    res.json({success:true,sessionId:sid,connected:true,botUsername:me.username||me.first_name||'Telegram Bot',chatId:maskChatId(chatId)});
+  } catch(e) {
+    console.error('Telegram connect:',e.message);
+    res.status(400).json({success:false,error:e.message||'Telegram connection failed'});
+  }
+});
+
+app.post('/api/telegram/test',async(req,res)=>{
+  try {
+    const tg=activeTelegramConfig(req);
+    if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
+    await tg.bot.sendMessage(tg.chatId,'✅ V TRADE AI Telegram test — connection OK.');
+    res.json({success:true,message:'Test message sent'});
+  } catch(e){
+    console.error('Telegram test:',e.message);
+    res.status(500).json({success:false,error:'Telegram test failed. Check that the bot token is valid and the bot can message this chat.'});
+  }
+});
+
+app.post('/api/telegram/disconnect',(req,res)=>{
+  const sid=sessionIdFrom(req);
+  if(sid) {
+    telegramSessions.delete(sid);
+    telegramAlertKeys.delete(sid);
+  }
+  res.json({success:true,connected:false});
+});
+
 app.post('/api/v5/signal',async(req,res)=>{
   try {
-    if(!bot || !TELEGRAM_CHAT_ID) throw new Error('Telegram not configured');
+    const tg = activeTelegramConfig(req);
+    if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
     const a = await buildXauAnalysis();
     const requested = String(req.body?.type || '').toUpperCase();
     if (requested && requested !== 'WAIT' && requested !== a.signal) {
       return res.status(409).json({success:false,error:`Current engine signal is ${a.signal}, not ${requested}`,analysis:a});
     }
-    await bot.sendMessage(TELEGRAM_CHAT_ID, telegramText(a), {parse_mode:'Markdown'});
+    await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});
     res.json({success:true,analysis:a});
   } catch(e) {
     console.error('Manual Telegram signal:', e.message);
@@ -399,4 +510,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI MTF ICT server listening on ${HOST}:${PORT}`));
+app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.1.4 MTF ICT server listening on ${HOST}:${PORT}`));

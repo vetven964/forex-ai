@@ -1,4 +1,4 @@
-# XAUUSD MTF ICT v1
+# XAUUSD MTF ICT v1.1 / v5.1.4
 
 The server now calculates an analysis chain:
 
@@ -25,3 +25,7 @@ XAUUSD live price
 - `/api/analysis/xauusd`
 - `/api/market/xauusd`
 - `/api/health`
+
+
+## Telegram v5.1.4
+End users can connect their own Telegram Bot Token and Chat ID from the website Telegram Setup tab. Tokens are not stored in browser localStorage; the server holds the active session credential only in memory. A Render restart clears active connections, so reconnect is required.
