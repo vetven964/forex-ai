@@ -16,8 +16,11 @@ const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || APP_BASE_URL)
-  .split(',').map(s => s.trim()).filter(Boolean);
+const ALLOWED_ORIGINS = [...new Set([
+  ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
+  ...(APP_BASE_URL ? [APP_BASE_URL] : []),
+  'https://vetven964.github.io'
+])];
 
 const bot = TELEGRAM_TOKEN
   ? new TelegramBot(TELEGRAM_TOKEN, { polling: process.env.RENDER ? false : true })

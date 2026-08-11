@@ -546,7 +546,7 @@
 
         async function sendToTelegram(messageText, type='WAIT') {
             try {
-                const response = await fetch('/api/v5/signal', {
+                const response = await fetch('https://forexai-6xw6.onrender.com/api/v5/signal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ symbol: (document.getElementById('marketSelect')?.value || 'XAUUSD').replace('/', ''), type, marketState: messageText })
@@ -561,7 +561,7 @@
 
         async function testTelegramConnection() {
             try {
-                const response = await fetch('/api/telegram/test', { method: 'POST' });
+                const response = await fetch('https://forexai-6xw6.onrender.com/api/telegram/test', { method: 'POST' });
                 const data = await response.json();
                 if (data.success) alert('✅ Telegram Bot ភ្ជាប់ជោគជ័យ!');
                 else alert('❌ Telegram មិនទាន់ភ្ជាប់៖ ' + (data.error || 'Unknown error'));

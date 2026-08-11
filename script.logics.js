@@ -360,7 +360,7 @@ let tvWidgetInstance = null;
 
         async function testTelegramIntegration() {
             try {
-                const response = await fetch('/api/telegram/test', { method: 'POST' });
+                const response = await fetch('https://forexai-6xw6.onrender.com/api/telegram/test', { method: 'POST' });
                 const data = await response.json();
                 if (data.success) alert('✅ Telegram Bot & Webhook ភ្ជាប់ជោគជ័យ!');
                 else alert('❌ Telegram Error: ' + (data.error || 'Unknown error'));

@@ -55,7 +55,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px s
 const $=id=>document.getElementById(id);
 const fmt=x=>x==null?'—':Number(x).toFixed(2);
 async function load(){
-  const r=await fetch('/api/analysis/xauusd',{cache:'no-store'});
+  const r=await fetch('https://forexai-6xw6.onrender.com/api/analysis/xauusd',{cache:'no-store'});
   const a=await r.json();
   $('price').textContent=fmt(a.livePrice);
   $('signal').textContent=a.signal;

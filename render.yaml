@@ -16,7 +16,7 @@ services:
       - key: APP_BASE_URL
         sync: false
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://vetven964.github.io
       - key: MT5_BRIDGE_API_KEY
         generateValue: true
       - key: MT5_SYMBOL
