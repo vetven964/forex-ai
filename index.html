@@ -32,15 +32,30 @@
         // GitHub Pages hosts the UI; Render hosts the API. Keep all backend calls on Render.
         const VTRADE_API_BASE = 'https://forexai-6xw6.onrender.com';
         async function vtradeApiFetch(path, options = {}) {
-            const res = await fetch(VTRADE_API_BASE + path, options);
+            const url = /^https?:\/\//i.test(path) ? path : (VTRADE_API_BASE + path);
+            const res = await fetch(url, { ...options, cache: options.cache || 'no-store' });
             const text = await res.text();
             let data;
-            try { data = JSON.parse(text); }
-            catch (_) {
-                const preview = text.replace(/\s+/g, ' ').slice(0, 120);
-                throw new Error(`API returned non-JSON (${res.status}). ${preview}`);
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch (_) {
+                const preview = text.replace(/\s+/g, ' ').slice(0, 160);
+                throw new Error(`API returned non-JSON (${res.status}). ${preview || 'Empty response'}`);
             }
-            return { res, data };
+            // Return a small Response-compatible facade AND the legacy {res,data}
+            // shape used by a few existing terminal functions. This prevents
+            // `.json is not a function` while keeping older callers working.
+            return {
+                ok: res.ok,
+                status: res.status,
+                statusText: res.statusText,
+                headers: res.headers,
+                url: res.url,
+                res,
+                data,
+                async json() { return data; },
+                async text() { return text; }
+            };
         }
     </script>
 
@@ -1134,7 +1149,7 @@
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if (savedUser) {
                 const authBtn = document.getElementById('btnAuth');
-                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
+                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${escapeHtml(savedUser)}</span>`;
             }
 
             fetchMarketPrices();
@@ -1150,6 +1165,12 @@
         });
 
         let latestXauAnalysis = null;
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+            }[ch]));
+        }
 
         function formatUsd(value) {
             return Number.isFinite(Number(value))
@@ -1642,14 +1663,14 @@
 
         async function ensureTelegramSession() {
             if (telegramSessionId) return telegramSessionId;
-            const saved = localStorage.getItem('vtrade_telegram_session');
+            const saved = sessionStorage.getItem('vtrade_telegram_session');
             if (saved) telegramSessionId = saved;
             if (!telegramSessionId) {
                 const r = await vtradeApiFetch('/api/telegram/session', {cache:'no-store'});
                 const d = await r.json();
                 if (!d.success || !d.sessionId) throw new Error('Unable to initialize Telegram session');
                 telegramSessionId = d.sessionId;
-                localStorage.setItem('vtrade_telegram_session', telegramSessionId);
+                sessionStorage.setItem('vtrade_telegram_session', telegramSessionId);
             }
             return telegramSessionId;
         }
@@ -1666,7 +1687,7 @@
                 const el = document.getElementById('telegramStatusText');
                 if (!el) return;
                 if (d.connected) {
-                    el.innerHTML = `🟢 Connected — <b>${d.botUsername || 'Telegram Bot'}</b> · Chat ${d.chatId || '••••'}`;
+                    el.innerHTML = `🟢 Connected — <b>${escapeHtml(d.botUsername || 'Telegram Bot')}</b> · Chat ${escapeHtml(d.chatId || '••••')}`;
                 } else if (d.mode === 'env-fallback') {
                     el.textContent = '🟢 Server Telegram fallback is configured.';
                 } else {
@@ -1694,7 +1715,7 @@
                 if (!connectResult.ok || !connectData.success) throw new Error(connectData.error || 'Telegram connection failed');
 
                 telegramSessionId = connectData.sessionId || sid;
-                localStorage.setItem('vtrade_telegram_session', telegramSessionId);
+                sessionStorage.setItem('vtrade_telegram_session', telegramSessionId);
 
                 const testResult = await vtradeApiFetch('/api/telegram/test', {
                     method:'POST',
@@ -1721,7 +1742,7 @@
                     method:'POST',
                     headers: telegramHeaders()
                 });
-                localStorage.removeItem('vtrade_telegram_session');
+                sessionStorage.removeItem('vtrade_telegram_session');
                 telegramSessionId = null;
                 const tokenInput = document.getElementById('tgTokenInput');
                 if (tokenInput) tokenInput.value = '';
@@ -1745,7 +1766,7 @@
             if(!input || !input.value.trim()) return;
             const userMsg = input.value.trim();
             
-            box.innerHTML += `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${userMsg}</div>`;
+            box.insertAdjacentHTML('beforeend', `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${escapeHtml(userMsg)}</div>`);
             input.value = '';
             box.scrollTop = box.scrollHeight;
 

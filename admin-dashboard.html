@@ -154,15 +154,35 @@
             alert(`✅ Admin Hub: Successfully broadcasted ${asset} (${type}) to Telegram channel!`);
         }
 
-        function saveAdminConfig() {
-            const token = document.getElementById("admin-bot-token").value;
-            const chatId = document.getElementById("admin-chat-id").value;
-            if(token && chatId) {
-                localStorage.setItem("tg_bot_token", token);
-                localStorage.setItem("tg_chat_id", chatId);
-                alert("Master configuration saved successfully!");
-            } else {
+        async function saveAdminConfig() {
+            const token = document.getElementById("admin-bot-token").value.trim();
+            const chatId = document.getElementById("admin-chat-id").value.trim();
+            if(!token || !chatId) {
                 alert("Please fill in both fields.");
+                return;
+            }
+            try {
+                const base = 'https://forexai-6xw6.onrender.com';
+                const sidKey = 'vtrade_admin_telegram_session';
+                let sid = sessionStorage.getItem(sidKey);
+                if(!sid) {
+                    const sr = await fetch(base + '/api/telegram/session', {cache:'no-store'});
+                    const sd = await sr.json();
+                    if(!sr.ok || !sd.success) throw new Error(sd.error || 'Unable to initialize session');
+                    sid = sd.sessionId;
+                    sessionStorage.setItem(sidKey, sid);
+                }
+                const r = await fetch(base + '/api/telegram/connect', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','x-vtrade-session':sid},
+                    body:JSON.stringify({token, chatId})
+                });
+                const d = await r.json();
+                if(!r.ok || !d.success) throw new Error(d.error || 'Telegram connection failed');
+                document.getElementById("admin-bot-token").value = '';
+                alert("Telegram configuration connected successfully. The Bot Token was not stored in browser storage.");
+            } catch (e) {
+                alert("Telegram configuration failed: " + e.message);
             }
         }
 
@@ -174,10 +194,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            const savedToken = localStorage.getItem("tg_bot_token");
-            const savedChatId = localStorage.getItem("tg_chat_id");
-            if(savedToken) document.getElementById("admin-bot-token").value = savedToken;
-            if(savedChatId) document.getElementById("admin-chat-id").value = savedChatId;
+            // Remove legacy insecure token storage from older builds.
+            localStorage.removeItem("tg_bot_token");
+            localStorage.removeItem("tg_chat_id");
         });
     </script>
 </body>

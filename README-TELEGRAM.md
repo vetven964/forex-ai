@@ -1,8 +1,8 @@
-# V TRADE AI v5.1.4 — Telegram + XAUUSD setup
+# V TRADE AI v5.1.5 — Telegram + XAUUSD setup
 
 ## Telegram: user enters their own Bot Token + Chat ID
 
-v5.1.4 supports **per-user Telegram connections** from the website:
+v5.1.5 supports **per-user Telegram connections** from the website:
 
 1. Open **Telegram Bot Setup** in the terminal.
 2. Enter your own **Bot Token** and **Chat ID**.
