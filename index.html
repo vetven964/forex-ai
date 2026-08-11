@@ -54,7 +54,7 @@
     </script>
 
     <!-- Top Navigation Header -->
-    <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
+    <header id="topHeader" class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
         <div class="flex items-center space-x-3">
             <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
                 <i class="fa-solid fa-bars"></i>
@@ -63,7 +63,7 @@
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.1.5</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.2.0</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div id="headerControls" class="flex items-center space-x-2">
             <select id="currencySelect" onchange="changeCurrency(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold focus:outline-none cursor-pointer">
                 <option value="USD">$ USD</option>
                 <option value="KHR">៛ KHR (រៀល)</option>
@@ -119,10 +119,19 @@
         </div>
     </header>
 
+    <!-- Mobile Live Status Strip -->
+    <div id="mobileLiveStrip" class="md:hidden px-3 py-2 border-b border-gray-800 bg-gray-950/95 text-[10px] font-mono overflow-x-auto">
+        <div class="flex items-center gap-3 min-w-max">
+            <span class="text-emerald-400"><i class="fa-solid fa-circle text-[7px]"></i> MT5 LIVE</span>
+            <span class="text-yellow-400">XAU <b id="mobileTickerXau">LIVE —</b></span>
+            <span class="text-blue-400"><i class="fa-regular fa-clock"></i> <b id="mobileLiveClock">--:--:--</b></span>
+        </div>
+    </div>
+
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.1.5)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.2.0)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
@@ -172,7 +181,7 @@
     </div>
 
     <!-- Main Layout -->
-    <div class="flex flex-1 overflow-hidden">
+    <div id="mainLayout" class="flex flex-1 overflow-hidden">
         
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
@@ -229,7 +238,7 @@
         </aside>
 
         <!-- Main Workspace Area -->
-        <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
+        <main id="mainWorkspace" class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
             
             <!-- TAB: TERMINAL & ANALYSIS AI REALTIME -->
             <div id="tab-terminal-analysis" class="tab-content active space-y-6">
@@ -257,16 +266,16 @@
                 </div>
 
                 <!-- Signal Metrics Top Dashboard Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 relative overflow-hidden">
+                <div id="signalCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="signalCard" class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 relative overflow-hidden">
                         <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
                         <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-amber-400 tracking-wider">WAIT</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
-                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">LIVE —</b><br><span>Status:</span> <b class="text-amber-300" id="signal-status">WAIT</b>
+                            <span>Entry Zone:</span> <b class="text-white" id="signal-entry">LIVE —</b><br><span>Status:</span> <b class="text-amber-300" id="signal-status">WAIT</b>
                         </div>
                     </div>
 
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                    <div id="winRateCard" class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400 font-medium">AI Win Rate Probability</p>
                         <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">—</h3>
                         <div class="w-full bg-gray-800 h-1.5 rounded-full mt-3.5 overflow-hidden">
@@ -274,7 +283,7 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
+                    <div id="fvgCard" class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
                         <p class="text-xs text-gray-400 font-medium">ICT Fair Value Gap (FVG)</p>
                         <h3 id="fvg-confidence" class="text-2xl font-extrabold mt-1 text-amber-400">LIVE ICT</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
@@ -282,12 +291,21 @@
                         </div>
                     </div>
 
-                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
+                    <div id="sentimentCard" class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
                         <p class="text-xs text-gray-400 font-medium">Market Sentiment Score</p>
                         <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">—</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400 font-bold">
                             <i class="fa-solid fa-shield-check"></i> High Volume Institutional Support
                         </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Signal Quick Summary -->
+                <div id="mobileSignalSummary" class="md:hidden glass-panel p-3 rounded-2xl border border-teal-500/20">
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800"><span class="text-gray-500">Signal</span><div id="mobileSignalDirection" class="text-amber-400 font-extrabold text-base">WAIT</div></div>
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800"><span class="text-gray-500">Confidence</span><div id="mobileConfidence" class="text-blue-400 font-extrabold text-base">—</div></div>
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800 col-span-2"><span class="text-gray-500">Entry Zone</span><div id="mobileEntryZone" class="text-white font-extrabold text-sm">WAIT</div></div>
                     </div>
                 </div>
 
@@ -394,7 +412,7 @@
 
             <!-- TAB: DASHBOARD -->
             <div id="tab-dashboard" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div id="signalCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
                         <p class="text-xs text-gray-400">សមតុល្យគណនី (Balance)</p>
                         <h3 class="text-2xl font-bold mt-1 text-white" id="userBalanceDisplay">$1,250.00</h3>
@@ -1137,9 +1155,9 @@
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.1.5", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.1.5", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v5.1.5", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v5.2.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.2.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.2.0", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1240,6 +1258,9 @@
                 const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=value; };
                 set('signal-direction', data.direction);
                 set('signal-entry', data.entry);
+                set('mobileSignalDirection', data.direction);
+                set('mobileEntryZone', data.entry);
+                set('mobileConfidence', data.winRate);
                 set('signal-status', latestXauAnalysis?.status || data.direction);
                 set('win-rate-val', data.winRate);
                 const bar=document.getElementById('win-rate-bar');
@@ -1792,3 +1813,76 @@
     </script>
 </body>
 </html>
+
+<!-- v5.2.0 Mobile UX Patch -->
+<style>
+@media (max-width: 767px) {
+  :root { --mobile-gap: 10px; }
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+  #topHeader { position: sticky; top: 0; padding: 9px 10px !important; gap: 8px !important; flex-wrap: nowrap !important; min-height: 58px; }
+  #topHeader > div:first-child { min-width: 0; flex: 1 1 auto; gap: 8px !important; }
+  #topHeader > div:first-child > div:nth-child(2) { min-width: 0; }
+  #topHeader h1 { font-size: 11px !important; line-height: 1.15 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+  #topHeader p { font-size: 8.5px !important; line-height: 1.2 !important; max-width: 190px; }
+  #topHeader .bg-gradient-to-tr { padding: 9px !important; border-radius: 12px !important; flex: 0 0 auto; }
+  #headerControls { flex: 0 0 auto; gap: 5px !important; }
+  #headerControls select { display: none; }
+  #headerControls button { padding: 8px 9px !important; border-radius: 11px !important; }
+  #headerControls #btnDeposit span { display: none; }
+  #headerControls #btnDeposit { width: 38px; justify-content: center; }
+  #headerControls #btnAuth { max-width: 42px; overflow: hidden; }
+  #headerControls #btnAuth span { display: none; }
+  #headerControls button:last-child { display: none; }
+  #mobileLiveStrip { scrollbar-width: none; white-space: nowrap; }
+  #mobileLiveStrip::-webkit-scrollbar { display: none; }
+  #mainWorkspace { padding: 10px !important; gap: 10px !important; overflow-y: auto; }
+  #tab-terminal-analysis { gap: 10px !important; }
+  #tab-terminal-analysis > div:first-child { padding: 12px !important; border-radius: 16px !important; gap: 10px !important; }
+  #tab-terminal-analysis > div:first-child > div:first-child h2 { font-size: 16px !important; line-height: 1.25 !important; }
+  #tab-terminal-analysis > div:first-child > div:first-child p { font-size: 10px !important; line-height: 1.4 !important; margin-top: 4px; }
+  #tab-terminal-analysis > div:first-child > div:last-child { gap: 8px !important; }
+  #terminalPairSelect { flex: 1 1 auto; min-width: 0; padding: 10px 11px !important; font-size: 11px !important; }
+  #tab-terminal-analysis > div:first-child button { padding: 10px 12px !important; font-size: 11px !important; }
+  #signalCards { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  #signalCards > div { padding: 12px !important; border-radius: 15px !important; min-width: 0; }
+  #signalCard { grid-column: 1 / -1; }
+  #signalCards p { font-size: 9.5px !important; }
+  #signalCards h3 { font-size: 19px !important; line-height: 1.2 !important; overflow-wrap: anywhere; }
+  #signalCards .font-mono { font-size: 9px !important; line-height: 1.55 !important; }
+  #signal-entry { display: inline-block; max-width: 170px; overflow-wrap: anywhere; }
+  #win-rate-val, #fvg-confidence, #sentiment-score { font-size: 18px !important; }
+  #mobileSignalSummary { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  #mobileSignalSummary > div { gap: 7px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 { min-width: 0; }
+  #terminal-logs { height: 190px !important; padding: 10px !important; font-size: 9px !important; line-height: 1.45 !important; }
+  #terminalCmdInput { min-width: 0; font-size: 9px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 > .flex.gap-2 { flex-direction: column; }
+  #tab-terminal-analysis .lg\:col-span-2 > .flex.gap-2 button { width: 100%; justify-content: center; padding: 10px !important; }
+  #tab-terminal-analysis .lg\:col-span-2, #tab-terminal-analysis .lg\:col-span-2 + div { padding: 12px !important; border-radius: 16px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 + div { min-height: 320px; }
+  #tab-terminal-analysis .lg\:col-span-2 + div .relative { height: 190px !important; }
+  #mobileSignalSummary + .grid { gap: 10px !important; }
+  .md\:hidden.fixed.bottom-0 { height: calc(62px + env(safe-area-inset-bottom)); padding: 7px 4px calc(7px + env(safe-area-inset-bottom)) !important; background: rgba(7,9,14,.97) !important; backdrop-filter: blur(18px); }
+  .md\:hidden.fixed.bottom-0 button { min-width: 58px; min-height: 48px; justify-content: center; gap: 1px; }
+  .md\:hidden.fixed.bottom-0 i { font-size: 16px !important; }
+  .md\:hidden.fixed.bottom-0 span { font-size: 9px !important; }
+  .modal-content, [id$="Modal"] > div { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
+@media (min-width: 768px) {
+  #mobileLiveStrip, #mobileSignalSummary { display: none !important; }
+}
+</style>
+<script>
+(function(){
+  function syncMobileLive(){
+    const x = document.getElementById('tickerXau');
+    const mx = document.getElementById('mobileTickerXau');
+    if (x && mx) mx.textContent = x.textContent || 'LIVE —';
+    const c = document.getElementById('liveClock');
+    const mc = document.getElementById('mobileLiveClock');
+    if (c && mc) mc.textContent = c.textContent || '--:--:--';
+  }
+  setInterval(syncMobileLive, 1000);
+  document.addEventListener('DOMContentLoaded', syncMobileLive);
+})();
+</script>
