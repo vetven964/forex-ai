@@ -67,40 +67,80 @@ let tvWidgetInstance = null;
         }
 
         // មុខងារវិភាគ AI តាម Asset Pair ដែលបានរើស
-        function runAIAnalysis() {
+        async function runAIAnalysis() {
             const spinner = document.getElementById('btnRefreshSpinner');
             const icon = document.getElementById('btnRefreshIcon');
-            spinner.style.display = 'inline-block';
-            icon.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline-block';
+            if (icon) icon.style.display = 'none';
 
-            setTimeout(() => {
-                spinner.style.display = 'none';
-                icon.style.display = 'inline-block';
+            const pair = document.getElementById('terminalPairSelect')?.value || 'XAU/USD';
+            try {
+                // XAUUSD is the authoritative live product: always use the
+                // broker-native VT Markets MT5 analysis endpoint.
+                if (pair === 'XAU/USD') {
+                    const r = await fetch('https://forexai-6xw6.onrender.com/api/analysis/xauusd', {cache:'no-store'});
+                    const text = await r.text();
+                    let a;
+                    try { a = JSON.parse(text); }
+                    catch (_) { throw new Error(`API returned non-JSON (${r.status})`); }
+                    if (!r.ok || !a.success) throw new Error(a.error || 'VT Markets MT5 analysis unavailable');
 
-                const pair = document.getElementById('terminalPairSelect').value;
-                const info = mockMarketData[pair] || mockMarketData["XAU/USD"];
+                    const signal = a.signal || 'WAIT';
+                    const entry = a.entry != null ? Number(a.entry).toFixed(2) : 'WAIT';
+                    const score = a.confidence != null ? `${a.confidence}%` : '—';
+                    const zone = a.entryZone ? `${Number(a.entryZone.low).toFixed(2)} – ${Number(a.entryZone.high).toFixed(2)}` : '—';
+                    const fvg = a.ict?.fvg?.found ? `${a.ict.fvg.type} ${Number(a.ict.fvg.low).toFixed(2)}–${Number(a.ict.fvg.high).toFixed(2)}` : 'Not confirmed';
+                    const sentiment = `${a.bias || 'NEUTRAL'} · ${a.setupGrade || '—'}`;
 
-                document.getElementById('signal-direction').innerText = info.direction;
-                document.getElementById('signal-entry').innerText = info.entry;
-                document.getElementById('win-rate-val').innerText = info.winRate;
-                document.getElementById('win-rate-bar').style.width = info.winRate;
-                document.getElementById('fvg-confidence').innerText = info.fvg;
-                document.getElementById('fvg-zone').innerText = info.fvgZone;
-                document.getElementById('sentiment-score').innerText = info.sentiment;
+                    document.getElementById('signal-direction').innerText = signal;
+                    document.getElementById('signal-entry').innerText = entry;
+                    document.getElementById('win-rate-val').innerText = score;
+                    document.getElementById('win-rate-bar').style.width = `${Math.min(100, Number(a.confidence)||0)}%`;
+                    document.getElementById('fvg-confidence').innerText = fvg;
+                    document.getElementById('fvg-zone').innerText = zone;
+                    document.getElementById('sentiment-score').innerText = sentiment;
+                    document.getElementById('rsiVal').innerText = `MTF ${a.confirmations?.mtfCount ?? 0}/3`;
+                    document.getElementById('macdVal').innerText = a.trigger || 'Waiting for confirmation';
+                    document.getElementById('orderbookVal').innerText = 'Not used';
 
-                document.getElementById('rsiVal').innerText = info.rsi;
-                document.getElementById('macdVal').innerText = info.macd;
-                document.getElementById('orderbookVal').innerText = info.orderbook;
+                    document.getElementById('tblAsset').innerText = pair;
+                    document.getElementById('tblSignalBadge').innerText = signal;
+                    document.getElementById('tblEntry').innerText = entry;
+                    document.getElementById('tblSL').innerText = a.stopLoss != null ? Number(a.stopLoss).toFixed(2) : '—';
+                    document.getElementById('tblTP').innerText = (a.takeProfit || []).length ? a.takeProfit.map((x,i)=>`TP${i+1} ${Number(x).toFixed(2)}`).join(' / ') : '—';
 
-                // Update Table
-                document.getElementById('tblAsset').innerText = pair;
-                document.getElementById('tblSignalBadge').innerText = info.direction;
-                document.getElementById('tblEntry').innerText = info.entry;
-                document.getElementById('tblSL').innerText = info.sl;
-                document.getElementById('tblTP').innerText = info.tp;
-
-                logToTerminal(`[AI ENGINE] Scanned ${pair} successfully. Signal: ${info.direction} | Entry: ${info.entry}`);
-            }, 600);
+                    logToTerminal(`[AI ENGINE] VT Markets MT5 XAUUSD scan: ${signal} | ${a.status || '—'} | Score ${a.confidence ?? '—'}/100`);
+                } else {
+                    const info = mockMarketData[pair] || mockMarketData["XAU/USD"];
+                    document.getElementById('signal-direction').innerText = info.direction;
+                    document.getElementById('signal-entry').innerText = info.entry;
+                    document.getElementById('win-rate-val').innerText = info.winRate;
+                    document.getElementById('win-rate-bar').style.width = info.winRate;
+                    document.getElementById('fvg-confidence').innerText = info.fvg;
+                    document.getElementById('fvg-zone').innerText = info.fvgZone;
+                    document.getElementById('sentiment-score').innerText = info.sentiment;
+                    document.getElementById('rsiVal').innerText = info.rsi;
+                    document.getElementById('macdVal').innerText = info.macd;
+                    document.getElementById('orderbookVal').innerText = info.orderbook;
+                    document.getElementById('tblAsset').innerText = pair;
+                    document.getElementById('tblSignalBadge').innerText = info.direction;
+                    document.getElementById('tblEntry').innerText = info.entry;
+                    document.getElementById('tblSL').innerText = info.sl;
+                    document.getElementById('tblTP').innerText = info.tp;
+                    logToTerminal(`[REFERENCE] ${pair}: ${info.direction} | Reference data only`);
+                }
+            } catch (e) {
+                document.getElementById('signal-direction').innerText = 'WAIT';
+                document.getElementById('signal-entry').innerText = 'LIVE —';
+                document.getElementById('win-rate-val').innerText = '—';
+                document.getElementById('fvg-confidence').innerText = 'Unavailable';
+                document.getElementById('fvg-zone').innerText = '—';
+                document.getElementById('sentiment-score').innerText = 'MT5 OFFLINE';
+                logToTerminal(`[ENGINE] ${e.message || 'Analysis unavailable'} — WAIT`);
+            } finally {
+                if (spinner) spinner.style.display = 'none';
+                if (icon) icon.style.display = 'inline-block';
+            }
         }
 
         function logToTerminal(msg) {

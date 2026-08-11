@@ -396,7 +396,7 @@ async function maybeTelegramAlert(a, tg, sessionId) {
   const dedupeKey=sessionId || `env:${tg.chatId}`;
   if(telegramAlertKeys.get(dedupeKey)===key) return false;
   telegramAlertKeys.set(dedupeKey,key);
-  await tg.bot.sendMessage(tg.chatId,telegramText(a),{parse_mode:'Markdown'});
+  await tg.bot.sendMessage(tg.chatId,telegramText(a));
   return true;
 }
 
@@ -553,7 +553,7 @@ app.post('/api/v5/signal',async(req,res)=>{
     if (requested && requested !== 'WAIT' && requested !== a.signal) {
       return res.status(409).json({success:false,error:`Current engine signal is ${a.signal}, not ${requested}`,analysis:a});
     }
-    await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});
+    await tg.bot.sendMessage(tg.chatId, telegramText(a));
     res.json({success:true,analysis:a});
   } catch(e) {
     console.error('Manual Telegram signal:', e.message);
@@ -579,7 +579,7 @@ if(bot){
     }
   });
   bot.onText(/^\/signal$/,async msg=>{
-    try { const a=await buildXauAnalysis(); await bot.sendMessage(msg.chat.id,telegramText(a),{parse_mode:'Markdown'}); }
+    try { const a=await buildXauAnalysis(); await bot.sendMessage(msg.chat.id,telegramText(a)); }
     catch(_){ await bot.sendMessage(msg.chat.id,'⚠️ ICT analysis unavailable.'); }
   });
   bot.onText(/^\/status$/,msg=>bot.sendMessage(msg.chat.id,'🟢 V TRADE AI online — MTF ICT engine active.'));
@@ -589,4 +589,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.1 Smart Entry PRO server listening on ${HOST}:${PORT}`));
+app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.2 Smart Entry PRO server listening on ${HOST}:${PORT}`));

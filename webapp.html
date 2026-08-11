@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V TRADE AI Mini App v5.0.3</title>
+    <title>V TRADE AI Mini App v5.2.2 — XAUUSD</title>
     <!-- ដាក់បញ្ចូល Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -41,16 +41,16 @@
 </head>
 <body>
     <div class="container">
-        <h2>V TRADE AI v5.0.3</h2>
+        <h2>V TRADE AI v5.2.2 — XAUUSD</h2>
         <div class="card">
             <p><strong>សមតុល្យគណនី (Balance):</strong> <span id="user-balance">Loading...</span></p>
-            <p><strong>ទីផ្សារបច្ចុប្បន្ន (Asset):</strong> BTC/USDT</p>
+            <p><strong>ទីផ្សារបច្ចុប្បន្ន (Asset):</strong> XAUUSD · VT Markets MT5</p>
         </div>
         
         <div class="card">
-            <h3>បញ្ជាទិញ-លក់រហ័ស</h3>
-            <button class="btn btn-buy" onclick="executeTrade('BUY')">🟢 BUY (Long)</button>
-            <button class="btn btn-sell" onclick="executeTrade('SELL')">🔴 SELL (Short)</button>
+            <h3>សញ្ញា XAUUSD</h3>
+            <p id="signal-status">កំពុងពិនិត្យ MTF ICT + VT Markets MT5…</p>
+            <button class="btn btn-buy" onclick="loadSignal()">🔄 Refresh Analysis</button>
         </div>
     </div>
 
@@ -62,11 +62,16 @@
         // បង្ហាញឈ្មោះអ្នកប្រើប្រាស់ Telegram
         document.getElementById('user-balance').innerText = "$5,420.00 USDT";
 
-        function executeTrade(action) {
-            // បញ្ជូនទិន្នន័យត្រឡប់ទៅកាន់ Backend Bot វិញ
-            const data = { action: action, asset: "BTCUSDT", timestamp: Date.now() };
-            tg.sendData(JSON.stringify(data)); 
-            tg.close(); // បិទ Mini App ក្រោយពេលបញ្ជា
+        async function loadSignal() {
+            const el = document.getElementById('signal-status');
+            try {
+                const r = await fetch('https://forexai-6xw6.onrender.com/api/analysis/xauusd', {cache:'no-store'});
+                const a = await r.json();
+                if (!r.ok || !a.success) throw new Error(a.error || 'Analysis unavailable');
+                el.innerText = `${a.signal || 'WAIT'} · ${a.status || '—'} · Score ${a.confidence ?? '—'}/100 · Entry ${a.entry ?? 'WAIT'}`;
+            } catch (e) {
+                el.innerText = `WAIT · ${e.message || 'VT Markets MT5 unavailable'}`;
+            }
         }
     </script>
 </body>
