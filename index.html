@@ -238,7 +238,7 @@
                         <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
                         <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-emerald-400 tracking-wider">STRONG BUY</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
-                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">$65,057.90</b>
+                            <span>Entry Price:</span> <b class="text-white" id="signal-entry">$65,057.90</b>
                         </div>
                     </div>
 
@@ -654,7 +654,7 @@
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
                     <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.0.7</h3>
-                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
+                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើการរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
@@ -845,7 +845,7 @@
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-red-400"></i> Cloudflare v5.7 & DDoS Protection (Rate Limiting)
                     </h3>
-                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7。</p>
+                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7។</p>
                     
                     <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-red-500/30">
                         <div class="flex justify-between items-center">
@@ -1101,56 +1101,65 @@
             setInterval(updateMarketSessionsTimer, 1000);
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
+            initTradingViewWidget("BINANCE:BTCUSDT");
         });
-
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenuOverlay');
-            menu.classList.toggle('hidden');
-        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            const target = document.getElementById('tab-' + tabId);
+            const target = document.getElementById(`tab-${tabId}`);
             if (target) target.classList.add('active');
-
+            
             if (tabId === 'tvchart' && !tvWidgetInstance) {
-                setTimeout(initTradingViewWidget, 300);
+                initTradingViewWidget("BINANCE:BTCUSDT");
             }
         }
 
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenuOverlay');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
         function openModal(modalId) {
-            const m = document.getElementById(modalId);
-            if (m) m.classList.remove('hidden');
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeModal(modalId) {
-            const m = document.getElementById(modalId);
-            if (m) m.classList.add('hidden');
-        }
-
-        function fetchMarketPrices() {
-            document.getElementById('tickerBtc').innerText = "$65,057.90";
-            document.getElementById('tickerEth').innerText = "$1,919.60";
-            document.getElementById('tickerXau').innerText = "$2,650.40";
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
         }
 
         function updateLiveClock() {
             const now = new Date();
-            document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
-            document.getElementById('liveDate').innerText = now.toLocaleDateString();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString();
+            const dateEl = document.getElementById('liveDate');
+            const clockEl = document.getElementById('liveClock');
+            if (dateEl) dateEl.innerText = dateStr;
+            if (clockEl) clockEl.innerText = timeStr;
+        }
+
+        function fetchMarketPrices() {
+            const btcEl = document.getElementById('tickerBtc');
+            const ethEl = document.getElementById('tickerEth');
+            const xauEl = document.getElementById('tickerXau');
+            if (btcEl) btcEl.innerText = "$65,057.90";
+            if (ethEl) ethEl.innerText = "$1,919.60";
+            if (xauEl) xauEl.innerText = "$2,650.40";
         }
 
         function runAIAnalysis() {
             const spinner = document.getElementById('btnRefreshSpinner');
             const icon = document.getElementById('btnRefreshIcon');
-            spinner.style.display = 'inline-block';
-            icon.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline-block';
+            if (icon) icon.style.display = 'none';
 
             setTimeout(() => {
-                spinner.style.display = 'none';
-                icon.style.display = 'inline-block';
+                if (spinner) spinner.style.display = 'none';
+                if (icon) icon.style.display = 'inline-block';
 
-                const pair = document.getElementById('terminalPairSelect').value;
+                const pairSelect = document.getElementById('terminalPairSelect');
+                const pair = pairSelect ? pairSelect.value : "BTC/USDT";
                 const data = mockMarketData[pair] || mockMarketData["BTC/USDT"];
 
                 document.getElementById('signal-direction').innerText = data.direction;
@@ -1161,52 +1170,54 @@
                 document.getElementById('fvg-zone').innerText = data.fvgZone;
                 document.getElementById('sentiment-score').innerText = data.sentiment;
 
-                document.getElementById('rsiVal').innerText = data.rsi;
-                document.getElementById('macdVal').innerText = data.macd;
-                document.getElementById('orderbookVal').innerText = data.orderbook;
-
                 document.getElementById('tblAsset').innerText = pair;
                 document.getElementById('tblSignalBadge').innerText = data.direction;
                 document.getElementById('tblEntry').innerText = data.entry;
                 document.getElementById('tblSL').innerText = data.sl;
                 document.getElementById('tblTP').innerText = data.tp;
 
-                appendTerminalLog(`[AI ENGINE] Scanned ${pair} successfully. Direction: ${data.direction} | Entry: ${data.entry}`);
+                document.getElementById('rsiVal').innerText = data.rsi;
+                document.getElementById('macdVal').innerText = data.macd;
+                document.getElementById('orderbookVal').innerText = data.orderbook;
+
+                appendTerminalLog(`[AI ENGINE] Scanned ${pair} successfully. Signal: ${data.direction} @ ${data.entry}`);
             }, 600);
         }
 
         function appendTerminalLog(msg) {
-            const logs = document.getElementById('terminal-logs');
-            const timeStr = new Date().toTimeString().split(' ')[0];
-            logs.innerHTML += `<div><span class="text-gray-500">[${timeStr}]</span> ${msg}</div>`;
-            logs.scrollTop = logs.scrollHeight;
+            const logsBox = document.getElementById('terminal-logs');
+            if (logsBox) {
+                const timeStr = new Date().toLocaleTimeString();
+                logsBox.innerHTML += `<div><span class="text-gray-500">[${timeStr}]</span> ${msg}</div>`;
+                logsBox.scrollTop = logsBox.scrollHeight;
+            }
         }
 
         function clearTerminalLogs() {
-            document.getElementById('terminal-logs').innerHTML = '';
+            const logsBox = document.getElementById('terminal-logs');
+            if (logsBox) logsBox.innerHTML = '';
         }
 
         function executeTerminalCommand() {
             const input = document.getElementById('terminalCmdInput');
-            const val = input.value.trim();
-            if(val) {
-                appendTerminalLog(`<span class="text-amber-400">[USER]</span> Executing command: ${val}`);
+            if (input && input.value.trim() !== '') {
+                const val = input.value;
+                appendTerminalLog(`<span class="text-white">[USER CMD]</span> ${val}`);
+                appendTerminalLog(`<span class="text-emerald-400">[EXECUTION]</span> Command executed successfully across v5.7 cluster.`);
                 input.value = '';
-                setTimeout(() => {
-                    appendTerminalLog(`<span class="text-emerald-400">[SUCCESS]</span> Command executed and verified by Cloudflare v5.7.`);
-                }, 500);
             }
         }
 
         function initSentimentRadarChart() {
-            const ctx = document.getElementById('sentimentChartCanvas').getContext('2d');
+            const ctx = document.getElementById('sentimentChartCanvas');
+            if (!ctx) return;
             sentimentChartInstance = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['RSI Momentum', 'MACD Trend', 'Orderbook Buy', 'Whale Volume', 'Social Sentiment', 'ICT FVG Strength'],
+                    labels: ['RSI Momentum', 'MACD Trend', 'Orderbook Buy', 'ICT FVG Strength', 'Global News', 'Volatility'],
                     datasets: [{
-                        label: 'Consensus v5',
-                        data: [85, 90, 78, 88, 92, 95],
+                        label: 'Market Consensus v5',
+                        data: [85, 90, 78, 88, 82, 80],
                         backgroundColor: 'rgba(147, 51, 234, 0.2)',
                         borderColor: 'rgba(147, 51, 234, 1)',
                         borderWidth: 2,
@@ -1218,9 +1229,9 @@
                     maintainAspectRatio: false,
                     scales: {
                         r: {
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { display: false, max: 100 }
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { display: false }
                         }
                     },
                     plugins: { legend: { display: false } }
@@ -1228,59 +1239,35 @@
             });
         }
 
-        function initTradingViewWidget() {
-            const container = document.getElementById('tradingview_widget');
-            container.innerHTML = "";
-            tvWidgetInstance = new TradingView.widget({
-                "width": "100%",
-                "height": "450",
-                "symbol": "BINANCE:BTCUSDT",
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#07090e",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_widget"
-            });
-        }
-
-        function changeTradingViewSymbol(symbol) {
-            if(tvWidgetInstance) {
-                tvWidgetInstance.setSymbol(symbol, 'D', () => {});
-            }
-        }
-
         function dispatchTelegramSignal() {
-            alert("✅ Successfully dispatched live signal to Telegram channel via Webhook v5.7!");
+            alert("✅ Successfully dispatched live AI Signal to connected Telegram Channel & Webhook v5.7!");
+            appendTerminalLog("[TELEGRAM] Signal broadcasted to active channels.");
         }
 
         function saveCopyTradingSettings() {
             const state = document.getElementById('copyBotState').value;
-            const mult = document.getElementById('copyMultiplier').value;
-            document.getElementById('dashCopyStatus').innerText = `${state} (${mult})`;
-            alert(`រក្សាទុកការកំណត់ Copy Trading Bot (${state} - ${mult}) ដោយជោគជ័យ!`);
+            const multi = document.getElementById('copyMultiplier').value;
+            alert(`✅ Copy Trading Bot updated successfully!\n- Status: ${state}\n- Multiplier: ${multi}`);
         }
 
         function runAiSentimentScan() {
-            alert("✅ AI Smart Sentiment Scan completed! Market consensus confirms 88% Bullish strength.");
+            alert("🧠 AI Smart Sentiment Consensus Scan completed! Market status remains robustly Bullish.");
         }
 
         function renderAdminTable(data) {
             const tbody = document.getElementById('adminUserTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             data.forEach((u, idx) => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-900/50">
-                        <td class="p-3.5 font-bold text-white">${u.name}<br><span class="text-gray-500 font-normal">${u.email}</span></td>
-                        <td class="p-3.5"><span class="px-2 py-0.5 rounded font-bold ${u.level === 'Admin' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}">${u.level}</span></td>
-                        <td class="p-3.5 text-emerald-400">${u.security}</td>
-                        <td class="p-3.5 text-gray-400">${u.date}</td>
+                    <tr>
+                        <td class="p-3.5 font-bold text-white">${u.name}<br><span class="text-gray-400 text-[10px]">${u.email}</span></td>
+                        <td class="p-3.5"><span class="bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded font-bold">${u.level}</span></td>
+                        <td class="p-3.5 text-emerald-400 font-mono">${u.security}</td>
+                        <td class="p-3.5 text-gray-400 font-mono">${u.date}</td>
                         <td class="p-3.5 text-center">
-                            <button onclick="editUserRow(${idx})" class="text-blue-400 hover:underline mr-2 cursor-pointer">Edit</button>
-                            <button onclick="deleteUserRow(${idx})" class="text-red-400 hover:underline cursor-pointer">Delete</button>
+                            <button onclick="editAdminUser(${idx})" class="bg-gray-800 hover:bg-gray-700 text-amber-400 px-2.5 py-1 rounded font-bold mr-1 cursor-pointer">Edit</button>
+                            <button onclick="deleteAdminUser(${idx})" class="bg-gray-800 hover:bg-gray-700 text-red-400 px-2.5 py-1 rounded font-bold cursor-pointer">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -1291,9 +1278,9 @@
             const query = document.getElementById('adminSearchInput').value.toLowerCase();
             const level = document.getElementById('adminLevelFilter').value;
             const filtered = usersListDB.filter(u => {
-                const matchQ = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
-                const matchL = (level === 'all' || u.level === level);
-                return matchQ && matchL;
+                const matchQuery = u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+                const matchLevel = level === 'all' || u.level === level;
+                return matchQuery && matchLevel;
             });
             renderAdminTable(filtered);
         }
@@ -1302,191 +1289,151 @@
             const name = document.getElementById('newUserNameInput').value;
             const email = document.getElementById('newUserEmailInput').value;
             const level = document.getElementById('newUserLevelInput').value;
-            if(name && email) {
-                usersListDB.push({ name, email, level, security: "Protected v5.7 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
+            if (name && email) {
+                usersListDB.push({ name, email, level, security: "Protected v5.7", date: new Date().toISOString().split('T')[0] });
                 renderAdminTable(usersListDB);
                 closeModal('addUserModal');
-                alert("បន្ថែម User ថ្មីបានដោយជោគជ័យ!");
+                alert("✅ Successfully added new user to database!");
             } else {
-                alert("សូមបំពេញព័ត៌មានឱ្យបានគ្រប់គ្រាន់។");
+                alert("Please fill in all required fields.");
             }
         }
 
-        function editUserRow(idx) {
-            alert(` chỉnh sửaសមាជិក៖ ${usersListDB[idx].name}`);
+        function editAdminUser(idx) {
+            const newName = prompt("Enter updated user name:", usersListDB[idx].name);
+            if (newName) {
+                usersListDB[idx].name = newName;
+                renderAdminTable(usersListDB);
+                alert("User record updated successfully!");
+            }
         }
 
-        function deleteUserRow(idx) {
-            if(confirm("តើអ្នកពិតជាចង់លុបសមាជិកនេះមែនទេ?")) {
+        function deleteAdminUser(idx) {
+            if (confirm("Are you sure you want to delete this user?")) {
                 usersListDB.splice(idx, 1);
                 renderAdminTable(usersListDB);
+                alert("User deleted successfully.");
             }
         }
 
         function runAiBacktest() {
-            document.getElementById('backtestResultCard').classList.remove('hidden');
-            alert("AI Backtest v5.0.7 run successfully with 94.8% win rate!");
+            const card = document.getElementById('backtestResultCard');
+            if (card) card.classList.remove('hidden');
+            alert("🚀 AI Backtest v5.0.7 completed successfully with 94.8% accuracy!");
         }
 
         function calculateTradingRisk() {
-            const cap = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
             const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
-            const riskAmt = cap * (riskPct / 100);
-            
-            document.getElementById('resRiskAmount').innerText = `$${riskAmt.toFixed(2)}`;
-            document.getElementById('resLotSize').innerText = `${(riskAmt / 50).toFixed(2)} Lots`;
-            document.getElementById('calcResultCard').classList.remove('hidden');
+            const sl = parseFloat(document.getElementById('calcStopLoss').value) || 50;
+
+            const riskAmount = (capital * riskPct) / 100;
+            const lotSize = (riskAmount / (sl * 10)).toFixed(2);
+            const profitTarget = riskAmount * 2;
+
+            document.getElementById('resRiskAmount').innerText = `$${riskAmount.toFixed(2)}`;
+            document.getElementById('resLotSize').innerText = `${lotSize} Lots`;
+            document.getElementById('resTakeProfit').innerText = `${sl * 2} Pips / $${profitTarget.toFixed(2)} Profit`;
+
+            const card = document.getElementById('calcResultCard');
+            if (card) card.classList.remove('hidden');
         }
 
         function copyRefLink() {
             const input = document.getElementById('refLinkInput');
             input.select();
             navigator.clipboard.writeText(input.value);
-            alert("បាន Copy Referral Link ជោគជ័យ!");
+            alert("✅ Referral link copied to clipboard!");
         }
 
         function updateMarketSessionsTimer() {
             const now = new Date();
-            const hour = now.getUTCHours();
-            
-            // Asian 00:00 - 08:00 UTC (07:00 - 15:00 ICT approx)
-            const isAsianOpen = hour >= 0 && hour < 8;
-            document.getElementById('badgeAsian').className = `px-2.5 py-1 rounded-full text-[10px] font-bold ${isAsianOpen ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'}`;
-            document.getElementById('badgeAsian').innerText = isAsianOpen ? 'OPEN LIVE' : 'CLOSED';
-            document.getElementById('dashAsianStatus').innerText = isAsianOpen ? '🟢 កំពុងបើកដំណើរការ' : '🔴 បានបិទផ្សារ';
-            document.getElementById('timerAsian').innerText = isAsianOpen ? 'ស្ថានភាព៖ កំពុងជួញដូរខ្លាំង' : 'ស្ថានភាព៖ រង់ចាំម៉ោងបើក';
+            const utcHour = now.getUTCHours();
 
-            // London 08:00 - 16:00 UTC
-            const isLondonOpen = hour >= 8 && hour < 16;
-            document.getElementById('badgeLondon').className = `px-2.5 py-1 rounded-full text-[10px] font-bold ${isLondonOpen ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'}`;
-            document.getElementById('badgeLondon').innerText = isLondonOpen ? 'OPEN LIVE' : 'CLOSED';
-            document.getElementById('dashLondonStatus').innerText = isLondonOpen ? '🟢 កំពុងបើកដំណើរការ' : '🔴 បានបិទផ្សារ';
-            document.getElementById('timerLondon').innerText = isLondonOpen ? 'ស្ថានភាព៖ កំពុងជួញដូរខ្លាំង' : 'ស្ថានភាព៖ រង់ចាំម៉ោងបើក';
+            // Tokyo: 00:00 - 08:00 UTC (07:00 - 15:00 ICT)
+            const tokyoActive = utcHour >= 0 && utcHour < 8;
+            // London: 08:00 - 16:00 UTC (15:00 - 23:00 ICT)
+            const londonActive = utcHour >= 8 && utcHour < 16;
+            // New York: 13:00 - 21:00 UTC (20:00 - 04:00 ICT)
+            const nyActive = utcHour >= 13 && utcHour < 21;
 
-            // New York 13:00 - 21:00 UTC
-            const isNyOpen = hour >= 13 && hour < 21;
-            document.getElementById('badgeNy').className = `px-2.5 py-1 rounded-full text-[10px] font-bold ${isNyOpen ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'}`;
-            document.getElementById('badgeNy').innerText = isNyOpen ? 'OPEN LIVE' : 'CLOSED';
-            document.getElementById('dashNyStatus').innerText = isNyOpen ? '🟢 កំពុងបើកដំណើរការ' : '🔴 បានបិទផ្សារ';
-            document.getElementById('timerNy').innerText = isNyOpen ? 'ស្ថានភាព៖ កំពុងជួញដូរខ្លាំង' : 'ស្ថានភាព៖ រង់ចាំម៉ោងបើក';
+            updateSessionBadge("Asian", tokyoActive, "timerAsian", "badgeAsian", "dashAsianStatus");
+            updateSessionBadge("London", londonActive, "timerLondon", "badgeLondon", "dashLondonStatus");
+            updateSessionBadge("New York", nyActive, "timerNy", "badgeNy", "dashNyStatus");
+        }
+
+        function updateSessionBadge(name, active, timerId, badgeId, dashId) {
+            const badge = document.getElementById(badgeId);
+            const timer = document.getElementById(timerId);
+            const dash = document.getElementById(dashId);
+
+            if (active) {
+                if (badge) { badge.innerText = "OPEN"; badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400"; }
+                if (timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងបើកដំណើរការ`;
+                if (dash) dash.innerText = "Open & Active 🟢";
+            } else {
+                if (badge) { badge.innerText = "CLOSED"; badge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400"; }
+                if (timer) timer.innerText = `ស្ថានភាព៖ ទីផ្សារ ${name} បានបិទ`;
+                if (dash) dash.innerText = "Closed 🔴";
+            }
         }
 
         function selectPricingPlan(planName, price) {
             document.getElementById('selectedPlanInput').value = planName;
             switchTab('telegram');
-            alert(`បានជ្រើសរើសកញ្ចប់ ${planName} ។ សូមបំពេញ Telegram Bot Token និង Chat ID ដើម្បីបញ្ចប់ការតភ្ជាប់។`);
+            alert(`✅ Selected Plan: ${planName}. Please complete Telegram Setup or Bank Deposit.`);
         }
 
         function testTelegramIntegration() {
             const token = document.getElementById('tgTokenInput').value;
             const chatId = document.getElementById('tgChatIdInput').value;
-            if(token && chatId) {
-                alert("✅ Telegram Webhook & Copy Trading Bot Connected Successfully!");
+            if (token && chatId) {
+                localStorage.setItem("tg_bot_token", token);
+                localStorage.setItem("tg_chat_id", chatId);
+                alert("✅ Telegram Webhook & Copy Trading Bot connected successfully!");
             } else {
-                alert("សូមបំពេញ Telegram Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវ។");
+                alert("Please fill in both Bot Token and Chat ID.");
             }
         }
 
-        function togglePasswordVisibility(fieldId, iconId) {
-            const field = document.getElementById(fieldId);
-            const icon = document.getElementById(iconId);
-            if (field.type === "password") {
-                field.type = "text";
-                icon.className = "fa-solid fa-eye text-emerald-400";
-            } else {
-                field.type = "password";
-                icon.className = "fa-solid fa-eye-slash";
-            }
+        function initTradingViewWidget(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            if (!container) return;
+            container.innerHTML = '';
+            tvWidgetInstance = new TradingView.widget({
+                "width": "100%",
+                "height": "450",
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#0d111c",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
         }
 
-        function proceedTo2FAStep() {
-            document.getElementById('loginFormSection').classList.add('hidden');
-            document.getElementById('otpVerificationSection').classList.remove('hidden');
-            document.getElementById('authModalTitle').innerText = "2FA Verification Security v5.7";
-        }
-
-        function verifyOtpAndLogin() {
-            const code = document.getElementById('otpInputCode').value;
-            if(code === activeOtpCode || code === "998877") {
-                const username = document.getElementById('authEmail').value.split('@')[0] || "VET Ven";
-                localStorage.setItem('vtrade_logged_user', username);
-                document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${username}</span>`;
-                closeModal('authModal');
-                alert("Login និងផ្ទៀងផ្ទាត់ 2FA ជោគជ័យ ១០០%!");
-            } else {
-                alert("លេខកូដ OTP មិនត្រឹមត្រូវ!");
-            }
-        }
-
-        function showForgotPasswordForm() {
-            document.getElementById('loginFormSection').classList.add('hidden');
-            document.getElementById('forgotPasswordSection').classList.remove('hidden');
-        }
-
-        function backToLoginForm() {
-            document.getElementById('forgotPasswordSection').classList.add('hidden');
-            document.getElementById('loginFormSection').classList.remove('hidden');
-        }
-
-        function submitForgotPassword() {
-            const email = document.getElementById('forgotEmailInput').value;
-            if(email) {
-                alert(`បានផ្ញើ Reset Link ទៅកាន់អ៊ីម៉ែល ${email} ដោយជោគជ័យ!`);
-                backToLoginForm();
-            } else {
-                alert("សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នក។");
-            }
-        }
-
-        function loginWithGoogle() {
-            localStorage.setItem('vtrade_logged_user', 'VET Ven (Google)');
-            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>VET Ven</span>`;
-            closeModal('authModal');
-            alert("Google Sign-In ជោគជ័យ ១០០%!");
-        }
-
-        function saveProfileSettings() {
-            const name = document.getElementById('profileName').value;
-            localStorage.setItem('vtrade_logged_user', name);
-            document.getElementById('btnAuth').innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${name}</span>`;
-            closeModal('profileModal');
-            alert("រក្សាទុកការកំណត់ Profile ជោគជ័យ!");
-        }
-
-        function copyAccountInfo(accNo, currency) {
-            navigator.clipboard.writeText(accNo);
-            alert(`បាន Copy លេខគណនី ${currency} (${accNo}) ជោគជ័យ!`);
-        }
-
-        function verifyBankPayment() {
-            alert("✅ Verified Bank Payment (VET VEN) Successfully! VIP Access has been activated.");
-            closeModal('depositModal');
-        }
-
-        function sendChat() {
-            const input = document.getElementById('chatInput');
-            const box = document.getElementById('chatMsgBox');
-            if(input.value.trim()) {
-                box.innerHTML += `<div class="bg-blue-600/30 p-2.5 rounded-xl ml-auto max-w-[80%] text-right">${input.value}</div>`;
-                const userText = input.value;
-                input.value = '';
-                setTimeout(() => {
-                    box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">V Trade AI v5.7: បានទទួលសំណួររបស់អ្នក "${userText}" ។ ប្រព័ន្ធកំពុងដំណើរការឆ្លើយតបស្វ័យប្រវត្តិ ២៤ម៉ោង។</div>`;
-                    box.scrollTop = box.scrollHeight;
-                }, 500);
-            }
+        function changeTradingViewSymbol(symbol) {
+            initTradingViewWidget(symbol);
         }
 
         function changeCurrency(curr) {
             currentCurrency = curr;
-            const factor = curr === 'KHR' ? 4100 : (curr === 'EUR' ? 0.92 : 1.0);
-            const symbol = curr === 'KHR' ? '៛' : (curr === 'EUR' ? '€' : '$');
-            const converted = (baseUsdBalance * factor).toLocaleString();
-            document.getElementById('userBalanceDisplay').innerText = `${symbol}${converted}`;
+            const display = document.getElementById('userBalanceDisplay');
+            if (curr === 'KHR') {
+                display.innerText = `៛ ${(baseUsdBalance * 4100).toLocaleString()}`;
+            } else if (curr === 'EUR') {
+                display.innerText = `€ ${(baseUsdBalance * 0.92).toFixed(2)}`;
+            } else {
+                display.innerText = `$${baseUsdBalance.toFixed(2)}`;
+            }
         }
 
         function changeLanguage(lang) {
-            const t = translations[lang] || translations['km'];
+            const t = translations[lang] || translations['en'];
             document.getElementById('txtBrandTitle').innerText = t.brand;
             document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
             document.getElementById('btnDeposit').innerText = t.deposit;
@@ -1498,6 +1445,97 @@
             document.getElementById('menuChart').innerText = t.chart;
             document.getElementById('menuSecurity').innerText = t.security;
             document.getElementById('menuSupport').innerText = t.support;
+        }
+
+        function loginWithGoogle() {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('vtrade_logged_user', 'VET Ven');
+            alert("✅ Successfully signed in with Google Account!");
+            location.reload();
+        }
+
+        function proceedTo2FAStep() {
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('otpVerificationSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = "2FA Verification v5.7";
+        }
+
+        function verifyOtpAndLogin() {
+            const code = document.getElementById('otpInputCode').value;
+            if (code === activeOtpCode) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('vtrade_logged_user', 'VET Ven');
+                alert("✅ Login successful with 2FA Security v5.7!");
+                location.reload();
+            } else {
+                alert("Invalid OTP code. Please enter 998877.");
+            }
+        }
+
+        function showForgotPasswordForm() {
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('forgotPasswordSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = "Reset Password v5.7";
+        }
+
+        function backToLoginForm() {
+            document.getElementById('forgotPasswordSection').classList.add('hidden');
+            document.getElementById('loginFormSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = "Login / Sign In (Cloudflare v5.7 Secured)";
+        }
+
+        function submitForgotPassword() {
+            const email = document.getElementById('forgotEmailInput').value;
+            if (email) {
+                alert(`✅ Password reset instructions sent to ${email}`);
+                backToLoginForm();
+            } else {
+                alert("Please enter your email.");
+            }
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        function saveProfileSettings() {
+            const name = document.getElementById('profileName').value;
+            localStorage.setItem('vtrade_logged_user', name);
+            alert("✅ Profile settings saved successfully!");
+            closeModal('profileModal');
+            location.reload();
+        }
+
+        function copyAccountInfo(accNo, type) {
+            navigator.clipboard.writeText(accNo);
+            alert(`✅ Copied ${type} Account Number: ${accNo}`);
+        }
+
+        function verifyBankPayment() {
+            alert("✅ Bank payment submitted for verification! VIP features will unlock shortly.");
+            closeModal('depositModal');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const box = document.getElementById('chatMsgBox');
+            if (input && input.value.trim() !== '') {
+                box.innerHTML += `<div class="bg-blue-600 text-white p-2.5 rounded-xl ml-auto max-w-[80%]">${input.value}</div>`;
+                const userQuery = input.value;
+                input.value = '';
+                setTimeout(() => {
+                    box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">🤖 AI Support v5.7: ទិន្នន័យសម្រាប់ "${userQuery}" ត្រូវបានកត់ត្រា និងដំណើរការស្វ័យប្រវត្តិ។</div>`;
+                    box.scrollTop = box.scrollHeight;
+                }, 500);
+            }
         }
     </script>
 </body>
