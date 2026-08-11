@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Terminal, Dashboard & Real-Time Signal System (v5.1.4 VT Markets MT5)</title>
+    <title>V Trade AI Pro - Terminal, Dashboard & Real-Time Signal System (v5.1.5 VT Markets MT5)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -28,6 +28,21 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
+    <script>
+        // GitHub Pages hosts the UI; Render hosts the API. Keep all backend calls on Render.
+        const VTRADE_API_BASE = 'https://forexai-6xw6.onrender.com';
+        async function vtradeApiFetch(path, options = {}) {
+            const res = await fetch(VTRADE_API_BASE + path, options);
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); }
+            catch (_) {
+                const preview = text.replace(/\s+/g, ' ').slice(0, 120);
+                throw new Error(`API returned non-JSON (${res.status}). ${preview}`);
+            }
+            return { res, data };
+        }
+    </script>
 
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
@@ -39,7 +54,7 @@
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.1.4</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.1.5</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
@@ -98,7 +113,7 @@
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.1.4)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.1.5)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
@@ -215,7 +230,7 @@
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.1.4 — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.1.5 — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
@@ -276,14 +291,14 @@
                                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.1.4</span>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.1.5</span>
                             </div>
                             <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.1.4 Realtime Core Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.1.5 Realtime Core Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -542,7 +557,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-cyan-500/20 text-cyan-400 p-3 rounded-xl"><i class="fa-solid fa-gears text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.1.4</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.1.5</h3>
                             <p class="text-gray-400">កំណត់កម្រិត Risk Level និង Asset ផ្ទាល់ខ្លួន រួចរត់ Backtest ជាមួយទិន្នន័យ v5 Engine មុនពេលដាក់ Bot រត់ ២៤ម៉ោង</p>
                         </div>
                     </div>
@@ -571,7 +586,7 @@
                     </button>
 
                     <div id="backtestResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-emerald-500/40 space-y-2 font-mono">
-                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.1.4 Successful!</div>
+                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.1.5 Successful!</div>
                         <div class="text-gray-300">Win Rate: <b class="text-white" id="resWinRate">94.8%</b></div>
                         <div class="text-gray-300">Total Trades Tested: <b class="text-white">150 Trades</b></div>
                         <div class="text-gray-300">Estimated Profit Factor: <b class="text-white">3.12</b></div>
@@ -585,7 +600,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-calculator text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.1.4</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.1.5</h3>
                             <p class="text-gray-400">គណនីទំហំទឹកប្រាក់ប្រឈម (Risk Amount) និងកម្រិត Stop-Loss / Take-Profit ស្វ័យប្រវត្តិមុនពេលចេញ Order</p>
                         </div>
                     </div>
@@ -624,7 +639,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-users-rectangle text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.1.4 (Viral Growth)</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.1.5 (Viral Growth)</h3>
                             <p class="text-gray-400">ចែករំលែកតំណភ្ជាប់ណែនាំមិត្តភក្តិរបស់អ្នក ដើម្បីទទួលបានប្រាក់រង្វាន់ $5 ក្នុងមួយការបញ្ជាក់ VIP ជោគជ័យ</p>
                         </div>
                     </div>
@@ -653,7 +668,7 @@
             <!-- TAB: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.1.4</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.1.5</h3>
                     <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
@@ -742,7 +757,7 @@
             <!-- TAB: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.1.4 (Pricing Plans & Free Trial)</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.1.5 (Pricing Plans & Free Trial)</h3>
                     <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មរចនាឡើងយ៉ាងពិសេស អមដោយគណនីបង់ប្រាក់ផ្ទាល់ខ្លួន (VET VEN)</p>
                 </div>
 
@@ -796,7 +811,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v5.1.4</h3>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v5.1.5</h3>
                             <p class="text-gray-400">អ្នកប្រើប្រាស់ម្នាក់ៗអាចភ្ជាប់ Telegram Bot របស់ខ្លួនបាន។ Token មិនត្រូវបានរក្សាទុកក្នុង Browser.</p>
                         </div>
                     </div>
@@ -857,7 +872,7 @@
             <div id="tab-tvchart" class="tab-content space-y-4">
                 <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
-                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.1.4</h3>
+                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.1.5</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
                     <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
@@ -1079,7 +1094,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI Terminal v5.1.4 ដំណើរការវិភាគ Realtime និង Telegram Signal ២៤ម៉ោង។ តើមានអ្វីឲ្យខ្ញុំជួយដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI Terminal v5.1.5 ដំណើរការវិភាគ Realtime និង Telegram Signal ២៤ម៉ោង។ តើមានអ្វីឲ្យខ្ញុំជួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -1110,9 +1125,9 @@
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.1.4", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.1.4", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v5.1.4", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v5.1.5", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.1.5", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.1.5", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1146,7 +1161,7 @@
             try {
                 const [cryptoRes, xauRes] = await Promise.allSettled([
                     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd', {cache:'no-store'}),
-                    fetch('/api/analysis/xauusd', {cache:'no-store'})
+                    vtradeApiFetch('/api/analysis/xauusd', {cache:'no-store'})
                 ]);
 
                 if (cryptoRes.status === 'fulfilled' && cryptoRes.value.ok) {
@@ -1308,12 +1323,13 @@
             const type = document.getElementById('signalType')?.value || 'WAIT';
             try {
                 const sid = await ensureTelegramSession();
-                const response = await fetch('/api/v5/signal', {
+                const signalResult = await vtradeApiFetch('/api/v5/signal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-vtrade-session': sid },
                     body: JSON.stringify({ symbol: pair.replace('/', ''), type, marketState: 'Dashboard signal' })
                 });
-                const data = await response.json();
+                const response = signalResult.res;
+                const data = signalResult.data;
                 if (!response.ok || !data.success) throw new Error(data.error || 'Telegram send failed');
                 alert('🟢 Signal បានផ្ញើទៅ Telegram ជោគជ័យ!');
             } catch (error) {
@@ -1629,7 +1645,7 @@
             const saved = localStorage.getItem('vtrade_telegram_session');
             if (saved) telegramSessionId = saved;
             if (!telegramSessionId) {
-                const r = await fetch('/api/telegram/session', {cache:'no-store'});
+                const r = await vtradeApiFetch('/api/telegram/session', {cache:'no-store'});
                 const d = await r.json();
                 if (!d.success || !d.sessionId) throw new Error('Unable to initialize Telegram session');
                 telegramSessionId = d.sessionId;
@@ -1645,7 +1661,7 @@
         async function loadTelegramStatus() {
             try {
                 await ensureTelegramSession();
-                const r = await fetch('/api/telegram/status', {headers: telegramHeaders(), cache:'no-store'});
+                const r = await vtradeApiFetch('/api/telegram/status', {headers: telegramHeaders(), cache:'no-store'});
                 const d = await r.json();
                 const el = document.getElementById('telegramStatusText');
                 if (!el) return;
@@ -1669,7 +1685,7 @@
 
             try {
                 const sid = await ensureTelegramSession();
-                const connectRes = await fetch('/api/telegram/connect', {
+                const connectResult = await vtradeApiFetch('/api/telegram/connect', {
                     method: 'POST',
                     headers: {'Content-Type':'application/json', 'x-vtrade-session': sid},
                     body: JSON.stringify({token, chatId})
@@ -1680,7 +1696,7 @@
                 telegramSessionId = connectData.sessionId || sid;
                 localStorage.setItem('vtrade_telegram_session', telegramSessionId);
 
-                const testRes = await fetch('/api/telegram/test', {
+                const testResult = await vtradeApiFetch('/api/telegram/test', {
                     method:'POST',
                     headers: telegramHeaders()
                 });
@@ -1701,7 +1717,7 @@
         async function disconnectTelegram() {
             try {
                 if (!telegramSessionId) return;
-                await fetch('/api/telegram/disconnect', {
+                await vtradeApiFetch('/api/telegram/disconnect', {
                     method:'POST',
                     headers: telegramHeaders()
                 });
@@ -1734,7 +1750,7 @@
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.1.4 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.1.5 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }
