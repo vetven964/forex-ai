@@ -1690,8 +1690,8 @@
                     headers: {'Content-Type':'application/json', 'x-vtrade-session': sid},
                     body: JSON.stringify({token, chatId})
                 });
-                const connectData = await connectRes.json();
-                if (!connectRes.ok || !connectData.success) throw new Error(connectData.error || 'Telegram connection failed');
+                const connectData = await connectResult.json();
+                if (!connectResult.ok || !connectData.success) throw new Error(connectData.error || 'Telegram connection failed');
 
                 telegramSessionId = connectData.sessionId || sid;
                 localStorage.setItem('vtrade_telegram_session', telegramSessionId);
@@ -1700,8 +1700,8 @@
                     method:'POST',
                     headers: telegramHeaders()
                 });
-                const testData = await testRes.json();
-                if (!testRes.ok || !testData.success) throw new Error(testData.error || 'Telegram test failed');
+                const testData = await testResult.json();
+                if (!testResult.ok || !testData.success) throw new Error(testData.error || 'Telegram test failed');
 
                 // Never retain the token in browser storage or DOM after a successful connection.
                 const tokenInput = document.getElementById('tgTokenInput');
