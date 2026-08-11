@@ -210,115 +210,181 @@ function analyzeTF(c) {
   return {structure:s, sweep, atr:a, ema20:e20, last:c[c.length-1]?.c};
 }
 
+function zoneContains(price, zone) {
+  return !!zone && Number.isFinite(price) && price >= zone.low && price <= zone.high;
+}
+
+function zoneDistance(price, zone) {
+  if (!zone || !Number.isFinite(price)) return Infinity;
+  if (price < zone.low) return zone.low - price;
+  if (price > zone.high) return price - zone.high;
+  return 0;
+}
+
+function candleDisplacement(candles) {
+  if (!candles || candles.length < 20) return {confirmed:false, direction:'NONE', ratio:0};
+  const last=candles[candles.length-1];
+  const ranges=candles.slice(-21,-1).map(x=>x.h-x.l).filter(x=>x>0);
+  const avgRange=avg(ranges) || 0;
+  const body=Math.abs(last.c-last.o);
+  const ratio=avgRange ? body/avgRange : 0;
+  const bullish=last.c>last.o && ratio>=1.25;
+  const bearish=last.c<last.o && ratio>=1.25;
+  return {confirmed:bullish||bearish,direction:bullish?'BULLISH':bearish?'BEARISH':'NONE',ratio:round2(ratio)};
+}
+
+function nearestTarget(entry, direction, candles) {
+  const s=swings(candles,2);
+  const highs=s.highs.map(x=>x.price).filter(x=>x>entry);
+  const lows=s.lows.map(x=>x.price).filter(x=>x<entry);
+  if(direction==='BULLISH') return highs.length ? Math.min(...highs) : null;
+  if(direction==='BEARISH') return lows.length ? Math.max(...lows) : null;
+  return null;
+}
+
 async function buildXauAnalysis() {
-  // Broker-native mode is authoritative for execution signals.
-  // Never silently mix VT Markets prices with Yahoo/reference candles.
   const m5=parseBrokerCandles('M5');
   const m15=parseBrokerCandles('M15');
   const h1=parseBrokerCandles('H1');
   const h4=parseBrokerCandles('H4');
   const live=brokerLivePrice();
-  if (!live || !m5 || !m15 || !h1 || !h4) {
-    throw new Error('VT Markets MT5 feed not ready');
-  }
+  if (!live || !m5 || !m15 || !h1 || !h4) throw new Error('VT Markets MT5 feed not ready');
+
   const feedMode='VT Markets MT5';
-
   const tfs={M5:analyzeTF(m5),M15:analyzeTF(m15),H1:analyzeTF(h1),H4:analyzeTF(h4)};
-  const score={bull:0,bear:0};
-  for (const k of Object.keys(tfs)) {
-    const x=tfs[k];
-    if (x.structure.bias==='BULLISH') score.bull++;
-    if (x.structure.bias==='BEARISH') score.bear++;
-    if (x.sweep.bias==='BULLISH') score.bull+=2;
-    if (x.sweep.bias==='BEARISH') score.bear+=2;
-  }
-
-  const bias=score.bull>score.bear?'BULLISH':score.bear>score.bull?'BEARISH':'NEUTRAL';
   const exec=tfs.M5;
   const f=fvg(m5);
-  const ob=orderBlock(m5,bias==='BULLISH'?'BULLISH':bias==='BEARISH'?'BEARISH':'NONE');
+  const ob=orderBlock(m5, exec.structure.bias==='BULLISH'?'BULLISH':exec.structure.bias==='BEARISH'?'BEARISH':'NONE');
   const a=exec.atr || 5;
+  const candleAgeSec=m5.length ? Math.max(0,(Date.now()-m5[m5.length-1].t)/1000) : Infinity;
+  const candlesFresh=candleAgeSec<=15*60;
 
-  const htfBull=[tfs.M15,tfs.H1,tfs.H4].filter(x=>x.structure.bias==='BULLISH').length;
-  const htfBear=[tfs.M15,tfs.H1,tfs.H4].filter(x=>x.structure.bias==='BEARISH').length;
+  const h4Bias=tfs.H4.structure.bias;
+  const h1Bias=tfs.H1.structure.bias;
+  const m15Bias=tfs.M15.structure.bias;
+  const m5Bias=tfs.M5.structure.bias;
+  const bullHTF=[h4Bias,h1Bias,m15Bias].filter(x=>x==='BULLISH').length;
+  const bearHTF=[h4Bias,h1Bias,m15Bias].filter(x=>x==='BEARISH').length;
+  const macroBias=bullHTF>bearHTF?'BULLISH':bearHTF>bullHTF?'BEARISH':'NEUTRAL';
 
-  // Do not create a setup from stale candles or a distant FVG.
-  const candleAgeSec = m5.length ? Math.max(0, (Date.now()-m5[m5.length-1].t)/1000) : Infinity;
-  const candlesFresh = candleAgeSec <= 15*60;
-  const fvgMid = f.found ? (f.low+f.high)/2 : null;
-  const fvgDistanceOk = fvgMid == null || Math.abs(fvgMid-live.price) <= Math.max(a*3, 12);
-  const confirmedBull=bias==='BULLISH' && htfBull>=2 && exec.sweep.bias==='BULLISH' && candlesFresh;
-  const confirmedBear=bias==='BEARISH' && htfBear>=2 && exec.sweep.bias==='BEARISH' && candlesFresh;
+  const sweep=exec.sweep;
+  const displacement=candleDisplacement(m5);
+  const bullishMSS=exec.structure.mss==='BULLISH' || exec.structure.bos==='BULLISH';
+  const bearishMSS=exec.structure.mss==='BEARISH' || exec.structure.bos==='BEARISH';
 
-  let signal='WAIT', entry=null, sl=null, tp=[];
-  if (confirmedBull) {
-    signal='BUY';
-    entry=round2(f.found && f.type==='BULLISH' && fvgDistanceOk ? fvgMid : live.price);
-    sl=round2(entry-Math.max(a*1.25,2.5));
-    const r=entry-sl; tp=[round2(entry+r),round2(entry+r*2),round2(entry+r*3)];
-  } else if (confirmedBear) {
-    signal='SELL';
-    entry=round2(f.found && f.type==='BEARISH' && fvgDistanceOk ? fvgMid : live.price);
-    sl=round2(entry+Math.max(a*1.25,2.5));
-    const r=sl-entry; tp=[round2(entry-r),round2(entry-r*2),round2(entry-r*3)];
+  const candidates=[];
+  if(f.found) candidates.push({type:'FVG',low:Number(f.low),high:Number(f.high),bias:f.type});
+  if(ob.found) candidates.push({type:'OB',low:Number(ob.low),high:Number(ob.high),bias:ob.type});
+
+  const alignedZones=candidates.filter(z=>z.bias===macroBias);
+  let entryZone=null;
+  if(alignedZones.length){
+    alignedZones.sort((x,y)=>zoneDistance(live.price,x)-zoneDistance(live.price,y));
+    const z=alignedZones[0];
+    entryZone={low:round2(z.low),high:round2(z.high),type:z.type,bias:z.bias};
   }
 
-  const maxScore=12;
-  const confidence=Math.min(99, Math.round((Math.max(score.bull,score.bear)/maxScore)*100));
+  const zoneIsNear=entryZone ? zoneDistance(live.price,entryZone)<=Math.max(a*3,12) : false;
+  const inZone=zoneContains(live.price,entryZone);
+  const directionConfirmed = macroBias==='BULLISH'
+    ? bullHTF>=2 && (sweep.bias==='BULLISH' || bullishMSS) && candlesFresh
+    : macroBias==='BEARISH'
+      ? bearHTF>=2 && (sweep.bias==='BEARISH' || bearishMSS) && candlesFresh
+      : false;
+
+  const score={bull:0,bear:0,items:[]};
+  const add=(side,pts,label)=>{score[side]+=pts;score.items.push({side,points:pts,label});};
+  if(h4Bias==='BULLISH') add('bull',15,'H4 bullish bias'); else if(h4Bias==='BEARISH') add('bear',15,'H4 bearish bias');
+  if(h1Bias==='BULLISH') add('bull',15,'H1 bullish structure'); else if(h1Bias==='BEARISH') add('bear',15,'H1 bearish structure');
+  if(m15Bias==='BULLISH') add('bull',15,'M15 bullish structure'); else if(m15Bias==='BEARISH') add('bear',15,'M15 bearish structure');
+  if(sweep.bias==='BULLISH') add('bull',15,'Sell-side liquidity swept'); else if(sweep.bias==='BEARISH') add('bear',15,'Buy-side liquidity swept');
+  if(bullishMSS) add('bull',10,'M5 bullish MSS/BOS'); else if(bearishMSS) add('bear',10,'M5 bearish MSS/BOS');
+  if(displacement.direction==='BULLISH') add('bull',10,'Bullish displacement'); else if(displacement.direction==='BEARISH') add('bear',10,'Bearish displacement');
+  if(f.found && f.type==='BULLISH') add('bull',5,'Bullish FVG'); else if(f.found && f.type==='BEARISH') add('bear',5,'Bearish FVG');
+  if(ob.found && ob.type==='BULLISH') add('bull',5,'Bullish order block'); else if(ob.found && ob.type==='BEARISH') add('bear',5,'Bearish order block');
+
+  const direction=score.bull>score.bear?'BULLISH':score.bear>score.bull?'BEARISH':'NEUTRAL';
+  let actionable=direction==='BULLISH'?'BUY':direction==='BEARISH'?'SELL':'NO TRADE';
+  let status='NO TRADE';
+  let signal='WAIT';
+  let entry=null,sl=null,tp=[];
+  let trigger='Wait for a confirmed liquidity/structure setup';
+
+  if(candlesFresh && directionConfirmed && direction===macroBias){
+    const side=direction;
+    const hasAlignedZone=!!entryZone && zoneIsNear;
+    if(hasAlignedZone){
+      const zoneMid=(entryZone.low+entryZone.high)/2;
+      entry=round2(inZone ? live.price : zoneMid);
+      const buffer=Math.max(a*0.35,0.8);
+      sl=side==='BULLISH' ? round2(entryZone.low-buffer) : round2(entryZone.high+buffer);
+      const risk=Math.max(Math.abs(entry-sl),0.5);
+      const structureTarget=nearestTarget(entry,side,m5);
+      const minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2;
+      const target1=structureTarget && (side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1) ? structureTarget : minTp1;
+      tp=[round2(target1),round2(side==='BULLISH'?entry+risk*3:entry-risk*3),round2(side==='BULLISH'?entry+risk*4:entry-risk*4)];
+      trigger=side==='BULLISH' ? 'M5 bullish MSS + retest of FVG/OB' : 'M5 bearish MSS + retest of FVG/OB';
+      if(inZone && ((side==='BULLISH' && (bullishMSS||sweep.bias==='BULLISH')) || (side==='BEARISH' && (bearishMSS||sweep.bias==='BEARISH')))) {
+        signal=side==='BULLISH'?'BUY':'SELL';
+        status=signal==='BUY'?'ENTRY CONFIRMED':'ENTRY CONFIRMED';
+      } else {
+        signal=side==='BULLISH'?'WAIT':'WAIT';
+        status=side==='BULLISH'?'WAIT FOR BUY ENTRY':'WAIT FOR SELL ENTRY';
+      }
+    } else {
+      status=side==='BULLISH'?'WAIT FOR BUY ZONE':'WAIT FOR SELL ZONE';
+      trigger=side==='BULLISH'?'Wait for price to return to bullish FVG/OB':'Wait for price to return to bearish FVG/OB';
+    }
+  } else if(direction==='BULLISH' || direction==='BEARISH') {
+    status=direction==='BULLISH'?'WATCH BUY':'WATCH SELL';
+    trigger=direction==='BULLISH'?'Need bullish liquidity sweep/MSS confirmation':'Need bearish liquidity sweep/MSS confirmation';
+  }
+
+  const maxScore=90;
+  const rawScore=Math.max(score.bull,score.bear);
+  const confidence=Math.min(99,Math.round((rawScore/maxScore)*100));
+  const setupGrade=confidence>=85?'A+':confidence>=75?'A':confidence>=65?'B':confidence>=50?'WATCH':'LOW';
   const swingHigh=exec.structure.swingHigh, swingLow=exec.structure.swingLow;
-  const mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow)) ? (swingHigh+swingLow)/2 : live.price;
+  const mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price;
+  const premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
 
   return {
-    symbol:'XAUUSD',
-    feedMode,
-    brokerConnected: brokerFeedFresh(),
-    bid: live.bid ?? null,
-    ask: live.ask ?? null,
-    spread: live.spread ?? null,
-    livePrice:live.price,
-    source:live.source,
-    sourceDetail:live.sourceDetail,
-    priceAsOf:live.priceAsOf,
-    priceAgeSec:live.ageSec,
-    stalePrice:live.stale,
-    candleAgeSec:Math.round(candleAgeSec),
-    timestamp:Date.now(),
-    signal,
-    bias,
-    confidence,
-    entry, stopLoss:sl, takeProfit:tp,
-    ict:{
-      liquiditySweep:exec.sweep,
-      mss:exec.structure.mss,
-      bos:exec.structure.bos,
-      fvg:f,
-      orderBlock:ob,
-      premiumDiscount: live.price > mid ? 'PREMIUM' : 'DISCOUNT'
-    },
+    symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,
+    livePrice:live.price,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,
+    candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,bias:direction,confidence,setupGrade,status,actionable,
+    entry,entryZone,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,
+    score:{bull:score.bull,bear:score.bear,confidence,grade:setupGrade,items:score.items},
+    confirmations:{liquiditySweep:sweep,displacement,bullishMSS,bearishMSS,inZone,zoneIsNear},
+    ict:{liquiditySweep:sweep,mss:exec.structure.mss,bos:exec.structure.bos,fvg:f,orderBlock:ob,premiumDiscount},
     timeframes:tfs,
     riskNote:'Indicative market analysis only. XAUUSD broker quotes, spread and CFD/spot feeds can differ. Verify the broker price before any order.'
   };
 }
 
 function telegramText(a) {
-  const icon=a.signal==='BUY'?'🟢':a.signal==='SELL'?'🔴':'🟡';
-  const tp=a.takeProfit.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
-  return `${icon} *V TRADE AI — XAUUSD ICT ALERT*\n\n`+
-    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nBias: *${a.bias}*\nConfidence: *${a.confidence}%*\n\n`+
-    `Liquidity Sweep: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
+  const icon=a.signal==='BUY'?'🟢':a.signal==='SELL'?'🔴':a.status?.includes('BUY')?'🟡':a.status?.includes('SELL')?'🟠':'⚪';
+  const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
+  const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
+  return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
+    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nScore: *${a.confidence}/100 (${a.setupGrade})*\n\n`+
+    `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
+    `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
     `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
     `OB: ${a.ict.orderBlock.found ? a.ict.orderBlock.type+' '+a.ict.orderBlock.low+'–'+a.ict.orderBlock.high : 'Not confirmed'}\n\n`+
-    `Entry: *${a.entry ?? 'WAIT'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
-    `⚠️ ${a.riskNote}`;
+    `Entry Zone: *${zone}*\nEntry: *${a.entry ?? 'WAIT'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
+    `Trigger: ${a.trigger}\nExecution: ${a.executionTimeframe}\n\n⚠️ ${a.riskNote}`;
 }
 
 async function maybeTelegramAlert(a, tg, sessionId) {
-  if (!tg || !tg.bot || !tg.chatId || a.signal==='WAIT') return false;
-  const key=`${a.signal}:${a.entry}:${a.stopLoss}:${a.takeProfit.join(',')}`;
-  const dedupeKey = sessionId || `env:${tg.chatId}`;
-  if (telegramAlertKeys.get(dedupeKey) === key) return false;
-  telegramAlertKeys.set(dedupeKey, key);
-  await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});
+  if (!tg || !tg.bot || !tg.chatId) return false;
+  // Only actionable state transitions are auto-alerted. This prevents WAIT spam.
+  const actionable = ['BUY','SELL'].includes(a.signal) || /WAIT FOR (BUY|SELL) ENTRY|WAIT FOR (BUY|SELL) ZONE|WATCH (BUY|SELL)/.test(a.status || '');
+  if(!actionable) return false;
+  const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
+  const dedupeKey=sessionId || `env:${tg.chatId}`;
+  if(telegramAlertKeys.get(dedupeKey)===key) return false;
+  telegramAlertKeys.set(dedupeKey,key);
+  await tg.bot.sendMessage(tg.chatId,telegramText(a),{parse_mode:'Markdown'});
   return true;
 }
 
@@ -329,7 +395,7 @@ app.get('/api/health',(req,res)=>{
     ok:true,
     telegramConfigured:!!tg,
     telegramMode:getSessionConfig(req)?'user-session':(bot&&TELEGRAM_CHAT_ID?'env-fallback':'not-configured'),
-    ictEngine:'mtf-v2-vtmarkets-mt5',
+    ictEngine:'mtf-v3-smart-entry-radar-vtmarkets-mt5',
     dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
     mt5Connected:brokerFeedFresh(),
     mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
@@ -510,4 +576,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.1.4 MTF ICT server listening on ${HOST}:${PORT}`));
+app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.0 Smart Entry Radar server listening on ${HOST}:${PORT}`));

@@ -1,4 +1,4 @@
-# V-TRADE AI v5.1.5 — Render + VT Markets MT5
+# V-TRADE AI v5.1.4 — Render + VT Markets MT5
 
 ## 1) Deploy to Render
 - Create a new **Web Service** from this repository/ZIP contents.

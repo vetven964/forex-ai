@@ -1,14 +1,14 @@
-# V TRADE AI v5.1.5 — Telegram + XAUUSD setup
+# V TRADE AI v5.2.0 — Telegram + XAUUSD setup
 
 ## Telegram: user enters their own Bot Token + Chat ID
 
-v5.1.5 supports **per-user Telegram connections** from the website:
+v5.2.0 supports **per-user Telegram connections** from the website:
 
 1. Open **Telegram Bot Setup** in the terminal.
 2. Enter your own **Bot Token** and **Chat ID**.
 3. Press **Connect & Send Test**.
 4. The server validates the bot and chat, then sends a test message.
-5. When XAUUSD analysis reaches a confirmed BUY/SELL setup, the same connected Telegram receives the alert.
+5. When XAUUSD analysis reaches a new actionable state such as WAIT FOR BUY/SELL ENTRY or confirmed BUY/SELL, the same connected Telegram receives a deduplicated alert.
 6. Press **Disconnect** any time to remove the active connection.
 
 ### Security
@@ -47,7 +47,7 @@ The legacy owner/admin bot mode still supports:
 - `/signal`
 - `/status`
 
-Per-user website connections are primarily **outbound alert connections**. They do not start a polling loop for every user's bot; this keeps the Render service lightweight and avoids running many Telegram polling workers.
+Per-user website connections are primarily **outbound alert connections**. The website-driven auto-alert currently requires the terminal page to remain open so it can poll the live analysis endpoint. For true 24/7 multi-user alerts while browsers are closed, add persistent encrypted credential storage plus a server-side scheduler/worker.
 
 ## XAUUSD API
 

@@ -32,29 +32,23 @@
         // GitHub Pages hosts the UI; Render hosts the API. Keep all backend calls on Render.
         const VTRADE_API_BASE = 'https://forexai-6xw6.onrender.com';
         async function vtradeApiFetch(path, options = {}) {
-            const url = /^https?:\/\//i.test(path) ? path : (VTRADE_API_BASE + path);
-            const res = await fetch(url, { ...options, cache: options.cache || 'no-store' });
+            const res = await fetch(VTRADE_API_BASE + path, options);
             const text = await res.text();
             let data;
-            try {
-                data = text ? JSON.parse(text) : {};
-            } catch (_) {
-                const preview = text.replace(/\s+/g, ' ').slice(0, 160);
-                throw new Error(`API returned non-JSON (${res.status}). ${preview || 'Empty response'}`);
+            try { data = JSON.parse(text); }
+            catch (_) {
+                const preview = text.replace(/\s+/g, ' ').slice(0, 120);
+                throw new Error(`API returned non-JSON (${res.status}). ${preview}`);
             }
-            // Return a small Response-compatible facade AND the legacy {res,data}
-            // shape used by a few existing terminal functions. This prevents
-            // `.json is not a function` while keeping older callers working.
+            // Keep both the parsed payload and a Response-compatible facade so
+            // older callers using r.ok / r.json() continue to work.
             return {
+                res, data,
                 ok: res.ok,
                 status: res.status,
-                statusText: res.statusText,
                 headers: res.headers,
-                url: res.url,
-                res,
-                data,
-                async json() { return data; },
-                async text() { return text; }
+                json: async () => data,
+                text: async () => text
             };
         }
     </script>
@@ -245,7 +239,7 @@
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.1.5 — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.2.0 Smart Entry Radar — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
@@ -268,7 +262,7 @@
                         <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
                         <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-amber-400 tracking-wider">WAIT</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
-                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">LIVE —</b>
+                            <span>Entry Target:</span> <b class="text-white" id="signal-entry">LIVE —</b><br><span>Status:</span> <b class="text-amber-300" id="signal-status">WAIT</b>
                         </div>
                     </div>
 
@@ -306,14 +300,14 @@
                                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.1.5</span>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.2.0</span>
                             </div>
                             <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.1.5 Realtime Core Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.2.0 Smart Entry Radar Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -363,9 +357,12 @@
                         <h3 class="font-bold text-white text-sm flex items-center gap-2">
                             <i class="fa-solid fa-list-check text-emerald-400"></i> Live AI Signal Breakdown & Target Levels
                         </h3>
-                        <button onclick="dispatchTelegramSignal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-brands fa-telegram"></i> ផ្ញើ Signal នេះចូល Telegram Bot
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg">AUTO ALERT: ON</span>
+                            <button onclick="dispatchTelegramSignal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-brands fa-telegram"></i> ផ្ញើ Signal នេះចូល Telegram Bot
+                            </button>
+                        </div>
                     </div>
 
                     <div class="bg-gray-950 rounded-xl overflow-x-auto border border-gray-800">
@@ -1149,7 +1146,7 @@
             const savedUser = localStorage.getItem('vtrade_logged_user');
             if (savedUser) {
                 const authBtn = document.getElementById('btnAuth');
-                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${escapeHtml(savedUser)}</span>`;
+                if (authBtn) authBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${savedUser}</span>`;
             }
 
             fetchMarketPrices();
@@ -1165,12 +1162,6 @@
         });
 
         let latestXauAnalysis = null;
-
-        function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, ch => ({
-                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-            }[ch]));
-        }
 
         function formatUsd(value) {
             return Number.isFinite(Number(value))
@@ -1203,19 +1194,19 @@
                         // XAU values on the dashboard now come ONLY from the server ICT engine.
                         mockMarketData['XAU/USD'] = {
                             direction: xau.signal || 'WAIT',
-                            winRate: 'N/A',
-                            entry: xau.entry != null ? formatUsd(xau.entry) : formatUsd(xau.livePrice),
+                            winRate: xau.confidence != null ? `${xau.confidence}%` : 'N/A',
+                            entry: xau.entry != null ? formatUsd(xau.entry) : (xau.entryZone ? `${formatUsd(xau.entryZone.low)}–${formatUsd(xau.entryZone.high)}` : 'WAIT'),
                             sl: xau.stopLoss != null ? formatUsd(xau.stopLoss) : '—',
                             tp: (xau.takeProfit || []).length ? xau.takeProfit.map(formatUsd).join(' / ') : '—',
                             fvg: xau.ict?.fvg?.found ? `${xau.ict.fvg.type} FVG` : 'Not confirmed',
                             fvgZone: xau.ict?.fvg?.found ? `${formatUsd(xau.ict.fvg.low)} – ${formatUsd(xau.ict.fvg.high)}` : '—',
-                            sentiment: xau.bias ? `${xau.confidence}% ${xau.bias}` : '—',
-                            rsi: 'Live MTF',
-                            macd: xau.ict?.mss || 'Live MTF',
+                            sentiment: xau.bias ? `${xau.confidence}/100 ${xau.bias}` : '—',
+                            rsi: xau.status || 'Live MTF',
+                            macd: xau.trigger || xau.ict?.mss || 'Live MTF',
                             orderbook: 'Not used'
                         };
                         const age = Number.isFinite(Number(xau.priceAgeSec)) ? ` | price age ${xau.priceAgeSec}s` : '';
-                        appendTerminalLog(`[DATA] XAUUSD ${formatUsd(xau.livePrice)} | ${xau.source || 'live'}${age} | ${xau.brokerConnected ? 'MT5 LIVE' : 'MT5 OFFLINE'}`);
+                        appendTerminalLog(`[DATA] XAUUSD ${formatUsd(xau.livePrice)} | ${xau.source || 'live'}${age} | ${xau.brokerConnected ? 'MT5 LIVE' : 'MT5 OFFLINE'} | ${xau.status || 'WAIT'}`);
                         if (xau.brokerConnected) {
                             const tickerXau = document.getElementById('tickerXau');
                             if (tickerXau) tickerXau.title = `VT Markets MT5 | Bid ${formatUsd(xau.bid)} | Ask ${formatUsd(xau.ask)} | Spread ${formatUsd(xau.spread)}`;
@@ -1249,6 +1240,7 @@
                 const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=value; };
                 set('signal-direction', data.direction);
                 set('signal-entry', data.entry);
+                set('signal-status', latestXauAnalysis?.status || data.direction);
                 set('win-rate-val', data.winRate);
                 const bar=document.getElementById('win-rate-bar');
                 if(bar) bar.style.width = data.winRate === 'N/A' ? '0%' : data.winRate;
@@ -1663,15 +1655,30 @@
 
         async function ensureTelegramSession() {
             if (telegramSessionId) return telegramSessionId;
-            const saved = sessionStorage.getItem('vtrade_telegram_session');
-            if (saved) telegramSessionId = saved;
-            if (!telegramSessionId) {
-                const r = await vtradeApiFetch('/api/telegram/session', {cache:'no-store'});
-                const d = await r.json();
-                if (!d.success || !d.sessionId) throw new Error('Unable to initialize Telegram session');
-                telegramSessionId = d.sessionId;
-                sessionStorage.setItem('vtrade_telegram_session', telegramSessionId);
+
+            // Validate a saved session first. Render restarts clear server memory,
+            // so an old browser session must never silently block Telegram auto-alerts.
+            const saved = localStorage.getItem('vtrade_telegram_session');
+            if (saved) {
+                try {
+                    const check = await vtradeApiFetch('/api/telegram/session', {
+                        headers: {'x-vtrade-session': saved},
+                        cache: 'no-store'
+                    });
+                    const d = await check.json();
+                    if (d.success && d.sessionId === saved && d.connected) {
+                        telegramSessionId = saved;
+                        return telegramSessionId;
+                    }
+                } catch (_) {}
+                localStorage.removeItem('vtrade_telegram_session');
             }
+
+            const r = await vtradeApiFetch('/api/telegram/session', {cache:'no-store'});
+            const d = await r.json();
+            if (!d.success || !d.sessionId) throw new Error('Unable to initialize Telegram session');
+            telegramSessionId = d.sessionId;
+            localStorage.setItem('vtrade_telegram_session', telegramSessionId);
             return telegramSessionId;
         }
 
@@ -1687,7 +1694,7 @@
                 const el = document.getElementById('telegramStatusText');
                 if (!el) return;
                 if (d.connected) {
-                    el.innerHTML = `🟢 Connected — <b>${escapeHtml(d.botUsername || 'Telegram Bot')}</b> · Chat ${escapeHtml(d.chatId || '••••')}`;
+                    el.innerHTML = `🟢 Connected — <b>${d.botUsername || 'Telegram Bot'}</b> · Chat ${d.chatId || '••••'}`;
                 } else if (d.mode === 'env-fallback') {
                     el.textContent = '🟢 Server Telegram fallback is configured.';
                 } else {
@@ -1715,7 +1722,7 @@
                 if (!connectResult.ok || !connectData.success) throw new Error(connectData.error || 'Telegram connection failed');
 
                 telegramSessionId = connectData.sessionId || sid;
-                sessionStorage.setItem('vtrade_telegram_session', telegramSessionId);
+                localStorage.setItem('vtrade_telegram_session', telegramSessionId);
 
                 const testResult = await vtradeApiFetch('/api/telegram/test', {
                     method:'POST',
@@ -1742,7 +1749,7 @@
                     method:'POST',
                     headers: telegramHeaders()
                 });
-                sessionStorage.removeItem('vtrade_telegram_session');
+                localStorage.removeItem('vtrade_telegram_session');
                 telegramSessionId = null;
                 const tokenInput = document.getElementById('tgTokenInput');
                 if (tokenInput) tokenInput.value = '';
@@ -1766,7 +1773,7 @@
             if(!input || !input.value.trim()) return;
             const userMsg = input.value.trim();
             
-            box.insertAdjacentHTML('beforeend', `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${escapeHtml(userMsg)}</div>`);
+            box.innerHTML += `<div class="bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]">${userMsg}</div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
 

@@ -14,16 +14,16 @@ body{margin:0;background:#07111f;color:#eaf2ff;font-family:Inter,system-ui,sans-
 <p><span id="feedStatus" class="status"><span class="dot"></span><span id="feedText">Checking VT Markets MT5…</span></span></p>
 <div class="grid">
 <div class="card"><div class="muted">LIVE PRICE</div><div id="price" class="value">—</div></div>
-<div class="card"><div class="muted">SIGNAL</div><div id="signal" class="value signal wait">WAIT</div></div>
-<div class="card"><div class="muted">ENTRY</div><div id="entry" class="value">—</div></div>
-<div class="card"><div class="muted">CONFIDENCE</div><div id="confidence" class="value">—</div></div>
+<div class="card"><div class="muted">SIGNAL / STATUS</div><div id="signal" class="value signal wait">WAIT</div><div id="status" class="muted">—</div></div>
+<div class="card"><div class="muted">ENTRY / ZONE</div><div id="entry" class="value">—</div><div id="entryZone" class="muted">—</div></div>
+<div class="card"><div class="muted">SETUP SCORE</div><div id="confidence" class="value">—</div><div id="grade" class="muted">—</div></div>
 <div class="card"><div class="muted">BID / ASK</div><div id="bidask" class="value" style="font-size:18px">—</div></div>
 <div class="card"><div class="muted">SPREAD</div><div id="spread" class="value" style="font-size:18px">—</div></div>
 <div class="card"><div class="muted">FEED AGE</div><div id="age" class="value" style="font-size:18px">—</div></div>
-<div class="card"><div class="muted">SOURCE</div><div id="source" class="value" style="font-size:16px">—</div></div>
+<div class="card"><div class="muted">TRIGGER</div><div id="trigger" class="value" style="font-size:16px">—</div></div>
 </div>
 <div class="cols"><div class="card"><h2>ICT Structure</h2><table><thead><tr><th>TF</th><th>Bias</th><th>Liquidity</th><th>MSS</th><th>BOS</th></tr></thead><tbody id="tf"></tbody></table></div>
-<div class="card"><h2>Execution</h2><div class="row"><span>SL</span><b id="sl">—</b></div><br><div class="row"><span>TP1</span><b id="tp1">—</b></div><div class="row"><span>TP2</span><b id="tp2">—</b></div><div class="row"><span>TP3</span><b id="tp3">—</b></div><hr style="border-color:#20334c"><div class="row"><span>FVG</span><b id="fvg">—</b></div><div class="row"><span>Order Block</span><b id="ob">—</b></div><div class="row"><span>Premium/Discount</span><b id="pd">—</b></div></div></div>
+<div class="card"><h2>Execution</h2><div class="row"><span>SL</span><b id="sl">—</b></div><br><div class="row"><span>TP1</span><b id="tp1">—</b></div><div class="row"><span>TP2</span><b id="tp2">—</b></div><div class="row"><span>TP3</span><b id="tp3">—</b></div><hr style="border-color:#20334c"><div class="row"><span>FVG</span><b id="fvg">—</b></div><div class="row"><span>Order Block</span><b id="ob">—</b></div><div class="row"><span>Premium/Discount</span><b id="pd">—</b></div><div class="row"><span>Execution</span><b id="exec">M5</b></div><div class="row"><span>Source</span><b id="source">—</b></div></div></div>
 <p class="muted">⚠️ Broker-native analysis only. If MT5 is offline/stale or an MTF candle is missing, the engine returns WAIT/unavailable instead of mixing reference feeds.</p>
 </div>
 <script>
@@ -31,7 +31,7 @@ const API='https://forexai-6xw6.onrender.com';const $=id=>document.getElementByI
 async function load(){
  const r=await fetch(API+'/api/analysis/xauusd',{cache:'no-store'}); const text=await r.text(); let a; try{a=JSON.parse(text)}catch(_){throw new Error(`API returned non-JSON (${r.status})`)} if(!r.ok||!a.success) throw new Error(a.error||'MT5 feed unavailable');
  $('price').textContent=fmt(a.livePrice);$('bidask').textContent=fmt(a.bid)+' / '+fmt(a.ask);$('spread').textContent=fmt(a.spread);$('age').textContent=(a.priceAgeSec??'—')+'s';$('source').textContent=a.source||'—';
- $('signal').textContent=a.signal||'WAIT';$('signal').className='value signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');$('entry').textContent=fmt(a.entry);$('confidence').textContent=a.confidence!=null?a.confidence+'%':'—';$('sl').textContent=fmt(a.stopLoss);
+ $('signal').textContent=a.signal||'WAIT';$('signal').className='value signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');$('status').textContent=a.status||'—';$('entry').textContent=fmt(a.entry);$('entryZone').textContent=a.entryZone?`${fmt(a.entryZone.low)} – ${fmt(a.entryZone.high)} · ${a.entryZone.type}`:'No valid entry zone';$('confidence').textContent=a.confidence!=null?a.confidence+'/100':'—';$('grade').textContent=`Grade ${a.setupGrade||'—'} · Bias ${a.bias||'—'}`;$('trigger').textContent=a.trigger||'—';$('exec').textContent=a.executionTimeframe||'M5';
  (a.takeProfit||[]).forEach((x,i)=>{if($('tp'+(i+1)))$('tp'+(i+1)).textContent=fmt(x)});$('fvg').textContent=a.ict?.fvg?.found?`${a.ict.fvg.type} ${fmt(a.ict.fvg.low)}–${fmt(a.ict.fvg.high)}`:'Not confirmed';$('ob').textContent=a.ict?.orderBlock?.found?`${a.ict.orderBlock.type} ${fmt(a.ict.orderBlock.low)}–${fmt(a.ict.orderBlock.high)}`:'Not confirmed';$('pd').textContent=a.ict?.premiumDiscount||'—';
  $('tf').innerHTML=Object.entries(a.timeframes||{}).map(([tf,x])=>`<tr><td>${tf}</td><td><span class="badge">${x.structure?.bias||'—'}</span></td><td>${x.sweep?.detail||'—'}</td><td>${x.structure?.mss||'—'}</td><td>${x.structure?.bos||'—'}</td></tr>`).join('');
  $('feedStatus').className='status online';$('feedText').textContent=`VT Markets MT5 LIVE · ${a.priceAgeSec??'—'}s`;
