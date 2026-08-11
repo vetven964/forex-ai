@@ -266,6 +266,7 @@ async function buildXauAnalysis() {
   const bullHTF=[h4Bias,h1Bias,m15Bias].filter(x=>x==='BULLISH').length;
   const bearHTF=[h4Bias,h1Bias,m15Bias].filter(x=>x==='BEARISH').length;
   const macroBias=bullHTF>bearHTF?'BULLISH':bearHTF>bullHTF?'BEARISH':'NEUTRAL';
+  const mtfCount = Math.max(bullHTF, bearHTF);
 
   const sweep=exec.sweep;
   const displacement=candleDisplacement(m5);
@@ -354,7 +355,7 @@ async function buildXauAnalysis() {
     candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,bias:direction,confidence,setupGrade,status,actionable,
     entry,entryZone,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,
     score:{bull:score.bull,bear:score.bear,confidence,grade:setupGrade,items:score.items},
-    confirmations:{liquiditySweep:sweep,displacement,bullishMSS,bearishMSS,inZone,zoneIsNear},
+    confirmations:{liquiditySweep:sweep,displacement,bullishMSS,bearishMSS,inZone,zoneIsNear,mtfCount},
     ict:{liquiditySweep:sweep,mss:exec.structure.mss,bos:exec.structure.bos,fvg:f,orderBlock:ob,premiumDiscount},
     timeframes:tfs,
     riskNote:'Indicative market analysis only. XAUUSD broker quotes, spread and CFD/spot feeds can differ. Verify the broker price before any order.'
@@ -366,7 +367,7 @@ function telegramText(a) {
   const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
   const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
   return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
-    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nScore: *${a.confidence}/100 (${a.setupGrade})*\n\n`+
+    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nScore: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
     `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
     `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
     `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
@@ -377,9 +378,13 @@ function telegramText(a) {
 
 async function maybeTelegramAlert(a, tg, sessionId) {
   if (!tg || !tg.bot || !tg.chatId) return false;
-  // Only actionable state transitions are auto-alerted. This prevents WAIT spam.
-  const actionable = ['BUY','SELL'].includes(a.signal) || /WAIT FOR (BUY|SELL) ENTRY|WAIT FOR (BUY|SELL) ZONE|WATCH (BUY|SELL)/.test(a.status || '');
-  if(!actionable) return false;
+  // Default: alert only confirmed BUY/SELL entries. This prevents WAIT/WATCH spam.
+  // Set TELEGRAM_AUTO_ALERT_LEVEL=SETUP to also alert WATCH/WAIT-FOR-ENTRY states.
+  const level = String(process.env.TELEGRAM_AUTO_ALERT_LEVEL || 'ENTRY_ONLY').toUpperCase();
+  const actionable = level === 'SETUP'
+    ? (['BUY','SELL'].includes(a.signal) || /WAIT FOR (BUY|SELL) ENTRY|WAIT FOR (BUY|SELL) ZONE|WATCH (BUY|SELL)/.test(a.status || ''))
+    : ['BUY','SELL'].includes(a.signal) && a.status === 'ENTRY CONFIRMED';
+  if(!actionable || Number(a.confidence || 0) < Number(process.env.TELEGRAM_MIN_SCORE || 65)) return false;
   const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
   const dedupeKey=sessionId || `env:${tg.chatId}`;
   if(telegramAlertKeys.get(dedupeKey)===key) return false;
