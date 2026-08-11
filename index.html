@@ -810,10 +810,7 @@
                             <label class="text-gray-400 mb-1 block">កញ្ចប់សេវាកម្មបានជ្រើសរើស</label>
                             <input type="text" id="selectedPlanInput" value="VIP Pro v5.0 Enterprise" readonly class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-amber-400 font-bold focus:outline-none">
                         </div>
-                        <div>
-                            <label class="text-gray-400 mb-1 block">Telegram Bot Token</label>
-                            <input type="text" id="tgTokenInput" placeholder="ឧទាហរណ៍៖ 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
-                        </div>
+                        <div class="bg-gray-900 border border-emerald-700/40 rounded-xl p-3 text-emerald-400 text-xs">🔐 Telegram Bot Token ត្រូវបានកំណត់នៅ Render Environment Variables ដើម្បីការពារ Token មិនឲ្យបង្ហាញលើ Browser។</div>
                         <div>
                             <label class="text-gray-400 mb-1 block">Telegram Chat / Channel ID</label>
                             <input type="text" id="tgChatIdInput" placeholder="ឧទាហរណ៍៖ -1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
@@ -1239,33 +1236,20 @@
         }
 
         async function dispatchTelegramSignal() {
-            const pair = document.getElementById('tblAsset').innerText;
-            const direction = document.getElementById('tblSignalBadge').innerText;
-            const entry = document.getElementById('tblEntry').innerText;
-            const sl = document.getElementById('tblSL').innerText;
-            const tp = document.getElementById('tblTP').innerText;
-
-            const token = localStorage.getItem('vtrade_tg_token') || document.getElementById('tgTokenInput')?.value;
-            const chatId = localStorage.getItem('vtrade_tg_chatid') || document.getElementById('tgChatIdInput')?.value;
-
-            if(!token || !chatId) {
-                alert('សូមរៀបចំ Telegram Bot Token & Chat ID នៅក្នុង Tab "Telegram Bot" ជាមុនសិន!');
-                switchTab('telegram');
-                return;
-            }
-
-            const msg = `🚨 **NEW V TRADE AI REALTIME SIGNAL** 🚨\n\n📌 Asset: **${pair}**\n📈 Signal: **${direction}**\n🎯 Entry Price: **${entry}**\n🛡️ Stop Loss: **${sl}**\n💰 Take Profit: **${tp}**\n\n🤖 Automated Copy Trading Connected 100%!`;
-
+            const pair = document.getElementById('pairSelector')?.value || 'XAU/USD';
+            const type = document.getElementById('signalType')?.value || 'WAIT';
             try {
-                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                const response = await fetch('/api/v5/signal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+                    body: JSON.stringify({ symbol: pair.replace('/', ''), type, marketState: 'Dashboard signal' })
                 });
-                alert(`🟢 ផ្ញើ Realtime Signal (${pair}) ចូល Telegram Channel/Bot រួចរាល់ ១០០%!`);
-                appendTerminalLog(`<span class="text-blue-400">[TELEGRAM]</span> Broadcasted signal ${pair} to Channel ID ${chatId}`);
-            } catch(e) {
-                alert('កំហុសក្នុងការផ្ញើ Signal! សូមពិនិត្យមើល Token និង Chat ID។');
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'Telegram send failed');
+                alert('🟢 Signal បានផ្ញើទៅ Telegram ជោគជ័យ!');
+            } catch (error) {
+                console.error(error);
+                alert('🔴 ផ្ញើ Telegram មិនបាន៖ ' + error.message);
             }
         }
 

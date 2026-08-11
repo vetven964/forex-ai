@@ -168,10 +168,7 @@
                         <p class="text-[11px] text-gray-400">ប្រព័ន្ធភ្ជាប់ជាមួយ @ai_pro_auto_bot រួចរាល់។</p>
                         
                         <div class="space-y-3 text-xs pt-2">
-                            <div>
-                                <label class="text-[10px] text-gray-400">Bot Token</label>
-                                <input type="text" id="tgToken" class="w-full bg-black text-[11px] text-white px-2.5 py-2 rounded border border-gray-800 focus:outline-none focus:border-blue-500 mt-1" value="8470430528:AAGBHWpAw03hPvhZIB7y_cdyhrxr8bIg4Xc">
-                            </div>
+                            <div class="bg-black/40 border border-gray-800 rounded p-2 text-[10px] text-emerald-400">🔐 Bot Token ត្រូវបានរក្សាទុកនៅ Render Environment Variables។ មិនបង្ហាញក្នុង Browser ទេ។</div>
                             <div>
                                 <div class="flex justify-between items-center">
                                     <label class="text-[10px] text-gray-400">Chat ID / Channel ID</label>
@@ -547,40 +544,29 @@
             logs.scrollTop = logs.scrollHeight;
         }
 
-        async function sendToTelegram(messageText) {
-            const token = document.getElementById('tgToken').value.trim();
-            const chatId = document.getElementById('tgChatId').value.trim();
-            if(!token || !chatId) return false;
-
-            localStorage.setItem('vet_chat_id', chatId);
-
-            const url = `https://api.telegram.org/bot${token}/sendMessage`;
+        async function sendToTelegram(messageText, type='WAIT') {
             try {
-                const response = await fetch(url, {
+                const response = await fetch('/api/v5/signal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: messageText, parse_mode: 'HTML' })
+                    body: JSON.stringify({ symbol: (document.getElementById('marketSelect')?.value || 'XAUUSD').replace('/', ''), type, marketState: messageText })
                 });
                 const data = await response.json();
-                return data.ok;
+                return !!data.success;
             } catch (error) {
+                console.error('Telegram API error:', error);
                 return false;
             }
         }
 
         async function testTelegramConnection() {
-            const chatId = document.getElementById('tgChatId').value.trim();
-            if(!chatId) {
-                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
-                return;
-            }
-
-            const msg = "✅ <b>VET Trade AI</b>: ប្រព័ន្ធ Telegram Alert ភ្ជាប់ជាមួយ @ai_pro_auto_bot បានជោគជ័យ!";
-            const success = await sendToTelegram(msg);
-            if(success) {
-                alert('✅ ភ្ជាប់ជោគជ័យ!');
-            } else {
-                alert('❌ បរាជ័យ! សូមពិនិត្យ Chat ID ឬធានាថាបានចុច /start ក្នុង Bot ហើយ។');
+            try {
+                const response = await fetch('/api/telegram/test', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) alert('✅ Telegram Bot ភ្ជាប់ជោគជ័យ!');
+                else alert('❌ Telegram មិនទាន់ភ្ជាប់៖ ' + (data.error || 'Unknown error'));
+            } catch (error) {
+                alert('❌ Server មិនអាចតេស្ត Telegram បានទេ។');
             }
         }
 
@@ -643,7 +629,7 @@
                 webText = `⏳ <b>[ICT AUTO SIGNAL]:</b> ទីផ្សារមិនទាន់ច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
             }
 
-            const isSent = await sendToTelegram(teleMsg);
+            const isSent = await sendToTelegram(teleMsg, actionType === 'BUY' ? 'BUY' : actionType === 'SELL' ? 'SELL' : 'WAIT');
             if(isSent) {
                 signalCounter++;
                 document.getElementById('signalCount').innerText = signalCounter + " Signals";
@@ -696,7 +682,7 @@
             }
 
             setTimeout(async () => {
-                const isSent = await sendToTelegram(teleMsg);
+                const isSent = await sendToTelegram(teleMsg, actionType === 'BUY' ? 'BUY' : actionType === 'SELL' ? 'SELL' : 'WAIT');
                 if(isSent) {
                     signalCounter++;
                     document.getElementById('signalCount').innerText = signalCounter + " Signals";

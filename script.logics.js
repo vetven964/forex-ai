@@ -358,13 +358,14 @@ let tvWidgetInstance = null;
             openModal('depositModal');
         }
 
-        function testTelegramIntegration() {
-            const token = document.getElementById('tgTokenInput').value;
-            const chatId = document.getElementById('tgChatIdInput').value;
-            if(token && chatId) {
-                alert('✅ តេស្តតភ្ជាប់ Telegram Bot & Webhook ជោគជ័យ ១០០%!');
-            } else {
-                alert('សូមបំពេញ Bot Token និង Chat ID ឱ្យបានត្រឹមត្រូវ!');
+        async function testTelegramIntegration() {
+            try {
+                const response = await fetch('/api/telegram/test', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) alert('✅ Telegram Bot & Webhook ភ្ជាប់ជោគជ័យ!');
+                else alert('❌ Telegram Error: ' + (data.error || 'Unknown error'));
+            } catch (error) {
+                alert('❌ Server មិនអាចភ្ជាប់ Telegram បានទេ។');
             }
         }
 
