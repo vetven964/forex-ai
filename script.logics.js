@@ -1,6 +1,6 @@
 let tvWidgetInstance = null;
         let sentimentChartInstance = null;
-        let activeOtpCode = "998877";
+        let activeOtpCode = null; // Legacy demo login state; real authentication must be server-side.
         let currentCurrency = "USD";
         let baseUsdBalance = 1250.00;
 
@@ -13,14 +13,14 @@ let tvWidgetInstance = null;
         // កែសម្រួលទិន្នន័យសញ្ញា និងតម្លៃ Entry ឱ្យមានភាពច្បាស់លាស់ និងត្រឹមត្រូវ
         let mockMarketData = {
            "XAU/USD": { direction: "WAIT", winRate: "N/A", entry: "LIVE —", sl: "—", tp: "—", fvg: "Live ICT scan", fvgZone: "—", sentiment: "—", rsi: "Live MTF", macd: "Live MTF", orderbook: "Not used" },
-            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
-            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
-            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+            "BTC/USDT": { direction: "STRONG BUY", winRate: "Reference", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
+            "EUR/USD": { direction: "SELL / SHORT", winRate: "Reference", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
+            "ETH/USDT": { direction: "BUY / LONG", winRate: "Reference", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.0.7", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            km: { brand: "V TRADE AI & TERMINAL v5.2.1", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.2.1", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
             zh: { brand: "V TRADE AI TERMINAL v5.0.7", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
@@ -282,14 +282,14 @@ let tvWidgetInstance = null;
 
         function verifyOtpAndLogin() {
             const code = document.getElementById('otpInputCode').value;
-            if(code === activeOtpCode) {
+            if(activeOtpCode && code === activeOtpCode) {
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('vtrade_logged_user', 'VET VEN');
                 alert('🎉 Login និងផ្ទៀងផ្ទាត់ 2FA ជោគជ័យ ១០០%!');
                 closeModal('authModal');
                 location.reload();
             } else {
-                alert('លេខកូដ OTP មិនត្រឹមត្រូវ! សូមព្យាយាមម្តងទៀត (កូដគឺ 998877)');
+                alert('លេខកូដ OTP មិនត្រឹមត្រូវ ឬមិនបានកំណត់។ សូមប្រើការផ្ទៀងផ្ទាត់ Server-side នៅក្នុង production។');
             }
         }
 

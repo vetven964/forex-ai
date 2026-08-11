@@ -1,7 +1,7 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "5.2.0",
-  "description": "V Trade AI & Bot Enterprise Version \u2014 VT Markets MT5 XAUUSD MTF ICT",
+  "version": "5.2.1",
+  "description": "V Trade AI Smart Entry PRO — VT Markets MT5 XAUUSD MTF ICT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

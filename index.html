@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Terminal, Dashboard & Real-Time Signal System (v5.1.5 VT Markets MT5)</title>
+    <title>V Trade AI Pro - Smart Entry Terminal (v5.2.1 VT Markets MT5)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -26,6 +26,41 @@
         ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
         .terminal-scroll { scroll-behavior: smooth; }
     </style>
+
+<style id="vtrade-mobile-pro">
+/* v5.2.1 Mobile PRO */
+@media (max-width: 767px){
+  body{padding-bottom:74px!important;overflow-x:hidden}
+  #topHeader{padding:10px 12px!important;gap:8px!important;flex-wrap:nowrap!important;min-height:78px}
+  #topHeader>div:first-child{min-width:0;flex:1;gap:8px!important}
+  #topHeader .mobile-pro-title{min-width:0}
+  #topHeader h1{font-size:12px!important;line-height:1.15!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+  #topHeader p{font-size:9px!important;line-height:1.2!important;max-width:220px}
+  #topHeader #btnAuth{max-width:132px!important;min-width:0!important;padding:8px 10px!important;font-size:10px!important}
+  #topHeader #btnAuth span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  #topHeader .mobile-menu-btn{flex:0 0 auto}
+  #topHeader .brand-icon{flex:0 0 auto}
+  .mobile-live-strip{display:flex!important}
+  #terminalPairSelect{min-width:0!important;width:100%!important}
+  #btnRefresh{width:100%!important;min-height:48px!important}
+  #signal-direction{font-size:30px!important}
+  #signal-entry{font-size:12px!important;word-break:break-word}
+  #signal-status,#signal-grade{font-size:11px!important}
+  #confirmationPanel{margin-top:8px}
+  #confirmationPanel .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #confirmationPanel .confirm-item:last-child{grid-column:1/-1}
+  #mobileSignalSummary{display:none!important}
+  #winRateCard,#setupScoreCard,#fvgCard,#sentimentCard{padding:14px!important}
+  #win-rate-val,#setup-score-val{font-size:25px!important}
+  #fvg-confidence,#sentiment-score{font-size:20px!important;line-height:1.15}
+  .terminal-scroll{max-height:280px!important}
+  .floating-ai-panel{position:fixed!important;bottom:78px!important;left:10px!important;width:calc(100% - 20px)!important}
+  #bottomNav{height:70px!important}
+}
+@media (min-width:768px){
+  .mobile-live-strip{display:none!important}
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
     <script>
@@ -54,16 +89,16 @@
     </script>
 
     <!-- Top Navigation Header -->
-    <header id="topHeader" class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3">
+    <header id="topHeader" class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3 mobile-pro-header">
         <div class="flex items-center space-x-3">
-            <button onclick="toggleMobileMenu()" class="md:hidden bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
+            <button onclick="toggleMobileMenu()" class="md:hidden mobile-menu-btn bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
+            <div class="brand-icon bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
-            <div>
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.2.0</h1>
+            <div class="mobile-pro-title">
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.2.1</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
@@ -118,6 +153,11 @@
             </button>
         </div>
     </header>
+<div class="mobile-live-strip hidden items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-950 text-[11px] font-mono">
+  <span class="text-emerald-400"><span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> MT5 LIVE</span>
+  <span class="text-amber-300">XAU <b id="mobileTickerXau">—</b></span>
+  <span class="text-blue-300"><i class="fa-regular fa-clock"></i> <b id="mobileLiveClock">—</b></span>
+</div>
 
     <!-- Mobile Live Status Strip -->
     <div id="mobileLiveStrip" class="md:hidden px-3 py-2 border-b border-gray-800 bg-gray-950/95 text-[10px] font-mono overflow-x-auto">
@@ -131,7 +171,7 @@
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.2.0)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v5.2.1)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
@@ -248,7 +288,7 @@
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.2.0 Smart Entry Radar — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.2.1 Smart Entry PRO — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
@@ -278,7 +318,7 @@
                     </div>
 
                     <div id="winRateCard" class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
-                        <p class="text-xs text-gray-400 font-medium">AI Setup Confidence</p>
+                        <p class="text-xs text-gray-400 font-medium">Setup Strength</p>
                         <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">—</h3>
                         <div class="w-full bg-gray-800 h-1.5 rounded-full mt-3.5 overflow-hidden">
                             <div id="win-rate-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 0%;"></div>
@@ -305,7 +345,7 @@
                         <p class="text-xs text-gray-400 font-medium">Market Sentiment Score</p>
                         <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">—</h3>
                         <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400 font-bold">
-                            <i class="fa-solid fa-shield-check"></i> High Volume Institutional Support
+                            <i class="fa-solid fa-shield-check"></i> <span id="sentiment-detail">MTF structure pending</span>
                         </div>
                     </div>
                 </div>
@@ -347,14 +387,14 @@
                                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.2.0</span>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.2.1</span>
                             </div>
                             <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.2.0 Smart Entry Radar Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.2.1 Smart Entry Radar Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -616,7 +656,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-cyan-500/20 text-cyan-400 p-3 rounded-xl"><i class="fa-solid fa-gears text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.1.5</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.2.1</h3>
                             <p class="text-gray-400">កំណត់កម្រិត Risk Level និង Asset ផ្ទាល់ខ្លួន រួចរត់ Backtest ជាមួយទិន្នន័យ v5 Engine មុនពេលដាក់ Bot រត់ ២៤ម៉ោង</p>
                         </div>
                     </div>
@@ -645,7 +685,7 @@
                     </button>
 
                     <div id="backtestResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-emerald-500/40 space-y-2 font-mono">
-                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.1.5 Successful!</div>
+                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest v5.2.1 Successful!</div>
                         <div class="text-gray-300">Win Rate: <b class="text-white" id="resWinRate">94.8%</b></div>
                         <div class="text-gray-300">Total Trades Tested: <b class="text-white">150 Trades</b></div>
                         <div class="text-gray-300">Estimated Profit Factor: <b class="text-white">3.12</b></div>
@@ -659,7 +699,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-calculator text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.1.5</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.2.1</h3>
                             <p class="text-gray-400">គណនីទំហំទឹកប្រាក់ប្រឈម (Risk Amount) និងកម្រិត Stop-Loss / Take-Profit ស្វ័យប្រវត្តិមុនពេលចេញ Order</p>
                         </div>
                     </div>
@@ -698,7 +738,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-users-rectangle text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.1.5 (Viral Growth)</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.2.1 (Viral Growth)</h3>
                             <p class="text-gray-400">ចែករំលែកតំណភ្ជាប់ណែនាំមិត្តភក្តិរបស់អ្នក ដើម្បីទទួលបានប្រាក់រង្វាន់ $5 ក្នុងមួយការបញ្ជាក់ VIP ជោគជ័យ</p>
                         </div>
                     </div>
@@ -727,7 +767,7 @@
             <!-- TAB: MARKET SESSIONS -->
             <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.1.5</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.2.1</h3>
                     <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
                 </div>
 
@@ -816,7 +856,7 @@
             <!-- TAB: PRICING PLANS -->
             <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
                 <div class="text-center space-y-2">
-                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.1.5 (Pricing Plans & Free Trial)</h3>
+                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.2.1 (Pricing Plans & Free Trial)</h3>
                     <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មរចនាឡើងយ៉ាងពិសេស អមដោយគណនីបង់ប្រាក់ផ្ទាល់ខ្លួន (VET VEN)</p>
                 </div>
 
@@ -870,7 +910,7 @@
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v5.1.5</h3>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v5.2.1</h3>
                             <p class="text-gray-400">អ្នកប្រើប្រាស់ម្នាក់ៗអាចភ្ជាប់ Telegram Bot របស់ខ្លួនបាន។ Token មិនត្រូវបានរក្សាទុកក្នុង Browser.</p>
                         </div>
                     </div>
@@ -931,7 +971,7 @@
             <div id="tab-tvchart" class="tab-content space-y-4">
                 <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
-                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.1.5</h3>
+                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v5.2.1</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
                     <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
@@ -1032,11 +1072,11 @@
 
             <div class="space-y-3 hidden" id="otpVerificationSection">
                 <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-blue-300">
-                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security v5.7:</b> លេខកូដ OTP គឺ៖ <b class="text-emerald-400" id="generatedOtpDisplay">998877</b>
+                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security v5.7:</b> លេខកូដ OTP គឺ៖ <b class="text-emerald-400" id="generatedOtpDisplay">******</b>
                 </div>
                 <div>
                     <label class="text-gray-400 mb-1 block">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់</label>
-                    <input type="text" id="otpInputCode" maxlength="6" placeholder="998877" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-center text-lg font-mono text-emerald-400 font-bold tracking-widest focus:outline-none">
+                    <input type="text" id="otpInputCode" maxlength="6" placeholder="******" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-center text-lg font-mono text-emerald-400 font-bold tracking-widest focus:outline-none">
                 </div>
                 <button onclick="verifyOtpAndLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition cursor-pointer">ផ្ទៀងផ្ទាត់ និងចូលគណនី v5.7 ១០០%</button>
             </div>
@@ -1153,7 +1193,7 @@
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI Terminal v5.1.5 ដំណើរការវិភាគ Realtime និង Telegram Signal ២៤ម៉ោង។ តើមានអ្វីឲ្យខ្ញុំជួយដែរឬទេ?</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI Terminal v5.2.1 ដំណើរការវិភាគ Realtime និង Telegram Signal ២៤ម៉ោង។ តើមានអ្វីឲ្យខ្ញុំជួយដែរឬទេ?</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -1166,7 +1206,7 @@
     <script>
         let tvWidgetInstance = null;
         let sentimentChartInstance = null;
-        let activeOtpCode = "998877";
+        let activeOtpCode = null;
         let currentCurrency = "USD";
         let baseUsdBalance = 1250.00;
 
@@ -1177,16 +1217,16 @@
         ];
 
         let mockMarketData = {
-            "BTC/USDT": { direction: "STRONG BUY", winRate: "94.8%", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
+            "BTC/USDT": { direction: "STRONG BUY", winRate: "Reference", entry: "$65,057.90", sl: "$64,100.00", tp: "$66,500 / $68,200", fvg: "BULLISH FVG", fvgZone: "0.5 - 0.618 Fib", sentiment: "88% BULLISH", rsi: "68.4 (Strong Buy)", macd: "Bullish Divergence", orderbook: "64% Buy Orders" },
             "XAU/USD": { direction: "WAIT", winRate: "N/A", entry: "LIVE —", sl: "—", tp: "—", fvg: "Live ICT scan", fvgZone: "—", sentiment: "—", rsi: "Live", macd: "Live", orderbook: "N/A" },
-            "EUR/USD": { direction: "SELL / SHORT", winRate: "89.5%", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
-            "ETH/USDT": { direction: "BUY / LONG", winRate: "92.4%", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
+            "EUR/USD": { direction: "SELL / SHORT", winRate: "Reference", entry: "$1.0850", sl: "$1.0910", tp: "$1.0780 / $1.0720", fvg: "BEARISH FVG", fvgZone: "Premium Array 4H", sentiment: "76% BEARISH", rsi: "34.2 (Oversold Imminent)", macd: "Bearish Crossover", orderbook: "68% Sell Orders" },
+            "ETH/USDT": { direction: "BUY / LONG", winRate: "Reference", entry: "$1,919.60", sl: "$1,880.00", tp: "$1,980 / $2,050", fvg: "BULLISH FVG", fvgZone: "Order Block 15M", sentiment: "85% BULLISH", rsi: "65.0 (Bullish Momentum)", macd: "Bullish Cross", orderbook: "61% Buy Orders" }
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.2.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.2.0", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v5.2.0", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v5.2.1", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.2.1", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.2.1", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1237,6 +1277,8 @@
                         latestXauAnalysis = xau;
                         const tickerXau = document.getElementById('tickerXau');
                         if (tickerXau) tickerXau.innerText = formatUsd(xau.livePrice);
+                        const mobileTickerXau = document.getElementById('mobileTickerXau');
+                        if (mobileTickerXau) mobileTickerXau.innerText = formatUsd(xau.livePrice);
 
                         // XAU values on the dashboard now come ONLY from the server ICT engine.
                         mockMarketData['XAU/USD'] = {
@@ -1304,6 +1346,7 @@
                 set('fvg-confidence', data.fvg);
                 set('fvg-zone', data.fvgZone);
                 set('sentiment-score', data.sentiment);
+                set('sentiment-detail', x ? `${x.bias || 'NEUTRAL'} bias · MTF ${x.confirmations?.mtfCount ?? 0}/3` : 'Reference data');
                 set('rsiVal', data.rsi);
                 set('macdVal', data.macd);
                 set('orderbookVal', data.orderbook);
@@ -1859,7 +1902,7 @@
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.1.5 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.2.1 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }
@@ -1874,7 +1917,7 @@
 </body>
 </html>
 
-<!-- v5.2.0 Mobile UX Patch -->
+<!-- v5.2.1 Mobile UX Patch -->
 <style>
 @media (max-width: 767px) {
   :root { --mobile-gap: 10px; }

@@ -113,13 +113,19 @@ function parseBrokerCandles(tf) {
   if (!Array.isArray(arr) || arr.length < 30) return null;
   // Accept both the normalized server shape (t/o/h/l/c) and the Python
   // MT5 bridge shape (time/open/high/low/close).
-  return arr.map(x => ({
-    t: Number(x.t ?? x.time),
-    o: Number(x.o ?? x.open),
-    h: Number(x.h ?? x.high),
-    l: Number(x.l ?? x.low),
-    c: Number(x.c ?? x.close)
-  })).filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite));
+  return arr.map(x => {
+    let t = Number(x.t ?? x.time);
+    // Accept Unix seconds or milliseconds from MT5 bridge.
+    if (Number.isFinite(t) && t > 0 && t < 1e12) t *= 1000;
+    return {
+      t,
+      o: Number(x.o ?? x.open),
+      h: Number(x.h ?? x.high),
+      l: Number(x.l ?? x.low),
+      c: Number(x.c ?? x.close)
+    };
+  }).filter(x => [x.t,x.o,x.h,x.l,x.c].every(Number.isFinite))
+    .sort((a,b)=>a.t-b.t);
 }
 
 function avg(a) { return a.length ? a.reduce((x,y)=>x+y,0)/a.length : null; }
@@ -288,9 +294,9 @@ async function buildXauAnalysis() {
   const zoneIsNear=entryZone ? zoneDistance(live.price,entryZone)<=Math.max(a*3,12) : false;
   const inZone=zoneContains(live.price,entryZone);
   const directionConfirmed = macroBias==='BULLISH'
-    ? bullHTF>=2 && (sweep.bias==='BULLISH' || bullishMSS) && candlesFresh
+    ? bullHTF>=2 && sweep.bias==='BULLISH' && bullishMSS && candlesFresh
     : macroBias==='BEARISH'
-      ? bearHTF>=2 && (sweep.bias==='BEARISH' || bearishMSS) && candlesFresh
+      ? bearHTF>=2 && sweep.bias==='BEARISH' && bearishMSS && candlesFresh
       : false;
 
   const score={bull:0,bear:0,items:[]};
@@ -314,7 +320,7 @@ async function buildXauAnalysis() {
   if(candlesFresh && directionConfirmed && direction===macroBias){
     const side=direction;
     const hasAlignedZone=!!entryZone && zoneIsNear;
-    if(hasAlignedZone){
+    if(hasAlignedZone && Math.max(score.bull, score.bear) >= 65){
       const zoneMid=(entryZone.low+entryZone.high)/2;
       entry=round2(inZone ? live.price : zoneMid);
       const buffer=Math.max(a*0.35,0.8);
@@ -343,7 +349,7 @@ async function buildXauAnalysis() {
 
   const maxScore=90;
   const rawScore=Math.max(score.bull,score.bear);
-  const confidence=Math.min(99,Math.round((rawScore/maxScore)*100));
+  const confidence=Math.min(100,Math.round((rawScore/maxScore)*100));
   const setupGrade=confidence>=85?'A+':confidence>=75?'A':confidence>=65?'B':confidence>=50?'WATCH':'LOW';
   const swingHigh=exec.structure.swingHigh, swingLow=exec.structure.swingLow;
   const mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price;
@@ -355,6 +361,7 @@ async function buildXauAnalysis() {
     candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,bias:direction,confidence,setupGrade,status,actionable,
     entry,entryZone,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,
     score:{bull:score.bull,bear:score.bear,confidence,grade:setupGrade,items:score.items},
+    setupScore:confidence,
     confirmations:{liquiditySweep:sweep,displacement,bullishMSS,bearishMSS,inZone,zoneIsNear,mtfCount},
     ict:{liquiditySweep:sweep,mss:exec.structure.mss,bos:exec.structure.bos,fvg:f,orderBlock:ob,premiumDiscount},
     timeframes:tfs,
@@ -367,7 +374,7 @@ function telegramText(a) {
   const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
   const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
   return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
-    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nScore: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
+    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nSetup Score: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
     `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
     `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
     `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
@@ -422,7 +429,8 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     if (!MT5_BRIDGE_API_KEY || req.get('x-vtrade-key') !== MT5_BRIDGE_API_KEY) return res.status(401).json({success:false,error:'Unauthorized'});
     const q=req.body || {};
     if (!isAllowedXauSymbol(q.symbol)) return res.status(400).json({success:false,error:'Unsupported symbol'});
-    const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTime=Number(q.serverTime);
+    const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTimeRaw=Number(q.serverTime);
+    const serverTime = Number.isFinite(serverTimeRaw) && serverTimeRaw > 0 ? (serverTimeRaw < 1e12 ? serverTimeRaw*1000 : serverTimeRaw) : Date.now();
     if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid<=0 || ask<=0 || ask<bid) return res.status(400).json({success:false,error:'Invalid quote'});
     brokerFeed.quote={bid,ask,last,spread:Number(q.spread)||ask-bid,serverTime:Number.isFinite(serverTime)?serverTime:Date.now()};
     // Python bridge v2 sends MTF candles under `bars`; older builds used `timeframes`.
@@ -581,4 +589,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.0 Smart Entry Radar server listening on ${HOST}:${PORT}`));
+app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.1 Smart Entry PRO server listening on ${HOST}:${PORT}`));
