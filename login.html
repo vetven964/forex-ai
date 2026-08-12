@@ -6,12 +6,14 @@
     <title>V TRADE AI - Login & 2FA Security</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // ឆែកមើលថាតើធ្លាប់ Login រួចហើយឬនៅ បើធ្លាប់ហើយ ទម្លាក់ចូល Admin Dashboard ភ្លាម
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('vtrade_logged_user');
-            if (savedUser) {
-                window.location.href = 'admin-dashboard.html';
-            }
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = sessionStorage.getItem('vtrade_auth_token');
+            if (!token) return;
+            try {
+                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/auth/session', {headers:{'x-vtrade-auth':token},cache:'no-store'});
+                const d = await r.json();
+                if (r.ok && d.success) window.location.href = d.user?.role === 'admin' ? 'admin-dashboard.html' : 'index.html';
+            } catch (_) {}
         });
     </script>
 </head>
@@ -27,11 +29,11 @@
         <div id="loginFormSection" class="space-y-4">
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Email Address</label>
-                <input type="email" id="authEmail" value="admin@vtrade.com" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                <input type="email" id="authEmail" value="" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Password</label>
-                <input type="password" id="authPassword" value="••••••••" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                <input type="password" id="authPassword" value="" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500">
             </div>
             <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition text-sm">
                 បន្តទៅផ្ទៀងផ្ទាត់ 2FA (Next)
@@ -41,7 +43,7 @@
         <!-- ផ្នែកផ្ទៀងផ្ទាត់ OTP (2FA) -->
         <div id="otpVerificationSection" class="hidden space-y-4">
             <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl text-center">
-                <span class="text-xs text-amber-400">OTP សម្រាប់ Development only — មិនមែន production authentication:</span>
+                <span class="text-xs text-amber-400">Server Authentication — Password ត្រូវបាន verify នៅ Backend:</span>
                 <div id="generatedOtpDisplay" class="text-lg font-bold text-amber-300 tracking-widest mt-1">------</div>
             </div>
             <div>
@@ -55,41 +57,21 @@
     </div>
 
     <script>
-        let activeOtpCode = null;
-
-        function proceedTo2FAStep() {
-            const email = document.getElementById('authEmail').value;
-            if(!email) {
-                alert('សូមបំពេញ Email ជាមុនសិន!');
-                return;
-            }
-            // បង្កើតកូដ OTP ថ្មីចៃដន្យ
-            activeOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
-            document.getElementById('generatedOtpDisplay').innerText = activeOtpCode;
-            
-            // ប្តូរបង្ហាញផ្ទាំង OTP
-            document.getElementById('loginFormSection').classList.add('hidden');
-            document.getElementById('otpVerificationSection').classList.remove('hidden');
-            document.getElementById('authModalTitle').innerText = '2FA OTP Verification Required';
+        const VTRADE_API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
+        async function loginServer() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if (!email || !password) return alert('សូមបំពេញ Email និង Password។');
+            try {
+                const r = await fetch(VTRADE_API_BASE + '/api/auth/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+                const d = await r.json();
+                if (!r.ok || !d.success) throw new Error(d.error || 'Login failed');
+                sessionStorage.setItem('vtrade_auth_token', d.token);
+                window.location.href = d.user?.role === 'admin' ? 'admin-dashboard.html' : 'index.html';
+            } catch(e) { alert('❌ Login មិនបាន: ' + e.message); }
         }
-
-        function verifyOtpAndLogin() {
-            const userEnteredOtp = document.getElementById('otpInputCode').value.trim();
-            const email = document.getElementById('authEmail').value;
-            
-            if(userEnteredOtp === activeOtpCode) {
-                // កាត់យកឈ្មោះពី Email មករក្សាទុក
-                const shortName = email ? email.split('@')[0] : 'Admin Secured';
-                localStorage.setItem('vtrade_logged_user', shortName);
-                
-                alert('ផ្ទៀងផ្ទាត់ 2FA OTP ជោគជ័យ! កំពុងចូលទៅកាន់ Dashboard...');
-                
-                // បញ្ជូនទៅកាន់ Dashboard ស្វ័យប្រវត្តិ
-                window.location.href = 'admin-dashboard.html';
-            } else {
-                alert('លេខកូដ OTP មិនត្រឹមត្រូវទេ! (កូដត្រឹមត្រូវគឺ៖ ' + activeOtpCode + ')');
-            }
-        }
+        function proceedTo2FAStep() { return loginServer(); }
+        function verifyOtpAndLogin() { return loginServer(); }
     </script>
 </body>
 </html>

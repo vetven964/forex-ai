@@ -140,14 +140,30 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-        // 💡 កូដឆែក Login៖ ប្រសិនបើមិនទាន់ Login ទេ ទាញទម្លាក់ទៅ Login Page ភ្លាម
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = "login.html";
+        const VTRADE_API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
+        const vtradeAuthToken = sessionStorage.getItem('vtrade_auth_token') || '';
+        const authHeaders = () => ({'Content-Type':'application/json','x-vtrade-auth':vtradeAuthToken});
+
+        async function requireAdminSession() {
+            if (!vtradeAuthToken) { window.location.href = 'index.html'; return false; }
+            try {
+                const r = await fetch(VTRADE_API_BASE + '/api/admin/session', {headers:{'x-vtrade-auth':vtradeAuthToken}, cache:'no-store'});
+                const d = await r.json();
+                if (!r.ok || !d.success || d.admin?.role !== 'admin') throw new Error('Admin session required');
+                const badge = document.querySelector('.badge.bg-success');
+                if (badge) badge.textContent = 'Role: Admin · FULL SESSION';
+                return true;
+            } catch (_) {
+                sessionStorage.removeItem('vtrade_auth_token');
+                window.location.href = 'index.html';
+                return false;
+            }
         }
+        requireAdminSession();
 
         async function adminBroadcastSignal() {
             try {
-                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:document.getElementById("admin-signal-type").value})});
+                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {method:'POST', headers:authHeaders(), body:JSON.stringify({type:document.getElementById("admin-signal-type").value})});
                 const d = await r.json();
                 if(!r.ok || !d.success) throw new Error(d.error || 'Signal not broadcast');
                 alert(`✅ Current verified XAUUSD signal sent: ${d.analysis?.signal || 'WAIT'}`);

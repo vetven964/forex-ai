@@ -23,8 +23,107 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.3.1';
+const APP_VERSION = '6.3.3';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
+const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
+const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
+const AUTH_MAX_SESSIONS = Math.max(100, Math.min(10000, Number(process.env.AUTH_MAX_SESSIONS || 2000)));
+const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || '').trim();
+const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
+const USER_ACCOUNTS = loadUserAccounts();
+const authSessions = new Map();
+
+function loadUserAccounts() {
+  try {
+    const raw = String(process.env.VTRADE_USERS_JSON || '').trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(u => ({
+      id: String(u.id || crypto.randomUUID()),
+      email: String(u.email || '').trim().toLowerCase(),
+      name: String(u.name || u.email || 'User').slice(0, 80),
+      role: String(u.role || 'user').toLowerCase() === 'admin' ? 'admin' : 'user',
+      plan: String(u.plan || 'Trial').slice(0, 40),
+      passwordHash: String(u.passwordHash || '').trim(),
+      enabled: u.enabled !== false
+    })).filter(u => u.email && u.passwordHash);
+  } catch (e) {
+    console.error('[AUTH] Invalid VTRADE_USERS_JSON:', e.message);
+    return [];
+  }
+}
+
+function verifyPassword(password, encoded) {
+  try {
+    const [salt, hash] = String(encoded || '').split(':');
+    if (!salt || !hash) return false;
+    const derived = crypto.scryptSync(String(password || ''), salt, 64).toString('hex');
+    return safeEqual(derived, hash);
+  } catch (_) { return false; }
+}
+
+function verifyAdminPassword(password) {
+  if (ADMIN_PASSWORD_HASH) return verifyPassword(password, ADMIN_PASSWORD_HASH);
+  // Plain ADMIN_PASSWORD is retained only for compatibility; use ADMIN_PASSWORD_HASH in production.
+  return !!ADMIN_PASSWORD && safeEqual(password, ADMIN_PASSWORD);
+}
+
+function createAuthSession(user) {
+  if (authSessions.size >= AUTH_MAX_SESSIONS) {
+    const oldest = authSessions.keys().next().value;
+    if (oldest) authSessions.delete(oldest);
+  }
+  const token = crypto.randomBytes(32).toString('hex');
+  authSessions.set(token, { ...user, createdAt: Date.now(), expiresAt: Date.now() + AUTH_SESSION_TTL_MS, lastSeenAt: Date.now() });
+  return token;
+}
+
+function authTokenFrom(req) {
+  const token = String(req.get('x-vtrade-auth') || '').trim();
+  return /^[a-f0-9]{64}$/i.test(token) ? token : null;
+}
+
+function getAuthSession(req) {
+  const token = authTokenFrom(req);
+  if (!token) return null;
+  const session = authSessions.get(token);
+  if (!session || Date.now() >= session.expiresAt) {
+    if (token) authSessions.delete(token);
+    return null;
+  }
+  session.lastSeenAt = Date.now();
+  return session;
+}
+
+function requireAuth(req, res, next) {
+  const session = getAuthSession(req);
+  if (!session) return res.status(401).json({ success:false, error:'Authentication required' });
+  req.vtradeUser = session;
+  next();
+}
+
+function requireRole(role) {
+  return (req,res,next) => {
+    if (!req.vtradeUser || req.vtradeUser.role !== role) return res.status(403).json({ success:false, error:'Forbidden' });
+    next();
+  };
+}
+
+const pricingPlans = (() => {
+  try {
+    const parsed = JSON.parse(String(process.env.VTRADE_PRICING_JSON || ''));
+    if (Array.isArray(parsed) && parsed.length) return parsed;
+  } catch (_) {}
+  return [
+    {id:'trial', name:'Free 7-Day Trial', price:0, period:'7 days', enabled:true, features:['AI Research','Basic MTF','Demo Telegram']},
+    {id:'basic', name:'Basic', price:4.99, period:'month', enabled:true, features:['MTF ICT','Risk Calculator','Standard Alerts']},
+    {id:'standard', name:'Standard', price:8.99, period:'month', enabled:true, features:['Advanced MTF','News Filter','Telegram Entry Alerts']},
+    {id:'vip-pro', name:'VIP Pro', price:29, period:'month', enabled:true, features:['Full MTF','Multi-Horizon','Priority AI','Advanced Telegram Alerts']}
+  ];
+})();
+
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
   ...(APP_BASE_URL ? [APP_BASE_URL] : []),
@@ -104,7 +203,7 @@ app.use(cors({
     cb(new Error('CORS origin not allowed'));
   },
   methods: ['GET','POST','OPTIONS'],
-  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-request'],
+  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-auth','x-vtrade-request'],
   credentials: false
 }));
 app.use(express.json({ limit: '200kb' }));
@@ -122,6 +221,82 @@ function requireAdmin(req,res,next) {
   if (!safeEqual(req.get('x-vtrade-admin-key'), ADMIN_API_KEY)) return res.status(401).json({success:false,error:'Unauthorized'});
   next();
 }
+
+
+// Authentication / RBAC. Frontend visibility is only UX; every protected action is enforced here.
+app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standardHeaders: true, legacyHeaders: false }), (req,res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  if (!email || !password) return res.status(400).json({success:false,error:'Email and password are required'});
+
+  let user = null;
+  if (ADMIN_EMAIL && email === ADMIN_EMAIL && verifyAdminPassword(password)) {
+    user = { id:'owner-admin', email:ADMIN_EMAIL, name:'VET VEN', role:'admin', plan:'Admin', permissions:['*'] };
+  } else {
+    const found = USER_ACCOUNTS.find(u => u.enabled && u.email === email && verifyPassword(password, u.passwordHash));
+    if (found) user = { id:found.id, email:found.email, name:found.name, role:found.role, plan:found.plan, permissions:found.role === 'admin' ? ['*'] : ['terminal','pricing','telegram:own','profile:own'] };
+  }
+  if (!user) return res.status(401).json({success:false,error:'Invalid credentials'});
+  const token = createAuthSession(user);
+  res.set('Cache-Control','no-store');
+  res.json({success:true, token, expiresAt:Date.now()+AUTH_SESSION_TTL_MS, user});
+});
+
+app.get('/api/auth/session', requireAuth, (req,res) => {
+  res.set('Cache-Control','no-store');
+  res.json({success:true,user:req.vtradeUser,expiresAt:req.vtradeUser.expiresAt});
+});
+
+app.post('/api/auth/logout', requireAuth, (req,res) => {
+  const token = authTokenFrom(req);
+  if (token) authSessions.delete(token);
+  res.json({success:true});
+});
+
+app.get('/api/pricing', requireAuth, (req,res) => {
+  res.set('Cache-Control','no-store');
+  res.json({success:true, role:req.vtradeUser.role, currentPlan:req.vtradeUser.plan, plans:pricingPlans});
+});
+
+app.post('/api/admin/broadcast', requireAuth, requireRole('admin'), telegramMutationLimit, async (req,res) => {
+  try {
+    const tg = activeTelegramConfig(req);
+    if (!tg) return res.status(400).json({success:false,error:'Telegram is not connected'});
+    const a = await buildXauAnalysis();
+    if (!['BUY','SELL'].includes(a.signal) || a.status !== 'ENTRY CONFIRMED' || Number(a.confidence||0) < Number(process.env.TELEGRAM_MIN_SCORE || 80)) {
+      return res.status(409).json({success:false,error:'No confirmed high-confidence entry. Admin broadcast blocked.',analysis:a});
+    }
+    await tg.bot.sendMessage(tg.chatId, telegramText(a));
+    return res.json({success:true,analysis:a});
+  } catch(e) { return res.status(500).json({success:false,error:'Admin broadcast failed'}); }
+});
+
+app.get('/api/admin/session', requireAuth, requireRole('admin'), (req,res) => {
+  res.set('Cache-Control','no-store');
+  const sessions=[...authSessions.entries()].map(([token,s]) => ({
+    sessionId: token.slice(0,8)+'…', id:s.id, email:s.email, name:s.name, role:s.role, plan:s.plan,
+    createdAt:s.createdAt, lastSeenAt:s.lastSeenAt, expiresAt:s.expiresAt, active:Date.now()<s.expiresAt
+  })).filter(s=>s.active);
+  res.json({success:true,admin:req.vtradeUser,sessions,sessionCount:sessions.length,capabilities:['users:read','users:manage','pricing:manage','security:audit','telegram:admin','system:read']});
+});
+
+app.get('/api/admin/users', requireAuth, requireRole('admin'), (req,res) => {
+  res.set('Cache-Control','no-store');
+  const users=[{id:'owner-admin',email:ADMIN_EMAIL || 'configured-admin',name:'VET VEN',role:'admin',plan:'Admin',enabled:true}].concat(USER_ACCOUNTS.map(u=>({id:u.id,email:u.email,name:u.name,role:u.role,plan:u.plan,enabled:u.enabled})));
+  res.json({success:true,users});
+});
+
+app.post('/api/admin/pricing', requireAuth, requireRole('admin'), (req,res) => {
+  const plans=Array.isArray(req.body?.plans) ? req.body.plans : null;
+  if (!plans || plans.length < 1 || plans.length > 12) return res.status(400).json({success:false,error:'Invalid pricing plans'});
+  for (const p of plans) {
+    if (!/^[a-z0-9-]{2,40}$/i.test(String(p.id||'')) || !String(p.name||'').trim() || !Number.isFinite(Number(p.price)) || Number(p.price)<0) return res.status(400).json({success:false,error:'Invalid pricing plan fields'});
+  }
+  pricingPlans.splice(0, pricingPlans.length, ...plans.map(p=>({id:String(p.id),name:String(p.name).slice(0,80),price:Number(p.price),period:String(p.period||'month').slice(0,30),enabled:p.enabled!==false,features:Array.isArray(p.features)?p.features.slice(0,20).map(x=>String(x).slice(0,100)):[]})));
+  storage.saveEvent?.('pricing_update', null, {admin:req.vtradeUser.email,plans:pricingPlans}).catch(()=>{});
+  res.json({success:true,plans:pricingPlans});
+});
+
 app.use(express.static(path.join(__dirname)));
 
 const cache = new Map();
@@ -137,7 +312,6 @@ const NEWS_429_RETRY_MS = Number(process.env.NEWS_429_RETRY_MS || 10 * 60 * 1000
 const NEWS_STALE_MAX_MS = Number(process.env.NEWS_STALE_MAX_MS || 30 * 60 * 1000);
 const NEWS_MAX_SOURCES = Math.max(1, Math.min(6, Number(process.env.NEWS_MAX_SOURCES || 4)));
 const AI_DATA_QUALITY_MIN = Math.max(60, Math.min(100, Number(process.env.AI_DATA_QUALITY_MIN || 85)));
-const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
@@ -153,7 +327,7 @@ const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
 const MIN_ENTRY_SCORE = Math.max(MIN_CONFLUENCE, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.3.2-multi-horizon-premium';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.3.3-rbac-multi-horizon-premium';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
@@ -1185,7 +1359,7 @@ app.post('/telegram/webhook',async(req,res)=>{
   res.sendStatus(200);
 });
 
-setInterval(()=>{ const now=Date.now(); for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
+setInterval(()=>{ const now=Date.now(); for (const [token,session] of authSessions) { if (!session.expiresAt || now>=session.expiresAt) authSessions.delete(token); } for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
 
 if(bot){
   bot.onText(/^\/price$/,async msg=>{
