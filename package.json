@@ -1,7 +1,7 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "5.3.3",
-  "description": "V Trade AI Smart Entry PRO — VT Markets MT5 XAUUSD MTF ICT + News + Storage",
+  "version": "5.3.5",
+  "description": "V Trade AI Strict Real-Time XAUUSD MTF ICT Decision Engine + News + Storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
