@@ -1498,9 +1498,15 @@ body{
             if(!card||!label||!detail||!next) return;
             const ageSec=Number(news?.sourceAgeSec);
             if(source) source.textContent = news?.source ? (String(news.source).includes('faireconomy') ? 'ForexFactory' : String(news.source).replace(/^https?:\/\//,'').slice(0,28)) : 'MT5 bridge / —';
-            if(feed){ feed.textContent = news?.sourceStatus === 'LIVE' ? 'LIVE · VERIFIED' : 'OFFLINE · LOCKED'; feed.className = news?.sourceStatus === 'LIVE' ? 'text-emerald-400' : 'text-red-400'; }
+            if(feed){ const live=news?.sourceStatus==='LIVE', degraded=news?.sourceStatus==='DEGRADED'; feed.textContent = live ? 'LIVE · VERIFIED' : degraded ? 'DEGRADED · CONTEXT ONLY' : 'OFFLINE · LOCKED'; feed.className = live ? 'text-emerald-400' : degraded ? 'text-amber-400' : 'text-red-400'; }
             if(age) age.textContent = Number.isFinite(ageSec) ? `${ageSec}s` : '—';
             if(count) count.textContent = String(news?.upcoming?.length ?? 0);
+            if(news?.sourceStatus==='DEGRADED' || news?.degraded){
+                label.textContent='NEWS DEGRADED · NO ENTRY';
+                label.className='text-xl font-extrabold mt-1 text-amber-400';
+                detail.textContent=`News provider is temporarily rate-limited/unavailable. AI ប្រើ calendar snapshot ចាស់សម្រាប់ context ប៉ុណ្ណោះ និងមិនអនុញ្ញាត Entry រហូតដល់ feed LIVE · VERIFIED`;
+                next.textContent=news?.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '—'; return;
+            }
             if(!news || news.available===false){
                 label.textContent='NEWS UNAVAILABLE · NO ENTRY';
                 label.className='text-xl font-extrabold mt-1 text-red-400';
@@ -1552,7 +1558,7 @@ body{
             const rt=document.getElementById('newsResearchTitle'), rr=document.getElementById('newsResearchText');
             if(rt && rr){
                 const r=a?.news?.research;
-                rt.textContent=r ? `${r.eventClass} · ${a.news?.next?.title || 'USD High Impact'}` : (a?.news?.available===false ? 'NEWS UNAVAILABLE · NO RESEARCH' : 'NO HIGH-IMPACT USD EVENT');
+                rt.textContent=r ? `${r.eventClass} · ${a.news?.next?.title || 'USD High Impact'}` : (a?.news?.degraded ? 'NEWS DEGRADED · CONTEXT ONLY' : (a?.news?.available===false ? 'NEWS UNAVAILABLE · NO RESEARCH' : 'NO HIGH-IMPACT USD EVENT'));
                 rr.textContent=r ? r.methodology : (a?.news?.available===false ? 'News feed មិនទាន់ verify — Trading Gate នៅ NO ENTRY' : 'Calendar verified; no immediate high-impact USD event.');
             }
         }

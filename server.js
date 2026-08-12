@@ -125,9 +125,11 @@ const newsCache = { at: 0, data: null };
 const analysisCache = { key: '', at: 0, data: null };
 const ANALYSIS_CACHE_MS = Math.max(250, Number(process.env.ANALYSIS_CACHE_MS || 750));
 const bridgeNews = { items: null, receivedAt: 0, source: null };
-const newsHealth = { lastAttemptAt: 0, lastSuccessAt: 0, lastSource: null, lastError: null, attempts: 0, successes: 0 };
+const newsHealth = { lastAttemptAt: 0, lastSuccessAt: 0, lastSource: null, lastError: null, attempts: 0, successes: 0, rateLimitedUntil: 0 };
 const NEWS_CACHE_MS = Math.max(5000, Number(process.env.NEWS_CACHE_MS || 15000));
 const NEWS_ERROR_RETRY_MS = Number(process.env.NEWS_ERROR_RETRY_MS || 120000);
+const NEWS_429_RETRY_MS = Number(process.env.NEWS_429_RETRY_MS || 10 * 60 * 1000);
+const NEWS_STALE_MAX_MS = Number(process.env.NEWS_STALE_MAX_MS || 30 * 60 * 1000);
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
@@ -223,7 +225,7 @@ function refreshCachedNews(data, now) {
 
 async function fetchNewsSource(url) {
   const controller = new AbortController();
-  const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 4000);
+  const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 5000);
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = await fetch(url, {
@@ -235,14 +237,26 @@ async function fetchNewsSource(url) {
       signal: controller.signal
     });
     const contentType = String(r.headers.get('content-type') || '').toLowerCase();
-    if (!r.ok) throw new Error(`news http ${r.status}`);
+    if (!r.ok) {
+      const retryAfter = Number(r.headers.get('retry-after') || 0);
+      const err = new Error(`news http ${r.status}`);
+      err.status = r.status;
+      err.retryAfterMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 0;
+      throw err;
+    }
     const text = await r.text();
     const trimmed = text.trim();
     if (!trimmed || /^<!doctype html|^<html/i.test(trimmed)) {
-      throw new Error(`news returned HTML/non-JSON${contentType ? ` (${contentType})` : ''}`);
+      const err = new Error(`news returned HTML/non-JSON${contentType ? ` (${contentType})` : ''}`);
+      err.status = 502;
+      throw err;
     }
     try { return JSON.parse(trimmed); }
-    catch { throw new Error('news returned invalid JSON'); }
+    catch {
+      const err = new Error('news returned invalid JSON');
+      err.status = 502;
+      throw err;
+    }
   } finally { clearTimeout(timer); }
 }
 
@@ -250,6 +264,18 @@ async function fetchXauNews() {
   const now = Date.now();
   const cacheWindow = newsCache.data?.available === false ? NEWS_ERROR_RETRY_MS : NEWS_CACHE_MS;
   if (newsCache.data && now - newsCache.at < cacheWindow) return refreshCachedNews(newsCache.data, now);
+
+  // Never hammer a rate-limited provider. Keep the last verified calendar for UI
+  // context, but mark it degraded so the trading gate remains fail-closed.
+  if (newsHealth.rateLimitedUntil > now && newsCache.data?.available === true) {
+    return {
+      ...refreshCachedNews(newsCache.data, now),
+      sourceStatus: 'DEGRADED',
+      degraded: true,
+      trusted: false,
+      error: `News provider rate-limited; retry after ${new Date(newsHealth.rateLimitedUntil).toISOString()}`
+    };
+  }
 
   // Prefer the broker/MT5 calendar bridge when present. This avoids relying on
   // public calendar export rate limits and keeps the news clock aligned with the
@@ -262,7 +288,7 @@ async function fetchXauNews() {
       sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
       windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
       source:bridgeNews.source || 'MT5 bridge', sourceCount:1, sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
-      updatedAt:new Date(now).toISOString(), sourceStatus:'LIVE', sourceDiagnostics:[{source:bridgeNews.source || 'MT5 bridge',status:'ok',ageSec:Math.round((now-bridgeNews.receivedAt)/1000)}],
+      updatedAt:new Date(now).toISOString(), sourceStatus:'LIVE', trusted:true, degraded:false, sourceDiagnostics:[{source:bridgeNews.source || 'MT5 bridge',status:'ok',ageSec:Math.round((now-bridgeNews.receivedAt)/1000)}],
       researchStatus:st.state==='LIVE'?'NEWS_LIVE':st.state==='POST_NEWS'?'POST_NEWS_REACTION':st.state==='LOCK'||st.state==='CAUTION'?'PRE_NEWS_RESEARCH':'CLEAR',
       research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
     };
@@ -289,7 +315,7 @@ async function fetchXauNews() {
         sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
         windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
         source:sourceUrl, sourceCount:sources.length, sourceAgeSec:0, updatedAt:new Date(now).toISOString(),
-        sourceStatus:'LIVE', sourceDiagnostics:diagnostics,
+        sourceStatus:'LIVE', trusted:true, degraded:false, sourceDiagnostics:diagnostics,
         researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' :
           st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
         research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
@@ -297,16 +323,37 @@ async function fetchXauNews() {
       newsHealth.lastSuccessAt=now; newsHealth.lastSource=sourceUrl; newsHealth.lastError=null; newsHealth.successes++;
       newsCache.at=now; newsCache.data=data; return data;
     } catch (e) {
-      diagnostics.push({source:sourceUrl,status:'error',error:e?.message || 'request failed'});
+      const status = Number(e?.status || 0);
+      if (status === 429) {
+        const waitMs = Math.max(NEWS_429_RETRY_MS, Number(e?.retryAfterMs || 0));
+        newsHealth.rateLimitedUntil = Math.max(newsHealth.rateLimitedUntil, now + waitMs);
+      }
+      diagnostics.push({source:sourceUrl,status:'error',httpStatus:status || null,error:e?.message || 'request failed'});
     }
   }
 
   const errors = diagnostics.map(d => `${d.source}: ${d.error || d.status}`).join(' | ');
+
+  // A stale calendar is useful for visibility/diagnostics, but NEVER trusted for
+  // a live entry decision. This prevents a 429 from making the UI look empty
+  // while preserving the safety gate.
+  if (newsCache.data?.available === true) {
+    const ageMs = now - newsCache.at;
+    if (ageMs <= NEWS_STALE_MAX_MS) {
+      const stale = refreshCachedNews(newsCache.data, now);
+      const data = {
+        ...stale, sourceStatus:'DEGRADED', trusted:false, degraded:true,
+        sourceAgeSec:Math.round(ageMs/1000),
+        error:errors || 'News source temporarily unavailable; using last verified snapshot for context only.'
+      };
+      newsCache.at=now; newsCache.data=data; return data;
+    }
+  }
   newsHealth.lastError=errors || 'No news source available';
   const data={
     available:false,state:'UNAVAILABLE',label:'NEWS UNAVAILABLE',next:null,previous:null,
     deltaMin:null,sincePreviousMin:null,windowMinutes:NEWS_PRELOCK_MIN,postWindowMinutes:NEWS_POST_MIN,
-    source:sources[0]||null,sourceCount:sources.length,sourceStatus:'OFFLINE',sourceDiagnostics:diagnostics,
+    source:sources[0]||null,sourceCount:sources.length,sourceStatus:'OFFLINE',trusted:false,degraded:true,sourceDiagnostics:diagnostics,
     updatedAt:new Date(now).toISOString(), error:errors || 'No news source available',
     researchStatus:'UNAVAILABLE',research:null,upcoming:[]
   };
@@ -678,10 +725,11 @@ async function buildXauAnalysis() {
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
   const news=await newsPromise;
-  const newsBlocked = (NEWS_FAIL_CLOSED && !news.available) || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
+  const newsBlocked = (NEWS_FAIL_CLOSED && (!news.available || news.trusted === false || news.degraded === true)) || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
   if(newsBlocked){
     signal='WAIT'; entry=null; sl=null; tp=[];
     if(!news.available){ status='NEWS UNAVAILABLE — NO ENTRY'; trigger='News feed unavailable; do not trade until USD high-impact calendar is verified'; }
+    else if(news.degraded || news.trusted === false){ status='NEWS DEGRADED — NO ENTRY'; trigger='News provider is rate-limited/stale; calendar is shown for context only. Wait for a fresh verified feed'; }
     else if(news.state==='LIVE'){ status='NEWS LIVE — NO ENTRY'; trigger=`${news.next?.title || 'High-impact USD news'} is live; wait for post-news sweep + MSS/BOS + displacement + retest`; }
     else if(news.state==='POST_NEWS'){ status='POST-NEWS — WAIT FOR REACTION'; trigger='High-impact USD news just passed; wait for post-news sweep + MSS/BOS + displacement + retest'; }
     else { status='NEWS LOCK — WAIT AFTER NEWS'; trigger=`${news.next?.title || 'High-impact USD news'} is due soon; wait for post-news confirmation`; }
