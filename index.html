@@ -2154,8 +2154,12 @@ body{
       const dict=I18N[lang]||{}; const tr=dict[clean];
       if(tr){
         const lead=raw.match(/^\s*/)?.[0]||''; const tail=raw.match(/\s*$/)?.[0]||'';
-        node.nodeValue=lead+tr+tail;
-      } else if(lang==='km') node.nodeValue=raw;
+        const nextValue=lead+tr+tail;
+        // Prevent MutationObserver feedback loops: only write when the value actually changes.
+        if(node.nodeValue!==nextValue) node.nodeValue=nextValue;
+      } else if(lang==='km' && node.nodeValue!==raw) {
+        node.nodeValue=raw;
+      }
     } else if(node.nodeType===1){
       if(skip.has(node.tagName)) return;
       if(node.hasAttribute('placeholder')){ if(!originalAttrs.has(node)) originalAttrs.set(node,{placeholder:node.getAttribute('placeholder'),title:node.getAttribute('title')}); const a=originalAttrs.get(node); const d=I18N[lang]||{}; if(d[a.placeholder]) node.setAttribute('placeholder',d[a.placeholder]); else if(lang==='km') node.setAttribute('placeholder',a.placeholder); }
@@ -2177,13 +2181,23 @@ body{
   window.changeLanguage=function(lang){ window.applyVTradeLanguage(lang); };
   const saved=localStorage.getItem('vtrade_language')||document.getElementById('languageSelect')?.value||'km';
   window.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>window.applyVTradeLanguage(saved),50); });
+  let observerQueued=false;
   const observer=new MutationObserver(muts=>{
-    if(applying) return;
-    const lang=document.documentElement.lang||'km';
-    for(const m of muts){
-      if(m.type==='childList') m.addedNodes.forEach(n=>{ if(n.nodeType===1||n.nodeType===3) translateNode(n,lang); });
-      if(m.type==='characterData') translateNode(m.target,lang);
-    }
+    if(applying || observerQueued) return;
+    observerQueued=true;
+    queueMicrotask(()=>{
+      observerQueued=false;
+      const lang=document.documentElement.lang||'km';
+      for(const m of muts){
+        if(m.type==='childList') {
+          m.addedNodes.forEach(n=>{
+            if(n.nodeType===1||n.nodeType===3) translateNode(n,lang);
+          });
+        } else if(m.type==='characterData') {
+          translateNode(m.target,lang);
+        }
+      }
+    });
   });
   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
 })();
