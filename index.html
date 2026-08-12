@@ -2129,6 +2129,66 @@ body{
             closeModal('profileModal');
         }
     </script>
+
+<script>
+/* V TRADE AI v6.1.3 — FULL UI I18N (KH / EN / ZH)
+   Language changes presentation only; trading calculations, MT5 data and risk gates remain unchanged. */
+(function(){
+  const I18N={
+    en:{
+      'V TRADE AI & TERMINAL v6.1.0':'V TRADE AI & TERMINAL v6.1.0','Realtime Price + ICT Engine Active':'Realtime Price + ICT Engine Active','Storage: checking…':'Storage: checking…','PREMIUM REALTIME':'PREMIUM REALTIME','ENTRY GATED':'ENTRY GATED','Live Crypto Ticker Bar & Clock Header':'Live Crypto Ticker Bar & Clock Header','Mobile Live Status Strip':'Mobile Live Status Strip','MT5 LIVE':'MT5 LIVE','Mobile Drawer Menu Overlay':'Mobile Drawer Menu Overlay','ម៉ឺនុយគ្រប់គ្រង (Menu v6.1.0)':'Control Menu (v6.1.0)','Terminal & Analysis AI Realtime':'Terminal & AI Analysis Realtime','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'Dashboard','Copy Trading Bot (Auto Mirror)':'Copy Trading Bot (Auto Mirror)','AI Sentiment & Consensus Filter':'AI Sentiment & Consensus Filter','Admin Manager (User List)':'Admin Manager (User List)','AI Strategy Customizer & Backtest':'AI Strategy Customizer & Backtest','Risk & SL/TP Calculator':'Risk & SL/TP Calculator','Affiliate & Referral Program':'Affiliate & Referral Program','ម៉ោងទីផ្សារ (Asian/NY/London)':'Market Sessions (Asian/NY/London)','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'News & Links','កញ្ចប់តម្លៃថ្មី (Pricing)':'Pricing Plans','Telegram Bot & Webhook':'Telegram Bot & Webhook','TradingView Chart':'TradingView Chart','Cloudflare & DDoS Protection':'Cloudflare & DDoS Protection','AI Support v5.7':'AI Support v5.7','AI Terminal & Analysis Realtime Engine':'AI Terminal & Realtime Analysis Engine','XAU/USD (Gold - មាស)':'XAU/USD (Gold)','Scan Analysis':'Scan Analysis','Signal Metrics Top Dashboard Cards':'Signal Metrics Dashboard','Market Signal Direction':'Market Signal Direction','WAIT':'WAIT','Entry Zone:':'Entry Zone:','Status:':'Status:','Setup:':'Setup:','Setup Strength':'Setup Strength','ICT Confluence Score':'ICT Confluence Score','MTF:':'MTF:','ICT Fair Value Gap (FVG)':'ICT Fair Value Gap (FVG)','LIVE ICT':'LIVE ICT','Zone:':'Zone:','Market Bias & Context':'Market Bias & Context','MTF structure pending':'MTF structure pending','News Risk Radar':'News Risk Radar','USD Economic News Radar':'USD Economic News Radar','Next':'Next','Source':'Source','Feed':'Feed','Age':'Age','Events':'Events','Pre-News Research':'Pre-News Research','WAITING FOR VERIFIED NEWS':'WAITING FOR VERIFIED NEWS','Confirmation & Execution Readiness':'Confirmation & Execution Readiness','Entry Confirmation':'Entry Confirmation','NOT READY':'NOT READY','MTF Bias':'MTF Bias','Liquidity':'Liquidity','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'Premium/Discount','Displacement':'Displacement','Advanced AI Evidence / Decision Transparency':'Advanced AI Evidence / Decision Transparency','Advanced AI Evidence':'Advanced AI Evidence','ENGINE — · MT5 —':'ENGINE — · MT5 —','Mobile Signal Quick Summary':'Mobile Signal Quick Summary','Signal':'Signal','Score':'Score','Readiness':'Readiness','Real-Time AI Execution Console Terminal':'Real-Time AI Execution Console','Clear':'Clear','Execute':'Execute','Sentiment Consensus Radar':'Sentiment Consensus Radar','Signal Details Table':'Signal Details Table','Live AI Signal Breakdown & Target Levels':'Live AI Signal Breakdown & Target Levels','AUTO ALERT: ENTRY ONLY':'AUTO ALERT: ENTRY ONLY','ស្ថានភាព':'Status','គូ':'Pair','សញ្ញា':'Signal','តំបន់ចូល':'Entry Zone','ស្ថានភាព':'Status','TAB: DASHBOARD':'DASHBOARD','សមតុល្យគណនី (Balance)':'Account Balance','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'Current Plan','Copy Trading & Sentiment 24/7 Active':'Copy Trading & Sentiment 24/7 Active','Copy Trading Bot Status':'Copy Trading Bot Status','Running (1.0x)':'Running (1.0x)','Auto Mirroring Ready':'Auto Mirroring Ready','AI Sentiment Consensus':'AI Sentiment Consensus','Smart Filter v5.7':'Smart Filter v5.7','កំពុងគណនា...':'Calculating...','London Session':'London Session','New York Session':'New York Session','Asian Session (Tokyo)':'Asian Session (Tokyo)','រក្សាទុកការកំណត់ Copy Trading Bot':'Save Copy Trading Bot Settings','Global News Sentiment':'Global News Sentiment','LIVE DATA REQUIRED':'LIVE DATA REQUIRED','AI Confidence Score':'AI Confidence Score','NOT PUBLISHED':'NOT PUBLISHED','Sideways Filter':'Sideways Filter','Active (Auto-Block)':'Active (Auto-Block)','បន្ថែម User ថ្មី':'Add New User','Admin Level':'Admin Level','ឈ្មោះ & អ៊ីម៉ែល':'Name & Email','កម្រិតសិទ្ធិ (User Level)':'User Level','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'Security Status (Cloudflare)','កាលបរិច្ឆេទបង្កើត':'Created Date','សកម្មភាព (Actions)':'Actions','Dynamic Rendered by JS':'Dynamic Rendered by JS','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'Preferred Asset','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'Risk Level','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'Run Backtest & Save Strategy to Server','Confluence:':'Confluence:','NOT AVAILABLE':'NOT AVAILABLE','Total Trades Tested:':'Total Trades Tested:','Estimated Profit Factor:':'Estimated Profit Factor:','ទំហំដើមទុន ($ Capital)':'Capital ($)','ភាគរយហានិភ័យ (% Risk per Trade)':'Risk per Trade (%)','ចម្ងាយ Stop Loss (Pips / Points)':'Stop Loss Distance (Pips / Points)','Max Risk Amount ($):':'Max Risk Amount ($):','Recommended Lot Size:':'Recommended Lot Size:','Target Take Profit (1:2 Ratio):':'Target Take Profit (1:2 Ratio):','Copy Link':'Copy Link','Telegram Copy Trading Bot (Auto Mirroring v5.7)':'Telegram Copy Trading Bot (Auto Mirroring v5.7)','Master Trader Signal Source:':'Master Trader Signal Source:','Connected Channel:':'Connected Channel:','Not verified':'Not verified','Last Copied Order:':'Last Copied Order:','No verified live order':'No verified live order'},
+    zh:{
+      'V TRADE AI & TERMINAL v6.1.0':'V TRADE AI & TERMINAL v6.1.0','Realtime Price + ICT Engine Active':'实时价格 + ICT 引擎运行中','Storage: checking…':'存储：检查中…','PREMIUM REALTIME':'高级实时','ENTRY GATED':'入场门控','Live Crypto Ticker Bar & Clock Header':'实时行情与时钟','Mobile Live Status Strip':'移动端实时状态','MT5 LIVE':'MT5 实时','Mobile Drawer Menu Overlay':'移动端菜单','ម៉ឺនុយគ្រប់គ្រង (Menu v6.1.0)':'控制菜单（v6.1.0）','Terminal & Analysis AI Realtime':'终端与 AI 实时分析','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'控制面板','Copy Trading Bot (Auto Mirror)':'复制交易机器人（自动镜像）','AI Sentiment & Consensus Filter':'AI 情绪与共识过滤器','Admin Manager (User List)':'管理员（用户列表）','AI Strategy Customizer & Backtest':'AI 策略定制与回测','Risk & SL/TP Calculator':'风险与止损止盈计算器','Affiliate & Referral Program':'联盟与推荐计划','ម៉ោងទីផ្សារ (Asian/NY/London)':'市场时段（亚洲/纽约/伦敦）','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'新闻与链接','កញ្ចប់តម្លៃថ្មី (Pricing)':'价格方案','Telegram Bot & Webhook':'Telegram 机器人与 Webhook','TradingView Chart':'TradingView 图表','Cloudflare & DDoS Protection':'Cloudflare 与 DDoS 防护','AI Support v5.7':'AI 支持 v5.7','AI Terminal & Analysis Realtime Engine':'AI 实时分析终端','XAU/USD (Gold - មាស)':'XAU/USD（黄金）','Scan Analysis':'扫描分析','Signal Metrics Top Dashboard Cards':'信号指标','Market Signal Direction':'市场信号方向','WAIT':'等待','Entry Zone:':'入场区域：','Status:':'状态：','Setup:':'设置：','Setup Strength':'设置强度','ICT Confluence Score':'ICT 共振评分','MTF:':'多周期：','ICT Fair Value Gap (FVG)':'ICT 公允价值缺口（FVG）','LIVE ICT':'实时 ICT','Zone:':'区域：','Market Bias & Context':'市场偏向与环境','MTF structure pending':'多周期结构待确认','News Risk Radar':'新闻风险雷达','USD Economic News Radar':'美元经济新闻雷达','Next':'下一项','Source':'来源','Feed':'数据源','Age':'数据年龄','Events':'事件','Pre-News Research':'新闻前研究','WAITING FOR VERIFIED NEWS':'等待已验证新闻','Confirmation & Execution Readiness':'确认与执行准备度','Entry Confirmation':'入场确认','NOT READY':'尚未就绪','MTF Bias':'多周期偏向','Liquidity':'流动性','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'溢价/折价','Displacement':'位移','Advanced AI Evidence / Decision Transparency':'高级 AI 证据 / 决策透明度','Advanced AI Evidence':'高级 AI 证据','Mobile Signal Quick Summary':'移动端信号摘要','Signal':'信号','Score':'评分','Readiness':'准备度','Real-Time AI Execution Console Terminal':'实时 AI 执行控制台','Clear':'清除','Execute':'执行','Sentiment Consensus Radar':'情绪共识雷达','Live AI Signal Breakdown & Target Levels':'实时 AI 信号与目标位','AUTO ALERT: ENTRY ONLY':'自动提醒：仅入场','គូ':'交易品种','សញ្ញា':'信号','តំបន់ចូល':'入场区域','ស្ថានភាព':'状态','សមតុល្យគណនី (Balance)':'账户余额','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'当前方案','Copy Trading & Sentiment 24/7 Active':'复制交易与情绪 24/7 运行','Copy Trading Bot Status':'复制交易机器人状态','Running (1.0x)':'运行中（1.0x）','Auto Mirroring Ready':'自动镜像就绪','AI Sentiment Consensus':'AI 情绪共识','Smart Filter v5.7':'智能过滤器 v5.7','កំពុងគណនា...':'计算中...','London Session':'伦敦时段','New York Session':'纽约时段','Asian Session (Tokyo)':'亚洲时段（东京）','Global News Sentiment':'全球新闻情绪','LIVE DATA REQUIRED':'需要实时数据','AI Confidence Score':'AI 置信度评分','NOT PUBLISHED':'未发布','Sideways Filter':'震荡过滤器','Active (Auto-Block)':'启用（自动阻止）','បន្ថែម User ថ្មី':'添加新用户','Admin Level':'管理员级别','ឈ្មោះ & អ៊ីម៉ែល':'姓名与邮箱','កម្រិតសិទ្ធិ (User Level)':'用户级别','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'安全状态（Cloudflare）','កាលបរិច្ឆេទបង្កើត':'创建日期','សកម្មភាព (Actions)':'操作','Dynamic Rendered by JS':'由 JS 动态渲染','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'首选资产','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'风险等级','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'运行回测并保存策略到服务器','Confluence:':'共振：','NOT AVAILABLE':'不可用','Total Trades Tested:':'测试交易总数：','Estimated Profit Factor:':'预计盈利因子：','ទំហំដើមទុន ($ Capital)':'资金（$）','ភាគរយហានិភ័យ (% Risk per Trade)':'每笔交易风险（%）','ចម្ងាយ Stop Loss (Pips / Points)':'止损距离（点）','Max Risk Amount ($):':'最大风险金额（$）：','Recommended Lot Size:':'建议手数：','Target Take Profit (1:2 Ratio):':'目标止盈（1:2）：','Copy Link':'复制链接','Telegram Copy Trading Bot (Auto Mirroring v5.7)':'Telegram 复制交易机器人（自动镜像 v5.7）','Master Trader Signal Source:':'主交易员信号来源：','Connected Channel:':'已连接频道：','Not verified':'未验证','Last Copied Order:':'最近复制订单：','No verified live order':'没有已验证的实时订单'}
+  };
+  // Khmer is the original UI language; keep it as a no-op baseline and use the existing DOM text.
+  const originalText=new WeakMap();
+  const originalAttrs=new WeakMap();
+  const skip=new Set(['SCRIPT','STYLE','NOSCRIPT','OPTION']);
+  function keyFor(el){return el.getAttribute('data-i18n-key')||'';}
+  function translateNode(node,lang){
+    if(node.nodeType===3){
+      const parent=node.parentElement; if(!parent||skip.has(parent.tagName)) return;
+      if(!originalText.has(node)) originalText.set(node,node.nodeValue);
+      const raw=originalText.get(node); const clean=raw.replace(/\s+/g,' ').trim();
+      if(!clean) return;
+      const dict=I18N[lang]||{}; const tr=dict[clean];
+      if(tr){
+        const lead=raw.match(/^\s*/)?.[0]||''; const tail=raw.match(/\s*$/)?.[0]||'';
+        node.nodeValue=lead+tr+tail;
+      } else if(lang==='km') node.nodeValue=raw;
+    } else if(node.nodeType===1){
+      if(skip.has(node.tagName)) return;
+      if(node.hasAttribute('placeholder')){ if(!originalAttrs.has(node)) originalAttrs.set(node,{placeholder:node.getAttribute('placeholder'),title:node.getAttribute('title')}); const a=originalAttrs.get(node); const d=I18N[lang]||{}; if(d[a.placeholder]) node.setAttribute('placeholder',d[a.placeholder]); else if(lang==='km') node.setAttribute('placeholder',a.placeholder); }
+      if(node.hasAttribute('title')){ if(!originalAttrs.has(node)) originalAttrs.set(node,{placeholder:node.getAttribute('placeholder'),title:node.getAttribute('title')}); const a=originalAttrs.get(node); const d=I18N[lang]||{}; if(d[a.title]) node.setAttribute('title',d[a.title]); else if(lang==='km'&&a.title) node.setAttribute('title',a.title); }
+      node.childNodes.forEach(n=>translateNode(n,lang));
+    }
+  }
+  let applying=false;
+  window.applyVTradeLanguage=function(lang){
+    if(!I18N[lang] && lang!=='km') lang='en';
+    applying=true; document.documentElement.lang=lang;
+    document.body.setAttribute('data-language',lang);
+    translateNode(document.body,lang);
+    localStorage.setItem('vtrade_language',lang);
+    const sel=document.getElementById('languageSelect'); if(sel) sel.value=lang;
+    // Existing ID-based translations remain supported, while the full DOM pass covers every screen.
+    applying=false;
+  };
+  window.changeLanguage=function(lang){ window.applyVTradeLanguage(lang); };
+  const saved=localStorage.getItem('vtrade_language')||document.getElementById('languageSelect')?.value||'km';
+  window.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>window.applyVTradeLanguage(saved),50); });
+  const observer=new MutationObserver(muts=>{
+    if(applying) return;
+    const lang=document.documentElement.lang||'km';
+    for(const m of muts){
+      if(m.type==='childList') m.addedNodes.forEach(n=>{ if(n.nodeType===1||n.nodeType===3) translateNode(n,lang); });
+      if(m.type==='characterData') translateNode(m.target,lang);
+    }
+  });
+  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+})();
+</script>
+
 </body>
 </html>
 
