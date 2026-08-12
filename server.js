@@ -19,8 +19,11 @@ const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
+const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
+const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.0.0';
+const APP_VERSION = '6.1.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -50,7 +53,16 @@ function createSessionId() {
 
 function getSessionConfig(req) {
   const sid = sessionIdFrom(req);
-  return sid ? telegramSessions.get(sid) || null : null;
+  if (!sid) return null;
+  const session = telegramSessions.get(sid) || null;
+  if (!session) return null;
+  if (!session.expiresAt || Date.now() >= session.expiresAt) {
+    telegramSessions.delete(sid);
+    telegramAlertKeys.delete(sid);
+    telegramNewsKeys.delete(sid);
+    return null;
+  }
+  return session;
 }
 
 function setSessionConfig(sid, config) {
@@ -78,25 +90,43 @@ function activeTelegramConfig(req) {
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+if (process.env.RENDER && !ALLOWED_ORIGINS.length) {
+  throw new Error('ALLOWED_ORIGINS must be configured in production');
+}
 app.use(cors({
   origin(origin, cb) {
-    if (!origin || !ALLOWED_ORIGINS.length || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     cb(new Error('CORS origin not allowed'));
-  }
+  },
+  methods: ['GET','POST','OPTIONS'],
+  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key'],
+  credentials: false
 }));
 app.use(express.json({ limit: '200kb' }));
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
+const telegramMutationLimit = rateLimit({ windowMs: 10 * 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { success:false, error:'Too many Telegram operations. Try again later.' } });
+const adminOnlyLimit = rateLimit({ windowMs: 60_000, max: 30, standardHeaders: true, legacyHeaders: false });
+function safeEqual(a,b) {
+  const aa=Buffer.from(String(a||'')); const bb=Buffer.from(String(b||''));
+  return aa.length===bb.length && crypto.timingSafeEqual(aa,bb);
+}
+function requireAdmin(req,res,next) {
+  if (!ADMIN_API_KEY) return res.status(503).json({success:false,error:'Admin API is not configured'});
+  if (!safeEqual(req.get('x-vtrade-admin-key'), ADMIN_API_KEY)) return res.status(401).json({success:false,error:'Unauthorized'});
+  next();
+}
 app.use(express.static(path.join(__dirname)));
 
 const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 const newsCache = { at: 0, data: null };
 const analysisCache = { key: '', at: 0, data: null };
-const ANALYSIS_CACHE_MS = Number(process.env.ANALYSIS_CACHE_MS || 1000);
+const ANALYSIS_CACHE_MS = Math.max(250, Number(process.env.ANALYSIS_CACHE_MS || 750));
 const bridgeNews = { items: null, receivedAt: 0, source: null };
 const newsHealth = { lastAttemptAt: 0, lastSuccessAt: 0, lastSource: null, lastError: null, attempts: 0, successes: 0 };
-const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 300000);
+const NEWS_CACHE_MS = Math.max(5000, Number(process.env.NEWS_CACHE_MS || 15000));
 const NEWS_ERROR_RETRY_MS = Number(process.env.NEWS_ERROR_RETRY_MS || 120000);
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
@@ -106,14 +136,17 @@ const NEWS_CAUTION_MIN = Number(process.env.NEWS_CAUTION_MIN || 60);
 const NEWS_LIVE_WINDOW_MIN = Number(process.env.NEWS_LIVE_WINDOW_MIN || 2);
 const NEWS_POST_MIN = Number(process.env.NEWS_POST_MIN || 15);
 const TELEGRAM_NEWS_ALERTS = String(process.env.TELEGRAM_NEWS_ALERTS || 'true').toLowerCase() === 'true';
-const MIN_CONFLUENCE = Number(process.env.MIN_CONFLUENCE || 85);
+const MIN_CONFLUENCE = Math.max(70, Number(process.env.MIN_CONFLUENCE || 85));
 const MAX_ENTRY_SPREAD = Number(process.env.MAX_ENTRY_SPREAD || 1.50);
+const CORE_MTF_TFS = ['H4','H1','M15'];
+const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
+const MIN_ENTRY_SCORE = Math.max(MIN_CONFLUENCE, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.1';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
-const AI_FAST_SCAN_MS = Number(process.env.AI_FAST_SCAN_MS || 5000);
+const AI_FAST_SCAN_MS = Math.max(1000, Number(process.env.AI_FAST_SCAN_MS || 3000));
 
 
 function newsStateLabel(state) {
@@ -171,6 +204,23 @@ function newsStateFromItems(items, now) {
   return {upcoming,next,previous,deltaMin,sincePreviousMin,state};
 }
 
+function refreshCachedNews(data, now) {
+  if (!data || data.available === false) return data;
+  const items = Array.isArray(data.upcoming) ? data.upcoming : [];
+  const st = newsStateFromItems(items, now);
+  return {
+    ...data,
+    state: st.state,
+    label: newsStateLabel(st.state),
+    next: st.next,
+    previous: st.previous,
+    deltaMin: Number.isFinite(st.deltaMin) ? Math.max(0, Math.round(st.deltaMin)) : null,
+    sincePreviousMin: Number.isFinite(st.sincePreviousMin) ? Math.max(0, Math.round(st.sincePreviousMin)) : null,
+    researchStatus: st.state==='LIVE'?'NEWS_LIVE':st.state==='POST_NEWS'?'POST_NEWS_REACTION':st.state==='LOCK'||st.state==='CAUTION'?'PRE_NEWS_RESEARCH':'CLEAR',
+    research: newsResearch(st.next)
+  };
+}
+
 async function fetchNewsSource(url) {
   const controller = new AbortController();
   const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 4000);
@@ -199,7 +249,7 @@ async function fetchNewsSource(url) {
 async function fetchXauNews() {
   const now = Date.now();
   const cacheWindow = newsCache.data?.available === false ? NEWS_ERROR_RETRY_MS : NEWS_CACHE_MS;
-  if (newsCache.data && now - newsCache.at < cacheWindow) return newsCache.data;
+  if (newsCache.data && now - newsCache.at < cacheWindow) return refreshCachedNews(newsCache.data, now);
 
   // Prefer the broker/MT5 calendar bridge when present. This avoids relying on
   // public calendar export rate limits and keeps the news clock aligned with the
@@ -511,12 +561,35 @@ function recentLiquiditySweep(c, lookback=6) {
   return {bias:'NONE',detail:'No recent confirmed liquidity sweep',fresh:false,index:null};
 }
 function executionStructure(c) {
-  if(!c||c.length<40) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false};
-  const sw=swings(c,2); if(sw.highs.length<4||sw.lows.length<4) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false};
-  const highs=sw.highs.slice(-4), lows=sw.lows.slice(-4), prevHigh=highs[2].price, prevLow=lows[2].price, last=c[c.length-1];
-  const bullishTrend=highs[3].price>highs[2].price&&lows[3].price>lows[2].price, bearishTrend=highs[3].price<highs[2].price&&lows[3].price<lows[2].price;
-  const mssUp=last.c>prevHigh, mssDown=last.c<prevLow;
-  return {bias:bullishTrend?'BULLISH':bearishTrend?'BEARISH':'RANGE',mss:mssUp?'BULLISH':mssDown?'BEARISH':'PENDING',bos:bullishTrend&&mssUp?'BULLISH':bearishTrend&&mssDown?'BEARISH':'PENDING',swingHigh:highs[3].price,swingLow:lows[3].price,mssFresh:mssUp||mssDown,bosFresh:(bullishTrend&&mssUp)||(bearishTrend&&mssDown)};
+  if(!c||c.length<45) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null};
+  // Use prior structure to define the break levels, then require a sequence:
+  // MSS on a recent closed candle -> BOS continuation on a later closed candle.
+  const context = c.slice(0, -2);
+  const sw=swings(context,2);
+  if(sw.highs.length<4||sw.lows.length<4) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null};
+  const prevHigh=sw.highs[sw.highs.length-1].price;
+  const prevLow=sw.lows[sw.lows.length-1].price;
+  const mssBar=c[c.length-2], bosBar=c[c.length-1];
+  const mssUp=mssBar.c>prevHigh, mssDown=mssBar.c<prevLow;
+  const bosUp=mssUp && bosBar.c>mssBar.h;
+  const bosDown=mssDown && bosBar.c<mssBar.l;
+  const lastHigh=sw.highs[sw.highs.length-1].price;
+  const lastLow=sw.lows[sw.lows.length-1].price;
+  const recentSw=swings(c.slice(0,-1),2);
+  const hs=recentSw.highs.slice(-2), ls=recentSw.lows.slice(-2);
+  const bullishTrend=hs.length===2&&ls.length===2&&hs[1].price>hs[0].price&&ls[1].price>ls[0].price;
+  const bearishTrend=hs.length===2&&ls.length===2&&hs[1].price<hs[0].price&&ls[1].price<ls[0].price;
+  return {
+    bias:bosUp||bullishTrend?'BULLISH':bosDown||bearishTrend?'BEARISH':'RANGE',
+    mss:mssUp?'BULLISH':mssDown?'BEARISH':'PENDING',
+    bos:bosUp?'BULLISH':bosDown?'BEARISH':'PENDING',
+    swingHigh:lastHigh,
+    swingLow:lastLow,
+    mssFresh:mssUp||mssDown,
+    bosFresh:bosUp||bosDown,
+    mssBar:{timestamp:mssBar.t,close:mssBar.c},
+    bosBar:{timestamp:bosBar.t,close:bosBar.c}
+  };
 }
 function latestFreshFvg(c,maxAge=12){
   if(!c||c.length<3) return {found:false,reason:'No FVG'};
@@ -550,9 +623,15 @@ async function buildXauAnalysis() {
   ]);
   const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a},a=tfs.M5.atr||5;
   const candleAgeSec=m5.length?Math.max(0,(Date.now()-m5[m5.length-1].t)/1000):Infinity,candlesFresh=candleAgeSec<=15*60;
-  const h4Bias=tfs.H4.structure.bias,h1Bias=tfs.H1.structure.bias,m15Bias=tfs.M15.structure.bias,d1Bias=tfs.D1?.structure?.bias||'UNAVAILABLE',htfBiases=[d1Bias,h4Bias,h1Bias,m15Bias],bullHTF=htfBiases.filter(x=>x==='BULLISH').length,bearHTF=htfBiases.filter(x=>x==='BEARISH').length;
-  const availableHtf=htfBiases.filter(x=>x==='BULLISH'||x==='BEARISH').length;
-  const macroBias=bullHTF>bearHTF?'BULLISH':bearHTF>bullHTF?'BEARISH':'NEUTRAL',mtfCount=Math.max(bullHTF,bearHTF);
+  // Core execution MTF is intentionally fixed to H4/H1/M15.
+  // D1 is context only; it must never inflate the displayed 3/3 execution alignment.
+  const coreBiases = CORE_MTF_TFS.map(tf => tfs[tf]?.structure?.bias || 'UNAVAILABLE');
+  const coreBull = coreBiases.filter(x=>x==='BULLISH').length;
+  const coreBear = coreBiases.filter(x=>x==='BEARISH').length;
+  const d1Bias=tfs.D1?.structure?.bias||'UNAVAILABLE';
+  const macroBias=coreBull>coreBear?'BULLISH':coreBear>coreBull?'BEARISH':'NEUTRAL';
+  const mtfCount=Math.max(coreBull,coreBear);
+  const availableHtf=CORE_MTF_TFS.filter(tf=>['BULLISH','BEARISH'].includes(tfs[tf]?.structure?.bias)).length;
 
   const execStruct=executionStructure(m5),sweep=recentLiquiditySweep(m5,6),displacement=candleDisplacement(m5),f=latestFreshFvg(m5,12),ob=latestAlignedOrderBlock(m5,macroBias,20),side=macroBias;
   const alignedFvg=f.found&&f.type===side,alignedOb=ob.found&&ob.type===side,zoneCandidates=[];
@@ -564,7 +643,7 @@ async function buildXauAnalysis() {
   const premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
   const pdOk=side==='BULLISH'?premiumDiscount==='DISCOUNT':side==='BEARISH'?premiumDiscount==='PREMIUM':false;
   const spreadOk=Number.isFinite(live.spread)&&live.spread<=MAX_ENTRY_SPREAD;
-  const biasOk=(side==='BULLISH'&&bullHTF>=2)||(side==='BEARISH'&&bearHTF>=2),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=mssOk&&bosOk;
+  const biasOk=(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT)||(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=mssOk&&bosOk;
   const rsiM5=tfs.M5.rsi,macdM5=tfs.M5.macd,adxM5=tfs.M5.adx;
   const technicalMomentumOk=(side==='BULLISH'&&rsiM5!=null&&rsiM5>=50&&macdM5?.bias==='BULLISH')||(side==='BEARISH'&&rsiM5!=null&&rsiM5<=50&&macdM5?.bias==='BEARISH');
   const trendStrengthOk=!adxM5||adxM5.value>=18;
@@ -594,10 +673,10 @@ async function buildXauAnalysis() {
   if(!spreadOk) reasons.push(`Spread ${live.spread ?? '—'} exceeds max ${MAX_ENTRY_SPREAD}`);
   if(!technicalMomentumOk) reasons.push('RSI/MACD momentum does not confirm the execution direction');
   if(!trendStrengthOk) reasons.push('ADX trend strength is too weak for the execution gate');
-  const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&bosOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&pdOk&&spreadOk&&technicalMomentumOk&&trendStrengthOk&&confluenceScore>=MIN_CONFLUENCE;
+  const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&bosOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&pdOk&&spreadOk&&technicalMomentumOk&&trendStrengthOk&&confluenceScore>=MIN_ENTRY_SCORE;
   if(setupReady){
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
-  } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&bullHTF>=2) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&bearHTF>=2) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
+  } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
   const news=await newsPromise;
   const newsBlocked = (NEWS_FAIL_CLOSED && !news.available) || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
   if(newsBlocked){
@@ -615,7 +694,7 @@ async function buildXauAnalysis() {
 
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=MIN_CONFLUENCE?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT';
   const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,rsi:rsiM5,macd:macdM5,adx:adxM5,technicalMomentumOk,trendStrengthOk,allGatesPassed:setupReady && !newsBlocked};
-  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,availableHtf,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,availableHtf,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,coreBiases,coreBull,coreBear,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3 (H4/H1/M15)','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
   analysisCache.key = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
   analysisCache.at = Date.now();
   analysisCache.data = result;
@@ -689,7 +768,7 @@ app.get('/api/v5/news/diagnostics', async (_req,res) => {
 
 app.get('/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,service:'vtrade-ai'}));
 app.get('/api/storage/status', async (_req,res)=>{ try { res.json({success:true, ...(await storage.getStatus())}); } catch(e) { res.status(500).json({success:false,error:'Storage status unavailable'}); } });
-app.get('/api/storage/history', async (req,res)=>{ try { const type=String(req.query.type||'analysis'); const limit=Number(req.query.limit||50); res.json({success:true,type,items:await storage.getHistory({type,limit})}); } catch(e) { res.status(500).json({success:false,error:'Storage history unavailable'}); } });
+app.get('/api/storage/history', adminOnlyLimit, requireAdmin, async (req,res)=>{ try { const type=String(req.query.type||'analysis'); const limit=Number(req.query.limit||50); res.set('Cache-Control','no-store'); res.json({success:true,type,items:await storage.getHistory({type,limit})}); } catch(e) { res.status(500).json({success:false,error:'Storage history unavailable'}); } });
 app.get('/api/health',(req,res)=>{
   const tg = activeTelegramConfig(req);
   res.json({
@@ -772,7 +851,7 @@ app.get('/api/market/xauusd',async(_req,res)=>{
   });
 });
 
-app.get('/api/v5/news/diagnostics', async (_req,res)=>{
+app.get('/api/v5/news/diagnostics', adminOnlyLimit, requireAdmin, async (_req,res)=>{
   const news = await fetchXauNews();
   res.set('Cache-Control','no-store');
   res.json({
@@ -826,7 +905,7 @@ app.get('/api/telegram/status',async(req,res)=>{
   res.json({success:true,connected:true,mode:'user-session',botUsername:tg.botUsername,chatId:maskChatId(tg.chatId),connectedAt:tg.connectedAt});
 });
 
-app.post('/api/telegram/connect',async(req,res)=>{
+app.post('/api/telegram/connect',telegramMutationLimit,async(req,res)=>{
   try {
     const token=String(req.body?.token||'').trim();
     const chatId=String(req.body?.chatId||'').trim();
@@ -844,7 +923,8 @@ app.post('/api/telegram/connect',async(req,res)=>{
       bot:testBot,
       chatId,
       botUsername:me.username || me.first_name || 'Telegram Bot',
-      connectedAt:new Date().toISOString()
+      connectedAt:new Date().toISOString(),
+      expiresAt:Date.now()+TELEGRAM_SESSION_TTL_MS
     });
     res.set('Cache-Control','no-store');
     res.json({success:true,sessionId:sid,connected:true,botUsername:me.username||me.first_name||'Telegram Bot',chatId:maskChatId(chatId)});
@@ -854,7 +934,7 @@ app.post('/api/telegram/connect',async(req,res)=>{
   }
 });
 
-app.post('/api/telegram/test',async(req,res)=>{
+app.post('/api/telegram/test',telegramMutationLimit,async(req,res)=>{
   try {
     const tg=activeTelegramConfig(req);
     if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
@@ -866,7 +946,7 @@ app.post('/api/telegram/test',async(req,res)=>{
   }
 });
 
-app.post('/api/telegram/disconnect',(req,res)=>{
+app.post('/api/telegram/disconnect',telegramMutationLimit,(req,res)=>{
   const sid=sessionIdFrom(req);
   if(sid) {
     telegramSessions.delete(sid);
@@ -875,7 +955,7 @@ app.post('/api/telegram/disconnect',(req,res)=>{
   res.json({success:true,connected:false});
 });
 
-app.post('/api/v5/signal',async(req,res)=>{
+app.post('/api/v5/signal',telegramMutationLimit,async(req,res)=>{
   try {
     const tg = activeTelegramConfig(req);
     if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
@@ -897,10 +977,14 @@ app.post('/api/v5/signal',async(req,res)=>{
 
 app.post('/telegram/webhook',async(req,res)=>{
   if(!bot) return res.sendStatus(503);
-  if(TELEGRAM_WEBHOOK_SECRET && req.get('x-telegram-bot-api-secret-token')!==TELEGRAM_WEBHOOK_SECRET) return res.sendStatus(401);
+  if(REQUIRE_WEBHOOK_SECRET && !TELEGRAM_WEBHOOK_SECRET) return res.sendStatus(503);
+  if(TELEGRAM_WEBHOOK_SECRET && !safeEqual(req.get('x-telegram-bot-api-secret-token'),TELEGRAM_WEBHOOK_SECRET)) return res.sendStatus(401);
+
   try { await bot.processUpdate(req.body); } catch(e){ console.error(e.message); }
   res.sendStatus(200);
 });
+
+setInterval(()=>{ const now=Date.now(); for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
 
 if(bot){
   bot.onText(/^\/price$/,async msg=>{
@@ -922,5 +1006,13 @@ if(bot){
       .catch(e=>console.error('Webhook setup:',e.message));
   }
 }
+
+app.use((err,req,res,next)=>{
+  if (err?.message === 'CORS origin not allowed') return res.status(403).json({success:false,error:'Origin not allowed'});
+  if (err?.type === 'entity.too.large') return res.status(413).json({success:false,error:'Request body too large'});
+  console.error('[HTTP]',err?.message || err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({success:false,error:'Internal server error'});
+});
 
 (async()=>{ await storage.initStorage(); setInterval(()=>storage.cleanup().catch(()=>{}), 6*60*60*1000); app.listen(PORT,HOST,()=>console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`)); })();
