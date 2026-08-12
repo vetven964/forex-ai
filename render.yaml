@@ -19,18 +19,20 @@ services:
         value: https://vetven964.github.io
       - key: MT5_BRIDGE_API_KEY
         generateValue: true
-      - key: DATABASE_URL
-        sync: false
-      - key: DATABASE_SSL
-        value: "true"
-      - key: VTRADE_DATA_DIR
-        value: ./data
-      - key: VTRADE_QUOTE_STORE_MS
-        value: "10000"
       - key: MT5_SYMBOL
         value: XAUUSD
       - key: MT5_MAX_AGE_MS
         value: "15000"
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: STORAGE_RETENTION_DAYS
+        value: "30"
+      - key: STORAGE_QUOTE_INTERVAL_MS
+        value: "10000"
+      - key: NEWS_CALENDAR_URL
+        value: https://nfs.faireconomy.media/ff_calendar_thisweek.json
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID

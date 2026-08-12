@@ -93,13 +93,6 @@ const newsCache = { at: 0, data: null };
 const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 60000);
 const NEWS_URL = process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
 
-// Persistent storage: PostgreSQL when DATABASE_URL is configured; otherwise
-// a lightweight local JSON store keeps the small-server deployment usable
-// without paying for a separate database.
-storage.init().catch(e => console.error('[STORAGE] init:', e.message));
-let lastStoredQuoteAt = 0;
-let lastStoredSignalKey = '';
-
 function newsStateLabel(state) {
   return state === 'LOCK' ? 'NEWS LOCK' : state === 'CAUTION' ? 'CAUTION' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'CLEAR' : 'UNAVAILABLE';
 }
@@ -457,7 +450,9 @@ async function maybeTelegramAlert(a, tg, sessionId) {
   return true;
 }
 
-app.get('/health',(_req,res)=>res.json({ok:true}));
+app.get('/health',(_req,res)=>res.json({ok:true,version:'5.3.3'}));
+app.get('/api/storage/status', async (_req,res)=>{ try { res.json({success:true, ...(await storage.getStatus())}); } catch(e) { res.status(500).json({success:false,error:'Storage status unavailable'}); } });
+app.get('/api/storage/history', async (req,res)=>{ try { const type=String(req.query.type||'analysis'); const limit=Number(req.query.limit||50); res.json({success:true,type,items:await storage.getHistory({type,limit})}); } catch(e) { res.status(500).json({success:false,error:'Storage history unavailable'}); } });
 app.get('/api/health',(req,res)=>{
   const tg = activeTelegramConfig(req);
   res.json({
@@ -468,8 +463,7 @@ app.get('/api/health',(req,res)=>{
     dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
     mt5Connected:brokerFeedFresh(),
     mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
-    render:!!process.env.RENDER,
-    storageMode:storage.mode()
+    render:!!process.env.RENDER
   });
 });
 
@@ -495,12 +489,7 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     brokerFeed.timeframes=q.timeframes || q.bars || {};
     brokerFeed.receivedAt=Date.now();
     brokerFeed.symbol=String(q.symbol);
-    // Persist a low-frequency quote snapshot; do not write every 2-second bridge tick.
-    if (Date.now() - lastStoredQuoteAt >= Number(process.env.VTRADE_QUOTE_STORE_MS || 10000)) {
-      lastStoredQuoteAt = Date.now();
-      storage.saveQuote({ symbol: brokerFeed.symbol, bid, ask, last, spread: Number(q.spread)||ask-bid, serverTime, source:'VT Markets MT5' })
-        .catch(e => console.error('[STORAGE] quote:', e.message));
-    }
+    storage.saveQuote(q).catch(()=>{});
     res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
   } catch(e){ res.status(400).json({success:false,error:'Invalid MT5 payload'}); }
 });
@@ -537,30 +526,13 @@ app.get('/api/news/xauusd', async (_req,res)=>{
   res.json({success:true,...news});
 });
 
-app.get('/api/storage/status', async (_req,res)=>{
-  try { res.json({success:true, ...(await storage.stats())}); }
-  catch(e) { res.status(503).json({success:false,error:'Storage unavailable'}); }
-});
-
-app.get('/api/storage/history', async (req,res)=>{
-  try {
-    const kind=String(req.query.kind||'signals').toLowerCase();
-    if(!['signals','quotes','events'].includes(kind)) return res.status(400).json({success:false,error:'kind must be signals, quotes, or events'});
-    res.json({success:true,kind,items:await storage.getHistory(kind,req.query.limit)});
-  } catch(e) { res.status(503).json({success:false,error:'Storage unavailable'}); }
-});
-
 app.get('/api/analysis/xauusd',async(req,res)=>{
   try {
     const a=await buildXauAnalysis();
     const tg = activeTelegramConfig(req);
     const sid = sessionIdFrom(req);
     res.json({success:true,...a,telegramConfigured:!!tg});
-    const signalKey = `${a.signal}|${a.status}|${a.confidence}|${a.entryZone?.low}|${a.entryZone?.high}|${a.entry}|${a.stopLoss}|${(a.takeProfit||[]).join(',')}`;
-    if (signalKey !== lastStoredSignalKey) {
-      lastStoredSignalKey = signalKey;
-      storage.saveSignal(a).catch(e => console.error('[STORAGE] signal:', e.message));
-    }
+    storage.saveAnalysis(a).catch(()=>{});
     maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
     console.error('ICT analysis:',e.message);
@@ -677,4 +649,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.3.2 Smart Entry PRO server listening on ${HOST}:${PORT}`));
+(async()=>{ await storage.initStorage(); setInterval(()=>storage.cleanup().catch(()=>{}), 6*60*60*1000); app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.3.3 Smart Entry PRO server listening on ${HOST}:${PORT}`)); })();
