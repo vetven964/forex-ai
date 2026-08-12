@@ -19,12 +19,6 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 60000);
-const NEWS_PRE_MINUTES = Number(process.env.NEWS_PRE_MINUTES || 120);
-const NEWS_LOCK_BEFORE_MINUTES = Number(process.env.NEWS_LOCK_BEFORE_MINUTES || 30);
-const NEWS_LOCK_AFTER_MINUTES = Number(process.env.NEWS_LOCK_AFTER_MINUTES || 15);
-const NEWS_CALENDAR_URL = process.env.NEWS_CALENDAR_URL ||
-  'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -94,7 +88,44 @@ app.use(express.static(path.join(__dirname)));
 
 const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
-const newsCache = { items: [], fetchedAt: 0, source: null, error: null };
+const newsCache = { at: 0, data: null };
+const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 60000);
+const NEWS_URL = process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+
+function newsStateLabel(state) {
+  return state === 'LOCK' ? 'NEWS LOCK' : state === 'CAUTION' ? 'CAUTION' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'CLEAR' : 'UNAVAILABLE';
+}
+
+async function fetchXauNews() {
+  const now = Date.now();
+  if (newsCache.data && now - newsCache.at < NEWS_CACHE_MS) return newsCache.data;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const r = await fetch(NEWS_URL, { headers: { 'User-Agent': 'VTRADE-AI-NewsRadar/5.3' }, signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error(`news http ${r.status}`);
+    const items = await r.json();
+    const list = Array.isArray(items) ? items : [];
+    const usd = list.filter(x => String(x.currency || '').toUpperCase() === 'USD' && String(x.impact || '').toLowerCase() === 'high');
+    const upcoming = usd.map(x => ({
+      title: String(x.title || x.event || 'USD High Impact News'),
+      currency: 'USD', impact: 'HIGH',
+      timestamp: Number(x.timestamp) ? Number(x.timestamp) * 1000 : Date.parse(x.date || x.datetime || ''),
+      forecast: x.forecast ?? null, previous: x.previous ?? null
+    })).filter(x => Number.isFinite(x.timestamp)).sort((a,b)=>a.timestamp-b.timestamp);
+    const next = upcoming.find(x => x.timestamp >= now) || null;
+    const previous = [...upcoming].reverse().find(x => x.timestamp < now) || null;
+    const deltaMin = next ? (next.timestamp-now)/60000 : Infinity;
+    const sincePreviousMin = previous ? (now-previous.timestamp)/60000 : Infinity;
+    const state = next ? (deltaMin <= 15 ? 'LOCK' : deltaMin <= 60 ? 'CAUTION' : 'CLEAR') : (sincePreviousMin <= 15 ? 'POST_NEWS' : 'CLEAR');
+    const data = { available:true, state, label:newsStateLabel(state), next, previous, deltaMin:Number.isFinite(deltaMin)?Math.round(deltaMin):null, sincePreviousMin:Number.isFinite(sincePreviousMin)?Math.round(sincePreviousMin):null, windowMinutes:15, source:NEWS_URL, updatedAt:new Date(now).toISOString() };
+    newsCache.at=now; newsCache.data=data; return data;
+  } catch (e) {
+    const data={available:false,state:'UNAVAILABLE',label:'UNAVAILABLE',next:null,deltaMin:null,windowMinutes:15,source:NEWS_URL,updatedAt:new Date(now).toISOString(),error:e.message};
+    newsCache.at=now; newsCache.data=data; return data;
+  }
+}
 
 function brokerFeedFresh() {
   return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
@@ -255,72 +286,6 @@ function nearestTarget(entry, direction, candles) {
   return null;
 }
 
-
-function normalizeNewsEvent(x) {
-  if (!x) return null;
-  const title = String(x.title ?? x.name ?? x.event ?? '').trim();
-  const country = String(x.country ?? x.currency ?? x.ccy ?? '').trim().toUpperCase();
-  const impact = String(x.impact ?? x.importance ?? x.priority ?? '').trim().toUpperCase();
-  const dateRaw = x.date ?? x.datetime ?? x.time ?? x.timestamp;
-  const time = new Date(dateRaw);
-  if (!title || !Number.isFinite(time.getTime())) return null;
-  const high = /HIGH|RED|3|CRITICAL|MAJOR/.test(impact);
-  const usd = country === 'USD' || country === 'US' || country === 'UNITED STATES' || /FED|FOMC|POWELL|CPI|PCE|NFP|NON.?FARM|GDP|RETAIL SALES|PPI|ISM|JOBLESS|UNEMPLOYMENT|INTEREST RATE|RATE DECISION|CENTRAL BANK/.test(title.toUpperCase());
-  return {
-    title, country, impact: high ? 'HIGH' : (impact || 'MEDIUM'),
-    time: time.toISOString(), ts: time.getTime(), usd
-  };
-}
-
-async function getNewsCalendar() {
-  const now = Date.now();
-  if (now - newsCache.fetchedAt < NEWS_CACHE_MS && newsCache.fetchedAt) {
-    return {items: newsCache.items, source: newsCache.source, cached: true, error: newsCache.error};
-  }
-  try {
-    const r = await fetch(NEWS_CALENDAR_URL, {
-      headers: {'User-Agent': 'VTRADE-AI-News-Radar/1.0', 'Accept': 'application/json'},
-      signal: AbortSignal.timeout(8000)
-    });
-    if (!r.ok) throw new Error(`News calendar HTTP ${r.status}`);
-    const raw = await r.json();
-    const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
-    const items = arr.map(normalizeNewsEvent).filter(Boolean)
-      .filter(e => e.usd)
-      .sort((a,b)=>a.ts-b.ts);
-    newsCache.items = items;
-    newsCache.fetchedAt = now;
-    newsCache.source = NEWS_CALENDAR_URL;
-    newsCache.error = null;
-    return {items, source: NEWS_CALENDAR_URL, cached:false, error:null};
-  } catch (e) {
-    newsCache.fetchedAt = now;
-    newsCache.error = e.message;
-    return {items: newsCache.items || [], source: newsCache.source || NEWS_CALENDAR_URL, cached:false, error:e.message};
-  }
-}
-
-function newsGateFrom(items, now=Date.now()) {
-  const horizon = NEWS_PRE_MINUTES * 60 * 1000;
-  const beforeLock = NEWS_LOCK_BEFORE_MINUTES * 60 * 1000;
-  const afterLock = NEWS_LOCK_AFTER_MINUTES * 60 * 1000;
-  const relevant = (items || []).filter(e => e.impact === 'HIGH' && e.usd && Math.abs(e.ts-now) <= horizon + afterLock);
-  const upcoming = relevant.filter(e => e.ts >= now).sort((a,b)=>a.ts-b.ts);
-  const active = relevant.find(e => e.ts <= now + beforeLock && e.ts >= now - afterLock);
-  const next = upcoming[0] || null;
-  if (active) return {
-    state:'NEWS_LOCK', blockEntry:true, event:active,
-    detail:`High-impact USD news active/near: ${active.title}`,
-    minutesToEvent:Math.round((active.ts-now)/60000)
-  };
-  if (next && next.ts-now <= horizon) return {
-    state:'PRE_NEWS', blockEntry:true, event:next,
-    detail:`High-impact USD news in ${Math.max(0,Math.round((next.ts-now)/60000))}m: ${next.title}`,
-    minutesToEvent:Math.round((next.ts-now)/60000)
-  };
-  return {state:'CLEAR', blockEntry:false, event:next, detail:next ? `Next high-impact USD news: ${next.title}` : 'No high-impact USD news in radar window', minutesToEvent:next ? Math.round((next.ts-now)/60000) : null};
-}
-
 async function buildXauAnalysis() {
   const m5=parseBrokerCandles('M5');
   const m15=parseBrokerCandles('M15');
@@ -329,8 +294,6 @@ async function buildXauAnalysis() {
   const live=brokerLivePrice();
   if (!live || !m5 || !m15 || !h1 || !h4) throw new Error('VT Markets MT5 feed not ready');
 
-  const news = await getNewsCalendar();
-  const newsGate = newsGateFrom(news.items);
   const feedMode='VT Markets MT5';
   const tfs={M5:analyzeTF(m5),M15:analyzeTF(m15),H1:analyzeTF(h1),H4:analyzeTF(h4)};
   const exec=tfs.M5;
@@ -422,25 +385,23 @@ async function buildXauAnalysis() {
     trigger=direction==='BULLISH'?'Need bullish liquidity sweep/MSS confirmation':'Need bearish liquidity sweep/MSS confirmation';
   }
 
-  // High-impact USD news protection: the engine can still show directional bias,
-  // but it must not publish a fresh BUY/SELL entry during the configured news window.
-  if (newsGate.blockEntry) {
-    signal='WAIT';
-    entry=null;
-    sl=null;
-    tp=[];
-    status=newsGate.state === 'NEWS_LOCK' ? 'NEWS LOCK' :
-      (direction==='BULLISH' ? 'PRE-NEWS WATCH BUY' : direction==='BEARISH' ? 'PRE-NEWS WATCH SELL' : 'PRE-NEWS WAIT');
-    trigger=newsGate.detail;
-  }
-
   const maxScore=90;
   const rawScore=Math.max(score.bull,score.bear);
-  const confidence=Math.min(100,Math.round((rawScore/maxScore)*100));
-  const setupGrade=confidence>=85?'A+':confidence>=75?'A':confidence>=65?'B':confidence>=50?'WATCH':'LOW';
   const swingHigh=exec.structure.swingHigh, swingLow=exec.structure.swingLow;
   const mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price;
   const premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
+  const news = await fetchXauNews();
+  // News is a risk gate, not a directional predictor. If unavailable, do not invent a score.
+  const newsPenalty = news.state === 'LOCK' ? 20 : news.state === 'CAUTION' ? 10 : news.state === 'POST_NEWS' ? 5 : 0;
+  const confidence = Math.max(0, Math.min(100, Math.round((rawScore / maxScore) * 100) - newsPenalty));
+  const setupGrade = confidence>=85?'HIGH CONFLUENCE':confidence>=75?'STRONG':confidence>=60?'VALID SETUP':confidence>=40?'WATCH':'WEAK';
+  if (news.state === 'LOCK' && (signal === 'BUY' || signal === 'SELL')) {
+    signal='WAIT'; status='NEWS LOCK — WAIT AFTER NEWS'; entry=null; sl=null; tp=[];
+    trigger='High-impact USD news is within the protection window; wait for post-news liquidity sweep + MSS/BOS';
+  } else if (news.state === 'POST_NEWS' && !directionConfirmed) {
+    signal='WAIT'; status='POST-NEWS — WAIT CONFIRMATION'; entry=null; sl=null; tp=[];
+    trigger='Post-news reaction detected; wait for liquidity sweep + MSS/BOS before entry';
+  }
 
   return {
     symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,
@@ -449,55 +410,26 @@ async function buildXauAnalysis() {
     entry,entryZone,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,
     score:{bull:score.bull,bear:score.bear,confidence,grade:setupGrade,items:score.items},
     setupScore:confidence,
-    newsRisk:{
-      state:newsGate.state, blockEntry:newsGate.blockEntry, detail:newsGate.detail,
-      minutesToEvent:newsGate.minutesToEvent, event:newsGate.event ? {
-        title:newsGate.event.title, country:newsGate.event.country, impact:newsGate.event.impact, time:newsGate.event.time
-      } : null,
-      source:news.source, available:!news.error, error:news.error || null
-    },
     confirmations:{liquiditySweep:sweep,displacement,bullishMSS,bearishMSS,inZone,zoneIsNear,mtfCount},
     ict:{liquiditySweep:sweep,mss:exec.structure.mss,bos:exec.structure.bos,fvg:f,orderBlock:ob,premiumDiscount},
+    news,
     timeframes:tfs,
     riskNote:'Indicative market analysis only. XAUUSD broker quotes, spread and CFD/spot feeds can differ. Verify the broker price before any order.'
   };
-}
-
-function khState(value) {
-  const map = {
-    BUY:'ទិញ (BUY)', SELL:'លក់ (SELL)', WAIT:'រង់ចាំ (WAIT)',
-    'WATCH BUY':'តាមដានឱកាសទិញ (WATCH BUY)', 'WATCH SELL':'តាមដានឱកាសលក់ (WATCH SELL)',
-    BULLISH:'ទិសដៅឡើង (BULLISH)', BEARISH:'ទិសដៅចុះ (BEARISH)', RANGE:'ចលនាក្នុងជួរ (RANGE)',
-    NEUTRAL:'អព្យាក្រឹត (NEUTRAL)', PENDING:'កំពុងរង់ចាំការបញ្ជាក់', NONE:'មិនទាន់មាន',
-    CLEAR:'ធម្មតា / គ្មានហានិភ័យខ្ពស់', PRE_NEWS:'ជិតដល់ព័ត៌មាន', 'NEWS LOCK':'បិទការចូលជាបណ្ដោះអាសន្ន'
-  };
-  return map[value] || value || '—';
 }
 
 function telegramText(a) {
   const icon=a.signal==='BUY'?'🟢':a.signal==='SELL'?'🔴':a.status?.includes('BUY')?'🟡':a.status?.includes('SELL')?'🟠':'⚪';
   const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
   const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
-  const tf=a.timeframes || {};
-  const fvg = a.ict?.fvg?.found ? `${khState(a.ict.fvg.type)} FVG ${a.ict.fvg.low}–${a.ict.fvg.high}` : 'មិនទាន់បញ្ជាក់';
-  const ob = a.ict?.orderBlock?.found ? `${khState(a.ict.orderBlock.type)} OB ${a.ict.orderBlock.low}–${a.ict.orderBlock.high}` : 'មិនទាន់បញ្ជាក់';
-  const newsState = khState(a.newsRisk?.state || 'UNKNOWN');
-  const detail = a.newsRisk?.detail || 'ទិន្នន័យព័ត៌មានមិនអាចប្រើបាន';
   return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
-    `តម្លៃបច្ចុប្បន្ន: *${a.livePrice}*\n`+
-    `សញ្ញា: *${khState(a.signal)}*\n`+
-    `ស្ថានភាព: *${khState(a.status)}*\n`+
-    `Bias: *${khState(a.bias)}*\n`+
-    `ពិន្ទុ Setup: *${a.confidence}/100 (${a.setupGrade})*\n`+
-    `MTF ស្របគ្នា: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
-    `H4: ${khState(tf.H4?.structure?.bias)} | H1: ${khState(tf.H1?.structure?.bias)} | M15: ${khState(tf.M15?.structure?.bias)} | M5: ${khState(tf.M5?.structure?.bias)}\n`+
-    `Liquidity Sweep: ${a.ict?.liquiditySweep?.bias && a.ict.liquiditySweep.bias !== 'NONE' ? khState(a.ict.liquiditySweep.bias) : 'មិនទាន់មាន Sweep ដែលបញ្ជាក់ច្បាស់'}\n`+
-    `MSS: ${khState(a.ict?.mss)}\nBOS: ${khState(a.ict?.bos)}\n`+
-    `FVG: ${fvg}\nOB: ${ob}\n\n`+
-    `តំបន់ចូល: *${zone}*\nចំណុចចូល: *${a.entry ?? 'រង់ចាំ'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
-    `ហានិភ័យព័ត៌មាន: *${newsState}*\n${detail}\n\n`+
-    `Trigger: ${a.trigger || 'រង់ចាំការបញ្ជាក់'}\nExecution: ${a.executionTimeframe || 'M5'}\n\n`+
-    `⚠️ ការវិភាគនេះជាព័ត៌មានសម្រាប់យោងប៉ុណ្ណោះ។ តម្លៃ XAUUSD របស់ Broker, spread និង CFD/spot អាចខុសគ្នា។ សូមផ្ទៀងផ្ទាត់តម្លៃ Broker មុនបញ្ជាទិញ។`;
+    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nSetup Score: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
+    `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
+    `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
+    `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
+    `OB: ${a.ict.orderBlock.found ? a.ict.orderBlock.type+' '+a.ict.orderBlock.low+'–'+a.ict.orderBlock.high : 'Not confirmed'}\n\n`+
+    `Entry Zone: *${zone}*\nEntry: *${a.entry ?? 'WAIT'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
+    `Trigger: ${a.trigger}\nExecution: ${a.executionTimeframe}\n\n⚠️ ${a.riskNote}`;
 }
 
 async function maybeTelegramAlert(a, tg, sessionId) {
@@ -528,9 +460,7 @@ app.get('/api/health',(req,res)=>{
     dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
     mt5Connected:brokerFeedFresh(),
     mt5AgeSec:brokerFeed.quote ? Math.round((Date.now()-brokerFeed.receivedAt)/1000) : null,
-    render:!!process.env.RENDER,
-    newsRadar:true,
-    newsSource:NEWS_CALENDAR_URL
+    render:!!process.env.RENDER
   });
 });
 
@@ -586,13 +516,10 @@ app.get('/api/market/xauusd',async(_req,res)=>{
   });
 });
 
-app.get('/api/news/xauusd',async(_req,res)=>{
-  const news = await getNewsCalendar();
-  const gate = newsGateFrom(news.items);
+app.get('/api/news/xauusd', async (_req,res)=>{
+  const news=await fetchXauNews();
   res.set('Cache-Control','no-store');
-  res.json({success:true, ...gate, source:news.source, available:!news.error,
-    error:news.error || null, upcoming:(news.items||[]).filter(e=>e.ts>=Date.now()).slice(0,8)
-      .map(e=>({title:e.title,country:e.country,impact:e.impact,time:e.time}))});
+  res.json({success:true,...news});
 });
 
 app.get('/api/analysis/xauusd',async(req,res)=>{
@@ -717,4 +644,4 @@ if(bot){
   }
 }
 
-app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.3.0 Smart Entry + News Intelligence server listening on ${HOST}:${PORT}`));
+app.listen(PORT,HOST,()=>console.log(`V TRADE AI v5.2.2 Smart Entry PRO server listening on ${HOST}:${PORT}`));

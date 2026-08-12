@@ -1,31 +1,17 @@
 # V TRADE AI v5.3.0 — Smart Entry + News Intelligence
 
-## Implemented
-- Broker-native VT Markets MT5 remains the authoritative XAUUSD feed.
-- Added server-side high-impact USD economic-news radar with cache.
-- Added PRE-NEWS and NEWS LOCK entry protection.
-- BUY/SELL entries are blocked during the configured high-impact news window; directional bias remains visible as WATCH/WAIT.
-- Added `newsRisk` data to `/api/analysis/xauusd`.
-- Added `/api/news/xauusd` for the dashboard/news radar.
-- Telegram auto-alert polling now sends the user's server session header with each XAU analysis request.
-- Telegram browser session moved to `sessionStorage`; the Bot Token remains server-only.
-- Manual Telegram signal now uses the actual XAU terminal selector/current engine signal.
-- Added mobile-friendly News Risk card and next-event display.
-- Removed the old fake radar chart values from the active XAU sentiment visualization.
-- Terminal command input is HTML-escaped before rendering.
+## Fixed / Improved
+- Unified the mobile MT5 live strip to one authoritative status line.
+- Added USD high-impact Economic News Radar with CLEAR / CAUTION / NEWS LOCK / POST-NEWS states.
+- Added server-side `/api/news/xauusd` endpoint with 60-second cache and safe UNAVAILABLE fallback.
+- News is a risk gate, not a directional predictor; the engine never invents missing news data.
+- NEWS LOCK blocks BUY/SELL entry around high-impact USD news and waits for post-news liquidity/structure confirmation.
+- Added post-news confirmation mode after a recent high-impact event.
+- Setup score is normalized as setup strength, with grades: WEAK, WATCH, VALID SETUP, STRONG, HIGH CONFLUENCE.
+- Improved Khmer signal labels: រង់ចាំ, តាមដាន BUY/SELL, ចូល BUY/SELL.
+- Radar chart now uses real engine states instead of hard-coded market scores.
+- Signal table labels are more mobile-friendly and include TP1/TP2/TP3.
+- Telegram auto-alert remains ENTRY ONLY by default and does not spam WAIT/WATCH states.
 
-## News configuration
-Default calendar source:
-`https://nfs.faireconomy.media/ff_calendar_thisweek.json`
-
-Environment controls:
-- `NEWS_CALENDAR_URL`
-- `NEWS_CACHE_MS` (default 60000)
-- `NEWS_PRE_MINUTES` (default 120)
-- `NEWS_LOCK_BEFORE_MINUTES` (default 30)
-- `NEWS_LOCK_AFTER_MINUTES` (default 15)
-
-If the calendar is unavailable, the engine does **not** invent news events. The UI reports the news feed as unavailable.
-
-## Important
-The setup score is a setup-strength score, not a guaranteed win probability. News protection is a risk filter, not a prediction of the news outcome.
+## Risk note
+Setup score is a confluence score, not a guaranteed win rate. XAUUSD broker quotes, spreads and CFD/spot feeds can differ.

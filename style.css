@@ -32,6 +32,3 @@ body { background-color: #05070a !important; color: #fff; font-family: system-ui
   #signal-grade { font-size: 9px !important; }
   #mobileSignalSummary { margin-top: 0 !important; }
 }
-
-/* Khmer/mobile typography */
-html,body,button,input,select,textarea { font-family: "Noto Sans Khmer", "Khmer OS Battambang", "Khmer OS Siemreap", system-ui, sans-serif; }
