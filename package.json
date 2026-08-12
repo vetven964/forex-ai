@@ -1,7 +1,7 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "5.6.1",
-  "description": "V Trade AI High-Speed Real-Time XAUUSD MTF ICT Decision Engine + News + Storage",
+  "version": "6.0.0",
+  "description": "V Trade AI Advanced Real-Time XAUUSD MTF ICT + Technical Momentum + News + Risk Decision Engine",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
