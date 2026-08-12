@@ -20,7 +20,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '5.3.8';
+const APP_VERSION = '5.3.9';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -212,14 +212,31 @@ function brokerFeedFresh() {
   return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
 }
 
+function roundToDigits(value, digits = 2) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  const d = Math.max(0, Math.min(10, Number(digits) || 0));
+  const factor = 10 ** d;
+  return Math.round(n * factor) / factor;
+}
+
 function brokerLivePrice() {
   if (!brokerFeedFresh()) return null;
   const q = brokerFeed.quote;
+  const digits = Number.isFinite(Number(q.digits)) ? Number(q.digits) : 2;
   const bid = Number(q.bid), ask = Number(q.ask), last = Number(q.last);
-  const mid = Number.isFinite(bid) && Number.isFinite(ask) && bid > 0 && ask > 0 ? (bid + ask) / 2 : last;
-  if (!Number.isFinite(mid) || mid <= 0) return null;
+  if (!Number.isFinite(bid) || bid <= 0 || !Number.isFinite(ask) || ask <= 0) return null;
+  // NEVER use a synthetic/mid price as the execution price.
+  // BUY executes from broker ASK; SELL executes from broker BID.
+  const mid = (bid + ask) / 2;
   return {
-    price: round2(mid), bid: round2(bid), ask: round2(ask), spread: Number(q.spread) || round2(ask-bid),
+    price: roundToDigits(mid, digits),
+    bid: roundToDigits(bid, digits),
+    ask: roundToDigits(ask, digits),
+    executionBuy: roundToDigits(ask, digits),
+    executionSell: roundToDigits(bid, digits),
+    digits,
+    spread: Number.isFinite(Number(q.spread)) ? roundToDigits(q.spread, digits) : roundToDigits(ask - bid, digits),
     source: 'VT Markets MT5', sourceDetail: brokerFeed.symbol || 'XAUUSD',
     priceAsOf: new Date(Number(q.serverTime || brokerFeed.receivedAt)).toISOString(),
     ageSec: Math.round((Date.now()-brokerFeed.receivedAt)/1000), stale: false
@@ -435,7 +452,7 @@ async function buildXauAnalysis() {
   if(!structureAgreement) reasons.push('M5 MSS + BOS confirmation not complete');
   const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&confluenceScore>=80;
   if(setupReady){
-    signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=round2(live.price); const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?round2(z.low-buffer):round2(z.high+buffer); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[round2(target1),round2(side==='BULLISH'?entry+risk*3:entry-risk*3),round2(side==='BULLISH'?entry+risk*4:entry-risk*4)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
+    signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&bullHTF>=2) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&bearHTF>=2) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
   const news=await fetchXauNews();
   const newsBlocked = !news.available || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
@@ -454,21 +471,28 @@ async function buildXauAnalysis() {
 
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=80?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT',swingHigh=execStruct.swingHigh,swingLow=execStruct.swingLow,mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price,premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
   const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:execStruct.bos===side,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,allGatesPassed:setupReady && !newsBlocked};
-  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Directional displacement','Fresh aligned FVG/OB','Retest','MSS + BOS','Confluence >= 80'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Directional displacement','Fresh aligned FVG/OB','Retest','MSS + BOS','Confluence >= 80'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
 }
 
 function telegramText(a) {
-  const icon=a.signal==='BUY'?'🟢':a.signal==='SELL'?'🔴':a.status?.includes('BUY')?'🟡':a.status?.includes('SELL')?'🟠':'⚪';
-  const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
-  const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
-  return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
-    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nPhase: *${a.phase || 'WAIT'}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nNews: *${a.news?.label || 'UNAVAILABLE'}*\nSetup Score: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
-    `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
-    `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
-    `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
-    `OB: ${a.ict.orderBlock.found ? a.ict.orderBlock.type+' '+a.ict.orderBlock.low+'–'+a.ict.orderBlock.high : 'Not confirmed'}\n\n`+
-    `Entry Zone: *${zone}*\nEntry: *${a.entry ?? 'WAIT'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
-    `Trigger: ${a.trigger}\nExecution: ${a.executionTimeframe}\n\n⚠️ ${a.riskNote}`;
+  const actionable = ['BUY','SELL'].includes(a.signal) && a.status === 'ENTRY CONFIRMED' && a.confirmations?.allGatesPassed === true && Number.isFinite(Number(a.entry));
+  if (!actionable) throw new Error('No confirmed broker-native entry. Telegram Entry alert blocked.');
+  const icon=a.signal==='BUY'?'🟢':'🔴';
+  const side=a.signal==='BUY'?'BUY NOW':'SELL NOW';
+  const quoteSide=a.executionSide || (a.signal==='BUY'?'ASK':'BID');
+  const tp=a.takeProfit || [];
+  return `${icon} *V TRADE AI — XAUUSD*\n\n`+
+    `*${side}*\n`+
+    `Entry: *${a.entry}* (${quoteSide})\n`+
+    `SL: *${a.stopLoss}*\n`+
+    `TP1: *${tp[0] ?? '—'}*\n`+
+    `TP2: *${tp[1] ?? '—'}*\n`+
+    `TP3: *${tp[2] ?? '—'}*\n\n`+
+    `Broker: *VT Markets MT5*\n`+
+    `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
+    `Score: *${a.confidence}/100* | TF: *${a.executionTimeframe}*\n`+
+    `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
+    `⚠️ Broker-native quote at scan time. Verify MT5 quote/spread before execution.`;
 }
 
 async function maybeTelegramAlert(a, tg, sessionId) {
@@ -680,10 +704,13 @@ app.post('/api/v5/signal',async(req,res)=>{
     if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
     const a = await buildXauAnalysis();
     const requested = String(req.body?.type || '').toUpperCase();
-    if (requested && requested !== 'WAIT' && requested !== a.signal) {
-      return res.status(409).json({success:false,error:`Current engine signal is ${a.signal}, not ${requested}`,analysis:a});
+    if (!['BUY','SELL'].includes(requested)) {
+      return res.status(409).json({success:false,error:'Telegram Entry alert accepts BUY or SELL only. WAIT is never broadcast as an entry.',analysis:a});
     }
-    await tg.bot.sendMessage(tg.chatId, telegramText(a));
+    if (requested !== a.signal || a.status !== 'ENTRY CONFIRMED' || a.confirmations?.allGatesPassed !== true || !Number.isFinite(Number(a.entry))) {
+      return res.status(409).json({success:false,error:`No confirmed ${requested} entry from VT Markets MT5 right now. Current engine: ${a.signal} / ${a.status}`,analysis:a});
+    }
+    await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});
     res.json({success:true,analysis:a});
   } catch(e) {
     console.error('Manual Telegram signal:', e.message);

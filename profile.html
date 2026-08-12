@@ -611,96 +611,49 @@
         }
 
         async function runAutoAiCycle() {
-            const market = document.getElementById('marketSelect').value;
-            const actions = ['WAIT', 'WAIT', 'BUY', 'SELL'];
-            const chosenAction = actions[Math.floor(Math.random() * actions.length)];
-
-            let teleMsg = "";
-            let webText = "";
-
-            if (chosenAction === 'BUY') {
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
-                webText = `🟢 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
-            } else if (chosenAction === 'SELL') {
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
-                webText = `🔴 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
-            } else {
-                teleMsg = `⏳ <b>VET AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
-                webText = `⏳ <b>[ICT AUTO SIGNAL]:</b> ទីផ្សារមិនទាន់ច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
+            // Production rule: never generate BUY/SELL randomly on the client.
+            // The server is authoritative and only a broker-confirmed XAUUSD entry may reach Telegram.
+            let analysis = null;
+            try {
+                const base = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
+                const response = await fetch(base + '/api/analysis/xauusd', { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'Live analysis unavailable');
+                analysis = data;
+            } catch (error) {
+                const logs = document.getElementById('chatLogs');
+                logs.innerHTML += `<div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2"><span class="text-red-400 font-bold">⚠️ Auto Bot:</span> Live VT Markets MT5 analysis unavailable — no Telegram entry sent.</div>`;
+                logs.scrollTop = logs.scrollHeight;
+                return;
             }
 
-            const isSent = await sendToTelegram(teleMsg, actionType === 'BUY' ? 'BUY' : actionType === 'SELL' ? 'SELL' : 'WAIT');
-            if(isSent) {
-                signalCounter++;
-                document.getElementById('signalCount').innerText = signalCounter + " Signals";
-            }
+            const isEntry = ['BUY','SELL'].includes(analysis.signal) && analysis.status === 'ENTRY CONFIRMED' && analysis.confirmations?.allGatesPassed === true;
+            let isSent = false;
+            if (isEntry) isSent = await sendToTelegram('', analysis.signal);
 
             const logs = document.getElementById('chatLogs');
-            let alertStatusHTML = isSent ? 
-                `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ 5M Auto Telegram Alert sent successfully!</div>` : 
-                `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed.</div>`;
-
-            logs.innerHTML += `
-                <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
-                    <span class="text-purple-400 font-bold block">⚡ 5M Auto Bot:</span> 
-                    <div class="text-gray-200">${webText}</div>
-                    ${alertStatusHTML}
-                </div>
-            `;
+            const statusText = isEntry
+                ? (isSent ? `✅ ${analysis.signal} Entry sent: ${analysis.entry} | SL ${analysis.stopLoss} | TP1 ${analysis.takeProfit?.[0] ?? '—'} / TP2 ${analysis.takeProfit?.[1] ?? '—'} / TP3 ${analysis.takeProfit?.[2] ?? '—'}` : '⚠️ Confirmed entry exists, but Telegram send failed.')
+                : `⏳ ${analysis.status || 'WAIT'} — no entry sent.`;
+            logs.innerHTML += `<div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2"><span class="text-purple-400 font-bold block">⚡ Live 5M Auto Bot:</span><div class="text-gray-200">${statusText}</div></div>`;
             logs.scrollTop = logs.scrollHeight;
+            if(isSent) { signalCounter++; document.getElementById('signalCount').innerText = signalCounter + ' Signals'; }
         }
 
         async function triggerAction(actionType) {
             const chatId = document.getElementById('tgChatId').value.trim();
-            if(!chatId) {
-                alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!");
-                return;
-            }
+            if(!chatId) { alert("⚠️ សូមបញ្ចូល Chat ID របស់អ្នកជាមុនសិន!"); return; }
+            if(!['BUY','SELL'].includes(actionType)) { alert('⚠️ Telegram Entry ត្រូវការ BUY ឬ SELL ដែល server បញ្ជាក់ប៉ុណ្ណោះ។'); return; }
 
             const logs = document.getElementById('chatLogs');
-            const market = document.getElementById('marketSelect').value;
-            
-            logs.innerHTML += `
-                <div class="bg-gray-800/60 p-2.5 rounded-lg border border-gray-700/50 mt-2">
-                    <span class="text-purple-400 font-bold block mb-0.5">👤 User Request:</span> ${actionType} Signal for ${market}
-                </div>
-            `;
-            logs.scrollTop = logs.scrollHeight;
-
-            let webText = "";
-            let teleMsg = "";
-
-            if (actionType === 'BUY') {
-                webText = `🟢 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Sent only after live server confirmation</i>`;
-            } else if (actionType === 'SELL') {
-                webText = `🔴 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Sent only after live server confirmation</i>`;
-            } else {
-                webText = `📊 <b>វិភាគ ICT ${market}:</b> Market Structure ស្ថិតក្នុងតំបន់រង់ចាំ (Order Block & FVG)។`;
-                teleMsg = `📊 <b>VET ICT MARKET ANALYSIS</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Monitoring Order Blocks.\n\n🤖 <i>Generated by VET Trade AI</i>`;
-            }
-
-            setTimeout(async () => {
-                const isSent = await sendToTelegram(teleMsg, actionType === 'BUY' ? 'BUY' : actionType === 'SELL' ? 'SELL' : 'WAIT');
-                if(isSent) {
-                    signalCounter++;
-                    document.getElementById('signalCount').innerText = signalCounter + " Signals";
-                }
-
-                let alertStatusHTML = isSent ? 
-                    `<div class="text-[10px] text-green-400 pt-1 font-mono">✅ Telegram Alert sent successfully!</div>` : 
-                    `<div class="text-[10px] text-red-400 pt-1 font-mono">⚠️ Telegram Alert failed.</div>`;
-
-                logs.innerHTML += `
-                    <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2 space-y-1">
-                        <span class="text-blue-400 font-bold block">🤖 VET ICT Bot:</span> 
-                        <div class="text-gray-200">${webText}</div>
-                        ${alertStatusHTML}
-                    </div>
-                `;
+            try {
+                const isSent = await sendToTelegram('', actionType);
+                logs.innerHTML += `<div class="bg-gray-900/90 p-3 rounded-lg border border-gray-800 mt-2"><span class="text-blue-400 font-bold block">🤖 VET ICT Bot:</span><div class="text-gray-200">${isSent ? '✅ Verified broker-native ' + actionType + ' Entry sent to Telegram.' : '⏳ No confirmed ' + actionType + ' Entry — nothing sent.'}</div></div>`;
                 logs.scrollTop = logs.scrollHeight;
-            }, 500);
+                if(isSent) { signalCounter++; document.getElementById('signalCount').innerText = signalCounter + ' Signals'; }
+            } catch (error) {
+                logs.innerHTML += `<div class="text-red-400 pt-1 font-mono">⚠️ ${error.message || 'Telegram request failed'}</div>`;
+            }
         }
 
         function openCheckoutModal(planName, price) {
