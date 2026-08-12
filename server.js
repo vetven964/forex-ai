@@ -323,6 +323,7 @@ async function buildXauAnalysis() {
   if(ob.found) candidates.push({type:'OB',low:Number(ob.low),high:Number(ob.high),bias:ob.type});
 
   const alignedZones=candidates.filter(z=>z.bias===macroBias);
+  const opposingZones=candidates.filter(z=>macroBias!=='NEUTRAL' && z.bias!==macroBias);
   let entryZone=null;
   if(alignedZones.length){
     alignedZones.sort((x,y)=>zoneDistance(live.price,x)-zoneDistance(live.price,y));
@@ -382,8 +383,13 @@ async function buildXauAnalysis() {
       trigger=side==='BULLISH'?'Wait for price to return to bullish FVG/OB':'Wait for price to return to bearish FVG/OB';
     }
   } else if(direction==='BULLISH' || direction==='BEARISH') {
-    status=direction==='BULLISH'?'WATCH BUY':'WATCH SELL';
-    trigger=direction==='BULLISH'?'Need bullish liquidity sweep/MSS confirmation':'Need bearish liquidity sweep/MSS confirmation';
+    // A directional bias is NOT an entry signal. Never label an unconfirmed
+    // market as WATCH BUY/SELL, because the UI may interpret that as an
+    // actionable setup. Keep the bias separate and force a neutral WAIT state.
+    status='WAIT — CONFIRMATION PENDING';
+    trigger=direction==='BULLISH'
+      ? 'Bullish bias only; wait for fresh sell-side liquidity sweep + M5 MSS/BOS + FVG/OB retest'
+      : 'Bearish bias only; wait for fresh buy-side liquidity sweep + M5 MSS/BOS + FVG/OB retest';
   }
 
   const maxScore=90;
@@ -396,6 +402,20 @@ async function buildXauAnalysis() {
   const newsPenalty = news.state === 'LOCK' ? 20 : news.state === 'CAUTION' ? 10 : news.state === 'POST_NEWS' ? 5 : 0;
   const confidence = Math.max(0, Math.min(100, Math.round((rawScore / maxScore) * 100) - newsPenalty));
   const setupGrade = confidence>=85?'HIGH CONFLUENCE':confidence>=75?'STRONG':confidence>=60?'VALID SETUP':confidence>=40?'WATCH':'WEAK';
+
+  // Final execution safety gate: BUY/SELL must never survive without all
+  // required confirmations. Bias can remain bullish/bearish, but execution
+  // state must be WAIT until the current price is actually confirmed.
+  const strictEntryReady = candlesFresh && directionConfirmed && direction===macroBias
+    && !!entryZone && zoneIsNear && inZone
+    && Math.max(score.bull, score.bear) >= 65
+    && (direction==='BULLISH' ? (sweep.bias==='BULLISH' && bullishMSS) : (sweep.bias==='BEARISH' && bearishMSS));
+  if (!strictEntryReady && (signal==='BUY' || signal==='SELL')) {
+    signal='WAIT';
+    entry=null; sl=null; tp=[];
+    status='WAIT — ENTRY NOT CONFIRMED';
+    trigger='All entry confirmations are required before BUY/SELL: liquidity sweep + MSS/BOS + aligned FVG/OB + price in zone + score >= 65';
+  }
   if (news.state === 'LOCK' && (signal === 'BUY' || signal === 'SELL')) {
     signal='WAIT'; status='NEWS LOCK — WAIT AFTER NEWS'; entry=null; sl=null; tp=[];
     trigger='High-impact USD news is within the protection window; wait for post-news liquidity sweep + MSS/BOS';
