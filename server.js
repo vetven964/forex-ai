@@ -20,7 +20,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '5.6.0';
+const APP_VERSION = '5.6.1';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -95,8 +95,10 @@ const newsCache = { at: 0, data: null };
 const analysisCache = { key: '', at: 0, data: null };
 const ANALYSIS_CACHE_MS = Number(process.env.ANALYSIS_CACHE_MS || 2000);
 const bridgeNews = { items: null, receivedAt: 0, source: null };
-const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 15000);
-const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json,https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json')
+const newsHealth = { lastAttemptAt: 0, lastSuccessAt: 0, lastSource: null, lastError: null, attempts: 0, successes: 0 };
+const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 300000);
+const NEWS_ERROR_RETRY_MS = Number(process.env.NEWS_ERROR_RETRY_MS || 120000);
+const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
 const NEWS_PRELOCK_MIN = Number(process.env.NEWS_PRELOCK_MIN || 15);
@@ -165,26 +167,37 @@ function newsStateFromItems(items, now) {
 
 async function fetchNewsSource(url) {
   const controller = new AbortController();
-  const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 2500);
+  const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 4000);
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = await fetch(url, {
       headers: {
         'User-Agent': `VTRADE-AI-NewsRadar/${APP_VERSION}`,
-        'Accept': 'application/json',
+        'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8',
         'Cache-Control': 'no-cache'
       },
       signal: controller.signal
     });
+    const contentType = String(r.headers.get('content-type') || '').toLowerCase();
     if (!r.ok) throw new Error(`news http ${r.status}`);
-    return await r.json();
+    const text = await r.text();
+    const trimmed = text.trim();
+    if (!trimmed || /^<!doctype html|^<html/i.test(trimmed)) {
+      throw new Error(`news returned HTML/non-JSON${contentType ? ` (${contentType})` : ''}`);
+    }
+    try { return JSON.parse(trimmed); }
+    catch { throw new Error('news returned invalid JSON'); }
   } finally { clearTimeout(timer); }
 }
 
 async function fetchXauNews() {
   const now = Date.now();
-  if (newsCache.data && now - newsCache.at < NEWS_CACHE_MS) return newsCache.data;
+  const cacheWindow = newsCache.data?.available === false ? NEWS_ERROR_RETRY_MS : NEWS_CACHE_MS;
+  if (newsCache.data && now - newsCache.at < cacheWindow) return newsCache.data;
 
+  // Prefer the broker/MT5 calendar bridge when present. This avoids relying on
+  // public calendar export rate limits and keeps the news clock aligned with the
+  // execution environment.
   if (bridgeNews.items && now - bridgeNews.receivedAt <= NEWS_BRIDGE_MAX_AGE_MS) {
     const st = newsStateFromItems(bridgeNews.items, now);
     const data = {
@@ -192,45 +205,58 @@ async function fetchXauNews() {
       deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
       sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
       windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
-      source:bridgeNews.source || 'MT5 bridge', sourceCount:1,
-      updatedAt:new Date(now).toISOString(), sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
+      source:bridgeNews.source || 'MT5 bridge', sourceCount:1, sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
+      updatedAt:new Date(now).toISOString(), sourceStatus:'LIVE', sourceDiagnostics:[{source:bridgeNews.source || 'MT5 bridge',status:'ok',ageSec:Math.round((now-bridgeNews.receivedAt)/1000)}],
       researchStatus:st.state==='LIVE'?'NEWS_LIVE':st.state==='POST_NEWS'?'POST_NEWS_REACTION':st.state==='LOCK'||st.state==='CAUTION'?'PRE_NEWS_RESEARCH':'CLEAR',
       research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
     };
+    newsHealth.lastSuccessAt=now; newsHealth.lastSource=data.source; newsHealth.lastError=null; newsHealth.successes++;
     newsCache.at=now; newsCache.data=data; return data;
   }
 
   const sources = [...new Set(NEWS_URLS)].filter(Boolean);
-  const results = await Promise.allSettled(
-    sources.map(async sourceUrl => ({ sourceUrl, items: await fetchNewsSource(sourceUrl) }))
-  );
-  const winner = results.find(r => r.status === 'fulfilled');
+  const diagnostics=[];
+  newsHealth.lastAttemptAt=now; newsHealth.attempts++;
 
-  if (winner) {
-    const {sourceUrl, items} = winner.value;
-    const st = newsStateFromItems(items, now);
-    const data = {
-      available:true, state:st.state, label:newsStateLabel(st.state), next:st.next, previous:st.previous,
-      deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
-      sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
-      windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
-      source:sourceUrl, sourceCount:sources.length, updatedAt:new Date(now).toISOString(),
-      researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' :
-        st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
-      research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
-    };
-    newsCache.at=now; newsCache.data=data; return data;
+  // Do NOT hit every public export endpoint in parallel. ForexFactory documents
+  // a shared request limit across its weekly exports, so parallel fallback calls
+  // can make an otherwise healthy feed look unavailable. Try one source at a time.
+  for (const sourceUrl of sources) {
+    try {
+      const items = await fetchNewsSource(sourceUrl);
+      const normalized = normalizeNewsItems(items, now);
+      const st = newsStateFromItems(items, now);
+      diagnostics.push({source:sourceUrl,status:'ok',items:normalized.length});
+      const data = {
+        available:true, state:st.state, label:newsStateLabel(st.state), next:st.next, previous:st.previous,
+        deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
+        sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
+        windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
+        source:sourceUrl, sourceCount:sources.length, sourceAgeSec:0, updatedAt:new Date(now).toISOString(),
+        sourceStatus:'LIVE', sourceDiagnostics:diagnostics,
+        researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' :
+          st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
+        research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
+      };
+      newsHealth.lastSuccessAt=now; newsHealth.lastSource=sourceUrl; newsHealth.lastError=null; newsHealth.successes++;
+      newsCache.at=now; newsCache.data=data; return data;
+    } catch (e) {
+      diagnostics.push({source:sourceUrl,status:'error',error:e?.message || 'request failed'});
+    }
   }
 
-  const errors = results.map((r,i) => r.status === 'rejected' ? `${sources[i]}: ${r.reason?.message || 'request failed'}` : null).filter(Boolean);
+  const errors = diagnostics.map(d => `${d.source}: ${d.error || d.status}`).join(' | ');
+  newsHealth.lastError=errors || 'No news source available';
   const data={
     available:false,state:'UNAVAILABLE',label:'NEWS UNAVAILABLE',next:null,previous:null,
     deltaMin:null,sincePreviousMin:null,windowMinutes:NEWS_PRELOCK_MIN,postWindowMinutes:NEWS_POST_MIN,
-    source:sources[0]||null,sourceCount:sources.length,updatedAt:new Date(now).toISOString(),
-    error:errors.join(' | ') || 'No news source available',researchStatus:'UNAVAILABLE',research:null,upcoming:[]
+    source:sources[0]||null,sourceCount:sources.length,sourceStatus:'OFFLINE',sourceDiagnostics:diagnostics,
+    updatedAt:new Date(now).toISOString(), error:errors || 'No news source available',
+    researchStatus:'UNAVAILABLE',research:null,upcoming:[]
   };
   newsCache.at=now; newsCache.data=data; return data;
 }
+
 function brokerFeedFresh() {
   return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
 }
@@ -568,6 +594,15 @@ async function maybeTelegramAlert(a, tg, sessionId) {
   }
   return sent;
 }
+
+app.get('/api/v5/news/diagnostics', async (_req,res) => {
+  try {
+    const news = await fetchXauNews();
+    res.json({success:true,version:APP_VERSION,news,health:{...newsHealth,now:new Date().toISOString()},bridge:{available:Array.isArray(bridgeNews.items),ageSec:bridgeNews.receivedAt ? Math.round((Date.now()-bridgeNews.receivedAt)/1000) : null,source:bridgeNews.source}});
+  } catch (e) {
+    res.status(500).json({success:false,error:'News diagnostics unavailable'});
+  }
+});
 
 app.get('/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,service:'vtrade-ai'}));
 app.get('/api/storage/status', async (_req,res)=>{ try { res.json({success:true, ...(await storage.getStatus())}); } catch(e) { res.status(500).json({success:false,error:'Storage status unavailable'}); } });

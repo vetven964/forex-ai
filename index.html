@@ -420,6 +420,13 @@ body{
                             <div class="text-gray-500">Next</div><b id="newsNext" class="text-amber-300">—</b>
                         </div>
                     </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-800 text-[10px] font-mono">
+                        <div><span class="text-gray-500">Source</span><br><b id="newsSource" class="text-gray-300">—</b></div>
+                        <div><span class="text-gray-500">Feed</span><br><b id="newsFeedStatus" class="text-amber-300">—</b></div>
+                        <div><span class="text-gray-500">Age</span><br><b id="newsDataAge" class="text-gray-300">—</b></div>
+                        <div><span class="text-gray-500">Events</span><br><b id="newsEventCount" class="text-gray-300">—</b></div>
+                    </div>
+                    </div>
                 </div>
 
                 <div id="newsResearchCard" class="glass-panel p-4 rounded-2xl border border-blue-500/20">
@@ -1423,7 +1430,7 @@ body{
                 updateConfirmationUI(x);
                 updateTelegramEntryButton(x);
                 const source = pair === 'XAU/USD' && latestXauAnalysis ? ` | ${latestXauAnalysis.source}` : '';
-                appendTerminalLog(`[AI ENGINE] ${pair}: ${unsupported ? 'WAIT' : (x?.signal || 'WAIT')} | ${unsupported ? 'XAUUSD is the only live ICT execution engine' : (x?.status || readiness)} | Confluence ${score ?? '—'}/100 | ${x?.trigger || 'No confirmed setup'}${source}`);
+                appendTerminalLog(`[AI ENGINE] ${pair}: ${unsupported ? 'WAIT' : (x?.signal || 'WAIT')} | ${unsupported ? 'XAUUSD is the only live ICT execution engine' : (x?.status || readiness)} | Confluence ${score ?? '—'}/100 | News ${x?.news?.sourceStatus || 'UNKNOWN'} | ${x?.trigger || 'No confirmed setup'}${source}`);
                 updateRadarChartData(pair);
             }, 300);
         }
@@ -1433,11 +1440,21 @@ body{
             const label=document.getElementById('newsRiskLabel');
             const detail=document.getElementById('newsRiskDetail');
             const next=document.getElementById('newsNext');
+            const source=document.getElementById('newsSource');
+            const feed=document.getElementById('newsFeedStatus');
+            const age=document.getElementById('newsDataAge');
+            const count=document.getElementById('newsEventCount');
             if(!card||!label||!detail||!next) return;
+            const ageSec=Number(news?.sourceAgeSec);
+            if(source) source.textContent = news?.source ? (String(news.source).includes('faireconomy') ? 'ForexFactory' : String(news.source).replace(/^https?:\/\//,'').slice(0,28)) : 'MT5 bridge / —';
+            if(feed){ feed.textContent = news?.sourceStatus === 'LIVE' ? 'LIVE · VERIFIED' : 'OFFLINE · LOCKED'; feed.className = news?.sourceStatus === 'LIVE' ? 'text-emerald-400' : 'text-red-400'; }
+            if(age) age.textContent = Number.isFinite(ageSec) ? `${ageSec}s` : '—';
+            if(count) count.textContent = String(news?.upcoming?.length ?? 0);
             if(!news || news.available===false){
                 label.textContent='NEWS UNAVAILABLE · NO ENTRY';
                 label.className='text-xl font-extrabold mt-1 text-red-400';
-                detail.textContent='មិនអាច verify USD high-impact news បាន — AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry';
+                const diag = news?.sourceDiagnostics?.find(d=>d.status==='error');
+                detail.textContent=diag ? `News source unavailable: ${diag.error}. AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry` : 'មិនអាច verify USD high-impact news បាន — AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry';
                 next.textContent='—'; return;
             }
             const m=Number(news.deltaMin);
