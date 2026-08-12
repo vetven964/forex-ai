@@ -20,7 +20,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '5.4.0';
+const APP_VERSION = '5.5.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -102,6 +102,9 @@ const NEWS_CAUTION_MIN = Number(process.env.NEWS_CAUTION_MIN || 60);
 const NEWS_LIVE_WINDOW_MIN = Number(process.env.NEWS_LIVE_WINDOW_MIN || 2);
 const NEWS_POST_MIN = Number(process.env.NEWS_POST_MIN || 15);
 const TELEGRAM_NEWS_ALERTS = String(process.env.TELEGRAM_NEWS_ALERTS || 'true').toLowerCase() === 'true';
+const MIN_CONFLUENCE = Number(process.env.MIN_CONFLUENCE || 85);
+const MAX_ENTRY_SPREAD = Number(process.env.MAX_ENTRY_SPREAD || 1.50);
+const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
 
 function newsStateLabel(state) {
   return state === 'LIVE' ? 'NEWS LIVE' : state === 'LOCK' ? 'NEWS SOON / LOCK' : state === 'CAUTION' ? 'NEWS SOON' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'NEWS CLEAR' : 'NEWS UNAVAILABLE';
@@ -437,10 +440,16 @@ async function buildXauAnalysis() {
   const macroBias=bullHTF>bearHTF?'BULLISH':bearHTF>bullHTF?'BEARISH':'NEUTRAL',mtfCount=Math.max(bullHTF,bearHTF);
   const execStruct=executionStructure(m5),sweep=recentLiquiditySweep(m5,6),displacement=candleDisplacement(m5),f=latestFreshFvg(m5,12),ob=latestAlignedOrderBlock(m5,macroBias,20),side=macroBias;
   const alignedFvg=f.found&&f.type===side,alignedOb=ob.found&&ob.type===side,zoneCandidates=[];
-  if(alignedFvg) zoneCandidates.push({type:'FVG',low:Number(f.low),high:Number(f.high),bias:side,ageBars:f.ageBars}); if(alignedOb) zoneCandidates.push({type:'OB',low:Number(ob.low),high:Number(ob.high),bias:side,ageBars:ob.ageBars});
-  zoneCandidates.sort((x,y)=>zoneDistance(live.price,x)-zoneDistance(live.price,y)); const candidateZone=zoneCandidates[0]||null,inZone=zoneContains(live.price,candidateZone),zoneIsNear=!!candidateZone&&zoneDistance(live.price,candidateZone)<=Math.max(a*2,8);
-  const biasOk=(side==='BULLISH'&&bullHTF>=2)||(side==='BEARISH'&&bearHTF>=2),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=execStruct.mss===side&&execStruct.bos===side;
-  const rawScore=(biasOk?20:0)+(sweepOk?20:0)+(mssOk?20:0)+(displacementOk?15:0)+((alignedFvg||alignedOb)?15:0)+(retestOk?10:0),confluenceScore=Math.min(100,rawScore);
+  if(alignedFvg) zoneCandidates.push({type:'FVG',low:Number(f.low),high:Number(f.high),bias:side,ageBars:f.ageBars});
+  if(alignedOb) zoneCandidates.push({type:'OB',low:Number(ob.low),high:Number(ob.high),bias:side,ageBars:ob.ageBars});
+  zoneCandidates.sort((x,y)=>zoneDistance(live.price,x)-zoneDistance(live.price,y));
+  const candidateZone=zoneCandidates[0]||null,inZone=zoneContains(live.price,candidateZone),zoneIsNear=!!candidateZone&&zoneDistance(live.price,candidateZone)<=Math.max(a*2,8);
+  const swingHigh=execStruct.swingHigh,swingLow=execStruct.swingLow,mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price;
+  const premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
+  const pdOk=side==='BULLISH'?premiumDiscount==='DISCOUNT':side==='BEARISH'?premiumDiscount==='PREMIUM':false;
+  const spreadOk=Number.isFinite(live.spread)&&live.spread<=MAX_ENTRY_SPREAD;
+  const biasOk=(side==='BULLISH'&&bullHTF>=2)||(side==='BEARISH'&&bearHTF>=2),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=mssOk&&bosOk;
+  const rawScore=(biasOk?20:0)+(sweepOk?20:0)+(mssOk?15:0)+(bosOk?10:0)+(displacementOk?10:0)+((alignedFvg||alignedOb)?10:0)+(retestOk?10:0)+(pdOk?5:0),confluenceScore=Math.min(100,rawScore);
   let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];
   if(!candlesFresh) reasons.push('Closed-candle data is stale — wait for fresh MT5 history');
   if(!biasOk) reasons.push('MTF bias not aligned — need 2/3 H4/H1/M15 agreement');
@@ -449,13 +458,15 @@ async function buildXauAnalysis() {
   if(!displacementOk) reasons.push('Directional displacement not confirmed');
   if(!(alignedFvg||alignedOb)) reasons.push('No fresh aligned FVG/OB');
   if(!retestOk) reasons.push('Price has not retested the execution zone');
-  if(!structureAgreement) reasons.push('M5 MSS + BOS confirmation not complete');
-  const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&confluenceScore>=80;
+  if(!bosOk) reasons.push('Fresh M5 BOS not confirmed');
+  if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);
+  if(!spreadOk) reasons.push(`Spread ${live.spread ?? '—'} exceeds max ${MAX_ENTRY_SPREAD}`);
+  const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&bosOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&pdOk&&spreadOk&&confluenceScore>=MIN_CONFLUENCE;
   if(setupReady){
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&bullHTF>=2) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&bearHTF>=2) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
   const news=await fetchXauNews();
-  const newsBlocked = !news.available || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
+  const newsBlocked = (NEWS_FAIL_CLOSED && !news.available) || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
   if(newsBlocked){
     signal='WAIT'; entry=null; sl=null; tp=[];
     if(!news.available){ status='NEWS UNAVAILABLE — NO ENTRY'; trigger='News feed unavailable; do not trade until USD high-impact calendar is verified'; }
@@ -469,9 +480,9 @@ async function buildXauAnalysis() {
   else if((side==='BULLISH'||side==='BEARISH') && confluenceScore>=50) phase='MIDWAY';
   else phase='WAIT';
 
-  const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=80?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT',swingHigh=execStruct.swingHigh,swingLow=execStruct.swingLow,mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price,premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
-  const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:execStruct.bos===side,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,allGatesPassed:setupReady && !newsBlocked};
-  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Directional displacement','Fresh aligned FVG/OB','Retest','MSS + BOS','Confluence >= 80'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=MIN_CONFLUENCE?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT';
+  const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,allGatesPassed:setupReady && !newsBlocked};
+  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
 }
 
 function telegramText(a) {
@@ -611,6 +622,25 @@ app.get('/api/market/xauusd',async(_req,res)=>{
     success:true,symbol:'XAUUSD',price:p.price,bid:p.bid,ask:p.ask,spread:p.spread,
     source:p.source,sourceDetail:p.sourceDetail,priceAsOf:p.priceAsOf,
     priceAgeSec:p.ageSec,stale:p.stale,timestamp:Date.now()
+  });
+});
+
+app.get('/api/v5/news/diagnostics', async (_req,res)=>{
+  const news = await fetchXauNews();
+  res.set('Cache-Control','no-store');
+  res.json({
+    success:true,
+    available:news.available,
+    state:news.state,
+    label:news.label,
+    source:news.source,
+    sourceCount:news.sourceCount,
+    updatedAt:news.updatedAt,
+    sourceAgeSec:news.sourceAgeSec ?? null,
+    configuredSources:NEWS_URLS,
+    bridge: { available:Array.isArray(bridgeNews.items), ageSec:bridgeNews.receivedAt ? Math.round((Date.now()-bridgeNews.receivedAt)/1000) : null, source:bridgeNews.source },
+    failClosed:NEWS_FAIL_CLOSED,
+    error:news.error || null
   });
 });
 
