@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Smart Entry Terminal (v5.3.3 VT Markets MT5 + Storage)</title>
+    <title>V Trade AI Pro - Smart Entry Terminal (v5.3.6 VT Markets MT5 + Storage)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -30,7 +30,7 @@
     </style>
 
 <style id="vtrade-mobile-pro">
-/* v5.3.3 Mobile PRO */
+/* v5.3.6 Mobile PRO */
 @media (max-width: 767px){
   body{padding-bottom:74px!important;overflow-x:hidden}
   #topHeader{padding:10px 12px!important;gap:8px!important;flex-wrap:nowrap!important;min-height:78px}
@@ -111,7 +111,7 @@
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div class="mobile-pro-title">
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.3.3</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.3.6</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
@@ -297,7 +297,7 @@
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.3.0 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.3.6 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
@@ -417,7 +417,7 @@
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.3.3 Smart Entry Radar Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.3.6 Smart Entry Radar Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -1247,8 +1247,8 @@
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.3.3", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.3.3", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            km: { brand: "V TRADE AI & TERMINAL v5.3.6", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.3.6", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
             zh: { brand: "V TRADE AI TERMINAL v5.2.2", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
@@ -1394,24 +1394,27 @@
             const next=document.getElementById('newsNext');
             if(!card||!label||!detail||!next) return;
             if(!news || news.available===false){
-                label.textContent='NEWS FEED OFFLINE · មិនទាន់មានប្រភព';
-                label.className='text-xl font-extrabold mt-1 text-gray-400';
-                detail.textContent='News feed មិនអាចទាញបានពេលនេះ — AI មិនស្មានព័ត៌មាន';
+                label.textContent='NEWS UNAVAILABLE · NO ENTRY';
+                label.className='text-xl font-extrabold mt-1 text-red-400';
+                detail.textContent='មិនអាច verify USD high-impact news បាន — AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry';
                 next.textContent='—'; return;
             }
             const m=Number(news.deltaMin);
-            if(news.state==='LOCK'){
-                label.textContent='NEWS LOCK · ឈប់ចូល'; label.className='text-xl font-extrabold mt-1 text-red-400';
-                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុង ${Math.max(0,m)} នាទី · រង់ចាំ Post-News Sweep + MSS/BOS`;
+            if(news.state==='LIVE'){
+                label.textContent='NEWS LIVE · NO ENTRY'; label.className='text-xl font-extrabold mt-1 text-red-400';
+                detail.textContent=`ព័ត៌មាន ${news.next?.title || 'USD High Impact'} កំពុងចេញ · រង់ចាំ Post-News Sweep + MSS/BOS`;
+            } else if(news.state==='LOCK'){
+                label.textContent='NEWS SOON · ENTRY LOCK'; label.className='text-xl font-extrabold mt-1 text-red-400';
+                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុង ${Math.max(0,m)} នាទី · មិនបើក Entry ថ្មី`;
             } else if(news.state==='POST_NEWS'){
-                label.textContent='POST-NEWS · រង់ចាំ Confirmation'; label.className='text-xl font-extrabold mt-1 text-purple-400';
+                label.textContent='POST-NEWS · WAIT REACTION'; label.className='text-xl font-extrabold mt-1 text-purple-400';
                 detail.textContent=`ព័ត៌មានធំទើបចេញប្រហែល ${Math.max(0,Number(news.sincePreviousMin)||0)} នាទីមុន · រង់ចាំ Liquidity Sweep + MSS/BOS`;
             } else if(news.state==='CAUTION'){
-                label.textContent='CAUTION · ប្រយ័ត្ន'; label.className='text-xl font-extrabold mt-1 text-amber-400';
-                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុងប្រហែល ${Math.max(0,m)} នាទី · កុំបង្ខំ Entry`;
+                label.textContent='NEWS SOON · CAUTION'; label.className='text-xl font-extrabold mt-1 text-amber-400';
+                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុងប្រហែល ${Math.max(0,m)} នាទី · អនុញ្ញាតតែ setup ដែល confirm គ្រប់ gate`;
             } else {
-                label.textContent='CLEAR · សុវត្ថិភាព'; label.className='text-xl font-extrabold mt-1 text-emerald-400';
-                detail.textContent='គ្មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុង 60 នាទីខាងមុខ';
+                label.textContent='NEWS CLEAR · VERIFIED'; label.className='text-xl font-extrabold mt-1 text-emerald-400';
+                detail.textContent='មិនមាន USD high-impact news ក្នុង 60 នាទីខាងមុខ តាម calendar feed ដែលបាន verify';
             }
             next.textContent=news.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : 'គ្មាន';
         }
@@ -1475,7 +1478,7 @@
             const liq = a.ict?.liquiditySweep?.bias && a.ict.liquiditySweep.bias !== 'NONE' ? 100 : 0;
             const structure = (a.ict?.mss && a.ict.mss !== 'PENDING') || (a.ict?.bos && a.ict.bos !== 'PENDING') ? 100 : 0;
             const zone = a.entryZone ? (a.confirmations?.inZone ? 100 : 60) : 0;
-            const news = a.news?.state === 'LOCK' ? 0 : a.news?.state === 'POST_NEWS' ? 35 : a.news?.state === 'CAUTION' ? 50 : a.news?.available === false ? 25 : 100;
+            const news = !a.news?.available ? 0 : (a.news?.state === 'LIVE' || a.news?.state === 'LOCK' || a.news?.state === 'POST_NEWS') ? 0 : a.news?.state === 'CAUTION' ? 50 : 100;
             sentimentChartInstance.data.datasets[0].data = [mtf, liq, structure, zone, news];
             sentimentChartInstance.update();
         }
@@ -1955,7 +1958,7 @@
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.3.3 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.3.6 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }

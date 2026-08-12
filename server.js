@@ -91,43 +91,77 @@ const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 const newsCache = { at: 0, data: null };
 const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 60000);
-const NEWS_URL = process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json';
+const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
+  .split(',').map(x => x.trim()).filter(Boolean);
+const NEWS_PRELOCK_MIN = Number(process.env.NEWS_PRELOCK_MIN || 15);
+const NEWS_CAUTION_MIN = Number(process.env.NEWS_CAUTION_MIN || 60);
+const NEWS_LIVE_WINDOW_MIN = Number(process.env.NEWS_LIVE_WINDOW_MIN || 2);
+const NEWS_POST_MIN = Number(process.env.NEWS_POST_MIN || 15);
 
 function newsStateLabel(state) {
-  return state === 'LOCK' ? 'NEWS LOCK' : state === 'CAUTION' ? 'CAUTION' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'CLEAR' : 'UNAVAILABLE';
+  return state === 'LIVE' ? 'NEWS LIVE' : state === 'LOCK' ? 'NEWS SOON / LOCK' : state === 'CAUTION' ? 'NEWS SOON' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'NEWS CLEAR' : 'NEWS UNAVAILABLE';
+}
+
+function normalizeNewsItems(items, now) {
+  const list = Array.isArray(items) ? items : [];
+  return list.filter(x => String(x.currency || '').toUpperCase() === 'USD' && String(x.impact || '').toLowerCase() === 'high')
+    .map(x => {
+      let timestamp = Number(x.timestamp);
+      if (Number.isFinite(timestamp)) timestamp *= timestamp < 1e12 ? 1000 : 1;
+      else timestamp = Date.parse(x.date || x.datetime || x.time || '');
+      return {
+        title: String(x.title || x.event || 'USD High Impact News'),
+        currency: 'USD', impact: 'HIGH', timestamp,
+        forecast: x.forecast ?? null, previous: x.previous ?? null,
+        actual: x.actual ?? null
+      };
+    })
+    .filter(x => Number.isFinite(x.timestamp) && x.timestamp > now - (NEWS_POST_MIN * 60 * 1000) - 60000)
+    .sort((a,b)=>a.timestamp-b.timestamp);
+}
+
+async function fetchNewsSource(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': 'VTRADE-AI-NewsRadar/5.3.6', 'Accept': 'application/json' }, signal: controller.signal });
+    if (!r.ok) throw new Error(`news http ${r.status}`);
+    return await r.json();
+  } finally { clearTimeout(timer); }
 }
 
 async function fetchXauNews() {
   const now = Date.now();
   if (newsCache.data && now - newsCache.at < NEWS_CACHE_MS) return newsCache.data;
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-    const r = await fetch(NEWS_URL, { headers: { 'User-Agent': 'VTRADE-AI-NewsRadar/5.3' }, signal: controller.signal });
-    clearTimeout(timer);
-    if (!r.ok) throw new Error(`news http ${r.status}`);
-    const items = await r.json();
-    const list = Array.isArray(items) ? items : [];
-    const usd = list.filter(x => String(x.currency || '').toUpperCase() === 'USD' && String(x.impact || '').toLowerCase() === 'high');
-    const upcoming = usd.map(x => ({
-      title: String(x.title || x.event || 'USD High Impact News'),
-      currency: 'USD', impact: 'HIGH',
-      timestamp: Number(x.timestamp) ? Number(x.timestamp) * 1000 : Date.parse(x.date || x.datetime || ''),
-      forecast: x.forecast ?? null, previous: x.previous ?? null
-    })).filter(x => Number.isFinite(x.timestamp)).sort((a,b)=>a.timestamp-b.timestamp);
-    const next = upcoming.find(x => x.timestamp >= now) || null;
-    const previous = [...upcoming].reverse().find(x => x.timestamp < now) || null;
-    const deltaMin = next ? (next.timestamp-now)/60000 : Infinity;
-    const sincePreviousMin = previous ? (now-previous.timestamp)/60000 : Infinity;
-    const state = next ? (deltaMin <= 15 ? 'LOCK' : deltaMin <= 60 ? 'CAUTION' : 'CLEAR') : (sincePreviousMin <= 15 ? 'POST_NEWS' : 'CLEAR');
-    const data = { available:true, state, label:newsStateLabel(state), next, previous, deltaMin:Number.isFinite(deltaMin)?Math.round(deltaMin):null, sincePreviousMin:Number.isFinite(sincePreviousMin)?Math.round(sincePreviousMin):null, windowMinutes:15, source:NEWS_URL, updatedAt:new Date(now).toISOString() };
-    newsCache.at=now; newsCache.data=data; return data;
-  } catch (e) {
-    const data={available:false,state:'UNAVAILABLE',label:'UNAVAILABLE',next:null,deltaMin:null,windowMinutes:15,source:NEWS_URL,updatedAt:new Date(now).toISOString(),error:e.message};
-    newsCache.at=now; newsCache.data=data; return data;
+  let lastError = 'No news source available';
+  for (const sourceUrl of NEWS_URLS) {
+    try {
+      const items = await fetchNewsSource(sourceUrl);
+      const upcoming = normalizeNewsItems(items, now);
+      const next = upcoming.find(x => x.timestamp >= now) || null;
+      const previous = [...upcoming].reverse().find(x => x.timestamp < now) || null;
+      const deltaMin = next ? (next.timestamp-now)/60000 : Infinity;
+      const sincePreviousMin = previous ? (now-previous.timestamp)/60000 : Infinity;
+      let state = 'CLEAR';
+      if (next && deltaMin <= NEWS_LIVE_WINDOW_MIN && deltaMin >= 0) state = 'LIVE';
+      else if (next && deltaMin <= NEWS_PRELOCK_MIN && deltaMin >= 0) state = 'LOCK';
+      else if (next && deltaMin <= NEWS_CAUTION_MIN) state = 'CAUTION';
+      else if (previous && sincePreviousMin <= NEWS_POST_MIN) state = 'POST_NEWS';
+      const data = {
+        available:true, state, label:newsStateLabel(state), next, previous,
+        deltaMin:Number.isFinite(deltaMin)?Math.max(0,Math.round(deltaMin)):null,
+        sincePreviousMin:Number.isFinite(sincePreviousMin)?Math.max(0,Math.round(sincePreviousMin)):null,
+        windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
+        source:sourceUrl, sourceCount:NEWS_URLS.length, updatedAt:new Date(now).toISOString(),
+        researchStatus: state === 'LIVE' ? 'NEWS_LIVE' : state === 'POST_NEWS' ? 'POST_NEWS_REACTION' : state === 'LOCK' || state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
+        research: next ? {title:next.title, currency:next.currency, impact:next.impact, forecast:next.forecast, previous:next.previous, actual:next.actual, minutesToEvent:Number.isFinite(deltaMin)?Math.max(0,Math.round(deltaMin)):null} : null
+      };
+      newsCache.at=now; newsCache.data=data; return data;
+    } catch (e) { lastError = e.message; }
   }
+  const data={available:false,state:'UNAVAILABLE',label:'NEWS UNAVAILABLE',next:null,previous:null,deltaMin:null,sincePreviousMin:null,windowMinutes:NEWS_PRELOCK_MIN,postWindowMinutes:NEWS_POST_MIN,source:NEWS_URLS[0]||null,updatedAt:new Date(now).toISOString(),error:lastError,researchStatus:'UNAVAILABLE',research:null};
+  newsCache.at=now; newsCache.data=data; return data;
 }
-
 function brokerFeedFresh() {
   return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
 }
@@ -350,10 +384,18 @@ async function buildXauAnalysis() {
   if(setupReady){
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=round2(live.price); const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?round2(z.low-buffer):round2(z.high+buffer); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[round2(target1),round2(side==='BULLISH'?entry+risk*3:entry-risk*3),round2(side==='BULLISH'?entry+risk*4:entry-risk*4)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&bullHTF>=2) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&bearHTF>=2) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
-  const news=await fetchXauNews(); if(news.state==='LOCK'&&(signal==='BUY'||signal==='SELL')){signal='WAIT';status='NEWS LOCK — WAIT AFTER NEWS';entry=null;sl=null;tp=[];trigger='High-impact USD news protection window; wait for post-news sweep + MSS';}
+  const news=await fetchXauNews();
+  const newsBlocked = !news.available || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
+  if(newsBlocked){
+    signal='WAIT'; entry=null; sl=null; tp=[];
+    if(!news.available){ status='NEWS UNAVAILABLE — NO ENTRY'; trigger='News feed unavailable; do not trade until USD high-impact calendar is verified'; }
+    else if(news.state==='LIVE'){ status='NEWS LIVE — NO ENTRY'; trigger=`${news.next?.title || 'High-impact USD news'} is live; wait for post-news sweep + MSS/BOS + displacement + retest`; }
+    else if(news.state==='POST_NEWS'){ status='POST-NEWS — WAIT FOR REACTION'; trigger='High-impact USD news just passed; wait for post-news sweep + MSS/BOS + displacement + retest'; }
+    else { status='NEWS LOCK — WAIT AFTER NEWS'; trigger=`${news.next?.title || 'High-impact USD news'} is due soon; wait for post-news confirmation`; }
+  }
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=80?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT',swingHigh=execStruct.swingHigh,swingLow=execStruct.swingLow,mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price,premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
-  const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:execStruct.bos===side,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,allGatesPassed:setupReady};
-  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:setupReady?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Directional displacement','Fresh aligned FVG/OB','Retest','MSS + BOS','Confluence >= 80'],passed:setupReady},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:execStruct.bos===side,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,allGatesPassed:setupReady && !newsBlocked};
+  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Directional displacement','Fresh aligned FVG/OB','Retest','MSS + BOS','Confluence >= 80'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
 }
 
 function telegramText(a) {
