@@ -463,19 +463,41 @@ async function buildXauAnalysis() {
   };
 }
 
+function khState(value) {
+  const map = {
+    BUY:'ទិញ (BUY)', SELL:'លក់ (SELL)', WAIT:'រង់ចាំ (WAIT)',
+    'WATCH BUY':'តាមដានឱកាសទិញ (WATCH BUY)', 'WATCH SELL':'តាមដានឱកាសលក់ (WATCH SELL)',
+    BULLISH:'ទិសដៅឡើង (BULLISH)', BEARISH:'ទិសដៅចុះ (BEARISH)', RANGE:'ចលនាក្នុងជួរ (RANGE)',
+    NEUTRAL:'អព្យាក្រឹត (NEUTRAL)', PENDING:'កំពុងរង់ចាំការបញ្ជាក់', NONE:'មិនទាន់មាន',
+    CLEAR:'ធម្មតា / គ្មានហានិភ័យខ្ពស់', PRE_NEWS:'ជិតដល់ព័ត៌មាន', 'NEWS LOCK':'បិទការចូលជាបណ្ដោះអាសន្ន'
+  };
+  return map[value] || value || '—';
+}
+
 function telegramText(a) {
   const icon=a.signal==='BUY'?'🟢':a.signal==='SELL'?'🔴':a.status?.includes('BUY')?'🟡':a.status?.includes('SELL')?'🟠':'⚪';
   const zone=a.entryZone ? `${a.entryZone.low}–${a.entryZone.high} (${a.entryZone.type})` : '—';
   const tp=a.takeProfit?.length ? a.takeProfit.map((x,i)=>`TP${i+1}: ${x}`).join('\n') : 'TP: —';
+  const tf=a.timeframes || {};
+  const fvg = a.ict?.fvg?.found ? `${khState(a.ict.fvg.type)} FVG ${a.ict.fvg.low}–${a.ict.fvg.high}` : 'មិនទាន់បញ្ជាក់';
+  const ob = a.ict?.orderBlock?.found ? `${khState(a.ict.orderBlock.type)} OB ${a.ict.orderBlock.low}–${a.ict.orderBlock.high}` : 'មិនទាន់បញ្ជាក់';
+  const newsState = khState(a.newsRisk?.state || 'UNKNOWN');
+  const detail = a.newsRisk?.detail || 'ទិន្នន័យព័ត៌មានមិនអាចប្រើបាន';
   return `${icon} *V TRADE AI — XAUUSD ICT RADAR*\n\n`+
-    `Live: *${a.livePrice}*\nSignal: *${a.signal}*\nStatus: *${a.status}*\nBias: *${a.bias}*\nSetup Score: *${a.confidence}/100 (${a.setupGrade})*\nMTF Alignment: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
-    `H4: ${a.timeframes.H4.structure.bias} | H1: ${a.timeframes.H1.structure.bias} | M15: ${a.timeframes.M15.structure.bias} | M5: ${a.timeframes.M5.structure.bias}\n`+
-    `Liquidity: ${a.ict.liquiditySweep.detail}\nMSS: ${a.ict.mss}\nBOS: ${a.ict.bos}\n`+
-    `FVG: ${a.ict.fvg.found ? a.ict.fvg.type+' '+a.ict.fvg.low+'–'+a.ict.fvg.high : 'Not confirmed'}\n`+
-    `OB: ${a.ict.orderBlock.found ? a.ict.orderBlock.type+' '+a.ict.orderBlock.low+'–'+a.ict.orderBlock.high : 'Not confirmed'}\n\n`+
-    `Entry Zone: *${zone}*\nEntry: *${a.entry ?? 'WAIT'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
-    `News Risk: *${a.newsRisk?.state || 'UNKNOWN'}*\n${a.newsRisk?.detail || 'News data unavailable'}\n\n`+
-    `Trigger: ${a.trigger}\nExecution: ${a.executionTimeframe}\n\n⚠️ ${a.riskNote}`;
+    `តម្លៃបច្ចុប្បន្ន: *${a.livePrice}*\n`+
+    `សញ្ញា: *${khState(a.signal)}*\n`+
+    `ស្ថានភាព: *${khState(a.status)}*\n`+
+    `Bias: *${khState(a.bias)}*\n`+
+    `ពិន្ទុ Setup: *${a.confidence}/100 (${a.setupGrade})*\n`+
+    `MTF ស្របគ្នា: *${a.confirmations?.mtfCount ?? 0}/3*\n\n`+
+    `H4: ${khState(tf.H4?.structure?.bias)} | H1: ${khState(tf.H1?.structure?.bias)} | M15: ${khState(tf.M15?.structure?.bias)} | M5: ${khState(tf.M5?.structure?.bias)}\n`+
+    `Liquidity Sweep: ${a.ict?.liquiditySweep?.bias && a.ict.liquiditySweep.bias !== 'NONE' ? khState(a.ict.liquiditySweep.bias) : 'មិនទាន់មាន Sweep ដែលបញ្ជាក់ច្បាស់'}\n`+
+    `MSS: ${khState(a.ict?.mss)}\nBOS: ${khState(a.ict?.bos)}\n`+
+    `FVG: ${fvg}\nOB: ${ob}\n\n`+
+    `តំបន់ចូល: *${zone}*\nចំណុចចូល: *${a.entry ?? 'រង់ចាំ'}*\nSL: *${a.stopLoss ?? '—'}*\n${tp}\n\n`+
+    `ហានិភ័យព័ត៌មាន: *${newsState}*\n${detail}\n\n`+
+    `Trigger: ${a.trigger || 'រង់ចាំការបញ្ជាក់'}\nExecution: ${a.executionTimeframe || 'M5'}\n\n`+
+    `⚠️ ការវិភាគនេះជាព័ត៌មានសម្រាប់យោងប៉ុណ្ណោះ។ តម្លៃ XAUUSD របស់ Broker, spread និង CFD/spot អាចខុសគ្នា។ សូមផ្ទៀងផ្ទាត់តម្លៃ Broker មុនបញ្ជាទិញ។`;
 }
 
 async function maybeTelegramAlert(a, tg, sessionId) {
