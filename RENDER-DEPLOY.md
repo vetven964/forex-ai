@@ -40,3 +40,10 @@ Open:
 - `/api/analysis/xauusd`
 
 `/api/v5/mt5/status` should show `connected: true`.
+
+
+## News Radar v5.3.7
+- Public fallback calendar sources are configured by `NEWS_CALENDAR_URLS`.
+- If your MT5 bridge can supply an economic calendar, POST verified events to `/api/v5/news/calendar` using the same `x-vtrade-key` as the quote bridge.
+- The engine accepts only USD high-impact events for the XAUUSD news gate.
+- `NEWS UNAVAILABLE` always blocks BUY/SELL rather than guessing.

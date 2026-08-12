@@ -39,14 +39,14 @@
                 <div class="row g-2">
                     <div class="col-6">
                         <div class="bg-black p-3 rounded border border-secondary text-center">
-                            <span class="text-secondary small">Total Signals</span>
-                            <h4 class="fw-bold text-warning mb-0">1,248</h4>
+                            <span class="text-secondary small">Signal Engine</span>
+                            <h4 class="fw-bold text-warning mb-0">LIVE</h4>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="bg-black p-3 rounded border border-secondary text-center">
-                            <span class="text-secondary small">System Win Rate</span>
-                            <h4 class="fw-bold text-success mb-0">95.8%</h4>
+                            <span class="text-secondary small">Win Rate</span>
+                            <h4 class="fw-bold text-success mb-0">—</h4>
                         </div>
                     </div>
                 </div>
@@ -145,25 +145,21 @@
             window.location.href = "login.html";
         }
 
-        function adminBroadcastSignal() {
-            const asset = document.getElementById("admin-asset").value;
-            const type = document.getElementById("admin-signal-type").value;
-            const entry = document.getElementById("admin-entry").value;
-            const target = document.getElementById("admin-target").value;
-            
-            alert(`✅ Admin Hub: Successfully broadcasted ${asset} (${type}) to Telegram channel!`);
+        async function adminBroadcastSignal() {
+            try {
+                const r = await fetch('https://forexai-6xw6.onrender.com/api/v5/signal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:document.getElementById("admin-signal-type").value === 'STRONG BUY' ? 'BUY' : 'SELL'})});
+                const d = await r.json();
+                if(!r.ok || !d.success) throw new Error(d.error || 'Signal not broadcast');
+                alert(`✅ Current verified XAUUSD signal sent: ${d.analysis?.signal || 'WAIT'}`);
+            } catch(e) { alert(`⚠️ No signal sent: ${e.message}`); }
         }
 
         function saveAdminConfig() {
-            const token = document.getElementById("admin-bot-token").value;
-            const chatId = document.getElementById("admin-chat-id").value;
-            if(token && chatId) {
-                localStorage.setItem("tg_bot_token", token);
-                localStorage.setItem("tg_chat_id", chatId);
-                alert("Master configuration saved successfully!");
-            } else {
-                alert("Please fill in both fields.");
-            }
+            const token = document.getElementById("admin-bot-token").value.trim();
+            const chatId = document.getElementById("admin-chat-id").value.trim();
+            if(!token || !chatId) return alert("Please fill in both fields.");
+            document.getElementById("admin-bot-token").value = '';
+            alert("⚠️ Token was NOT saved in the browser. Use the main V TRADE AI → Telegram Bot Setup to connect securely.");
         }
 
         // Added User Changes Save Handler
@@ -172,13 +168,6 @@
             alert('រក្សាទុកការផ្លាស់ប្តូរដោយជោគជ័យ!');
             location.reload();
         }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const savedToken = localStorage.getItem("tg_bot_token");
-            const savedChatId = localStorage.getItem("tg_chat_id");
-            if(savedToken) document.getElementById("admin-bot-token").value = savedToken;
-            if(savedChatId) document.getElementById("admin-chat-id").value = savedChatId;
-        });
-    </script>
+</script>
 </body>
 </html>

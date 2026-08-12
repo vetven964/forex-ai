@@ -31,8 +31,12 @@ services:
         value: "30"
       - key: STORAGE_QUOTE_INTERVAL_MS
         value: "10000"
-      - key: NEWS_CALENDAR_URL
-        value: https://nfs.faireconomy.media/ff_calendar_thisweek.json
+      - key: NEWS_CALENDAR_URLS
+        value: https://nfs.faireconomy.media/ff_calendar_thisweek.json,https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json
+      - key: NEWS_CACHE_MS
+        value: "90000"
+      - key: NEWS_BRIDGE_MAX_AGE_MS
+        value: "600000"
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID

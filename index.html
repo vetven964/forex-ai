@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Smart Entry Terminal (v5.3.6 VT Markets MT5 + Storage)</title>
+    <title>V Trade AI Pro - Smart Entry Terminal (v5.3.7 VT Markets MT5 + News Radar + Storage)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -67,7 +67,7 @@
 <body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
     <script>
         // GitHub Pages hosts the UI; Render hosts the API. Keep all backend calls on Render.
-        const VTRADE_API_BASE = 'https://forexai-6xw6.onrender.com';
+        const VTRADE_API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
         async function loadStorageStatus(){
             const el=document.getElementById('storageStatusBadge');
             if(!el) return;
@@ -111,10 +111,10 @@
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div class="mobile-pro-title">
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.3.6</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v5.3.7</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span id="txtHeaderStatus">Real-Time AI Terminal & Execution Engine 100% Active</span>
+                    <span id="txtHeaderStatus">Realtime Price + ICT Engine Active</span>
                 </p>
                 <div id="storageStatusBadge" class="storage-badge">Storage: checking…</div>
             </div>
@@ -297,14 +297,14 @@
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.3.6 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v5.3.7 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
                             <option value="XAU/USD" selected>XAU/USD (Gold - មាស)</option>
-                            <option value="BTC/USDT">BTC/USDT (Crypto)</option>
-                            <option value="EUR/USD">EUR/USD (Forex)</option>
-                            <option value="ETH/USDT">ETH/USDT (Crypto)</option>
+                            <option value="BTC/USDT">BTC/USDT (Reference)</option>
+                            <option value="EUR/USD">EUR/USD (Reference)</option>
+                            <option value="ETH/USDT">ETH/USDT (Reference)</option>
                         </select>
                         <button onclick="runAIAnalysis()" class="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-teal-600/20 cursor-pointer shrink-0">
                             <i class="fa-solid fa-arrows-rotate animate-spin" id="btnRefreshSpinner" style="display:none;"></i>
@@ -373,6 +373,17 @@
                     </div>
                 </div>
 
+                <div id="newsResearchCard" class="glass-panel p-4 rounded-2xl border border-blue-500/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Pre-News Research</p>
+                            <h3 id="newsResearchTitle" class="text-sm font-extrabold mt-1 text-blue-300">WAITING FOR VERIFIED NEWS</h3>
+                            <p id="newsResearchText" class="text-[11px] text-gray-400 mt-1">AI មិនស្មានទិសដៅពេល News មិនទាន់ verify</p>
+                        </div>
+                        <span id="tradePhaseBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300">WAIT</span>
+                    </div>
+                </div>
+
                 <!-- Confirmation & Execution Readiness -->
                 <div id="confirmationPanel" class="glass-panel p-4 rounded-2xl border border-gray-800">
                     <div class="flex items-center justify-between gap-3 mb-3">
@@ -410,14 +421,14 @@
                                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.3.0</span>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v5.3.7</span>
                             </div>
                             <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.3.6 Smart Entry Radar Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v5.3.7 Smart Entry Radar Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -690,7 +701,7 @@
                             <select id="customAssetSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
                                 <option value="BTC/USDT">BTC/USDT (Cryptocurrency)</option>
                                 <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
-                                <option value="EUR/USD">EUR/USD (Forex)</option>
+                                <option value="EUR/USD">EUR/USD (Reference)</option>
                             </select>
                         </div>
                         <div>
@@ -1247,9 +1258,9 @@
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v5.3.6", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
-            en: { brand: "V TRADE AI & TERMINAL v5.3.6", headerStatus: "Real-Time AI Terminal & Execution Engine 100% Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v5.2.2", headerStatus: "实时AI终端与执行引擎激活", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v5.3.7", headerStatus: "Realtime Price + ICT Engine Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v5.7" },
+            en: { brand: "V TRADE AI & TERMINAL v5.3.7", headerStatus: "Realtime Price + ICT Engine Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v5.3.7", headerStatus: "实时价格与ICT引擎运行", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1261,7 +1272,7 @@
 
             fetchMarketPrices();
             loadTelegramStatus();
-            setInterval(fetchMarketPrices, 30000);
+            setInterval(() => { if (!window.__vtradeScanBusy) fetchMarketPrices(); }, 15000);
             initSentimentRadarChart();
             runAIAnalysis();
             renderAdminTable(usersListDB);
@@ -1280,6 +1291,8 @@
         }
 
         async function fetchMarketPrices() {
+            if (window.__vtradeScanBusy) return;
+            window.__vtradeScanBusy = true;
             try {
                 const [cryptoRes, xauRes] = await Promise.allSettled([
                     fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd', {cache:'no-store'}),
@@ -1330,6 +1343,8 @@
                 console.warn('Live market fetch failed:', e);
                 appendTerminalLog('[ERROR] VT Markets MT5 analysis unavailable — check MT5 Bridge /api/analysis/xauusd');
                 runAIAnalysis();
+            } finally {
+                window.__vtradeScanBusy = false;
             }
         }
 
@@ -1352,12 +1367,12 @@
                 const grade = x?.setupGrade || (score == null ? '—' : score>=85?'A+':score>=75?'A':score>=65?'B':score>=50?'WATCH':'LOW');
                 const mtf = x ? `${x.timeframes?.H4?.structure?.bias || '—'} / ${x.timeframes?.H1?.structure?.bias || '—'} / ${x.timeframes?.M15?.structure?.bias || '—'}` : '—';
                 const entryText = x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.entryZone ? `${formatUsd(x.entryZone.low)}–${formatUsd(x.entryZone.high)}` : data.entry) : 'WAIT — NO CONFIRMED ENTRY';
-                const readiness = x?.signal === 'BUY' || x?.signal === 'SELL' ? 'ENTRY CONFIRMED' : (x?.status || 'NOT READY');
-                set('signal-direction', x?.signal === 'BUY' ? 'BUY · ចូល BUY' : x?.signal === 'SELL' ? 'SELL · ចូល SELL' : (x?.status || 'WAIT · NO TRADE'));
+                const readiness = x?.signal === 'BUY' || x?.signal === 'SELL' ? 'ENTRY CONFIRMED' : (x?.phase === 'MIDWAY' ? 'MIDWAY — CONFIRMATION PENDING' : (x?.status || 'NOT READY'));
+                set('signal-direction', x?.signal === 'BUY' ? 'BUY · ចូល BUY' : x?.signal === 'SELL' ? 'SELL · ចូល SELL' : x?.phase === 'MIDWAY' ? 'MIDWAY · កំពុងរង់ចាំ Confirmation' : (x?.status || 'WAIT · NO TRADE'));
                 set('signal-entry', entryText);
                 set('signal-status', x ? readiness : 'NOT READY');
                 set('signal-grade', score == null ? '—' : `${grade} · ${score}/100`);
-                set('mobileSignalDirection', data.direction);
+                set('mobileSignalDirection', x?.phase === 'MIDWAY' ? 'MIDWAY · WAIT' : (x?.signal || data.direction));
                 set('mobileEntryZone', entryText);
                 set('mobileConfidence', score == null ? '—/100' : `${score}/100`);
                 set('mobileReadiness', readiness);
@@ -1417,6 +1432,7 @@
                 detail.textContent='មិនមាន USD high-impact news ក្នុង 60 នាទីខាងមុខ តាម calendar feed ដែលបាន verify';
             }
             next.textContent=news.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : 'គ្មាន';
+            if(news.research?.eventClass) detail.textContent += ` · Research: ${news.research.eventClass}`;
         }
 
         function updateConfirmationUI(a) {
@@ -1424,7 +1440,7 @@
                 'confirm-mtf': a ? `${a.confirmations?.mtfCount ?? 0}/3 ${a.confirmations?.mtfAligned ? 'ALIGNED' : 'CONFLICT'}` : '—',
                 'confirm-liquidity': a?.confirmations?.liquiditySweep ? 'CONFIRMED' : 'PENDING',
                 'confirm-structure': a?.confirmations?.mss ? `MSS ${a.ict?.mss}` : 'MSS PENDING',
-                'confirm-zone': a?.signal==='BUY'||a?.signal==='SELL' ? `${a.entryZone?.type || 'ZONE'} RETEST` : 'WAIT — NO ENTRY',
+                'confirm-zone': a?.signal==='BUY'||a?.signal==='SELL' ? `${a.entryZone?.type || 'ZONE'} RETEST` : a?.candidateZone ? `${a.candidateZone.type} CANDIDATE — WAIT RETEST` : 'WAIT — NO ENTRY',
                 'confirm-displacement': a?.confirmations?.displacement?.confirmed && a.confirmations.displacement.direction===a.bias ? 'CONFIRMED' : 'PENDING'
             };
             Object.entries(items).forEach(([id,val]) => {
@@ -1434,7 +1450,15 @@
             });
             const ready = a?.signal === 'BUY' || a?.signal === 'SELL';
             const label = document.getElementById('entry-readiness');
-            if(label){ label.textContent = ready ? `${a.signal} READY` : (a?.status || 'NOT READY'); label.className = ready ? 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20'; }
+            if(label){ label.textContent = ready ? `${a.signal} READY` : (a?.phase === 'MIDWAY' ? 'MIDWAY — WAIT' : (a?.status || 'NOT READY')); label.className = ready ? 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20'; }
+            const rb=document.getElementById('tradePhaseBadge');
+            if(rb){ rb.textContent=a?.phase || 'WAIT'; rb.className='text-[10px] font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300'; }
+            const rt=document.getElementById('newsResearchTitle'), rr=document.getElementById('newsResearchText');
+            if(rt && rr){
+                const r=a?.news?.research;
+                rt.textContent=r ? `${r.eventClass} · ${a.news?.next?.title || 'USD High Impact'}` : (a?.news?.available===false ? 'NEWS UNAVAILABLE · NO RESEARCH' : 'NO HIGH-IMPACT USD EVENT');
+                rr.textContent=r ? r.methodology : (a?.news?.available===false ? 'News feed មិនទាន់ verify — Trading Gate នៅ NO ENTRY' : 'Calendar verified; no immediate high-impact USD event.');
+            }
         }
 
         function initSentimentRadarChart() {
@@ -1958,7 +1982,7 @@
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.3.6 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v5.3.7 កំពុងដំណើរការដោយរលូន។ អ្នកអាចប្រើប្រាស់សញ្ញា Realtime និង Copy Bot បាន២៤ម៉ោង។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }
