@@ -3,39 +3,176 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>V TRADE AI v5.1.5 — XAUUSD MTF ICT</title>
+<title>V TRADE AI v5.3.4 — Real-Time XAUUSD AI Analyzing</title>
 <style>
-body{margin:0;background:#07111f;color:#eaf2ff;font-family:Inter,system-ui,sans-serif}.wrap{max-width:1200px;margin:auto;padding:20px}h1{margin:0 0 6px}.muted{color:#8ea1bb}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{background:#0d1b2d;border:1px solid #20334c;border-radius:14px;padding:16px}.value{font-size:25px;font-weight:800;margin-top:8px}.signal{font-size:32px}.buy{color:#43e18b}.sell{color:#ff6978}.wait{color:#ffd166}.cols{display:grid;grid-template-columns:2fr 1fr;gap:12px}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #20334c;text-align:left}.badge{padding:4px 8px;border-radius:99px;background:#152943}.row{display:flex;justify-content:space-between;gap:12px}.status{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:#10243a;font-size:13px}.dot{width:8px;height:8px;border-radius:50%;background:#ffd166}.online .dot{background:#43e18b;box-shadow:0 0 10px #43e18b}.offline .dot{background:#ff6978}@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}@media(max-width:500px){.wrap{padding:12px}.grid{grid-template-columns:1fr}.value{font-size:22px}}
+:root{--bg:#07111b;--panel:#0d1926;--line:#213244;--text:#edf5ff;--muted:#8da0b5;--green:#35e58b;--red:#ff6677;--yellow:#ffd166;--cyan:#54d8ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#10243a 0,#07111b 38%,#050b12 100%);color:var(--text);font-family:Inter,system-ui,"Noto Sans Khmer",sans-serif}.wrap{max-width:1380px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand h1{margin:0;font-size:24px}.muted{color:var(--muted)}.status{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:7px 11px;background:#0a1521}.dot{width:9px;height:9px;border-radius:50%;background:var(--yellow)}.online .dot{background:var(--green);box-shadow:0 0 12px #35e58b}.offline .dot{background:var(--red)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}.card{background:rgba(13,25,38,.92);border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:0 10px 30px rgba(0,0,0,.15)}.label{font-size:12px;color:var(--muted);letter-spacing:.08em}.value{font-size:25px;font-weight:800;margin-top:7px}.buy{color:var(--green)}.sell{color:var(--red)}.wait{color:var(--yellow)}.cyan{color:var(--cyan)}.cols{display:grid;grid-template-columns:1.45fr .9fr;gap:12px}.row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(33,50,68,.6)}.row:last-child{border-bottom:0}.team{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.agent{padding:11px;border:1px solid var(--line);border-radius:12px;background:#0a1521}.agent .ok{color:var(--green)}.agent .pending{color:var(--yellow)}table{width:100%;border-collapse:collapse}th,td{padding:9px 7px;text-align:left;border-bottom:1px solid rgba(33,50,68,.65);font-size:13px}.badge{padding:4px 7px;border-radius:999px;background:#14273b}.reads{max-height:310px;overflow:auto}.read{display:grid;grid-template-columns:52px 78px 1fr;gap:9px;padding:9px 0;border-bottom:1px solid rgba(33,50,68,.55);font-size:13px}.read .sig{font-weight:800}.news{border-left:3px solid var(--yellow);padding-left:10px}.news.clear{border-color:var(--green)}.news.lock{border-color:var(--red)}.progress{height:8px;background:#172536;border-radius:20px;overflow:hidden;margin-top:9px}.progress>span{display:block;height:100%;width:0;background:var(--cyan);transition:width .3s}.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:13px}.small{font-size:12px}.error{color:var(--red)}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.cols{grid-template-columns:1fr}}@media(max-width:600px){.wrap{padding:11px}.grid{grid-template-columns:1fr}.team{grid-template-columns:repeat(2,1fr)}.read{grid-template-columns:46px 72px 1fr}.value{font-size:22px}th,td{font-size:12px}}
 </style>
 </head>
-<body><div class="wrap">
-<h1>V TRADE AI — XAUUSD</h1>
-<div class="muted">MTF ICT: Liquidity Sweep → MSS/BOS → FVG/OB → Entry → SL → TP1/TP2/TP3</div>
-<p><span id="feedStatus" class="status"><span class="dot"></span><span id="feedText">Checking VT Markets MT5…</span></span></p>
-<div class="grid">
-<div class="card"><div class="muted">LIVE PRICE</div><div id="price" class="value">—</div></div>
-<div class="card"><div class="muted">SIGNAL / STATUS</div><div id="signal" class="value signal wait">WAIT</div><div id="status" class="muted">—</div></div>
-<div class="card"><div class="muted">ENTRY / ZONE</div><div id="entry" class="value">—</div><div id="entryZone" class="muted">—</div></div>
-<div class="card"><div class="muted">SETUP SCORE</div><div id="confidence" class="value">—</div><div id="grade" class="muted">—</div></div>
-<div class="card"><div class="muted">BID / ASK</div><div id="bidask" class="value" style="font-size:18px">—</div></div>
-<div class="card"><div class="muted">SPREAD</div><div id="spread" class="value" style="font-size:18px">—</div></div>
-<div class="card"><div class="muted">FEED AGE</div><div id="age" class="value" style="font-size:18px">—</div></div>
-<div class="card"><div class="muted">TRIGGER</div><div id="trigger" class="value" style="font-size:16px">—</div></div>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>V TRADE AI — XAUUSD</h1>
+      <div class="muted">Real-Time MTF ICT + Smart Entry + News Risk Engine</div>
+    </div>
+    <div id="feedStatus" class="status"><span class="dot"></span><span id="feedText">Checking VT Markets MT5…</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="label">LIVE XAUUSD</div><div id="price" class="value cyan">—</div><div id="bidask" class="muted small">Bid / Ask —</div></div>
+    <div class="card"><div class="label">AI DECISION</div><div id="signal" class="value wait">WAIT</div><div id="status" class="muted">—</div></div>
+    <div class="card"><div class="label">ENTRY ZONE</div><div id="entryZone" class="value" style="font-size:19px">—</div><div id="entry" class="muted">Entry —</div></div>
+    <div class="card"><div class="label">SETUP STRENGTH</div><div id="confidence" class="value">—</div><div id="grade" class="muted">—</div><div class="progress"><span id="confidenceBar"></span></div></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <div class="top"><div><h2 style="margin:0">🤖 AI ANALYZING</h2><div class="muted small">Live engine — not a guaranteed win-rate</div></div><div id="readAge" class="muted small">Reading…</div></div>
+        <div class="team">
+          <div class="agent"><b>Structure AI</b><div id="agentStructure" class="ok">● ACTIVE</div><div class="small muted">H4/H1/M15/M5</div></div>
+          <div class="agent"><b>Liquidity AI</b><div id="agentLiquidity" class="ok">● ACTIVE</div><div class="small muted">Sweep detection</div></div>
+          <div class="agent"><b>ICT AI</b><div id="agentICT" class="ok">● ACTIVE</div><div class="small muted">FVG / OB / MSS</div></div>
+          <div class="agent"><b>Risk AI</b><div id="agentRisk" class="ok">● ACTIVE</div><div class="small muted">News / entry gate</div></div>
+        </div>
+        <div style="margin-top:14px" class="row"><span>Trigger</span><b id="trigger">—</b></div>
+        <div class="row"><span>HTF Bias</span><b id="macroBias">—</b></div>
+        <div class="row"><span>MTF Alignment</span><b id="mtf">—</b></div>
+        <div class="row"><span>Liquidity Sweep</span><b id="liquidity">—</b></div>
+        <div class="row"><span>MSS / BOS</span><b id="mssbos">—</b></div>
+        <div class="row"><span>FVG / OB</span><b id="fvgob">—</b></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2 style="margin-top:0">📊 MTF ICT Structure</h2>
+        <table><thead><tr><th>TF</th><th>Bias</th><th>Liquidity</th><th>MSS</th><th>BOS</th></tr></thead><tbody id="tf"></tbody></table>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2 style="margin-top:0">🎯 Execution</h2>
+        <div class="row"><span>Entry</span><b id="exEntry">—</b></div>
+        <div class="row"><span>SL</span><b id="sl">—</b></div>
+        <div class="row"><span>TP1</span><b id="tp1">—</b></div>
+        <div class="row"><span>TP2</span><b id="tp2">—</b></div>
+        <div class="row"><span>TP3</span><b id="tp3">—</b></div>
+        <div class="row"><span>Premium / Discount</span><b id="pd">—</b></div>
+        <div class="row"><span>Spread</span><b id="spread">—</b></div>
+        <div class="row"><span>Feed Age</span><b id="age">—</b></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2 style="margin-top:0">🌍 Global / News Context</h2>
+        <div id="newsBox" class="news">Checking USD high-impact calendar…</div>
+        <div class="muted small" style="margin-top:9px">Current build uses USD high-impact economic news as the global risk context. It does not claim to read every world market.</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2 style="margin-top:0">🕒 RECENT READS</h2>
+        <div id="reads" class="reads"><div class="muted">Loading history…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Next full read in <b id="countdown">5s</b></span>
+    <span>Source: <b id="source">—</b> · Execution TF: <b id="exec">M5</b></span>
+    <span class="muted">⚠️ Indicative market analysis only. Verify broker conditions before trading.</span>
+  </div>
 </div>
-<div class="cols"><div class="card"><h2>ICT Structure</h2><table><thead><tr><th>TF</th><th>Bias</th><th>Liquidity</th><th>MSS</th><th>BOS</th></tr></thead><tbody id="tf"></tbody></table></div>
-<div class="card"><h2>Execution</h2><div class="row"><span>SL</span><b id="sl">—</b></div><br><div class="row"><span>TP1</span><b id="tp1">—</b></div><div class="row"><span>TP2</span><b id="tp2">—</b></div><div class="row"><span>TP3</span><b id="tp3">—</b></div><hr style="border-color:#20334c"><div class="row"><span>FVG</span><b id="fvg">—</b></div><div class="row"><span>Order Block</span><b id="ob">—</b></div><div class="row"><span>Premium/Discount</span><b id="pd">—</b></div><div class="row"><span>Execution</span><b id="exec">M5</b></div><div class="row"><span>Source</span><b id="source">—</b></div></div></div>
-<p class="muted">⚠️ Broker-native analysis only. If MT5 is offline/stale or an MTF candle is missing, the engine returns WAIT/unavailable instead of mixing reference feeds.</p>
-</div>
+
 <script>
-const API='https://forexai-6xw6.onrender.com';const $=id=>document.getElementById(id);const fmt=x=>x==null?'—':Number(x).toFixed(2);
-async function load(){
- const r=await fetch(API+'/api/analysis/xauusd',{cache:'no-store'}); const text=await r.text(); let a; try{a=JSON.parse(text)}catch(_){throw new Error(`API returned non-JSON (${r.status})`)} if(!r.ok||!a.success) throw new Error(a.error||'MT5 feed unavailable');
- $('price').textContent=fmt(a.livePrice);$('bidask').textContent=fmt(a.bid)+' / '+fmt(a.ask);$('spread').textContent=fmt(a.spread);$('age').textContent=(a.priceAgeSec??'—')+'s';$('source').textContent=a.source||'—';
- $('signal').textContent=a.signal||'WAIT';$('signal').className='value signal '+(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');$('status').textContent=a.status||'—';$('entry').textContent=fmt(a.entry);$('entryZone').textContent=a.entryZone?`${fmt(a.entryZone.low)} – ${fmt(a.entryZone.high)} · ${a.entryZone.type}`:'No valid entry zone';$('confidence').textContent=a.confidence!=null?a.confidence+'/100':'—';$('grade').textContent=`Grade ${a.setupGrade||'—'} · Bias ${a.bias||'—'}`;$('trigger').textContent=a.trigger||'—';$('exec').textContent=a.executionTimeframe||'M5';
- (a.takeProfit||[]).forEach((x,i)=>{if($('tp'+(i+1)))$('tp'+(i+1)).textContent=fmt(x)});$('fvg').textContent=a.ict?.fvg?.found?`${a.ict.fvg.type} ${fmt(a.ict.fvg.low)}–${fmt(a.ict.fvg.high)}`:'Not confirmed';$('ob').textContent=a.ict?.orderBlock?.found?`${a.ict.orderBlock.type} ${fmt(a.ict.orderBlock.low)}–${fmt(a.ict.orderBlock.high)}`:'Not confirmed';$('pd').textContent=a.ict?.premiumDiscount||'—';
- $('tf').innerHTML=Object.entries(a.timeframes||{}).map(([tf,x])=>`<tr><td>${tf}</td><td><span class="badge">${x.structure?.bias||'—'}</span></td><td>${x.sweep?.detail||'—'}</td><td>${x.structure?.mss||'—'}</td><td>${x.structure?.bos||'—'}</td></tr>`).join('');
- $('feedStatus').className='status online';$('feedText').textContent=`VT Markets MT5 LIVE · ${a.priceAgeSec??'—'}s`;
+const API='https://forexai-6xw6.onrender.com';
+const $=id=>document.getElementById(id);
+const fmt=x=>x==null||x===''?'—':Number(x).toFixed(2);
+const esc=x=>String(x??'—').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let seconds=5, lastAnalysisAt=0;
+
+function setAgent(id, active=true){$(id).textContent=active?'● ACTIVE':'● WAIT';$(id).className=active?'ok':'pending'}
+
+function renderAnalysis(a){
+  const sig=a.signal||'WAIT';
+  $('price').textContent=fmt(a.livePrice);
+  $('bidask').textContent=`Bid ${fmt(a.bid)} · Ask ${fmt(a.ask)}`;
+  $('signal').textContent=sig;
+  $('signal').className='value '+(sig==='BUY'?'buy':sig==='SELL'?'sell':'wait');
+  $('status').textContent=a.status||'—';
+  $('entryZone').textContent=a.entryZone?`${fmt(a.entryZone.low)} – ${fmt(a.entryZone.high)}`:'No valid zone';
+  $('entry').textContent=`Entry ${fmt(a.entry)}`;
+  $('exEntry').textContent=fmt(a.entry);
+  $('confidence').textContent=a.confidence!=null?`${a.confidence}/100`:'—';
+  $('confidenceBar').style.width=`${Math.max(0,Math.min(100,Number(a.confidence)||0))}%`;
+  $('grade').textContent=`${a.setupGrade||'—'} · Bias ${a.bias||'—'}`;
+  $('trigger').textContent=a.trigger||'—';
+  $('macroBias').textContent=a.macroBias||'—';
+  $('mtf').textContent=`${a.confirmations?.mtfCount??0}/3 aligned`;
+  $('liquidity').textContent=a.ict?.liquiditySweep?.detail||'—';
+  $('mssbos').textContent=`MSS ${a.ict?.mss||'—'} · BOS ${a.ict?.bos||'—'}`;
+  $('fvgob').textContent=`FVG ${a.ict?.fvg?.found?a.ict.fvg.type:'—'} · OB ${a.ict?.orderBlock?.found?a.ict.orderBlock.type:'—'}`;
+  $('sl').textContent=fmt(a.stopLoss);
+  (a.takeProfit||[]).slice(0,3).forEach((x,i)=>$('tp'+(i+1)).textContent=fmt(x));
+  $('pd').textContent=a.ict?.premiumDiscount||'—';
+  $('spread').textContent=fmt(a.spread);
+  $('age').textContent=`${a.priceAgeSec??'—'}s`;
+  $('source').textContent=a.source||'—';
+  $('exec').textContent=a.executionTimeframe||'M5';
+
+  const rows=Object.entries(a.timeframes||{}).map(([tf,x])=>`<tr><td>${esc(tf)}</td><td><span class="badge">${esc(x.structure?.bias)}</span></td><td>${esc(x.sweep?.detail)}</td><td>${esc(x.structure?.mss)}</td><td>${esc(x.structure?.bos)}</td></tr>`).join('');
+  $('tf').innerHTML=rows||'<tr><td colspan="5">No MTF data</td></tr>';
+
+  const n=a.news||{};
+  const nb=$('newsBox');
+  nb.className='news '+(n.state==='CLEAR'?'clear':n.state==='LOCK'?'lock':'');
+  if(!n.available){nb.innerHTML=`<b>NEWS DATA UNAVAILABLE</b><br><span class="small">${esc(n.error||'No calendar data')}</span>`}
+  else if(n.state==='LOCK'){nb.innerHTML=`<b>🔴 NEWS LOCK</b><br>High-impact USD event is within the protection window.`}
+  else if(n.state==='CAUTION'){nb.innerHTML=`<b>🟡 CAUTION</b><br>High-impact USD event is approaching.`}
+  else if(n.state==='POST_NEWS'){nb.innerHTML=`<b>🟠 POST-NEWS</b><br>Wait for liquidity sweep + MSS/BOS confirmation.`}
+  else {nb.innerHTML=`<b>🟢 CLEAR</b><br>No high-impact USD event inside the protection window.`}
+
+  setAgent('agentStructure',!!a.timeframes);
+  setAgent('agentLiquidity',!!a.ict?.liquiditySweep);
+  setAgent('agentICT',!!a.ict);
+  setAgent('agentRisk',!!a.news);
+  lastAnalysisAt=Date.now(); seconds=5;
+  $('readAge').textContent='Updated just now';
 }
-async function refresh(){try{await load()}catch(e){$('feedStatus').className='status offline';$('feedText').textContent='VT Markets MT5 OFFLINE / STALE';$('signal').textContent='WAIT';$('signal').className='value signal wait';}}
-refresh();setInterval(refresh,5000);
-</script></body></html>
+
+async function load(){
+  const r=await fetch(API+'/api/analysis/xauusd',{cache:'no-store'});
+  const text=await r.text(); let a;
+  try{a=JSON.parse(text)}catch(_){throw new Error(`API returned non-JSON (${r.status})`)}
+  if(!r.ok||!a.success)throw new Error(a.error||'MT5 feed unavailable');
+  renderAnalysis(a);
+  $('feedStatus').className='status online';
+  $('feedText').textContent=`VT Markets MT5 LIVE · ${a.priceAgeSec??'—'}s`;
+}
+
+async function loadReads(){
+  try{
+    const r=await fetch(API+'/api/storage/history?type=analysis&limit=8',{cache:'no-store'});
+    const j=await r.json(); const items=j.items||[];
+    if(!items.length){$('reads').innerHTML='<div class="muted">No stored analysis yet.</div>';return}
+    $('reads').innerHTML=items.map(x=>{
+      const p=x.payload||x; const t=x.created_at||p.timestamp; const d=new Date(t);
+      const sig=p.signal||'WAIT'; const zone=p.entryZone?`${fmt(p.entryZone.low)}–${fmt(p.entryZone.high)}`:'—';
+      return `<div class="read"><span class="muted">${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span><span class="sig ${sig==='BUY'?'buy':sig==='SELL'?'sell':'wait'}">${esc(sig)}</span><span>${esc(zone)} · ${esc(p.setupGrade||'—')} · ${esc(p.confidence??'—')}/100</span></div>`;
+    }).join('');
+  }catch(e){$('reads').innerHTML='<div class="muted">History unavailable — live analysis continues.</div>'}
+}
+
+async function refresh(){
+  try{await load();await loadReads()}
+  catch(e){
+    $('feedStatus').className='status offline';
+    $('feedText').textContent='VT Markets MT5 OFFLINE / STALE';
+    $('signal').textContent='WAIT';$('signal').className='value wait';
+    $('status').textContent='Waiting for fresh broker data';
+  }
+}
+refresh();
+setInterval(refresh,5000);
+setInterval(()=>{seconds=Math.max(0,seconds-1);$('countdown').textContent=seconds+'s';if(seconds===0)seconds=5},1000);
+</script>
+</body></html>
