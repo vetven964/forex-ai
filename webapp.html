@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V TRADE AI Mini App v5.3.7 — XAUUSD</title>
+    <title>V TRADE AI Mini App v5.3.8 — XAUUSD</title>
     <!-- ដាក់បញ្ចូល Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -41,9 +41,9 @@
 </head>
 <body>
     <div class="container">
-        <h2>V TRADE AI v5.3.7 — XAUUSD</h2>
+        <h2>V TRADE AI v5.3.8 — XAUUSD</h2>
         <div class="card">
-            <p><strong>សមតុល្យគណនី (Balance):</strong> <span id="user-balance">Loading...</span></p>
+            <p><strong>សមតុល្យគណនី (Balance):</strong> <span id="user-balance">មិនបានភ្ជាប់ Broker Account</span></p>
             <p><strong>ទីផ្សារបច្ចុប្បន្ន (Asset):</strong> XAUUSD · VT Markets MT5</p>
         </div>
         
@@ -56,17 +56,17 @@
 
     <script>
         // เริ่มต้นใช้งาน Telegram WebApp API
+        const API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
         let tg = window.Telegram.WebApp;
         tg.expand(); // ពង្រីកផ្ទាំង Mini App ឱ្យពេញអេក្រង់ទូរស័ព្ទ
 
-        // បង្ហាញឈ្មោះអ្នកប្រើប្រាស់ Telegram
-        document.getElementById('user-balance').innerText = "$5,420.00 USDT";
+        // មិនបង្ហាញ balance ក្លែងក្លាយ; balance ត្រូវការការភ្ជាប់ broker/account ពិតប្រាកដ។
 
         async function loadSignal() {
             const el = document.getElementById('signal-status');
             try {
-                const r = await fetch('https://forexai-6xw6.onrender.com/api/analysis/xauusd', {cache:'no-store'});
-                const a = await r.json();
+                const r = await fetch(API_BASE + '/api/analysis/xauusd', {cache:'no-store'});
+                const text = await r.text(); let a; try { a = JSON.parse(text); } catch (_) { throw new Error(`API returned non-JSON (${r.status})`); }
                 if (!r.ok || !a.success) throw new Error(a.error || 'Analysis unavailable');
                 el.innerText = `${a.signal || 'WAIT'} · ${a.status || '—'} · Score ${a.confidence ?? '—'}/100 · Entry ${a.entry ?? 'WAIT'}`;
             } catch (e) {

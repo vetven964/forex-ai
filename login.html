@@ -41,8 +41,8 @@
         <!-- ផ្នែកផ្ទៀងផ្ទាត់ OTP (2FA) -->
         <div id="otpVerificationSection" class="hidden space-y-4">
             <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl text-center">
-                <span class="text-xs text-amber-400">លេខកូដ OTP បំភាយ (សម្រាប់តេស្ត):</span>
-                <div id="generatedOtpDisplay" class="text-lg font-bold text-amber-300 tracking-widest mt-1">889922</div>
+                <span class="text-xs text-amber-400">OTP សម្រាប់ Development only — មិនមែន production authentication:</span>
+                <div id="generatedOtpDisplay" class="text-lg font-bold text-amber-300 tracking-widest mt-1">------</div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់</label>
@@ -55,7 +55,7 @@
     </div>
 
     <script>
-        let activeOtpCode = "889922";
+        let activeOtpCode = null;
 
         function proceedTo2FAStep() {
             const email = document.getElementById('authEmail').value;

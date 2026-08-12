@@ -20,7 +20,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '5.3.7';
+const APP_VERSION = '5.3.8';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -36,6 +36,7 @@ const bot = TELEGRAM_TOKEN
 // Render restarts clear this in-memory map; users can reconnect from Telegram Setup.
 const telegramSessions = new Map();
 const telegramAlertKeys = new Map();
+const telegramNewsKeys = new Map();
 const MAX_TELEGRAM_SESSIONS = 1000;
 
 function sessionIdFrom(req) {
@@ -92,7 +93,7 @@ const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 const newsCache = { at: 0, data: null };
 const bridgeNews = { items: null, receivedAt: 0, source: null };
-const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 90000);
+const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 15000);
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json,https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
@@ -100,6 +101,7 @@ const NEWS_PRELOCK_MIN = Number(process.env.NEWS_PRELOCK_MIN || 15);
 const NEWS_CAUTION_MIN = Number(process.env.NEWS_CAUTION_MIN || 60);
 const NEWS_LIVE_WINDOW_MIN = Number(process.env.NEWS_LIVE_WINDOW_MIN || 2);
 const NEWS_POST_MIN = Number(process.env.NEWS_POST_MIN || 15);
+const TELEGRAM_NEWS_ALERTS = String(process.env.TELEGRAM_NEWS_ALERTS || 'true').toLowerCase() === 'true';
 
 function newsStateLabel(state) {
   return state === 'LIVE' ? 'NEWS LIVE' : state === 'LOCK' ? 'NEWS SOON / LOCK' : state === 'CAUTION' ? 'NEWS SOON' : state === 'POST_NEWS' ? 'POST-NEWS' : state === 'CLEAR' ? 'NEWS CLEAR' : 'NEWS UNAVAILABLE';
@@ -423,7 +425,14 @@ async function buildXauAnalysis() {
   const biasOk=(side==='BULLISH'&&bullHTF>=2)||(side==='BEARISH'&&bearHTF>=2),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=execStruct.mss===side&&execStruct.bos===side;
   const rawScore=(biasOk?20:0)+(sweepOk?20:0)+(mssOk?20:0)+(displacementOk?15:0)+((alignedFvg||alignedOb)?15:0)+(retestOk?10:0),confluenceScore=Math.min(100,rawScore);
   let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];
-  if(!biasOk) reasons.push('MTF bias not aligned — need 2/3 H4/H1/M15 agreement'); if(!sweepOk) reasons.push('Fresh liquidity sweep not confirmed'); if(!mssOk) reasons.push('Fresh M5 MSS not confirmed'); if(!displacementOk) reasons.push('Directional displacement not confirmed'); if(!(alignedFvg||alignedOb)) reasons.push('No fresh aligned FVG/OB'); if(!retestOk) reasons.push('Price has not retested the execution zone'); if(!structureAgreement) reasons.push('M5 MSS + BOS confirmation not complete');
+  if(!candlesFresh) reasons.push('Closed-candle data is stale — wait for fresh MT5 history');
+  if(!biasOk) reasons.push('MTF bias not aligned — need 2/3 H4/H1/M15 agreement');
+  if(!sweepOk) reasons.push('Fresh liquidity sweep not confirmed');
+  if(!mssOk) reasons.push('Fresh M5 MSS not confirmed');
+  if(!displacementOk) reasons.push('Directional displacement not confirmed');
+  if(!(alignedFvg||alignedOb)) reasons.push('No fresh aligned FVG/OB');
+  if(!retestOk) reasons.push('Price has not retested the execution zone');
+  if(!structureAgreement) reasons.push('M5 MSS + BOS confirmation not complete');
   const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&confluenceScore>=80;
   if(setupReady){
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=round2(live.price); const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?round2(z.low-buffer):round2(z.high+buffer); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[round2(target1),round2(side==='BULLISH'?entry+risk*3:entry-risk*3),round2(side==='BULLISH'?entry+risk*4:entry-risk*4)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
@@ -439,8 +448,9 @@ async function buildXauAnalysis() {
   }
   let phase='NO_TRADE';
   if(setupReady && !newsBlocked) phase=signal;
-  else if(!newsBlocked && (side==='BULLISH'||side==='BEARISH') && confluenceScore>=50) phase='MIDWAY';
   else if(newsBlocked) phase='NEWS_LOCK';
+  else if((side==='BULLISH'||side==='BEARISH') && confluenceScore>=50) phase='MIDWAY';
+  else phase='WAIT';
 
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=80?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT',swingHigh=execStruct.swingHigh,swingLow=execStruct.swingLow,mid=(Number.isFinite(swingHigh)&&Number.isFinite(swingLow))?(swingHigh+swingLow)/2:live.price,premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
   const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:execStruct.bos===side,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,allGatesPassed:setupReady && !newsBlocked};
@@ -463,17 +473,37 @@ function telegramText(a) {
 
 async function maybeTelegramAlert(a, tg, sessionId) {
   if (!tg || !tg.bot || !tg.chatId) return false;
-  // Default: alert only confirmed BUY/SELL entries. This prevents WAIT/WATCH spam.
-  // Set TELEGRAM_AUTO_ALERT_LEVEL=SETUP to also alert WATCH/WAIT-FOR-ENTRY states.
-  const level = String(process.env.TELEGRAM_AUTO_ALERT_LEVEL || 'ENTRY_ONLY').toUpperCase();
-  const actionable = ['BUY','SELL'].includes(a.signal) && a.status === 'ENTRY CONFIRMED' && a.confirmations?.allGatesPassed === true;
-  if(!actionable || Number(a.confidence || 0) < Number(process.env.TELEGRAM_MIN_SCORE || 80)) return false;
-  const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
   const dedupeKey=sessionId || `env:${tg.chatId}`;
-  if(telegramAlertKeys.get(dedupeKey)===key) return false;
-  telegramAlertKeys.set(dedupeKey,key);
-  await tg.bot.sendMessage(tg.chatId,telegramText(a));
-  return true;
+  let sent=false;
+
+  // News alerts are state-change based: CLEAR -> SOON, SOON -> LIVE, LIVE -> POST-NEWS, etc.
+  // This gives the user a real warning without spamming every 15-second scan.
+  if (TELEGRAM_NEWS_ALERTS && a.news?.available !== false) {
+    const newsKey=`${a.news?.state || 'UNAVAILABLE'}:${a.news?.next?.timestamp || '-'}:${a.news?.previous?.timestamp || '-'}`;
+    if (telegramNewsKeys.get(dedupeKey) !== newsKey) {
+      const interesting=['CAUTION','LOCK','LIVE','POST_NEWS'].includes(a.news?.state);
+      if (interesting) {
+        const icon=a.news.state==='LIVE'?'🔴':a.news.state==='POST_NEWS'?'🟣':'🟠';
+        const title=a.news.next?.title || a.news.previous?.title || 'USD High Impact News';
+        const timing=a.news.state==='LIVE'?'NOW':a.news.state==='POST_NEWS'?`${a.news.sincePreviousMin ?? 0} min ago`:`in ${a.news.deltaMin ?? '?'} min`;
+        await tg.bot.sendMessage(tg.chatId,`${icon} V TRADE AI — XAUUSD NEWS ALERT\n\nEvent: ${title}\nState: ${a.news.label}\nTiming: ${timing}\nAction: NO NEW ENTRY — wait for price reaction + ICT confirmation.`);
+        sent=true;
+      }
+      telegramNewsKeys.set(dedupeKey,newsKey);
+    }
+  }
+
+  // Entry alerts remain strict and deduplicated.
+  const actionable = ['BUY','SELL'].includes(a.signal) && a.status === 'ENTRY CONFIRMED' && a.confirmations?.allGatesPassed === true;
+  if(actionable && Number(a.confidence || 0) >= Number(process.env.TELEGRAM_MIN_SCORE || 80)) {
+    const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
+    if(telegramAlertKeys.get(dedupeKey)!==key) {
+      telegramAlertKeys.set(dedupeKey,key);
+      await tg.bot.sendMessage(tg.chatId,telegramText(a));
+      sent=true;
+    }
+  }
+  return sent;
 }
 
 app.get('/health',(_req,res)=>res.json({ok:true,version:APP_VERSION,service:'vtrade-ai'}));

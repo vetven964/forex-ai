@@ -186,11 +186,11 @@
                         <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">📊 Live Order Book</h3>
                         <div class="space-y-1 text-[11px] font-mono">
                             <div class="flex justify-between text-red-400"><span>Spread Ask</span><span>Volume</span></div>
-                            <div class="flex justify-between text-red-400"><span>65,080.00</span><span>0.45</span></div>
-                            <div class="flex justify-between text-red-400"><span>65,050.00</span><span>1.20</span></div>
+                            <div class="flex justify-between text-gray-500"><span>Unavailable</span><span>—</span></div>
+                            <div class="flex justify-between text-gray-500"><span>Broker order book</span><span>Not used</span></div>
                             <div class="py-1 text-center font-bold text-yellow-400 border-y border-gray-800">Spread Active</div>
-                            <div class="flex justify-between text-green-400"><span>65,010.00</span><span>0.95</span></div>
-                            <div class="flex justify-between text-green-400"><span>64,990.00</span><span>3.40</span></div>
+                            <div class="flex justify-between text-gray-500"><span>Unavailable</span><span>—</span></div>
+                            <div class="flex justify-between text-gray-500"><span>MT5 depth</span><span>Not used</span></div>
                         </div>
                     </div>
                 </div>
@@ -212,15 +212,15 @@
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">Telegram Signals Sent</div>
-                        <div class="text-2xl font-bold text-sky-400 mt-1" id="signalCount">24 Signals</div>
+                        <div class="text-2xl font-bold text-sky-400 mt-1" id="signalCount">0 Session Alerts</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">System Uptime</div>
-                        <div class="text-2xl font-bold text-blue-400 mt-1">99.99%</div>
+                        <div class="text-2xl font-bold text-gray-400 mt-1">Live Health API</div>
                     </div>
                     <div class="bg-black p-4 rounded-lg border border-gray-800">
                         <div class="text-xs text-gray-400">ICT Strategy Win Rate</div>
-                        <div class="text-2xl font-bold text-yellow-400 mt-1">91.2%</div>
+                        <div class="text-2xl font-bold text-gray-400 mt-1">Not Published</div>
                     </div>
                 </div>
 
@@ -424,7 +424,7 @@
 
     <!-- SCRIPT LOGIC -->
     <script>
-        let signalCounter = 24;
+        let signalCounter = 0;
         let tvWidget = null;
         let autoBotTimer = null;
         let isAutoBotRunning = false;
@@ -546,7 +546,7 @@
 
         async function sendToTelegram(messageText, type='WAIT') {
             try {
-                const response = await fetch('https://forexai-6xw6.onrender.com/api/v5/signal', {
+                const response = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ symbol: (document.getElementById('marketSelect')?.value || 'XAUUSD').replace('/', ''), type, marketState: messageText })
@@ -561,7 +561,7 @@
 
         async function testTelegramConnection() {
             try {
-                const response = await fetch('https://forexai-6xw6.onrender.com/api/telegram/test', { method: 'POST' });
+                const response = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/telegram/test', { method: 'POST' });
                 const data = await response.json();
                 if (data.success) alert('✅ Telegram Bot ភ្ជាប់ជោគជ័យ!');
                 else alert('❌ Telegram មិនទាន់ភ្ជាប់៖ ' + (data.error || 'Unknown error'));
@@ -619,13 +619,13 @@
             let webText = "";
 
             if (chosenAction === 'BUY') {
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY (LONG)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Order Block & FVG Filled 🚀\n🎯 <b>TP:</b> +3.0%\n⚠️ <b>SL:</b> -1.0%\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
                 webText = `🟢 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
             } else if (chosenAction === 'SELL') {
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL (SHORT)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>ICT Setup:</b> Premium Zone Rejection 📉\n🎯 <b>TP:</b> -3.0%\n⚠️ <b>SL:</b> +1.0%\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
                 webText = `🔴 <b>[ICT AUTO SIGNAL]:</b> ដល់កម្រិតលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
             } else {
-                teleMsg = `⏳ <b>VET AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 5M Auto-executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `⏳ <b>VET AI ICT SIGNAL: WAIT (HOLD)</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Market is consolidating. <b>រង់ចាំសិន</b> (Wait for liquidity sweep).\n\n<i>🤖 Sent only if the live server confirms the requested XAUUSD signal</i>`;
                 webText = `⏳ <b>[ICT AUTO SIGNAL]:</b> ទីផ្សារមិនទាន់ច្បាស់លាស់ <b>(WAIT / រង់ចាំសិន)</b> លើកូដ ${market}។`;
             }
 
@@ -672,10 +672,10 @@
 
             if (actionType === 'BUY') {
                 webText = `🟢 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាទិញ <b>(BUY / LONG)</b> លើកូដ ${market}!`;
-                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🟢 <b>VET AI ICT SIGNAL: BUY ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> BUY LONG 🚀\n\n<i>🤖 Sent only after live server confirmation</i>`;
             } else if (actionType === 'SELL') {
                 webText = `🔴 <b>[ICT AI SIGNAL]:</b> ផ្ដល់សញ្ញាលក់ <b>(SELL / SHORT)</b> លើកូដ ${market}!`;
-                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Executed via @ai_pro_auto_bot</i>`;
+                teleMsg = `🔴 <b>VET AI ICT SIGNAL: SELL ALERT</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Action:</b> SELL SHORT 📉\n\n<i>🤖 Sent only after live server confirmation</i>`;
             } else {
                 webText = `📊 <b>វិភាគ ICT ${market}:</b> Market Structure ស្ថិតក្នុងតំបន់រង់ចាំ (Order Block & FVG)។`;
                 teleMsg = `📊 <b>VET ICT MARKET ANALYSIS</b>\n\n🔹 <b>Pair:</b> #${market}\n🔹 <b>Status:</b> Monitoring Order Blocks.\n\n🤖 <i>Generated by VET Trade AI</i>`;

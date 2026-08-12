@@ -18,7 +18,7 @@ body { background-color: #05070a !important; color: #fff; font-family: system-ui
     .chart-box { height: 38vh !important; }
     .floating-ai-panel { width: 90%; left: 5%; bottom: 10px; }
 }
-/* v5.2.0 Smart Entry confirmation UI */
+/* v5.3.8 Smart Entry confirmation UI */
 .confirm-item { background: rgba(3,7,18,.72); border: 1px solid rgba(55,65,81,.8); border-radius: 12px; padding: 9px 10px; display:flex; flex-direction:column; gap:4px; min-width:0; }
 .confirm-item span { color:#6b7280; }
 .confirm-item b { color:#fbbf24; overflow-wrap:anywhere; }

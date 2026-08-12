@@ -56,23 +56,23 @@
                     <h6 class="fw-bold text-light mb-3">🚀 Broadcast Telegram Signal</h6>
                     <div class="mb-2">
                         <label class="form-label small text-secondary">Asset Pair</label>
-                        <input type="text" id="admin-asset" class="form-control bg-dark text-light border-secondary form-control-sm" value="BTCUSDT">
+                        <input type="text" id="admin-asset" class="form-control bg-dark text-light border-secondary form-control-sm" value="XAUUSD">
                     </div>
                     <div class="mb-2">
                         <label class="form-label small text-secondary">Signal Type</label>
                         <select id="admin-signal-type" class="form-select bg-dark text-light border-secondary form-control-sm">
-                            <option value="STRONG BUY">STRONG BUY</option>
-                            <option value="STRONG SELL">STRONG SELL</option>
+                            <option value="BUY">BUY (only if engine confirms)</option>
+                            <option value="SELL">SELL (only if engine confirms)</option>
                         </select>
                     </div>
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="form-label small text-secondary">Entry Price</label>
-                            <input type="text" id="admin-entry" class="form-control bg-dark text-light border-secondary form-control-sm" value="65,020">
+                            <input type="text" id="admin-entry" class="form-control bg-dark text-light border-secondary form-control-sm" value="" placeholder="Live engine only">
                         </div>
                         <div class="col-6">
                             <label class="form-label small text-secondary">Target Price</label>
-                            <input type="text" id="admin-target" class="form-control bg-dark text-light border-secondary form-control-sm" value="65,800">
+                            <input type="text" id="admin-target" class="form-control bg-dark text-light border-secondary form-control-sm" value="" placeholder="Live engine only">
                         </div>
                     </div>
                     <button class="btn btn-success btn-sm w-100 fw-bold" onclick="adminBroadcastSignal()">Push Signal to Channel</button>
@@ -147,7 +147,7 @@
 
         async function adminBroadcastSignal() {
             try {
-                const r = await fetch('https://forexai-6xw6.onrender.com/api/v5/signal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:document.getElementById("admin-signal-type").value === 'STRONG BUY' ? 'BUY' : 'SELL'})});
+                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type:document.getElementById("admin-signal-type").value})});
                 const d = await r.json();
                 if(!r.ok || !d.success) throw new Error(d.error || 'Signal not broadcast');
                 alert(`✅ Current verified XAUUSD signal sent: ${d.analysis?.signal || 'WAIT'}`);
