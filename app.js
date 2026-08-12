@@ -1,4 +1,4 @@
-// V TRADE AI v6.0.0 shared page helpers.
+// V TRADE AI v6.2.0 shared page helpers.
 // This file contains no mock prices, fake win rates, or synthetic BUY/SELL signals.
 const VTRADE_API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
 

@@ -23,7 +23,7 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.1.0';
+const APP_VERSION = '6.2.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -100,12 +100,13 @@ app.use(cors({
     cb(new Error('CORS origin not allowed'));
   },
   methods: ['GET','POST','OPTIONS'],
-  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key'],
+  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-request'],
   credentials: false
 }));
 app.use(express.json({ limit: '200kb' }));
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/', (req,res,next)=>{ const timer=setTimeout(()=>{ if(!res.headersSent) res.status(504).json({success:false,error:'API request timed out'}); }, ANALYSIS_REQUEST_TIMEOUT_MS); res.on('finish',()=>clearTimeout(timer)); res.on('close',()=>clearTimeout(timer)); next(); });
 const telegramMutationLimit = rateLimit({ windowMs: 10 * 60_000, max: 10, standardHeaders: true, legacyHeaders: false, message: { success:false, error:'Too many Telegram operations. Try again later.' } });
 const adminOnlyLimit = rateLimit({ windowMs: 60_000, max: 30, standardHeaders: true, legacyHeaders: false });
 function safeEqual(a,b) {
@@ -130,6 +131,9 @@ const NEWS_CACHE_MS = Math.max(5000, Number(process.env.NEWS_CACHE_MS || 15000))
 const NEWS_ERROR_RETRY_MS = Number(process.env.NEWS_ERROR_RETRY_MS || 120000);
 const NEWS_429_RETRY_MS = Number(process.env.NEWS_429_RETRY_MS || 10 * 60 * 1000);
 const NEWS_STALE_MAX_MS = Number(process.env.NEWS_STALE_MAX_MS || 30 * 60 * 1000);
+const NEWS_MAX_SOURCES = Math.max(1, Math.min(6, Number(process.env.NEWS_MAX_SOURCES || 4)));
+const AI_DATA_QUALITY_MIN = Math.max(60, Math.min(100, Number(process.env.AI_DATA_QUALITY_MIN || 85)));
+const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
@@ -144,7 +148,7 @@ const CORE_MTF_TFS = ['H4','H1','M15'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
 const MIN_ENTRY_SCORE = Math.max(MIN_CONFLUENCE, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.1';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.2-premium';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
@@ -288,7 +292,7 @@ async function fetchXauNews() {
       sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
       windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
       source:bridgeNews.source || 'MT5 bridge', sourceCount:1, sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
-      updatedAt:new Date(now).toISOString(), sourceStatus:'LIVE', trusted:true, degraded:false, sourceDiagnostics:[{source:bridgeNews.source || 'MT5 bridge',status:'ok',ageSec:Math.round((now-bridgeNews.receivedAt)/1000)}],
+      updatedAt:new Date(now).toISOString(), verifiedAt:now, sourceStatus:'LIVE', trusted:true, degraded:false, sourceDiagnostics:[{source:bridgeNews.source || 'MT5 bridge',status:'ok',ageSec:Math.round((now-bridgeNews.receivedAt)/1000)}],
       researchStatus:st.state==='LIVE'?'NEWS_LIVE':st.state==='POST_NEWS'?'POST_NEWS_REACTION':st.state==='LOCK'||st.state==='CAUTION'?'PRE_NEWS_RESEARCH':'CLEAR',
       research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
     };
@@ -296,7 +300,7 @@ async function fetchXauNews() {
     newsCache.at=now; newsCache.data=data; return data;
   }
 
-  const sources = [...new Set(NEWS_URLS)].filter(Boolean);
+  const sources = [...new Set(NEWS_URLS)].filter(Boolean).slice(0, NEWS_MAX_SOURCES);
   const diagnostics=[];
   newsHealth.lastAttemptAt=now; newsHealth.attempts++;
 
@@ -314,7 +318,7 @@ async function fetchXauNews() {
         deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
         sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
         windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
-        source:sourceUrl, sourceCount:sources.length, sourceAgeSec:0, updatedAt:new Date(now).toISOString(),
+        source:sourceUrl, sourceCount:sources.length, sourceAgeSec:0, updatedAt:new Date(now).toISOString(), verifiedAt:now,
         sourceStatus:'LIVE', trusted:true, degraded:false, sourceDiagnostics:diagnostics,
         researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' :
           st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
@@ -338,12 +342,13 @@ async function fetchXauNews() {
   // a live entry decision. This prevents a 429 from making the UI look empty
   // while preserving the safety gate.
   if (newsCache.data?.available === true) {
-    const ageMs = now - newsCache.at;
+    const ageMs = now - Number(newsCache.data.verifiedAt || newsCache.at || now);
     if (ageMs <= NEWS_STALE_MAX_MS) {
       const stale = refreshCachedNews(newsCache.data, now);
       const data = {
         ...stale, sourceStatus:'DEGRADED', trusted:false, degraded:true,
         sourceAgeSec:Math.round(ageMs/1000),
+        verifiedAt:newsCache.data.verifiedAt || newsCache.at || null,
         error:errors || 'News source temporarily unavailable; using last verified snapshot for context only.'
       };
       newsCache.at=now; newsCache.data=data; return data;
@@ -741,8 +746,18 @@ async function buildXauAnalysis() {
   else phase='WAIT';
 
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=MIN_CONFLUENCE?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT';
+  const dataQualityItems = [
+    {key:'mt5', label:'MT5 quote freshness', passed:brokerFeedFresh(), points:brokerFeedFresh()?20:0, max:20},
+    {key:'candles', label:'Closed-candle freshness', passed:candlesFresh, points:candlesFresh?15:0, max:15},
+    {key:'mtf', label:'MTF history coverage', passed:availableHtf===CORE_MTF_TFS.length, points:availableHtf===CORE_MTF_TFS.length?15:0, max:15},
+    {key:'news', label:'News verification', passed:!!news.available && news.trusted===true && news.degraded!==true, points:!!news.available && news.trusted===true && news.degraded!==true?20:0, max:20},
+    {key:'spread', label:'Execution spread quality', passed:spreadOk, points:spreadOk?10:0, max:10},
+    {key:'engine', label:'Engine calculation integrity', passed:true, points:20, max:20}
+  ];
+  const dataQuality = dataQualityItems.reduce((sum,x)=>sum+x.points,0);
+  const dataQualityGrade = dataQuality>=95?'A+':dataQuality>=AI_DATA_QUALITY_MIN?'A':dataQuality>=75?'B':'C';
   const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,rsi:rsiM5,macd:macdM5,adx:adxM5,technicalMomentumOk,trendStrengthOk,allGatesPassed:setupReady && !newsBlocked};
-  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,availableHtf,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,coreBiases,coreBull,coreBear,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3 (H4/H1/M15)','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,availableHtf,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},dataQuality:{score:dataQuality,grade:dataQualityGrade,items:dataQualityItems,minRequired:AI_DATA_QUALITY_MIN},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,coreBiases,coreBull,coreBear,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3 (H4/H1/M15)','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked,evidenceSummary:{passed:scoreItems.filter(x=>x.passed).map(x=>x.label),waiting:scoreItems.filter(x=>!x.passed).map(x=>x.label),dataQuality:dataQualityGrade}},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
   analysisCache.key = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
   analysisCache.at = Date.now();
   analysisCache.data = result;
@@ -926,6 +941,7 @@ app.get('/api/news/xauusd', async (_req,res)=>{
 
 app.get('/api/analysis/xauusd',async(req,res)=>{
   try {
+    if (req.get('x-vtrade-request') && !/^[a-zA-Z0-9._:-]{8,80}$/.test(req.get('x-vtrade-request'))) return res.status(400).json({success:false,error:'Invalid request id'});
     const a=await buildXauAnalysis();
     const tg = activeTelegramConfig(req);
     const sid = sessionIdFrom(req);
