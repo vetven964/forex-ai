@@ -20,7 +20,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '5.5.0';
+const APP_VERSION = '5.6.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const ALLOWED_ORIGINS = [...new Set([
   ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -92,6 +92,8 @@ app.use(express.static(path.join(__dirname)));
 const cache = new Map();
 const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
 const newsCache = { at: 0, data: null };
+const analysisCache = { key: '', at: 0, data: null };
+const ANALYSIS_CACHE_MS = Number(process.env.ANALYSIS_CACHE_MS || 2000);
 const bridgeNews = { items: null, receivedAt: 0, source: null };
 const NEWS_CACHE_MS = Number(process.env.NEWS_CACHE_MS || 15000);
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json,https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json')
@@ -163,9 +165,17 @@ function newsStateFromItems(items, now) {
 
 async function fetchNewsSource(url) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
+  const timeoutMs = Number(process.env.NEWS_SOURCE_TIMEOUT_MS || 2500);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const r = await fetch(url, { headers: { 'User-Agent': `VTRADE-AI-NewsRadar/${APP_VERSION}`, 'Accept': 'application/json', 'Cache-Control':'no-cache' }, signal: controller.signal });
+    const r = await fetch(url, {
+      headers: {
+        'User-Agent': `VTRADE-AI-NewsRadar/${APP_VERSION}`,
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      signal: controller.signal
+    });
     if (!r.ok) throw new Error(`news http ${r.status}`);
     return await r.json();
   } finally { clearTimeout(timer); }
@@ -175,40 +185,50 @@ async function fetchXauNews() {
   const now = Date.now();
   if (newsCache.data && now - newsCache.at < NEWS_CACHE_MS) return newsCache.data;
 
-  // Prefer broker/MT5-pushed calendar data when available. This avoids relying on
-  // a public feed at the exact moment of a high-impact release.
   if (bridgeNews.items && now - bridgeNews.receivedAt <= NEWS_BRIDGE_MAX_AGE_MS) {
     const st = newsStateFromItems(bridgeNews.items, now);
     const data = {
       available:true, state:st.state, label:newsStateLabel(st.state), next:st.next, previous:st.previous,
       deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
       sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
-      windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN, source:bridgeNews.source || 'MT5 bridge',
-      sourceCount:1, updatedAt:new Date(now).toISOString(), sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
+      windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
+      source:bridgeNews.source || 'MT5 bridge', sourceCount:1,
+      updatedAt:new Date(now).toISOString(), sourceAgeSec:Math.round((now-bridgeNews.receivedAt)/1000),
       researchStatus:st.state==='LIVE'?'NEWS_LIVE':st.state==='POST_NEWS'?'POST_NEWS_REACTION':st.state==='LOCK'||st.state==='CAUTION'?'PRE_NEWS_RESEARCH':'CLEAR',
       research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
     };
     newsCache.at=now; newsCache.data=data; return data;
   }
 
-  let lastError = 'No news source available';
-  for (const sourceUrl of NEWS_URLS) {
-    try {
-      const items = await fetchNewsSource(sourceUrl);
-      const st = newsStateFromItems(items, now);
-      const data = {
-        available:true, state:st.state, label:newsStateLabel(st.state), next:st.next, previous:st.previous,
-        deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
-        sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
-        windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN, source:sourceUrl, sourceCount:NEWS_URLS.length,
-        updatedAt:new Date(now).toISOString(),
-        researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' : st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
-        research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
-      };
-      newsCache.at=now; newsCache.data=data; return data;
-    } catch (e) { lastError = `${sourceUrl}: ${e.message}`; }
+  const sources = [...new Set(NEWS_URLS)].filter(Boolean);
+  const results = await Promise.allSettled(
+    sources.map(async sourceUrl => ({ sourceUrl, items: await fetchNewsSource(sourceUrl) }))
+  );
+  const winner = results.find(r => r.status === 'fulfilled');
+
+  if (winner) {
+    const {sourceUrl, items} = winner.value;
+    const st = newsStateFromItems(items, now);
+    const data = {
+      available:true, state:st.state, label:newsStateLabel(st.state), next:st.next, previous:st.previous,
+      deltaMin:Number.isFinite(st.deltaMin)?Math.max(0,Math.round(st.deltaMin)):null,
+      sincePreviousMin:Number.isFinite(st.sincePreviousMin)?Math.max(0,Math.round(st.sincePreviousMin)):null,
+      windowMinutes:NEWS_PRELOCK_MIN, postWindowMinutes:NEWS_POST_MIN,
+      source:sourceUrl, sourceCount:sources.length, updatedAt:new Date(now).toISOString(),
+      researchStatus:st.state === 'LIVE' ? 'NEWS_LIVE' : st.state === 'POST_NEWS' ? 'POST_NEWS_REACTION' :
+        st.state === 'LOCK' || st.state === 'CAUTION' ? 'PRE_NEWS_RESEARCH' : 'CLEAR',
+      research:newsResearch(st.next), upcoming:st.upcoming.slice(0,8)
+    };
+    newsCache.at=now; newsCache.data=data; return data;
   }
-  const data={available:false,state:'UNAVAILABLE',label:'NEWS UNAVAILABLE',next:null,previous:null,deltaMin:null,sincePreviousMin:null,windowMinutes:NEWS_PRELOCK_MIN,postWindowMinutes:NEWS_POST_MIN,source:NEWS_URLS[0]||null,sourceCount:NEWS_URLS.length,updatedAt:new Date(now).toISOString(),error:lastError,researchStatus:'UNAVAILABLE',research:null,upcoming:[]};
+
+  const errors = results.map((r,i) => r.status === 'rejected' ? `${sources[i]}: ${r.reason?.message || 'request failed'}` : null).filter(Boolean);
+  const data={
+    available:false,state:'UNAVAILABLE',label:'NEWS UNAVAILABLE',next:null,previous:null,
+    deltaMin:null,sincePreviousMin:null,windowMinutes:NEWS_PRELOCK_MIN,postWindowMinutes:NEWS_POST_MIN,
+    source:sources[0]||null,sourceCount:sources.length,updatedAt:new Date(now).toISOString(),
+    error:errors.join(' | ') || 'No news source available',researchStatus:'UNAVAILABLE',research:null,upcoming:[]
+  };
   newsCache.at=now; newsCache.data=data; return data;
 }
 function brokerFeedFresh() {
@@ -429,6 +449,10 @@ function latestAlignedOrderBlock(c,bias,maxAge=20){
 }
 
 async function buildXauAnalysis() {
+  const analysisKey = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
+  const now = Date.now();
+  if (analysisCache.data && analysisCache.key === analysisKey && now - analysisCache.at < ANALYSIS_CACHE_MS) return analysisCache.data;
+  const newsPromise = fetchXauNews();
   const rawM5=parseBrokerCandles('M5'),rawM15=parseBrokerCandles('M15'),rawH1=parseBrokerCandles('H1'),rawH4=parseBrokerCandles('H4'); const live=brokerLivePrice();
   if(!live||!rawM5||!rawM15||!rawH1||!rawH4) throw new Error('VT Markets MT5 feed not ready');
   // Structure/ICT decisions use CLOSED candles; live quote remains the execution price.
@@ -465,7 +489,7 @@ async function buildXauAnalysis() {
   if(setupReady){
     signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&bullHTF>=2) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&bearHTF>=2) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
-  const news=await fetchXauNews();
+  const news=await newsPromise;
   const newsBlocked = (NEWS_FAIL_CLOSED && !news.available) || news.state==='LIVE' || news.state==='LOCK' || news.state==='POST_NEWS';
   if(newsBlocked){
     signal='WAIT'; entry=null; sl=null; tp=[];
@@ -482,7 +506,11 @@ async function buildXauAnalysis() {
 
   const setupGrade=confluenceScore>=90?'HIGH CONFLUENCE':confluenceScore>=MIN_CONFLUENCE?'CONFIRMED CANDIDATE':confluenceScore>=65?'WATCH':'WAIT';
   const confirmations={mtfAligned:biasOk,mtfCount,liquiditySweep:sweepOk,mss:mssOk,bos:bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,allGatesPassed:setupReady && !newsBlocked};
-  return {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  const result = {symbol:'XAUUSD',feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:confluenceScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:'M5',macroBias,score:{bull:side==='BULLISH'?confluenceScore:0,bear:side==='BEARISH'?confluenceScore:0,confidence:confluenceScore,grade:setupGrade,items:reasons.map(x=>({side:'WAIT',points:0,label:x}))},setupScore:confluenceScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,decision:{state:(setupReady && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:setupReady?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','MTF 2/3','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:setupReady && !newsBlocked},riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  analysisCache.key = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
+  analysisCache.at = Date.now();
+  analysisCache.data = result;
+  return result;
 }
 
 function telegramText(a) {
@@ -576,7 +604,7 @@ app.post('/api/v5/news/calendar', (req,res) => {
     bridgeNews.items = items.slice(0,500);
     bridgeNews.receivedAt = Date.now();
     bridgeNews.source = String(req.body?.source || 'MT5 News Calendar');
-    newsCache.at = 0; newsCache.data = null;
+    newsCache.at = 0; newsCache.data = null; analysisCache.key=''; analysisCache.data=null;
     res.json({success:true,received:bridgeNews.items.length,receivedAt:bridgeNews.receivedAt});
   } catch(e) { res.status(400).json({success:false,error:'Invalid news calendar payload'}); }
 });
@@ -594,6 +622,7 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     brokerFeed.timeframes=q.timeframes || q.bars || {};
     brokerFeed.receivedAt=Date.now();
     brokerFeed.symbol=String(q.symbol);
+    analysisCache.key=''; analysisCache.data=null;
     storage.saveQuote(q).catch(()=>{});
     res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
   } catch(e){ res.status(400).json({success:false,error:'Invalid MT5 payload'}); }
