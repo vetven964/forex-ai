@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Smart Entry Terminal (v6.2.0 VT Markets MT5 + News Radar + Premium Decision Engine)</title>
+    <title>V Trade AI Pro - Smart Entry Terminal (v6.3.2 VT Markets MT5 + News Radar + Premium Decision Engine)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -30,7 +30,7 @@
     </style>
 
 <style id="vtrade-mobile-pro">
-/* v6.2.0 Mobile PRO */
+/* v6.3.2 Mobile PRO */
 @media (max-width: 767px){
   body{padding-bottom:74px!important;overflow-x:hidden}
   #topHeader{padding:10px 12px!important;gap:8px!important;flex-wrap:nowrap!important;min-height:78px}
@@ -40,6 +40,14 @@
   #topHeader p{font-size:9px!important;line-height:1.2!important;max-width:220px}
   #topHeader #btnAuth{max-width:132px!important;min-width:0!important;padding:8px 10px!important;font-size:10px!important}
   #topHeader #btnAuth span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  #topHeader #btnAuth{position:relative;z-index:2;max-width:112px!important}
+  #topHeader .mobile-pro-title .flex.items-center.gap-2{gap:4px!important;flex-wrap:nowrap!important}
+  #topHeader .vt-premium-ribbon,#topHeader .vt-safety-pill{font-size:7px!important;padding:4px 6px!important;letter-spacing:.08em}
+  #topHeader .storage-badge{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #opportunityRadarPanel{margin-left:0!important;margin-right:0!important}
+  #opportunityRadarList{grid-template-columns:1fr!important}
+  #opportunityRadarList>div{min-width:0!important}
+  .md\:hidden.fixed.bottom-0{z-index:60!important}
   #topHeader .mobile-menu-btn{flex:0 0 auto}
   #topHeader .brand-icon{flex:0 0 auto}
   .mobile-live-strip{display:flex!important}
@@ -65,7 +73,7 @@
 </style>
 
 <style id="vtrade-premium-540">
-/* V-TRADE AI v6.2.0 PREMIUM UI */
+/* V-TRADE AI v6.3.2 PREMIUM UI */
 :root{
   --vt-gold:#f5c451;
   --vt-cyan:#4de7d7;
@@ -169,7 +177,7 @@ body{
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div class="mobile-pro-title">
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v6.2.0</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v6.3.2</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Realtime Price + ICT Engine Active</span>
@@ -239,7 +247,7 @@ body{
     <!-- Mobile Drawer Menu Overlay -->
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
-            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v6.2.0)</h3>
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.2)</h3>
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
@@ -340,7 +348,7 @@ body{
             </nav>
             <div class="pt-4 border-t border-gray-800">
                 <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2 cursor-pointer">
-                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v6.2</span>
+                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v6.3</span>
                 </button>
             </div>
         </aside>
@@ -356,7 +364,7 @@ body{
                         <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v6.2.0 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v6.3.2 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
                         <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
@@ -484,6 +492,18 @@ body{
                     <div id="aiEvidenceList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2"></div>
                 </div>
 
+                <!-- Multi-Horizon Opportunity Radar -->
+                <div id="opportunityRadarPanel" class="glass-panel p-4 rounded-2xl border border-emerald-500/20">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-400"></i> Multi-Horizon Opportunity Radar</h3>
+                            <p class="text-[10px] text-gray-500 mt-1">M1 timing trigger → 5M scalp → 15M intraday → 1H swing. M1 improves timing only; it cannot create a standalone entry. A setup is shown only when live MT5 data, structure and risk/reward support it.</p>
+                        </div>
+                        <span id="opportunityBest" class="text-[9px] font-mono text-emerald-300">BEST: —</span>
+                    </div>
+                    <div id="opportunityRadarList" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
+                </div>
+
                                 <!-- Mobile Signal Quick Summary -->
                 <div id="mobileSignalSummary" class="md:hidden glass-panel p-3 rounded-2xl border border-teal-500/20">
                     <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
@@ -503,14 +523,14 @@ body{
                                 <div class="w-3 h-3 rounded-full bg-red-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-amber-500"></div>
                                 <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v6.2.0</span>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v6.3.2</span>
                             </div>
                             <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
                         </div>
 
                         <!-- Logs Console Box -->
                         <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
-                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v6.2.0 Advanced MTF ICT Decision Engine...</div>
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v6.3.2 Advanced MTF ICT Decision Engine...</div>
                             <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
                             <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
                         </div>
@@ -618,7 +638,7 @@ body{
                         <h3 class="text-lg font-bold mt-1 text-purple-400 flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Bullish (78% Win)
                         </h3>
-                        <span class="text-xs text-gray-400">Smart Filter v6.2</span>
+                        <span class="text-xs text-gray-400">Smart Filter v6.3</span>
                     </div>
                 </div>
                 
@@ -654,7 +674,7 @@ body{
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-satellite-dish text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm md:text-base">Telegram Copy Trading Bot (Auto Mirroring v6.2)</h3>
+                            <h3 class="font-bold text-white text-sm md:text-base">Telegram Copy Trading Bot (Auto Mirroring v6.3)</h3>
                             <p class="text-gray-400">អនុញ្ញាតឱ្យសមាជិក Copy សញ្ញា ឬ Order ពី Master Trader ចូល Telegram Bot ស្វ័យប្រវត្តិ ១០០%</p>
                         </div>
                     </div>
@@ -1026,7 +1046,7 @@ body{
                     <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
                         <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
                         <div>
-                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v6.2.0</h3>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v6.3.2</h3>
                             <p class="text-gray-400">អ្នកប្រើប្រាស់ម្នាក់ៗអាចភ្ជាប់ Telegram Bot របស់ខ្លួនបាន។ Token មិនត្រូវបានរក្សាទុកក្នុង Browser.</p>
                         </div>
                     </div>
@@ -1087,7 +1107,7 @@ body{
             <div id="tab-tvchart" class="tab-content space-y-4">
                 <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
                     <div>
-                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v6.2.0</h3>
+                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v6.3.2</h3>
                         <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
                     </div>
                     <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
@@ -1290,11 +1310,11 @@ body{
     <div id="chatModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[400px] text-xs">
             <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
-                <h3 class="font-bold text-white">AI Support v6.2 (Background Worker Active)</h3>
+                <h3 class="font-bold text-white">AI Support v6.3 (Background Worker Active)</h3>
                 <button onclick="closeModal('chatModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
-                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI v6.2.0 ប្រើ MT5 + ICT live data។ BUY/SELL នឹងបង្ហាញតែពេល confirmation gates គ្រប់; បើមិនទាន់គ្រប់ នឹង WAIT។</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI v6.3.2 ប្រើ MT5 + ICT live data។ BUY/SELL នឹងបង្ហាញតែពេល confirmation gates គ្រប់; បើមិនទាន់គ្រប់ នឹង WAIT។</div>
             </div>
             <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
                 <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
@@ -1312,9 +1332,9 @@ body{
         let baseUsdBalance = null;
 
         let usersListDB = [
-            { name: "VET VEN (Owner)", email: "vetven@vtrade.ai", level: "Admin", security: "Protected v6.2 (DDoS ON)", date: "2026-08-09" },
-            { name: "Sokha Chan", email: "sokha@vtrade.ai", level: "VIP Pro", security: "Protected v6.2 (DDoS ON)", date: "2026-08-08" },
-            { name: "Dara Pich", email: "dara@vtrade.ai", level: "Standard", security: "Protected v6.2 (DDoS ON)", date: "2026-08-07" }
+            { name: "VET VEN (Owner)", email: "vetven@vtrade.ai", level: "Admin", security: "Protected v6.3 (DDoS ON)", date: "2026-08-09" },
+            { name: "Sokha Chan", email: "sokha@vtrade.ai", level: "VIP Pro", security: "Protected v6.3 (DDoS ON)", date: "2026-08-08" },
+            { name: "Dara Pich", email: "dara@vtrade.ai", level: "Standard", security: "Protected v6.3 (DDoS ON)", date: "2026-08-07" }
         ];
 
         // No synthetic trading prices/signals are used. XAU/USD is authoritative from the live server ICT engine.
@@ -1325,9 +1345,9 @@ body{
         };
 
         const translations = {
-            km: { brand: "V TRADE AI & TERMINAL v6.2.0", headerStatus: "Realtime Price + ICT Engine Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v6.2" },
-            en: { brand: "V TRADE AI & TERMINAL v6.2.0", headerStatus: "Realtime Price + ICT Engine Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
-            zh: { brand: "V TRADE AI TERMINAL v6.2.0", headerStatus: "实时价格与ICT引擎运行", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+            km: { brand: "V TRADE AI & TERMINAL v6.3.2", headerStatus: "Realtime Price + ICT Engine Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v6.3" },
+            en: { brand: "V TRADE AI & TERMINAL v6.3.2", headerStatus: "Realtime Price + ICT Engine Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v6.3.2", headerStatus: "实时价格与ICT引擎运行", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
         };
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -1339,7 +1359,7 @@ body{
 
             fetchMarketPrices();
             loadTelegramStatus();
-            setInterval(() => { if (!window.__vtradeScanBusy) fetchMarketPrices(); }, 5000);
+            setInterval(() => { if (!window.__vtradeScanBusy) fetchMarketPrices(); }, 6000);
             initSentimentRadarChart();
             runAIAnalysis();
             renderAdminTable(usersListDB);
@@ -1416,13 +1436,13 @@ body{
             setTimeout(() => {
                 if(spinner) spinner.style.display = 'none';
                 if(icon) icon.style.display = 'inline-block';
-                const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=value; };
+                const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=(window.vtT ? window.vtT(String(value)) : value); };
                 const x = pair === 'XAU/USD' ? latestXauAnalysis : null;
                 const unsupported = pair !== 'XAU/USD';
                 const score = x?.confidence != null ? Number(x.confidence) : null;
                 const grade = x?.setupGrade || (score == null ? '—' : score>=85?'A+':score>=75?'A':score>=65?'B':score>=50?'WATCH':'LOW');
                 const mtf = x ? `${x.timeframes?.H4?.structure?.bias || '—'} / ${x.timeframes?.H1?.structure?.bias || '—'} / ${x.timeframes?.M15?.structure?.bias || '—'}` : '—';
-                const entryText = x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.entryZone ? `${formatUsd(x.entryZone.low)}–${formatUsd(x.entryZone.high)}` : data.entry) : 'WAIT — NO CONFIRMED ENTRY';
+                const entryText = x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.entryZone ? `${formatUsd(x.entryZone.low)}–${formatUsd(x.entryZone.high)}` : (x?.entry != null ? formatUsd(x.entry) : 'WAIT')) : 'WAIT — NO CONFIRMED ENTRY';
                 const readiness = x?.signal === 'BUY' || x?.signal === 'SELL' ? 'ENTRY CONFIRMED' : (x?.phase === 'MIDWAY' ? 'MIDWAY — CONFIRMATION PENDING' : (x?.status || 'NOT READY'));
                 set('signal-direction', unsupported ? 'WAIT · XAUUSD ONLY' : (x?.signal === 'BUY' ? 'BUY · ចូល BUY' : x?.signal === 'SELL' ? 'SELL · ចូល SELL' : x?.phase === 'MIDWAY' ? 'MIDWAY · កំពុងរង់ចាំ Confirmation' : (x?.status || 'WAIT · NO TRADE')));
                 set('signal-entry', entryText);
@@ -1440,7 +1460,7 @@ body{
                 const fvg = x?.ict?.fvg;
                 const ob = x?.ict?.orderBlock;
                 const zone = x?.candidateZone;
-                const fvgLabel = fvg?.found ? `${fvg.type} FVG · ${fvg.ageBars ?? 0} bars` : (ob?.found ? `${ob.type} OB · ${ob.ageBars ?? 0} bars` : 'Not confirmed');
+                const fvgLabel = fvg?.found && Number(fvg.ageBars ?? 0) > 0 ? `${fvg.type} FVG · ${fvg.ageBars} bars` : (ob?.found && Number(ob.ageBars ?? 0) > 0 ? `${ob.type} OB · ${ob.ageBars} bars` : 'NOT CONFIRMED');
                 const fvgZoneText = zone ? `${formatUsd(zone.low)}–${formatUsd(zone.high)}` : '—';
                 set('fvg-confidence', fvgLabel);
                 set('fvg-zone', fvgZoneText);
@@ -1461,6 +1481,7 @@ body{
                 set('tblStatus', readiness);
                 updateConfirmationUI(x);
                 renderAIEvidence(x);
+                renderOpportunityRadar(x);
                 updateTelegramEntryButton(x);
                 const source = pair === 'XAU/USD' && latestXauAnalysis ? ` | ${latestXauAnalysis.source}` : '';
                 appendTerminalLog(`[AI ENGINE] ${pair}: ${unsupported ? 'WAIT' : (x?.signal || 'WAIT')} | ${unsupported ? 'XAUUSD is the only live ICT execution engine' : (x?.status || readiness)} | Confluence ${score ?? '—'}/100 | News ${x?.news?.sourceStatus || 'UNKNOWN'} | ${x?.trigger || 'No confirmed setup'}${source}`);
@@ -1492,6 +1513,30 @@ body{
                 const age = Number.isFinite(Number(a?.priceAgeSec)) ? `${a.priceAgeSec}s` : '—';
                 meta.textContent = `${a?.engineVersion || 'ENGINE —'} · MT5 age ${age} · Data quality ${a?.dataQuality?.grade || '—'} ${a?.dataQuality?.score ?? '—'}/100`;
             }
+        }
+
+        function renderOpportunityRadar(a) {
+            const list=document.getElementById('opportunityRadarList');
+            const bestEl=document.getElementById('opportunityBest');
+            if(!list) return;
+            const ops=[a?.opportunities?.M5,a?.opportunities?.M15,a?.opportunities?.H1].filter(Boolean);
+            list.replaceChildren();
+            const labels={M5:'5M SCALP',M15:'15M INTRADAY',H1:'1H SWING'};
+            const stateClass={CONFIRMED:'text-emerald-400 border-emerald-500/30 bg-emerald-500/5',TACTICAL:'text-amber-300 border-amber-500/30 bg-amber-500/5',WATCH:'text-gray-400 border-gray-800 bg-gray-950/50',NEWS_LOCK:'text-red-300 border-red-500/20 bg-red-500/5',UNAVAILABLE:'text-gray-500 border-gray-800 bg-gray-950/50',RANGE:'text-gray-500 border-gray-800 bg-gray-950/50'};
+            if(bestEl) bestEl.textContent=`BEST: ${a?.bestOpportunity?.label || '—'}`;
+            ops.forEach(o=>{
+                const card=document.createElement('div'); card.className=`rounded-xl border p-3 ${stateClass[o.state]||stateClass.WATCH}`;
+                const title=document.createElement('div'); title.className='flex items-center justify-between gap-2';
+                const name=document.createElement('b'); name.className='text-[11px]'; name.textContent=labels[o.key]||o.label||o.key;
+                const state=document.createElement('span'); state.className='text-[9px] font-bold'; state.textContent=o.state||'WATCH'; title.append(name,state);
+                const score=document.createElement('div'); score.className='mt-2 text-lg font-extrabold'; score.textContent=`${Number(o.score||0)}/100`;
+                const side=document.createElement('div'); side.className='text-[10px] font-mono'; side.textContent=`${o.signal||'WAIT'} · ${o.bias||'NEUTRAL'} · RR ${o.riskReward ?? '—'}`;
+                const zone=document.createElement('div'); zone.className='mt-1 text-[10px] text-gray-400'; zone.textContent=o.entryZone ? `Zone ${formatUsd(o.entryZone.low)}–${formatUsd(o.entryZone.high)}` : 'Zone —';
+                const micro=document.createElement('div'); micro.className='mt-1 text-[9px] text-cyan-300'; micro.textContent=o.microTrigger||'M1 trigger: WAIT';
+                const why=document.createElement('div'); why.className='mt-2 text-[9px] leading-relaxed text-gray-500'; why.textContent=o.reason||'Waiting for confirmation';
+                card.append(title,score,side,zone,micro,why); list.appendChild(card);
+            });
+            if(!ops.length){ const empty=document.createElement('div'); empty.className='text-xs text-gray-500'; empty.textContent='Waiting for live MT5 multi-timeframe analysis…'; list.appendChild(empty); }
         }
 
         function renderNewsRisk(news) {
@@ -1544,12 +1589,13 @@ body{
         }
 
         function updateConfirmationUI(a) {
+            const selected = a?.bestOpportunity;
             const items = {
-                'confirm-mtf': a ? `${a.confirmations?.mtfCount ?? 0}/3 ${a.confirmations?.mtfAligned ? 'ALIGNED' : 'CONFLICT'}` : '—',
+                'confirm-mtf': selected ? `${selected.higherAlignment || '—'} HTF · ${selected.bias || 'NEUTRAL'}` : (a ? `${a.confirmations?.mtfCount ?? 0}/3 ${a.confirmations?.mtfAligned ? 'ALIGNED' : 'CONFLICT'}` : '—'),
                 'confirm-liquidity': a?.confirmations?.liquiditySweep ? 'CONFIRMED' : 'PENDING',
                 'confirm-mss': a?.confirmations?.mss ? `CONFIRMED ${a.confirmations?.mssState || a.ict?.mss || ''}` : 'PENDING',
                 'confirm-bos': a?.confirmations?.bos ? `CONFIRMED ${a.confirmations?.bosState || a.ict?.bos || ''}` : 'PENDING',
-                'confirm-zone': a?.signal==='BUY'||a?.signal==='SELL' ? `${a.entryZone?.type || 'ZONE'} RETEST` : a?.candidateZone ? `${a.candidateZone.type} CANDIDATE — WAIT RETEST` : 'WAIT — NO ENTRY',
+                'confirm-zone': selected ? `${selected.entryZone?.type || 'ZONE'} ${selected.state}` : (a?.signal==='BUY'||a?.signal==='SELL' ? `${a.entryZone?.type || 'ZONE'} RETEST` : a?.candidateZone ? `${a.candidateZone.type} CANDIDATE — WAIT RETEST` : 'WAIT — NO ENTRY'),
                 'confirm-pd': a?.confirmations?.premiumDiscount ? `${a.confirmations.premiumDiscount}${a.confirmations?.premiumDiscountOk ? ' ✓' : ' — WAIT'}` : '—',
                 'confirm-displacement': a?.confirmations?.displacement?.confirmed && a.confirmations.displacement.direction===a.bias ? 'CONFIRMED' : 'PENDING'
             };
@@ -1558,7 +1604,7 @@ body{
                 const b=el.querySelector('b'); if(b) b.textContent=val;
                 el.classList.toggle('confirmed', /BULLISH|BEARISH|IN|aligned|confirmed/i.test(val));
             });
-            const ready = a?.signal === 'BUY' || a?.signal === 'SELL';
+            const ready = (a?.signal === 'BUY' || a?.signal === 'SELL') && (a?.bestOpportunity?.state === 'CONFIRMED' || a?.confirmations?.allGatesPassed === true);
             const label = document.getElementById('entry-readiness');
             if(label){ label.textContent = ready ? `${a.signal} READY` : (a?.phase === 'MIDWAY' ? 'MIDWAY — WAIT' : (a?.status || 'NOT READY')); label.className = ready ? 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20'; }
             const rb=document.getElementById('tradePhaseBadge');
@@ -1689,6 +1735,7 @@ body{
             const btn = document.getElementById('btnTelegramEntry');
             if (!btn) return;
             const confirmed = a && (a.signal === 'BUY' || a.signal === 'SELL')
+                && (a.bestOpportunity?.state === 'CONFIRMED' || a.confirmations?.allGatesPassed === true)
                 && a.news?.available !== false
                 && !/NO ENTRY|WAIT|PENDING|UNAVAILABLE/i.test(String(a.status || ''));
             btn.disabled = !confirmed;
@@ -1867,7 +1914,7 @@ body{
             const level = document.getElementById('newUserLevelInput').value;
             if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
 
-            usersListDB.push({ name, email, level, security: "Protected v6.2 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
+            usersListDB.push({ name, email, level, security: "Protected v6.3 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
             renderAdminTable(usersListDB);
             closeModal('addUserModal');
             alert('🟢 បានបន្ថែមសមាជិកថ្មីជោគជ័យ ១០០%!');
@@ -2130,7 +2177,7 @@ body{
             box.scrollTop = box.scrollHeight;
 
             setTimeout(() => {
-                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v6.2.0 កំពុងដំណើរការ។ សញ្ញា XAUUSD ត្រូវបានផ្អែកលើ MT5 + ICT confirmation និងអាចបង្ហាញ WAIT នៅពេល data/news មិនទាន់ verify។</div>`;
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v6.3.2 កំពុងដំណើរការ។ សញ្ញា XAUUSD ត្រូវបានផ្អែកលើ MT5 + ICT confirmation និងអាចបង្ហាញ WAIT នៅពេល data/news មិនទាន់ verify។</div>`;
                 box.scrollTop = box.scrollHeight;
             }, 600);
         }
@@ -2149,37 +2196,84 @@ body{
 (function(){
   const I18N={
     en:{
-      'V TRADE AI & TERMINAL v6.2.0':'V TRADE AI & TERMINAL v6.2.0','Realtime Price + ICT Engine Active':'Realtime Price + ICT Engine Active','Storage: checking…':'Storage: checking…','PREMIUM REALTIME':'PREMIUM REALTIME','ENTRY GATED':'ENTRY GATED','Live Crypto Ticker Bar & Clock Header':'Live Crypto Ticker Bar & Clock Header','Mobile Live Status Strip':'Mobile Live Status Strip','MT5 LIVE':'MT5 LIVE','Mobile Drawer Menu Overlay':'Mobile Drawer Menu Overlay','ម៉ឺនុយគ្រប់គ្រង (Menu v6.2.0)':'Control Menu (v6.2.0)','Terminal & Analysis AI Realtime':'Terminal & AI Analysis Realtime','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'Dashboard','Copy Trading Bot (Auto Mirror)':'Copy Trading Bot (Auto Mirror)','AI Sentiment & Consensus Filter':'AI Sentiment & Consensus Filter','Admin Manager (User List)':'Admin Manager (User List)','AI Strategy Customizer & Backtest':'AI Strategy Customizer & Backtest','Risk & SL/TP Calculator':'Risk & SL/TP Calculator','Affiliate & Referral Program':'Affiliate & Referral Program','ម៉ោងទីផ្សារ (Asian/NY/London)':'Market Sessions (Asian/NY/London)','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'News & Links','កញ្ចប់តម្លៃថ្មី (Pricing)':'Pricing Plans','Telegram Bot & Webhook':'Telegram Bot & Webhook','TradingView Chart':'TradingView Chart','Cloudflare & DDoS Protection':'Cloudflare & DDoS Protection','AI Support v6.2':'AI Support v6.2','AI Terminal & Analysis Realtime Engine':'AI Terminal & Realtime Analysis Engine','XAU/USD (Gold - មាស)':'XAU/USD (Gold)','Scan Analysis':'Scan Analysis','Signal Metrics Top Dashboard Cards':'Signal Metrics Dashboard','Market Signal Direction':'Market Signal Direction','WAIT':'WAIT','Entry Zone:':'Entry Zone:','Status:':'Status:','Setup:':'Setup:','Setup Strength':'Setup Strength','ICT Confluence Score':'ICT Confluence Score','MTF:':'MTF:','ICT Fair Value Gap (FVG)':'ICT Fair Value Gap (FVG)','LIVE ICT':'LIVE ICT','Zone:':'Zone:','Market Bias & Context':'Market Bias & Context','MTF structure pending':'MTF structure pending','News Risk Radar':'News Risk Radar','USD Economic News Radar':'USD Economic News Radar','Next':'Next','Source':'Source','Feed':'Feed','Age':'Age','Events':'Events','Pre-News Research':'Pre-News Research','WAITING FOR VERIFIED NEWS':'WAITING FOR VERIFIED NEWS','Confirmation & Execution Readiness':'Confirmation & Execution Readiness','Entry Confirmation':'Entry Confirmation','NOT READY':'NOT READY','MTF Bias':'MTF Bias','Liquidity':'Liquidity','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'Premium/Discount','Displacement':'Displacement','Advanced AI Evidence / Decision Transparency':'Advanced AI Evidence / Decision Transparency','Advanced AI Evidence':'Advanced AI Evidence','ENGINE — · MT5 —':'ENGINE — · MT5 —','Mobile Signal Quick Summary':'Mobile Signal Quick Summary','Signal':'Signal','Score':'Score','Readiness':'Readiness','Real-Time AI Execution Console Terminal':'Real-Time AI Execution Console','Clear':'Clear','Execute':'Execute','Sentiment Consensus Radar':'Sentiment Consensus Radar','Signal Details Table':'Signal Details Table','Live AI Signal Breakdown & Target Levels':'Live AI Signal Breakdown & Target Levels','AUTO ALERT: ENTRY ONLY':'AUTO ALERT: ENTRY ONLY','ស្ថានភាព':'Status','គូ':'Pair','សញ្ញា':'Signal','តំបន់ចូល':'Entry Zone','ស្ថានភាព':'Status','TAB: DASHBOARD':'DASHBOARD','សមតុល្យគណនី (Balance)':'Account Balance','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'Current Plan','Copy Trading & Sentiment 24/7 Active':'Copy Trading & Sentiment 24/7 Active','Copy Trading Bot Status':'Copy Trading Bot Status','Running (1.0x)':'Running (1.0x)','Auto Mirroring Ready':'Auto Mirroring Ready','AI Sentiment Consensus':'AI Sentiment Consensus','Smart Filter v6.2':'Smart Filter v6.2','កំពុងគណនា...':'Calculating...','London Session':'London Session','New York Session':'New York Session','Asian Session (Tokyo)':'Asian Session (Tokyo)','រក្សាទុកការកំណត់ Copy Trading Bot':'Save Copy Trading Bot Settings','Global News Sentiment':'Global News Sentiment','LIVE DATA REQUIRED':'LIVE DATA REQUIRED','AI Confidence Score':'AI Confidence Score','NOT PUBLISHED':'NOT PUBLISHED','Sideways Filter':'Sideways Filter','Active (Auto-Block)':'Active (Auto-Block)','បន្ថែម User ថ្មី':'Add New User','Admin Level':'Admin Level','ឈ្មោះ & អ៊ីម៉ែល':'Name & Email','កម្រិតសិទ្ធិ (User Level)':'User Level','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'Security Status (Cloudflare)','កាលបរិច្ឆេទបង្កើត':'Created Date','សកម្មភាព (Actions)':'Actions','Dynamic Rendered by JS':'Dynamic Rendered by JS','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'Preferred Asset','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'Risk Level','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'Run Backtest & Save Strategy to Server','Confluence:':'Confluence:','NOT AVAILABLE':'NOT AVAILABLE','Total Trades Tested:':'Total Trades Tested:','Estimated Profit Factor:':'Estimated Profit Factor:','ទំហំដើមទុន ($ Capital)':'Capital ($)','ភាគរយហានិភ័យ (% Risk per Trade)':'Risk per Trade (%)','ចម្ងាយ Stop Loss (Pips / Points)':'Stop Loss Distance (Pips / Points)','Max Risk Amount ($):':'Max Risk Amount ($):','Recommended Lot Size:':'Recommended Lot Size:','Target Take Profit (1:2 Ratio):':'Target Take Profit (1:2 Ratio):','Copy Link':'Copy Link','Telegram Copy Trading Bot (Auto Mirroring v6.2)':'Telegram Copy Trading Bot (Auto Mirroring v6.2)','Master Trader Signal Source:':'Master Trader Signal Source:','Connected Channel:':'Connected Channel:','Not verified':'Not verified','Last Copied Order:':'Last Copied Order:','No verified live order':'No verified live order'},
+      'V TRADE AI & TERMINAL v6.3.2':'V TRADE AI & TERMINAL v6.3.2','Realtime Price + ICT Engine Active':'Realtime Price + ICT Engine Active','Storage: checking…':'Storage: checking…','PREMIUM REALTIME':'PREMIUM REALTIME','ENTRY GATED':'ENTRY GATED','Live Crypto Ticker Bar & Clock Header':'Live Crypto Ticker Bar & Clock Header','Mobile Live Status Strip':'Mobile Live Status Strip','MT5 LIVE':'MT5 LIVE','Mobile Drawer Menu Overlay':'Mobile Drawer Menu Overlay','ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.2)':'Control Menu (v6.3.2)','Terminal & Analysis AI Realtime':'Terminal & AI Analysis Realtime','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'Dashboard','Copy Trading Bot (Auto Mirror)':'Copy Trading Bot (Auto Mirror)','AI Sentiment & Consensus Filter':'AI Sentiment & Consensus Filter','Admin Manager (User List)':'Admin Manager (User List)','AI Strategy Customizer & Backtest':'AI Strategy Customizer & Backtest','Risk & SL/TP Calculator':'Risk & SL/TP Calculator','Affiliate & Referral Program':'Affiliate & Referral Program','ម៉ោងទីផ្សារ (Asian/NY/London)':'Market Sessions (Asian/NY/London)','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'News & Links','កញ្ចប់តម្លៃថ្មី (Pricing)':'Pricing Plans','Telegram Bot & Webhook':'Telegram Bot & Webhook','TradingView Chart':'TradingView Chart','Cloudflare & DDoS Protection':'Cloudflare & DDoS Protection','AI Support v6.3':'AI Support v6.3','AI Terminal & Analysis Realtime Engine':'AI Terminal & Realtime Analysis Engine','XAU/USD (Gold - មាស)':'XAU/USD (Gold)','Scan Analysis':'Scan Analysis','Signal Metrics Top Dashboard Cards':'Signal Metrics Dashboard','Market Signal Direction':'Market Signal Direction','WAIT':'WAIT','Entry Zone:':'Entry Zone:','Status:':'Status:','Setup:':'Setup:','Setup Strength':'Setup Strength','ICT Confluence Score':'ICT Confluence Score','MTF:':'MTF:','ICT Fair Value Gap (FVG)':'ICT Fair Value Gap (FVG)','LIVE ICT':'LIVE ICT','Zone:':'Zone:','Market Bias & Context':'Market Bias & Context','MTF structure pending':'MTF structure pending','News Risk Radar':'News Risk Radar','USD Economic News Radar':'USD Economic News Radar','Next':'Next','Source':'Source','Feed':'Feed','Age':'Age','Events':'Events','Pre-News Research':'Pre-News Research','WAITING FOR VERIFIED NEWS':'WAITING FOR VERIFIED NEWS','Confirmation & Execution Readiness':'Confirmation & Execution Readiness','Entry Confirmation':'Entry Confirmation','NOT READY':'NOT READY','MTF Bias':'MTF Bias','Liquidity':'Liquidity','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'Premium/Discount','Displacement':'Displacement','Advanced AI Evidence / Decision Transparency':'Advanced AI Evidence / Decision Transparency','Advanced AI Evidence':'Advanced AI Evidence','ENGINE — · MT5 —':'ENGINE — · MT5 —','Mobile Signal Quick Summary':'Mobile Signal Quick Summary','Signal':'Signal','Score':'Score','Readiness':'Readiness','Real-Time AI Execution Console Terminal':'Real-Time AI Execution Console','Clear':'Clear','Execute':'Execute','Sentiment Consensus Radar':'Sentiment Consensus Radar','Signal Details Table':'Signal Details Table','Live AI Signal Breakdown & Target Levels':'Live AI Signal Breakdown & Target Levels','AUTO ALERT: ENTRY ONLY':'AUTO ALERT: ENTRY ONLY','ស្ថានភាព':'Status','គូ':'Pair','សញ្ញា':'Signal','តំបន់ចូល':'Entry Zone','ស្ថានភាព':'Status','TAB: DASHBOARD':'DASHBOARD','សមតុល្យគណនី (Balance)':'Account Balance','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'Current Plan','Copy Trading & Sentiment 24/7 Active':'Copy Trading & Sentiment 24/7 Active','Copy Trading Bot Status':'Copy Trading Bot Status','Running (1.0x)':'Running (1.0x)','Auto Mirroring Ready':'Auto Mirroring Ready','AI Sentiment Consensus':'AI Sentiment Consensus','Smart Filter v6.3':'Smart Filter v6.3','កំពុងគណនា...':'Calculating...','London Session':'London Session','New York Session':'New York Session','Asian Session (Tokyo)':'Asian Session (Tokyo)','រក្សាទុកការកំណត់ Copy Trading Bot':'Save Copy Trading Bot Settings','Global News Sentiment':'Global News Sentiment','LIVE DATA REQUIRED':'LIVE DATA REQUIRED','AI Confidence Score':'AI Confidence Score','NOT PUBLISHED':'NOT PUBLISHED','Sideways Filter':'Sideways Filter','Active (Auto-Block)':'Active (Auto-Block)','បន្ថែម User ថ្មី':'Add New User','Admin Level':'Admin Level','ឈ្មោះ & អ៊ីម៉ែល':'Name & Email','កម្រិតសិទ្ធិ (User Level)':'User Level','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'Security Status (Cloudflare)','កាលបរិច្ឆេទបង្កើត':'Created Date','សកម្មភាព (Actions)':'Actions','Dynamic Rendered by JS':'Dynamic Rendered by JS','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'Preferred Asset','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'Risk Level','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'Run Backtest & Save Strategy to Server','Confluence:':'Confluence:','NOT AVAILABLE':'NOT AVAILABLE','Total Trades Tested:':'Total Trades Tested:','Estimated Profit Factor:':'Estimated Profit Factor:','ទំហំដើមទុន ($ Capital)':'Capital ($)','ភាគរយហានិភ័យ (% Risk per Trade)':'Risk per Trade (%)','ចម្ងាយ Stop Loss (Pips / Points)':'Stop Loss Distance (Pips / Points)','Max Risk Amount ($):':'Max Risk Amount ($):','Recommended Lot Size:':'Recommended Lot Size:','Target Take Profit (1:2 Ratio):':'Target Take Profit (1:2 Ratio):','Copy Link':'Copy Link','Telegram Copy Trading Bot (Auto Mirroring v6.3)':'Telegram Copy Trading Bot (Auto Mirroring v6.3)','Master Trader Signal Source:':'Master Trader Signal Source:','Connected Channel:':'Connected Channel:','Not verified':'Not verified','Last Copied Order:':'Last Copied Order:','No verified live order':'No verified live order',
+      'NEWS UNAVAILABLE — NO ENTRY':'NEWS UNAVAILABLE — NO ENTRY',
+      'NEWS DEGRADED • NO ENTRY':'NEWS DEGRADED • NO ENTRY',
+      'NEWS CLEAR • VERIFIED':'NEWS CLEAR • VERIFIED',
+      'WAIT — NO CONFIRMED ENTRY':'WAIT — NO CONFIRMED ENTRY',
+      'WAIT — CONFIRMATION PENDING':'WAIT — CONFIRMATION PENDING',
+      'MIDWAY — CONFIRMATION PENDING':'MIDWAY — CONFIRMATION PENDING',
+      'NO TRADE':'NO TRADE',
+      'ENTRY CONFIRMED':'ENTRY CONFIRMED',
+      'BULLISH':'BULLISH',
+      'BEARISH':'BEARISH',
+      'PENDING':'PENDING',
+      'CONFIRMED':'CONFIRMED',
+      'WAIT':'WAIT'},
     zh:{
-      'V TRADE AI & TERMINAL v6.2.0':'V TRADE AI & TERMINAL v6.2.0','Realtime Price + ICT Engine Active':'实时价格 + ICT 引擎运行中','Storage: checking…':'存储：检查中…','PREMIUM REALTIME':'高级实时','ENTRY GATED':'入场门控','Live Crypto Ticker Bar & Clock Header':'实时行情与时钟','Mobile Live Status Strip':'移动端实时状态','MT5 LIVE':'MT5 实时','Mobile Drawer Menu Overlay':'移动端菜单','ម៉ឺនុយគ្រប់គ្រង (Menu v6.2.0)':'控制菜单（v6.2.0）','Terminal & Analysis AI Realtime':'终端与 AI 实时分析','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'控制面板','Copy Trading Bot (Auto Mirror)':'复制交易机器人（自动镜像）','AI Sentiment & Consensus Filter':'AI 情绪与共识过滤器','Admin Manager (User List)':'管理员（用户列表）','AI Strategy Customizer & Backtest':'AI 策略定制与回测','Risk & SL/TP Calculator':'风险与止损止盈计算器','Affiliate & Referral Program':'联盟与推荐计划','ម៉ោងទីផ្សារ (Asian/NY/London)':'市场时段（亚洲/纽约/伦敦）','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'新闻与链接','កញ្ចប់តម្លៃថ្មី (Pricing)':'价格方案','Telegram Bot & Webhook':'Telegram 机器人与 Webhook','TradingView Chart':'TradingView 图表','Cloudflare & DDoS Protection':'Cloudflare 与 DDoS 防护','AI Support v6.2':'AI 支持 v5.7','AI Terminal & Analysis Realtime Engine':'AI 实时分析终端','XAU/USD (Gold - មាស)':'XAU/USD（黄金）','Scan Analysis':'扫描分析','Signal Metrics Top Dashboard Cards':'信号指标','Market Signal Direction':'市场信号方向','WAIT':'等待','Entry Zone:':'入场区域：','Status:':'状态：','Setup:':'设置：','Setup Strength':'设置强度','ICT Confluence Score':'ICT 共振评分','MTF:':'多周期：','ICT Fair Value Gap (FVG)':'ICT 公允价值缺口（FVG）','LIVE ICT':'实时 ICT','Zone:':'区域：','Market Bias & Context':'市场偏向与环境','MTF structure pending':'多周期结构待确认','News Risk Radar':'新闻风险雷达','USD Economic News Radar':'美元经济新闻雷达','Next':'下一项','Source':'来源','Feed':'数据源','Age':'数据年龄','Events':'事件','Pre-News Research':'新闻前研究','WAITING FOR VERIFIED NEWS':'等待已验证新闻','Confirmation & Execution Readiness':'确认与执行准备度','Entry Confirmation':'入场确认','NOT READY':'尚未就绪','MTF Bias':'多周期偏向','Liquidity':'流动性','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'溢价/折价','Displacement':'位移','Advanced AI Evidence / Decision Transparency':'高级 AI 证据 / 决策透明度','Advanced AI Evidence':'高级 AI 证据','Mobile Signal Quick Summary':'移动端信号摘要','Signal':'信号','Score':'评分','Readiness':'准备度','Real-Time AI Execution Console Terminal':'实时 AI 执行控制台','Clear':'清除','Execute':'执行','Sentiment Consensus Radar':'情绪共识雷达','Live AI Signal Breakdown & Target Levels':'实时 AI 信号与目标位','AUTO ALERT: ENTRY ONLY':'自动提醒：仅入场','គូ':'交易品种','សញ្ញា':'信号','តំបន់ចូល':'入场区域','ស្ថានភាព':'状态','សមតុល្យគណនី (Balance)':'账户余额','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'当前方案','Copy Trading & Sentiment 24/7 Active':'复制交易与情绪 24/7 运行','Copy Trading Bot Status':'复制交易机器人状态','Running (1.0x)':'运行中（1.0x）','Auto Mirroring Ready':'自动镜像就绪','AI Sentiment Consensus':'AI 情绪共识','Smart Filter v6.2':'智能过滤器 v5.7','កំពុងគណនា...':'计算中...','London Session':'伦敦时段','New York Session':'纽约时段','Asian Session (Tokyo)':'亚洲时段（东京）','Global News Sentiment':'全球新闻情绪','LIVE DATA REQUIRED':'需要实时数据','AI Confidence Score':'AI 置信度评分','NOT PUBLISHED':'未发布','Sideways Filter':'震荡过滤器','Active (Auto-Block)':'启用（自动阻止）','បន្ថែម User ថ្មី':'添加新用户','Admin Level':'管理员级别','ឈ្មោះ & អ៊ីម៉ែល':'姓名与邮箱','កម្រិតសិទ្ធិ (User Level)':'用户级别','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'安全状态（Cloudflare）','កាលបរិច្ឆេទបង្កើត':'创建日期','សកម្មភាព (Actions)':'操作','Dynamic Rendered by JS':'由 JS 动态渲染','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'首选资产','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'风险等级','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'运行回测并保存策略到服务器','Confluence:':'共振：','NOT AVAILABLE':'不可用','Total Trades Tested:':'测试交易总数：','Estimated Profit Factor:':'预计盈利因子：','ទំហំដើមទុន ($ Capital)':'资金（$）','ភាគរយហានិភ័យ (% Risk per Trade)':'每笔交易风险（%）','ចម្ងាយ Stop Loss (Pips / Points)':'止损距离（点）','Max Risk Amount ($):':'最大风险金额（$）：','Recommended Lot Size:':'建议手数：','Target Take Profit (1:2 Ratio):':'目标止盈（1:2）：','Copy Link':'复制链接','Telegram Copy Trading Bot (Auto Mirroring v6.2)':'Telegram 复制交易机器人（自动镜像 v5.7）','Master Trader Signal Source:':'主交易员信号来源：','Connected Channel:':'已连接频道：','Not verified':'未验证','Last Copied Order:':'最近复制订单：','No verified live order':'没有已验证的实时订单'}
+      'V TRADE AI & TERMINAL v6.3.2':'V TRADE AI & TERMINAL v6.3.2','Realtime Price + ICT Engine Active':'实时价格 + ICT 引擎运行中','Storage: checking…':'存储：检查中…','PREMIUM REALTIME':'高级实时','ENTRY GATED':'入场门控','Live Crypto Ticker Bar & Clock Header':'实时行情与时钟','Mobile Live Status Strip':'移动端实时状态','MT5 LIVE':'MT5 实时','Mobile Drawer Menu Overlay':'移动端菜单','ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.2)':'控制菜单（v6.3.2）','Terminal & Analysis AI Realtime':'终端与 AI 实时分析','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'控制面板','Copy Trading Bot (Auto Mirror)':'复制交易机器人（自动镜像）','AI Sentiment & Consensus Filter':'AI 情绪与共识过滤器','Admin Manager (User List)':'管理员（用户列表）','AI Strategy Customizer & Backtest':'AI 策略定制与回测','Risk & SL/TP Calculator':'风险与止损止盈计算器','Affiliate & Referral Program':'联盟与推荐计划','ម៉ោងទីផ្សារ (Asian/NY/London)':'市场时段（亚洲/纽约/伦敦）','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'新闻与链接','កញ្ចប់តម្លៃថ្មី (Pricing)':'价格方案','Telegram Bot & Webhook':'Telegram 机器人与 Webhook','TradingView Chart':'TradingView 图表','Cloudflare & DDoS Protection':'Cloudflare 与 DDoS 防护','AI Support v6.3':'AI 支持 v5.7','AI Terminal & Analysis Realtime Engine':'AI 实时分析终端','XAU/USD (Gold - មាស)':'XAU/USD（黄金）','Scan Analysis':'扫描分析','Signal Metrics Top Dashboard Cards':'信号指标','Market Signal Direction':'市场信号方向','WAIT':'等待','Entry Zone:':'入场区域：','Status:':'状态：','Setup:':'设置：','Setup Strength':'设置强度','ICT Confluence Score':'ICT 共振评分','MTF:':'多周期：','ICT Fair Value Gap (FVG)':'ICT 公允价值缺口（FVG）','LIVE ICT':'实时 ICT','Zone:':'区域：','Market Bias & Context':'市场偏向与环境','MTF structure pending':'多周期结构待确认','News Risk Radar':'新闻风险雷达','USD Economic News Radar':'美元经济新闻雷达','Next':'下一项','Source':'来源','Feed':'数据源','Age':'数据年龄','Events':'事件','Pre-News Research':'新闻前研究','WAITING FOR VERIFIED NEWS':'等待已验证新闻','Confirmation & Execution Readiness':'确认与执行准备度','Entry Confirmation':'入场确认','NOT READY':'尚未就绪','MTF Bias':'多周期偏向','Liquidity':'流动性','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'溢价/折价','Displacement':'位移','Advanced AI Evidence / Decision Transparency':'高级 AI 证据 / 决策透明度','Advanced AI Evidence':'高级 AI 证据','Mobile Signal Quick Summary':'移动端信号摘要','Signal':'信号','Score':'评分','Readiness':'准备度','Real-Time AI Execution Console Terminal':'实时 AI 执行控制台','Clear':'清除','Execute':'执行','Sentiment Consensus Radar':'情绪共识雷达','Live AI Signal Breakdown & Target Levels':'实时 AI 信号与目标位','AUTO ALERT: ENTRY ONLY':'自动提醒：仅入场','គូ':'交易品种','សញ្ញា':'信号','តំបន់ចូល':'入场区域','ស្ថានភាព':'状态','សមតុល្យគណនី (Balance)':'账户余额','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'当前方案','Copy Trading & Sentiment 24/7 Active':'复制交易与情绪 24/7 运行','Copy Trading Bot Status':'复制交易机器人状态','Running (1.0x)':'运行中（1.0x）','Auto Mirroring Ready':'自动镜像就绪','AI Sentiment Consensus':'AI 情绪共识','Smart Filter v6.3':'智能过滤器 v5.7','កំពុងគណនា...':'计算中...','London Session':'伦敦时段','New York Session':'纽约时段','Asian Session (Tokyo)':'亚洲时段（东京）','Global News Sentiment':'全球新闻情绪','LIVE DATA REQUIRED':'需要实时数据','AI Confidence Score':'AI 置信度评分','NOT PUBLISHED':'未发布','Sideways Filter':'震荡过滤器','Active (Auto-Block)':'启用（自动阻止）','បន្ថែម User ថ្មី':'添加新用户','Admin Level':'管理员级别','ឈ្មោះ & អ៊ីម៉ែល':'姓名与邮箱','កម្រិតសិទ្ធិ (User Level)':'用户级别','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'安全状态（Cloudflare）','កាលបរិច្ឆេទបង្កើត':'创建日期','សកម្មភាព (Actions)':'操作','Dynamic Rendered by JS':'由 JS 动态渲染','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'首选资产','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'风险等级','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'运行回测并保存策略到服务器','Confluence:':'共振：','NOT AVAILABLE':'不可用','Total Trades Tested:':'测试交易总数：','Estimated Profit Factor:':'预计盈利因子：','ទំហំដើមទុន ($ Capital)':'资金（$）','ភាគរយហានិភ័យ (% Risk per Trade)':'每笔交易风险（%）','ចម្ងាយ Stop Loss (Pips / Points)':'止损距离（点）','Max Risk Amount ($):':'最大风险金额（$）：','Recommended Lot Size:':'建议手数：','Target Take Profit (1:2 Ratio):':'目标止盈（1:2）：','Copy Link':'复制链接','Telegram Copy Trading Bot (Auto Mirroring v6.3)':'Telegram 复制交易机器人（自动镜像 v5.7）','Master Trader Signal Source:':'主交易员信号来源：','Connected Channel:':'已连接频道：','Not verified':'未验证','Last Copied Order:':'最近复制订单：','No verified live order':'没有已验证的实时订单',
+      'NEWS UNAVAILABLE — NO ENTRY':'新闻不可用 — 不入场',
+      'NEWS DEGRADED • NO ENTRY':'新闻降级 • 不入场',
+      'NEWS CLEAR • VERIFIED':'新闻正常 • 已验证',
+      'WAIT — NO CONFIRMED ENTRY':'等待 — 未确认入场',
+      'WAIT — CONFIRMATION PENDING':'等待 — 等待确认',
+      'MIDWAY — CONFIRMATION PENDING':'中途 — 等待确认',
+      'NO TRADE':'不交易',
+      'ENTRY CONFIRMED':'入场已确认',
+      'BULLISH':'看涨',
+      'BEARISH':'看跌',
+      'PENDING':'待确认',
+      'CONFIRMED':'已确认',
+      'WAIT':'等待'}
   };
-  // Khmer is the original UI language; keep it as a no-op baseline and use the existing DOM text.
+  // v6.3.2 performance-safe i18n:
+  // Index the existing static text once. Language switches then update only the
+  // indexed nodes instead of recursively walking the entire realtime DOM.
   const originalText=new WeakMap();
   const originalAttrs=new WeakMap();
+  const indexedText=[];
+  const indexedAttrs=[];
   const skip=new Set(['SCRIPT','STYLE','NOSCRIPT']);
-  function keyFor(el){return el.getAttribute('data-i18n-key')||'';}
-  function translateNode(node,lang){
-    if(node.nodeType===3){
-      const parent=node.parentElement; if(!parent||skip.has(parent.tagName)) return;
-      if(!originalText.has(node)) originalText.set(node,node.nodeValue);
-      const raw=originalText.get(node); const clean=raw.replace(/\s+/g,' ').trim();
-      if(!clean) return;
-      const dict=I18N[lang]||{}; const tr=dict[clean];
-      if(tr){
-        const lead=raw.match(/^\s*/)?.[0]||''; const tail=raw.match(/\s*$/)?.[0]||'';
-        const nextValue=lead+tr+tail;
-        // Prevent MutationObserver feedback loops: only write when the value actually changes.
-        if(node.nodeValue!==nextValue) node.nodeValue=nextValue;
-      } else if(lang==='km' && node.nodeValue!==raw) {
-        node.nodeValue=raw;
-      }
-    } else if(node.nodeType===1){
-      if(skip.has(node.tagName)) return;
-      if(node.hasAttribute('placeholder')){ if(!originalAttrs.has(node)) originalAttrs.set(node,{placeholder:node.getAttribute('placeholder'),title:node.getAttribute('title')}); const a=originalAttrs.get(node); const d=I18N[lang]||{}; if(d[a.placeholder]) node.setAttribute('placeholder',d[a.placeholder]); else if(lang==='km') node.setAttribute('placeholder',a.placeholder); }
-      if(node.hasAttribute('title')){ if(!originalAttrs.has(node)) originalAttrs.set(node,{placeholder:node.getAttribute('placeholder'),title:node.getAttribute('title')}); const a=originalAttrs.get(node); const d=I18N[lang]||{}; if(d[a.title]) node.setAttribute('title',d[a.title]); else if(lang==='km'&&a.title) node.setAttribute('title',a.title); }
-      node.childNodes.forEach(n=>translateNode(n,lang));
+  function buildI18nIndex(){
+    indexedText.length=0; indexedAttrs.length=0;
+    const walker=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while((node=walker.nextNode())){
+      const parent=node.parentElement;
+      if(!parent||skip.has(parent.tagName)) continue;
+      const raw=node.nodeValue||'';
+      const clean=raw.replace(/\s+/g,' ').trim();
+      if(!clean) continue;
+      originalText.set(node,raw);
+      indexedText.push({node,clean});
     }
+    document.body.querySelectorAll('[placeholder],[title]').forEach(el=>{
+      if(skip.has(el.tagName)) return;
+      const item={el,placeholder:el.getAttribute('placeholder'),title:el.getAttribute('title')};
+      originalAttrs.set(el,item);
+      indexedAttrs.push(item);
+    });
   }
+  function translateValue(value,lang){
+    const raw=String(value??'');
+    const clean=raw.replace(/\s+/g,' ').trim();
+    if(!clean) return raw;
+    const dict=I18N[lang]||{};
+    if(dict[clean]) {
+      const lead=raw.match(/^\s*/)?.[0]||'', tail=raw.match(/\s*$/)?.[0]||'';
+      return lead+dict[clean]+tail;
+    }
+    // Translate known phrases inside composed realtime status strings.
+    let out=raw;
+    Object.keys(dict).sort((a,b)=>b.length-a.length).forEach(k=>{
+      if(k && out.includes(k)) out=out.split(k).join(dict[k]);
+    });
+    return out;
+  }
+  window.vtT=function(value){
+    const lang=document.body?.getAttribute('data-language')||'km';
+    return lang==='km' ? String(value??'') : translateValue(value,lang);
+  };
   let applying=false;
   let currentLang='km';
   window.applyVTradeLanguage=function(lang){
@@ -2189,7 +2283,18 @@ body{
     currentLang=lang;
     document.documentElement.lang=lang;
     document.body.setAttribute('data-language',lang);
-    translateNode(document.body,lang);
+
+    for(const item of indexedText){
+      if(!item.node.isConnected) continue;
+      const raw=originalText.get(item.node) ?? item.node.nodeValue ?? '';
+      item.node.nodeValue=lang==='km' ? raw : translateValue(raw,lang);
+    }
+    for(const item of indexedAttrs){
+      if(!item.el.isConnected) continue;
+      const dict=I18N[lang]||{};
+      if(item.placeholder!=null) item.el.setAttribute('placeholder',lang==='km'?item.placeholder:translateValue(item.placeholder,lang));
+      if(item.title!=null) item.el.setAttribute('title',lang==='km'?item.title:translateValue(item.title,lang));
+    }
     try{ localStorage.setItem('vtrade_language',lang); }catch(e){}
     const sel=document.getElementById('languageSelect');
     if(sel && sel.value!==lang) sel.value=lang;
@@ -2197,6 +2302,7 @@ body{
   };
   window.changeLanguage=function(lang){ window.applyVTradeLanguage(lang); };
   function bootLanguage(){
+    buildI18nIndex();
     let saved='km';
     try{ saved=localStorage.getItem('vtrade_language')||'km'; }catch(e){}
     const sel=document.getElementById('languageSelect');
@@ -2206,10 +2312,8 @@ body{
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootLanguage,{once:true});
   else setTimeout(bootLanguage,0);
 
-  // IMPORTANT: no global MutationObserver. Realtime MT5/AI DOM updates are frequent.
-  // The previous observer watched characterData across the whole document and could
-  // continuously compete with the realtime renderer, causing Chromium Page Unresponsive.
-  // Language is applied on boot and on explicit language changes only.
+  // Dynamic realtime elements are translated by the renderer through window.vtT.
+  // No global MutationObserver is used.
 })();
 </script>
 
