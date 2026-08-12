@@ -19,6 +19,14 @@ services:
         value: https://vetven964.github.io
       - key: MT5_BRIDGE_API_KEY
         generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: VTRADE_DATA_DIR
+        value: ./data
+      - key: VTRADE_QUOTE_STORE_MS
+        value: "10000"
       - key: MT5_SYMBOL
         value: XAUUSD
       - key: MT5_MAX_AGE_MS
