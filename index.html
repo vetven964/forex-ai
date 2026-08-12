@@ -2131,7 +2131,7 @@ body{
     </script>
 
 <script>
-/* V TRADE AI v6.1.3 — FULL UI I18N (KH / EN / ZH)
+/* V TRADE AI v6.1.5 — SAFE FULL UI I18N (KH / EN / ZH)
    Language changes presentation only; trading calculations, MT5 data and risk gates remain unchanged. */
 (function(){
   const I18N={
@@ -2168,38 +2168,35 @@ body{
     }
   }
   let applying=false;
+  let currentLang='km';
   window.applyVTradeLanguage=function(lang){
     if(!I18N[lang] && lang!=='km') lang='en';
-    applying=true; document.documentElement.lang=lang;
+    if(applying) return;
+    applying=true;
+    currentLang=lang;
+    document.documentElement.lang=lang;
     document.body.setAttribute('data-language',lang);
     translateNode(document.body,lang);
-    localStorage.setItem('vtrade_language',lang);
-    const sel=document.getElementById('languageSelect'); if(sel) sel.value=lang;
-    // Existing ID-based translations remain supported, while the full DOM pass covers every screen.
+    try{ localStorage.setItem('vtrade_language',lang); }catch(e){}
+    const sel=document.getElementById('languageSelect');
+    if(sel && sel.value!==lang) sel.value=lang;
     applying=false;
   };
   window.changeLanguage=function(lang){ window.applyVTradeLanguage(lang); };
-  const saved=localStorage.getItem('vtrade_language')||document.getElementById('languageSelect')?.value||'km';
-  window.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>window.applyVTradeLanguage(saved),50); });
-  let observerQueued=false;
-  const observer=new MutationObserver(muts=>{
-    if(applying || observerQueued) return;
-    observerQueued=true;
-    queueMicrotask(()=>{
-      observerQueued=false;
-      const lang=document.documentElement.lang||'km';
-      for(const m of muts){
-        if(m.type==='childList') {
-          m.addedNodes.forEach(n=>{
-            if(n.nodeType===1||n.nodeType===3) translateNode(n,lang);
-          });
-        } else if(m.type==='characterData') {
-          translateNode(m.target,lang);
-        }
-      }
-    });
-  });
-  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  function bootLanguage(){
+    let saved='km';
+    try{ saved=localStorage.getItem('vtrade_language')||'km'; }catch(e){}
+    const sel=document.getElementById('languageSelect');
+    if(saved==='km' && !localStorage.getItem('vtrade_language') && sel) saved=sel.value||'km';
+    window.applyVTradeLanguage(saved);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootLanguage,{once:true});
+  else setTimeout(bootLanguage,0);
+
+  // IMPORTANT: no global MutationObserver. Realtime MT5/AI DOM updates are frequent.
+  // The previous observer watched characterData across the whole document and could
+  // continuously compete with the realtime renderer, causing Chromium Page Unresponsive.
+  // Language is applied on boot and on explicit language changes only.
 })();
 </script>
 
