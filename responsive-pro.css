@@ -1240,3 +1240,40 @@ body{padding-bottom:0!important}
   #chatModal>div{min-height:220px!important;max-height:calc(100dvh - 16px)!important}
   #chatModal #chatMsgBox{max-height:38dvh!important}
 }
+
+/* FINAL HOTFIX v7.0.1 — AI Support modal: eliminate forced empty height on phones */
+#chatModal > div.glass-panel{
+  height:fit-content!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 24px)!important;
+  flex:0 0 auto!important;
+}
+#chatModal #chatMsgBox{
+  flex:0 0 auto!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:40dvh!important;
+  overflow-y:auto!important;
+}
+#chatModal > div.glass-panel > div:last-child{
+  flex:0 0 auto!important;
+}
+@media (max-width:767px){
+  #chatModal{padding:12px!important}
+  #chatModal > div.glass-panel{
+    width:calc(100vw - 24px)!important;
+    max-width:430px!important;
+    height:fit-content!important;
+    min-height:0!important;
+    max-height:calc(100dvh - 24px)!important;
+  }
+  #chatModal #chatMsgBox{
+    height:auto!important;
+    min-height:0!important;
+    max-height:42dvh!important;
+  }
+}
+@media (max-width:380px){
+  #chatModal > div.glass-panel{width:calc(100vw - 16px)!important}
+  #chatModal #chatMsgBox{max-height:38dvh!important}
+}
