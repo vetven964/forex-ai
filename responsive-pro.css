@@ -1378,3 +1378,53 @@ table{width:100%;max-width:100%;border-collapse:collapse}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* =========================================================
+   V-TRADE AI v7.0.0 — MODAL VISIBILITY / iOS TOUCH HOTFIX
+   Fix: mobile modal rules must not override Tailwind .hidden.
+   This was causing AI Support to appear automatically and making
+   the close (X) button appear non-functional on iPhone.
+   ========================================================= */
+#chatModal.hidden,#depositModal.hidden,#authModal.hidden,#profileModal.hidden,#addUserModal.hidden{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#chatModal:not(.hidden),#depositModal:not(.hidden),#authModal:not(.hidden),#profileModal:not(.hidden),#addUserModal:not(.hidden){
+  pointer-events:auto!important;
+}
+#chatModal .chat-close-btn{
+  position:relative!important;
+  z-index:130!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:44px!important;
+  height:44px!important;
+  min-width:44px!important;
+  min-height:44px!important;
+  flex:0 0 44px!important;
+  border:0!important;
+  background:transparent!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+  cursor:pointer!important;
+}
+#chatModal .chat-close-btn i{
+  pointer-events:none!important;
+}
+@media (max-width:767px){
+  #chatModal:not(.hidden){
+    display:flex!important;
+    position:fixed!important;
+    inset:0!important;
+    z-index:120!important;
+  }
+  #chatModal .chat-close-btn{
+    width:46px!important;
+    height:46px!important;
+    min-width:46px!important;
+    min-height:46px!important;
+  }
+}
