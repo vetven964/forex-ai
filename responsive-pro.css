@@ -883,3 +883,264 @@ button:active{transform:scale(.98)}
     max-width:1580px!important;
   }
 }
+
+
+/* =========================================================
+   V-TRADE AI v6.3.5 — FINAL RESPONSIVE HOTFIX
+   Fixes: desktop header overflow, modal "jump/open" state,
+   mobile modal sizing, and all-device width containment.
+   UI only — no trading/auth/API logic changed.
+   ========================================================= */
+
+html, body {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+#topHeader,
+#mainLayout,
+#mainWorkspace,
+#tab-terminal-analysis,
+#signalCards {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* ---------- Desktop / PC ---------- */
+@media (min-width: 1280px) {
+  #topHeader {
+    display: grid !important;
+    grid-template-columns: minmax(250px, 0.85fr) minmax(360px, 1.35fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 18px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  #topHeader > div:first-child {
+    min-width: 0 !important;
+    width: auto !important;
+  }
+
+  #topHeader > div:nth-child(2) {
+    min-width: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  #topHeader > div:nth-child(2) > div {
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  #headerControls {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+  }
+
+  #headerControls select,
+  #headerControls button {
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  #mainLayout {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  #mainLayout > aside {
+    flex: 0 0 240px !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+  }
+
+  #mainWorkspace {
+    flex: 1 1 auto !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  #tab-terminal-analysis {
+    width: 100% !important;
+    max-width: 1580px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* ---------- Normal laptop / smaller desktop ---------- */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #topHeader {
+    display: grid !important;
+    grid-template-columns: minmax(220px, 1fr) auto !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 14px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Hide the wide ticker before it can push the controls off-screen. */
+  #topHeader > div:nth-child(2) {
+    display: none !important;
+  }
+
+  #topHeader > div:first-child {
+    min-width: 0 !important;
+  }
+
+  #headerControls {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 5px !important;
+    justify-content: flex-end !important;
+  }
+
+  #headerControls select,
+  #headerControls button {
+    min-width: 0 !important;
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+  }
+
+  #mainLayout > aside {
+    flex: 0 0 220px !important;
+    width: 220px !important;
+    min-width: 220px !important;
+  }
+
+  #mainWorkspace {
+    flex: 1 1 auto !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ---------- Mobile: never let hidden modals become visible ---------- */
+@media (max-width: 767px) {
+  #depositModal.hidden,
+  #authModal.hidden,
+  #chatModal.hidden,
+  #profileSecurityModal.hidden {
+    display: none !important;
+  }
+
+  #depositModal:not(.hidden),
+  #authModal:not(.hidden),
+  #chatModal:not(.hidden),
+  #profileSecurityModal:not(.hidden) {
+    display: flex !important;
+  }
+
+  #depositModal {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: max(10px, env(safe-area-inset-top)) 10px
+             max(10px, env(safe-area-inset-bottom)) 10px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    z-index: 1200 !important;
+  }
+
+  #depositModal > div {
+    width: min(100%, 430px) !important;
+    max-width: 430px !important;
+    max-height: min(78dvh, 620px) !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    gap: 11px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    border-radius: 20px !important;
+  }
+
+  #depositModal > div h3 {
+    font-size: clamp(14px, 4vw, 17px) !important;
+    line-height: 1.4 !important;
+    padding-right: 28px !important;
+  }
+
+  #depositModal > div p,
+  #depositModal > div .bg-gray-950 {
+    font-size: clamp(12px, 3.5vw, 14px) !important;
+    line-height: 1.55 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  #depositModal > div .bg-gray-950 {
+    padding: 13px !important;
+  }
+
+  #depositModal > div > button {
+    width: 100% !important;
+    min-height: 50px !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+  }
+
+  #mainWorkspace {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  #tab-terminal-analysis,
+  #tab-terminal-analysis > div,
+  #signalCards {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width: 430px) {
+  #topHeader {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  #depositModal > div {
+    max-height: min(76dvh, 590px) !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* ---------- Very small / short phones ---------- */
+@media (max-width: 380px), (max-height: 650px) and (max-width: 767px) {
+  #depositModal > div {
+    max-height: calc(100dvh - 20px) !important;
+    padding: 12px !important;
+  }
+}
+
+
+/* Modal state contract: the hidden utility must always win. */
+#depositModal.hidden,
+#authModal.hidden,
+#chatModal.hidden,
+#profileSecurityModal.hidden {
+  display: none !important;
+}
