@@ -1215,7 +1215,7 @@ body{
 
             <div class="space-y-3 hidden" id="otpVerificationSection">
                 <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-blue-300">
-                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security v5.7:</b> លេខកូដ OTP គឺ៖ <b class="text-emerald-400" id="generatedOtpDisplay">******</b>
+                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security v5.7:</b> បញ្ចូលលេខកូដ ៦ខ្ទង់ពី Authenticator App
                 </div>
                 <div>
                     <label class="text-gray-400 mb-1 block">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់</label>
@@ -1880,41 +1880,18 @@ body{
             document.getElementById('authModalTitle').innerText = 'Login / Sign In (Cloudflare v5.7 Secured)';
         }
 
-        function submitForgotPassword() {
-            const email = document.getElementById('forgotEmailInput').value.trim();
-            if(!email) { alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!'); return; }
-            alert(`បានបញ្ជូនតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មីទៅកាន់ ${email} រួចរាល់ហើយ!`);
-            backToLoginForm();
+        async function submitForgotPassword() {
+            const email=document.getElementById('forgotEmailInput').value.trim();
+            if(!email){ alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!'); return; }
+            try { const r=await vtradeApiFetch('/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email}),timeoutMs:8000}); if(!r.ok) throw Error(r.data?.error||'Password recovery unavailable'); alert('បើគណនីមាននៅក្នុងប្រព័ន្ធ នឹងមាន Reset Link ផ្ញើទៅ Email។'); backToLoginForm(); } catch(e){ alert('⚠️ '+e.message); }
         }
-
-        async function loginWithGoogle() {
-            alert('Google Sign-In មិនទាន់បានភ្ជាប់ OAuth provider ពិតប្រាកដទេ។ សូមប្រើ Email + Password ដែលបានកំណត់នៅ Server។');
+        async function loginWithGoogle(){ alert('Google Sign-In មិនទាន់បាន configure OAuth provider ពិតប្រាកដទេ។ សូមប្រើ Email + Password។'); }
+        async function proceedTo2FAStep(){
+            const email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value; if(!email||!pass)return alert('សូមបញ្ចូលអ៊ីម៉ែល និងពាក្យសម្ងាត់។');
+            try { const r=await vtradeApiFetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass}),timeoutMs:8000}); if(!r.ok||!r.data?.success)throw Error(r.data?.error||'Login failed'); if(r.data.requires2FA){window.vtrade2FAChallenge=r.data.challenge;document.getElementById('loginFormSection').classList.add('hidden');document.getElementById('otpVerificationSection').classList.remove('hidden');document.getElementById('otpInputCode').focus();return;} finishVTradeLogin(r.data); } catch(e){alert('❌ Login មិនបាន: '+e.message);}
         }
-
-        async function proceedTo2FAStep() {
-            const email = document.getElementById('authEmail').value.trim();
-            const pass = document.getElementById('authPassword').value;
-            if(!email || !pass) { alert('សូមបញ្ចូលអ៊ីម៉ែល និងពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ!'); return; }
-            try {
-                const r = await vtradeApiFetch('/api/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password:pass}), timeoutMs:8000});
-                if(!r.ok || !r.data?.success) throw new Error(r.data?.error || 'Login failed');
-                vtradeAuthToken = r.data.token;
-                sessionStorage.setItem('vtrade_auth_token', vtradeAuthToken);
-                currentAuthUser = r.data.user;
-                updateAuthUI();
-                closeModal('authModal');
-                applyRoleUI();
-                alert(`🟢 Login ជោគជ័យ — ${currentAuthUser.role === 'admin' ? 'ADMIN FULL SESSION' : 'USER SESSION'}។`);
-            } catch(e) {
-                alert('❌ Login មិនបាន: ' + e.message);
-            }
-        }
-
-        async function verifyOtpAndLogin() {
-            // Backward-compatible button handler: OTP is no longer generated in the browser.
-            return proceedTo2FAStep();
-        }
-
+        async function verifyOtpAndLogin(){ const code=document.getElementById('otpInputCode').value.trim(); if(!/^\d{6}$/.test(code))return alert('សូមបញ្ចូលលេខកូដ ៦ខ្ទង់។'); try{const r=await vtradeApiFetch('/api/auth/2fa/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challenge:window.vtrade2FAChallenge,code}),timeoutMs:8000});if(!r.ok||!r.data?.success)throw Error(r.data?.error||'2FA failed');finishVTradeLogin(r.data);}catch(e){alert('❌ 2FA មិនបាន: '+e.message);}}
+        function finishVTradeLogin(d){vtradeAuthToken=d.token;sessionStorage.setItem('vtrade_auth_token',vtradeAuthToken);currentAuthUser=d.user;window.vtrade2FAChallenge='';updateAuthUI();closeModal('authModal');applyRoleUI();}
         async function restoreAuthSession() {
             if (!vtradeAuthToken) { applyRoleUI(); return; }
             try {

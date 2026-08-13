@@ -39,7 +39,7 @@
 
                 <div class="space-y-1">
                     <label class="text-[10px] text-gray-400">អ៊ីមែល (Email Address)</label>
-                    <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="user@vettarde.ai">
+                    <input type="email" id="authEmail" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="">
                 </div>
 
                 <div class="space-y-1">
@@ -47,7 +47,7 @@
                         <label class="text-[10px] text-gray-400">ពាក្យសម្ងាត់ (Password)</label>
                         <a href="#" onclick="openForgotPasswordModal(event)" class="text-[10px] text-blue-400 hover:underline">ភ្លេចពាក្យសម្ងាត់?</a>
                     </div>
-                    <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="123456">
+                    <input type="password" id="authPass" class="w-full bg-black text-xs text-white px-3 py-3 rounded-lg border border-gray-800 focus:outline-none focus:border-blue-500" value="">
                 </div>
 
                 <button type="button" onclick="handleAuthSubmit()" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-3 rounded-lg transition shadow-lg cursor-pointer">
@@ -667,7 +667,7 @@
         }
 
         function confirmPayment() {
-            currentTier = 'VIP Pro Trader';
+            alert("ℹ️ Payment ត្រូវការការផ្ទៀងផ្ទាត់ពី Server/Payment Provider មុននឹងប្តូរ Plan។"); return; // server verification required
             document.getElementById('profileDisplayTier').innerText = currentTier;
             document.getElementById('dashSubTier').innerText = currentTier;
             closeCheckoutModal();
@@ -684,18 +684,14 @@
             document.getElementById('forgotModal').style.display = 'none';
         }
 
-        function submitForgotPassword() {
-            const email = document.getElementById('forgotEmail').value.trim();
-            if(!email) {
-                alert("⚠️ សូមបញ្ចូលអ៊ីមែលរបស់អ្នក!");
-                return;
-            }
-            alert("✅ តំណភ្ជាប់ប្តូរពាក្យសម្ងាត់ត្រូវបានផ្ញើទៅកាន់អ៊ីមែល " + email + " រួចរាល់ហើយ!");
-            closeForgotModal();
+        async function submitForgotPassword() {
+            const email=document.getElementById('forgotEmail').value.trim();
+            if(!email) return alert('⚠️ សូមបញ្ចូល Email។');
+            try { const base=window.VTRADE_API_BASE_OVERRIDE||'https://forexai-6xw6.onrender.com'; const r=await fetch(base+'/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}); const d=await r.json(); if(!r.ok) throw Error(d.error||'Password recovery unavailable'); alert('✅ '+(d.message||'បើគណនីមាននៅក្នុងប្រព័ន្ធ នឹងមាន Reset Link ផ្ញើទៅ Email។')); closeForgotModal(); } catch(e){ alert('⚠️ '+e.message); }
         }
 
-        function savePrivacySettings() {
-            alert("✅ ការកំណត់ភាពជាឯកជន (Privacy & Security) ត្រូវបានរក្សាទុកដោយជោគជ័យ!");
+        async function savePrivacySettings() {
+            alert('ℹ️ Security settings មិនត្រូវបានក្លែងធ្វើក្នុង Browser ទេ។ ត្រូវ configure backend identity store/2FA មុនពេលបើក setting។');
         }
     </script>
 </body>

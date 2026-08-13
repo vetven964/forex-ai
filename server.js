@@ -31,6 +31,11 @@ const AUTH_MAX_SESSIONS = Math.max(100, Math.min(10000, Number(process.env.AUTH_
 const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
+const ADMIN_TOTP_SECRET = String(process.env.ADMIN_TOTP_SECRET || '').replace(/\s+/g,'').toUpperCase();
+const RESET_WEBHOOK_URL = String(process.env.RESET_WEBHOOK_URL || '').trim();
+const RESET_TOKEN_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.RESET_TOKEN_TTL_MS || 15 * 60 * 1000));
+const pending2FA = new Map();
+const resetTokens = new Map();
 const USER_ACCOUNTS = loadUserAccounts();
 const authSessions = new Map();
 
@@ -63,6 +68,19 @@ function verifyPassword(password, encoded) {
     return safeEqual(derived, hash);
   } catch (_) { return false; }
 }
+
+function base32ToBuffer(input) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const clean = String(input || '').replace(/=+$/,'').toUpperCase();
+  let bits = 0, value = 0, out = [];
+  for (const ch of clean) { const idx=alphabet.indexOf(ch); if(idx<0) throw new Error('Invalid TOTP secret'); value=(value<<5)|idx; bits+=5; if(bits>=8){bits-=8;out.push((value>>bits)&255);} }
+  return Buffer.from(out);
+}
+function verifyTotp(code, secret, window=1) {
+  const value=String(code||'').replace(/\D/g,''); if(!/^\d{6}$/.test(value)||!secret)return false;
+  try { const key=base32ToBuffer(secret), counter=Math.floor(Date.now()/1000/30); for(let off=-window;off<=window;off++){const b=Buffer.alloc(8);b.writeBigUInt64BE(BigInt(counter+off));const d=crypto.createHmac('sha1',key).update(b).digest();const pos=d[d.length-1]&15;const bin=((d[pos]&127)<<24)|(d[pos+1]<<16)|(d[pos+2]<<8)|d[pos+3];if(safeEqual(String(bin%1000000).padStart(6,'0'),value))return true;} } catch(_){} return false;
+}
+function userTotpSecret(user){return String(user?.totpSecret||'').replace(/\s+/g,'').toUpperCase();}
 
 function verifyAdminPassword(password) {
   if (ADMIN_PASSWORD_HASH) return verifyPassword(password, ADMIN_PASSWORD_HASH);
@@ -225,21 +243,30 @@ function requireAdmin(req,res,next) {
 
 // Authentication / RBAC. Frontend visibility is only UX; every protected action is enforced here.
 app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standardHeaders: true, legacyHeaders: false }), (req,res) => {
-  const email = String(req.body?.email || '').trim().toLowerCase();
-  const password = String(req.body?.password || '');
-  if (!email || !password) return res.status(400).json({success:false,error:'Email and password are required'});
+  const email=String(req.body?.email||'').trim().toLowerCase(), password=String(req.body?.password||'');
+  if(!email||!password)return res.status(400).json({success:false,error:'Email and password are required'});
+  let user=null, secret='';
+  if(ADMIN_EMAIL&&email===ADMIN_EMAIL&&verifyAdminPassword(password)){user={id:'owner-admin',email:ADMIN_EMAIL,name:'VET VEN',role:'admin',plan:'Admin',permissions:['*']};secret=ADMIN_TOTP_SECRET;}
+  else {const found=USER_ACCOUNTS.find(u=>u.enabled&&u.email===email&&verifyPassword(password,u.passwordHash));if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own']};secret=userTotpSecret(found);}}
+  if(!user)return res.status(401).json({success:false,error:'Invalid credentials'});
+  if(secret){const challenge=crypto.randomBytes(32).toString('hex');pending2FA.set(challenge,{user,secret,expiresAt:Date.now()+300000,attempts:0});return res.json({success:true,requires2FA:true,challenge,expiresAt:Date.now()+300000,user:{id:user.id,email:user.email,name:user.name,role:user.role,plan:user.plan}});}
+  const token=createAuthSession(user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user});
+});
 
-  let user = null;
-  if (ADMIN_EMAIL && email === ADMIN_EMAIL && verifyAdminPassword(password)) {
-    user = { id:'owner-admin', email:ADMIN_EMAIL, name:'VET VEN', role:'admin', plan:'Admin', permissions:['*'] };
-  } else {
-    const found = USER_ACCOUNTS.find(u => u.enabled && u.email === email && verifyPassword(password, u.passwordHash));
-    if (found) user = { id:found.id, email:found.email, name:found.name, role:found.role, plan:found.plan, permissions:found.role === 'admin' ? ['*'] : ['terminal','pricing','telegram:own','profile:own'] };
-  }
-  if (!user) return res.status(401).json({success:false,error:'Invalid credentials'});
-  const token = createAuthSession(user);
-  res.set('Cache-Control','no-store');
-  res.json({success:true, token, expiresAt:Date.now()+AUTH_SESSION_TTL_MS, user});
+app.post('/api/auth/2fa/verify', rateLimit({windowMs:10*60_000,max:30,standardHeaders:true,legacyHeaders:false}), (req,res)=>{
+ const challenge=String(req.body?.challenge||''),code=String(req.body?.code||''),p=pending2FA.get(challenge);
+ if(!p||Date.now()>=p.expiresAt){pending2FA.delete(challenge);return res.status(401).json({success:false,error:'2FA challenge expired. Please sign in again.'});}
+ p.attempts++; if(p.attempts>5){pending2FA.delete(challenge);return res.status(429).json({success:false,error:'Too many 2FA attempts. Please sign in again.'});}
+ if(!verifyTotp(code,p.secret))return res.status(401).json({success:false,error:'Invalid verification code'});
+ pending2FA.delete(challenge);const token=createAuthSession(p.user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user:p.user});
+});
+
+app.post('/api/auth/forgot-password', rateLimit({windowMs:15*60_000,max:5,standardHeaders:true,legacyHeaders:false}), async (req,res)=>{
+ const email=String(req.body?.email||'').trim().toLowerCase(); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({success:false,error:'Enter a valid email address'});
+ if(!RESET_WEBHOOK_URL)return res.status(503).json({success:false,error:'Password recovery email service is not configured yet'});
+ let account=null;if(ADMIN_EMAIL&&email===ADMIN_EMAIL)account={id:'owner-admin',email,role:'admin'};else{const u=USER_ACCOUNTS.find(x=>x.enabled&&x.email===email);if(u)account={id:u.id,email:u.email,role:u.role};}
+ if(account){const token=crypto.randomBytes(32).toString('hex');resetTokens.set(token,{...account,expiresAt:Date.now()+RESET_TOKEN_TTL_MS,used:false});try{await fetch(RESET_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'password_reset',email,resetUrl:`${APP_BASE_URL||''}/reset-password.html?token=${token}`,expiresAt:Date.now()+RESET_TOKEN_TTL_MS})});}catch(_){} }
+ res.status(202).json({success:true,message:'If the account exists, a reset link will be sent shortly.'});
 });
 
 app.get('/api/auth/session', requireAuth, (req,res) => {
@@ -327,7 +354,7 @@ const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
 const MIN_ENTRY_SCORE = Math.max(MIN_CONFLUENCE, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.3.3-rbac-multi-horizon-premium';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.3.4-standard-auth-security';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
