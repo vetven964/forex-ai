@@ -142,11 +142,29 @@ const pricingPlans = (() => {
   ];
 })();
 
+function normalizeOrigin(value) {
+  return String(value || '').trim().replace(/\/$/, '').toLowerCase();
+}
 const ALLOWED_ORIGINS = [...new Set([
-  ...((process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)),
-  ...(APP_BASE_URL ? [APP_BASE_URL] : []),
+  ...((process.env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean)),
+  normalizeOrigin(APP_BASE_URL),
   'https://vetven964.github.io'
-])];
+].filter(Boolean))];
+
+const corsOptions = {
+  origin(origin, cb) {
+    const normalized = normalizeOrigin(origin);
+    // Non-browser requests (curl/health checks/server-to-server) have no Origin.
+    if (!normalized) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(normalized)) return cb(null, true);
+    return cb(new Error('CORS origin not allowed'));
+  },
+  methods: ['GET','POST','OPTIONS'],
+  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-auth','x-vtrade-request'],
+  credentials: false,
+  optionsSuccessStatus: 204,
+  maxAge: 600
+};
 
 const bot = TELEGRAM_TOKEN
   ? new TelegramBot(TELEGRAM_TOKEN, { polling: process.env.RENDER ? false : true })
@@ -214,16 +232,8 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 if (process.env.RENDER && !ALLOWED_ORIGINS.length) {
   throw new Error('ALLOWED_ORIGINS must be configured in production');
 }
-app.use(cors({
-  origin(origin, cb) {
-    if (!origin) return cb(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error('CORS origin not allowed'));
-  },
-  methods: ['GET','POST','OPTIONS'],
-  allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-auth','x-vtrade-request'],
-  credentials: false
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '200kb' }));
 app.use(express.urlencoded({ extended: false, limit: '50kb' }));
 app.use('/api/', rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
@@ -240,6 +250,19 @@ function requireAdmin(req,res,next) {
   next();
 }
 
+
+// Lightweight public diagnostic used by the GitHub Pages login screen.
+// It never exposes credentials, hashes, or secrets.
+app.get('/api/auth/health', (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    success: true,
+    auth: 'online',
+    version: APP_VERSION,
+    adminConfigured: !!ADMIN_EMAIL && !!(ADMIN_PASSWORD_HASH || ADMIN_PASSWORD),
+    twoFactorConfigured: !!ADMIN_TOTP_SECRET
+  });
+});
 
 // Authentication / RBAC. Frontend visibility is only UX; every protected action is enforced here.
 app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standardHeaders: true, legacyHeaders: false }), (req,res) => {
