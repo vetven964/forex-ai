@@ -179,3 +179,413 @@ button{cursor:pointer}
   .navbar{border-radius:14px!important}
   .table-responsive{border-radius:14px;max-width:100%;overflow-x:auto}
 }
+
+
+/* =========================================================
+   V-TRADE AI v6.3.5 — Responsive Design System FINAL
+   UI-only layer: no trading/auth/data logic changes.
+   ========================================================= */
+
+:root{
+  --vt-bg0:#05070d;
+  --vt-bg1:#08101d;
+  --vt-surface:rgba(11,17,30,.92);
+  --vt-surface-2:rgba(14,22,38,.88);
+  --vt-line:rgba(148,163,184,.16);
+  --vt-line-strong:rgba(77,231,215,.24);
+  --vt-teal:#35e0c2;
+  --vt-blue:#6d9cff;
+  --vt-gold:#f6c85f;
+  --vt-purple:#b47cff;
+  --vt-radius-lg:20px;
+  --vt-radius-md:15px;
+}
+
+html,body{min-width:0!important;max-width:100%!important;background:var(--vt-bg0)!important}
+body{overflow-x:hidden!important}
+*,*::before,*::after{box-sizing:border-box}
+button,select,input,textarea{max-width:100%}
+button{transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease}
+button:active{transform:scale(.98)}
+
+/* ---------- Desktop: cleaner dashboard proportions ---------- */
+@media (min-width:1200px){
+  #topHeader{
+    min-height:88px!important;
+    padding:14px 22px!important;
+    gap:16px!important;
+    flex-wrap:nowrap!important;
+    border-radius:0 0 18px 18px!important;
+  }
+  #topHeader>div:first-child{min-width:280px!important}
+  #headerControls{flex-wrap:nowrap!important}
+  #mainLayout{align-items:stretch!important}
+  #mainWorkspace{
+    padding:20px 24px 36px!important;
+    overflow-x:hidden!important;
+  }
+  #tab-terminal-analysis{max-width:1500px!important;margin:0 auto!important}
+  #tab-terminal-analysis>div:first-child{
+    min-height:108px!important;
+    padding:20px 22px!important;
+    border-radius:22px!important;
+    background:linear-gradient(135deg,rgba(13,25,43,.96),rgba(7,12,22,.96))!important;
+    border:1px solid rgba(77,231,215,.14)!important;
+    box-shadow:0 18px 50px rgba(0,0,0,.20)!important;
+  }
+  #tab-terminal-analysis>div:first-child>div:first-child{min-width:0!important}
+  #tab-terminal-analysis>div:first-child>div:first-child h2{font-size:21px!important}
+  #tab-terminal-analysis>div:first-child>div:first-child p{max-width:920px!important;line-height:1.55!important}
+  #signalCards{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:14px!important;
+  }
+  #signalCard{grid-column:span 2!important;min-height:210px!important}
+  #signalCards>div{min-height:180px!important;padding:20px!important;border-radius:20px!important}
+  #signalCards #signalCard{grid-column:span 2!important}
+  #winRateCard,#setupScoreCard,#fvgCard,#sentimentCard{grid-column:span 1!important}
+  #signal-direction{font-size:30px!important;line-height:1.18!important}
+  #signalCards p{font-size:12px!important}
+  #signalCards .text-\[11px\]{font-size:11px!important}
+  aside{width:280px!important;padding:18px!important}
+  aside nav button{min-height:54px!important;border-radius:15px!important;padding:12px 14px!important}
+}
+
+/* ---------- Large desktop / laptop ---------- */
+@media (min-width:768px) and (max-width:1199px){
+  #mainWorkspace{padding:16px!important}
+  #signalCards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  #signalCard{grid-column:1/-1!important}
+  #signalCards>div{min-height:155px!important}
+  #tab-terminal-analysis>div:first-child{padding:16px!important}
+  aside{width:230px!important}
+}
+
+/* ---------- Tablet portrait ---------- */
+@media (min-width:768px) and (max-width:900px){
+  #topHeader{padding:10px 12px!important}
+  #headerControls{gap:5px!important}
+  #headerControls button,#headerControls select{min-height:40px!important}
+  #mainWorkspace{padding:12px!important}
+}
+
+/* ---------- All phones ---------- */
+@media (max-width:767px){
+  html{font-size:16px!important}
+  body{
+    width:100%!important;
+    min-width:0!important;
+    padding-bottom:calc(76px + env(safe-area-inset-bottom))!important;
+    background:
+      radial-gradient(circle at 50% -12%,rgba(53,224,194,.08),transparent 35%),
+      #05070d!important;
+  }
+
+  /* App-like sticky header */
+  #topHeader{
+    position:sticky!important;
+    top:0!important;
+    z-index:90!important;
+    width:100%!important;
+    min-height:74px!important;
+    padding:9px 10px!important;
+    gap:8px!important;
+    flex-wrap:nowrap!important;
+    background:rgba(5,9,17,.96)!important;
+    border:0!important;
+    border-bottom:1px solid rgba(148,163,184,.12)!important;
+    border-radius:0!important;
+    box-shadow:0 10px 30px rgba(0,0,0,.32)!important;
+  }
+  #topHeader>div:first-child{
+    min-width:0!important;
+    flex:1 1 auto!important;
+    gap:7px!important;
+  }
+  #topHeader .mobile-menu-btn{
+    width:40px!important;height:40px!important;
+    min-width:40px!important;padding:0!important;
+    display:grid!important;place-items:center!important;
+    border:1px solid rgba(148,163,184,.14)!important;
+    background:rgba(30,41,59,.75)!important;
+    border-radius:13px!important;
+  }
+  #topHeader .brand-icon{
+    width:42px!important;height:42px!important;
+    min-width:42px!important;
+    padding:0!important;
+    display:grid!important;place-items:center!important;
+    border-radius:14px!important;
+  }
+  #topHeader .mobile-pro-title{
+    min-width:0!important;overflow:hidden!important;
+  }
+  #topHeader h1{
+    font-size:11.5px!important;
+    line-height:1.15!important;
+    max-width:calc(100vw - 255px)!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #topHeader p{
+    font-size:8.5px!important;
+    line-height:1.2!important;
+    max-width:calc(100vw - 255px)!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #topHeader .storage-badge{
+    display:none!important;
+  }
+  #topHeader .vt-premium-ribbon,#topHeader .vt-safety-pill{
+    display:none!important;
+  }
+
+  /* Keep only the useful mobile header actions */
+  #headerControls{
+    flex:0 0 auto!important;
+    min-width:auto!important;
+    gap:5px!important;
+  }
+  #headerControls>select{display:none!important}
+  #headerControls>button{
+    min-height:40px!important;
+    border-radius:13px!important;
+    padding:7px 9px!important;
+  }
+  #headerControls>button:nth-of-type(1){
+    max-width:112px!important;
+    font-size:9px!important;
+    overflow:hidden!important;
+  }
+  #headerControls>button:nth-of-type(1) span{
+    display:block!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #headerControls>button:nth-of-type(2){
+    width:42px!important;min-width:42px!important;
+    padding:0!important;
+    font-size:0!important;
+  }
+  #headerControls>button:nth-of-type(2) span{display:none!important}
+  #headerControls>button:nth-of-type(2) i{font-size:15px!important}
+  #headerControls>button:nth-of-type(3){
+    width:40px!important;min-width:40px!important;
+    padding:0!important;
+  }
+
+  #mobileLiveStrip{
+    position:sticky!important;
+    top:74px!important;
+    z-index:80!important;
+    height:34px!important;
+    padding:6px 11px!important;
+    background:rgba(7,12,21,.96)!important;
+    border-bottom:1px solid rgba(148,163,184,.10)!important;
+    box-shadow:0 8px 20px rgba(0,0,0,.18)!important;
+  }
+
+  #mainLayout{display:block!important;min-height:0!important}
+  #mainWorkspace{
+    width:100%!important;
+    padding:10px!important;
+    overflow:visible!important;
+  }
+  #tab-terminal-analysis{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    gap:10px!important;
+  }
+
+  /* Main analysis toolbar */
+  #tab-terminal-analysis>div:first-child{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:10px!important;
+    padding:13px!important;
+    border-radius:18px!important;
+    background:linear-gradient(145deg,rgba(13,22,38,.97),rgba(7,12,22,.97))!important;
+    border:1px solid rgba(77,231,215,.13)!important;
+    box-shadow:0 12px 35px rgba(0,0,0,.22)!important;
+  }
+  #tab-terminal-analysis>div:first-child>div:first-child h2{
+    font-size:16px!important;
+    line-height:1.25!important;
+    margin:0!important;
+  }
+  #tab-terminal-analysis>div:first-child>div:first-child p{
+    font-size:9.5px!important;
+    line-height:1.45!important;
+    margin-top:4px!important;
+  }
+  #tab-terminal-analysis>div:first-child>div:last-child{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(112px,34%)!important;
+    width:100%!important;
+    gap:7px!important;
+  }
+  #terminalPairSelect{
+    width:100%!important;
+    min-width:0!important;
+    height:46px!important;
+    min-height:46px!important;
+    font-size:11px!important;
+    border-radius:13px!important;
+  }
+  #tab-terminal-analysis>div:first-child button{
+    width:100%!important;
+    min-height:46px!important;
+    padding:9px 10px!important;
+    font-size:10px!important;
+    border-radius:13px!important;
+  }
+
+  /* Cards: one primary card + two-column metrics */
+  #signalCards{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+  #signalCards>div{
+    min-width:0!important;
+    min-height:0!important;
+    padding:13px!important;
+    border-radius:17px!important;
+    overflow:hidden!important;
+    box-shadow:0 10px 28px rgba(0,0,0,.18)!important;
+  }
+  #signalCard{
+    grid-column:1/-1!important;
+    min-height:154px!important;
+  }
+  #signalCards p{font-size:9px!important;line-height:1.35!important}
+  #signal-direction{
+    font-size:clamp(21px,7.2vw,29px)!important;
+    line-height:1.12!important;
+    letter-spacing:.02em!important;
+    margin-top:4px!important;
+  }
+  #signal-entry,#signal-status,#signal-grade{
+    font-size:10px!important;
+  }
+  #win-rate-val,#setup-score-val{
+    font-size:25px!important;
+    line-height:1.05!important;
+  }
+  #fvg-confidence,#sentiment-score{
+    font-size:20px!important;
+    line-height:1.12!important;
+  }
+
+  /* Keep later sections full width and readable */
+  .chart-box{
+    width:100%!important;
+    height:300px!important;
+    min-height:260px!important;
+  }
+  #tradingview_widget{height:300px!important}
+  #terminal-logs{height:190px!important;max-height:190px!important;font-size:9px!important}
+
+  .glass-panel{max-width:100%!important}
+  table{display:block!important;max-width:100%!important;overflow-x:auto!important;white-space:nowrap!important}
+  .overflow-x-auto{max-width:100%!important;overflow-x:auto!important}
+
+  /* Bottom navigation */
+  .md\\:hidden.fixed.bottom-0{
+    position:fixed!important;
+    left:0!important;right:0!important;bottom:0!important;
+    width:100%!important;
+    height:calc(72px + env(safe-area-inset-bottom))!important;
+    padding:5px 4px calc(5px + env(safe-area-inset-bottom))!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-around!important;
+    background:rgba(4,7,14,.98)!important;
+    border:0!important;
+    border-top:1px solid rgba(148,163,184,.16)!important;
+    box-shadow:0 -14px 35px rgba(0,0,0,.42)!important;
+    backdrop-filter:blur(18px)!important;
+    z-index:100!important;
+  }
+  .md\\:hidden.fixed.bottom-0 button{
+    flex:1 1 20%!important;
+    min-width:0!important;
+    min-height:52px!important;
+    padding:5px 2px!important;
+    border-radius:13px!important;
+    gap:2px!important;
+  }
+  .md\\:hidden.fixed.bottom-0 i{
+    font-size:17px!important;
+    margin-bottom:2px!important;
+  }
+  .md\\:hidden.fixed.bottom-0 span{
+    font-size:8px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+
+  /* Modals */
+  #authModal,[id$="Modal"]{
+    padding:8px!important;
+    align-items:center!important;
+  }
+  #authModal>div,[id$="Modal"]>div{
+    width:min(100%,430px)!important;
+    max-height:calc(100dvh - 16px)!important;
+    overflow-y:auto!important;
+    border-radius:20px!important;
+    padding:16px!important;
+  }
+  input,select,textarea{font-size:16px!important}
+}
+
+/* ---------- Small phones ---------- */
+@media (max-width:430px){
+  #headerControls>button:nth-of-type(1){max-width:92px!important}
+  #topHeader h1{max-width:calc(100vw - 225px)!important}
+  #topHeader p{max-width:calc(100vw - 225px)!important}
+  #tab-terminal-analysis>div:first-child>div:last-child{
+    grid-template-columns:1fr!important;
+  }
+  #signalCards{gap:8px!important}
+  #signalCards>div{padding:12px!important}
+  #signalCard{min-height:150px!important}
+}
+
+/* ---------- Very small phones ---------- */
+@media (max-width:360px){
+  #topHeader .mobile-menu-btn{width:36px!important;min-width:36px!important}
+  #topHeader .brand-icon{width:38px!important;min-width:38px!important;height:38px!important}
+  #headerControls>button:nth-of-type(1){max-width:76px!important}
+  #topHeader h1{font-size:10.5px!important}
+  #topHeader p{font-size:7.5px!important}
+  #signalCards{grid-template-columns:1fr!important}
+  #signalCard{grid-column:auto!important}
+  #signalCards>div{min-height:120px!important}
+}
+
+/* ---------- Landscape phone ---------- */
+@media (max-width:767px) and (orientation:landscape){
+  #topHeader{min-height:58px!important}
+  #mobileLiveStrip{top:58px!important}
+  .chart-box,#tradingview_widget{height:250px!important}
+  .md\\:hidden.fixed.bottom-0{height:62px!important}
+}
+
+/* ---------- Accessibility / touch ---------- */
+@media (hover:hover){
+  #signalCards>div:hover{
+    transform:translateY(-2px);
+    border-color:rgba(77,231,215,.22)!important;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
