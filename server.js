@@ -29,7 +29,31 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '7.1.0';
+// MT5 Auto-Trade safety/execution policy.
+// The actual order is placed by the MT5 Expert Advisor on the user's Windows/MT5 terminal.
+// Render/server never receives the broker password and never places a broker order itself.
+const AUTO_TRADE_ENABLED = String(process.env.AUTO_TRADE_ENABLED || 'false').toLowerCase() === 'true';
+const AUTO_TRADE_MIN_SCORE = Math.max(0, Math.min(100, Number(process.env.AUTO_TRADE_MIN_SCORE || 76)));
+const AUTO_TRADE_LOT = Math.max(0.01, Number(process.env.AUTO_TRADE_LOT || 0.01));
+const AUTO_TRADE_MAX_LOT = Math.max(AUTO_TRADE_LOT, Number(process.env.AUTO_TRADE_MAX_LOT || 0.02));
+const AUTO_TRADE_COOLDOWN_MS = Math.max(10_000, Number(process.env.AUTO_TRADE_COOLDOWN_MS || 5 * 60 * 1000));
+const AUTO_TRADE_MAX_OPEN = Math.max(1, Number(process.env.AUTO_TRADE_MAX_OPEN || 1));
+const AUTO_TRADE_MAGIC = Number(process.env.AUTO_TRADE_MAGIC || 572007);
+const AUTO_TRADE_TRAIL_TRIGGER = Math.max(0.01, Number(process.env.AUTO_TRADE_TRAIL_TRIGGER || 2.00));
+const AUTO_TRADE_TRAIL_DISTANCE_POINTS = Math.max(1, Number(process.env.AUTO_TRADE_TRAIL_DISTANCE_POINTS || 100));
+const AUTO_TRADE_LOCK_PROFIT = Math.max(0, Number(process.env.AUTO_TRADE_LOCK_PROFIT || 0.50));
+const AUTO_TRADE_SIGNAL_TTL_MS = Math.max(2_000, Number(process.env.AUTO_TRADE_SIGNAL_TTL_MS || 15_000));
+const AUTO_TRADE_REQUIRE_MARKET = String(process.env.AUTO_TRADE_REQUIRE_MARKET || 'true').toLowerCase() === 'true';
+const autoTradeState = {
+  lastSignalKey: '',
+  lastSignalAt: 0,
+  openPositions: 0,
+  lastHeartbeatAt: 0,
+  lastExecution: null,
+  lastAnalysisAt: 0
+};
+
+const APP_VERSION = '7.2.0-AUTO-TRADE';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
@@ -1539,6 +1563,137 @@ app.get('/api/ai/analysis/xauusd',async(req,res)=>{
     res.set('Cache-Control','no-store');
     res.json({success:true,engine:a,ai});
   } catch(e) { res.status(503).json({success:false,error:'AI analysis temporarily unavailable'}); }
+});
+
+
+function requireMt5Bridge(req, res) {
+  if (!MT5_BRIDGE_API_KEY || req.get('x-vtrade-key') !== MT5_BRIDGE_API_KEY) {
+    res.status(401).json({success:false,error:'Unauthorized MT5 bridge'});
+    return false;
+  }
+  return true;
+}
+
+function autoTradeSignalKey(a) {
+  return [
+    a?.signal || 'WAIT',
+    a?.entryMode || '',
+    a?.entry || '',
+    a?.stopLoss || '',
+    ...(Array.isArray(a?.takeProfit) ? a.takeProfit : [])
+  ].join('|');
+}
+
+// The EA polls this endpoint. Server-side analysis remains the single source of truth.
+app.get('/api/v7/mt5/auto-signal', async (req, res) => {
+  if (!requireMt5Bridge(req, res)) return;
+  try {
+    const now = Date.now();
+    autoTradeState.lastHeartbeatAt = now;
+
+    if (!AUTO_TRADE_ENABLED) {
+      return res.json({success:true, enabled:false, action:'WAIT', reason:'AUTO_TRADE_ENABLED=false'});
+    }
+    if (!brokerFeedFresh()) {
+      return res.json({success:true, enabled:true, action:'WAIT', reason:'MT5 market feed is stale'});
+    }
+    if (autoTradeState.openPositions >= AUTO_TRADE_MAX_OPEN) {
+      return res.json({success:true, enabled:true, action:'WAIT', reason:'Max open positions reached'});
+    }
+
+    const a = await buildXauAnalysis();
+    autoTradeState.lastAnalysisAt = now;
+
+    const signal = String(a?.signal || 'WAIT').toUpperCase();
+    const score = Number(a?.confidence ?? a?.score ?? 0);
+    const entryMode = String(a?.entryMode || 'WATCH').toUpperCase();
+    const actionable = a?.actionable === true || a?.setupReady === true;
+    const marketOk = !AUTO_TRADE_REQUIRE_MARKET || entryMode === 'MARKET';
+
+    if (!['BUY','SELL'].includes(signal)) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:'No BUY/SELL signal',analysis:a});
+    }
+    if (score < AUTO_TRADE_MIN_SCORE) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:`Score ${score} below ${AUTO_TRADE_MIN_SCORE}`,analysis:a});
+    }
+    if (!actionable) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:'Signal is not actionable',analysis:a});
+    }
+    if (!marketOk) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:'LIMIT signal skipped by AUTO_TRADE_REQUIRE_MARKET',analysis:a});
+    }
+    if (!Number.isFinite(Number(a.entry)) || !Number.isFinite(Number(a.stopLoss))) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:'Entry/SL unavailable',analysis:a});
+    }
+
+    const key = autoTradeSignalKey(a);
+    if (key === autoTradeState.lastSignalKey && now - autoTradeState.lastSignalAt < AUTO_TRADE_COOLDOWN_MS) {
+      return res.json({success:true,enabled:true,action:'WAIT',reason:'Duplicate/cooldown',analysis:a});
+    }
+
+    const lot = Math.min(AUTO_TRADE_MAX_LOT, AUTO_TRADE_LOT);
+    const command = {
+      id: crypto.randomUUID(),
+      createdAt: now,
+      expiresAt: now + AUTO_TRADE_SIGNAL_TTL_MS,
+      symbol: String(process.env.MT5_SYMBOL || 'XAUUSD'),
+      side: signal,
+      lot,
+      magic: AUTO_TRADE_MAGIC,
+      entry: Number(a.entry),
+      stopLoss: Number(a.stopLoss),
+      takeProfit: Array.isArray(a.takeProfit) ? a.takeProfit.slice(0,3).map(Number).filter(Number.isFinite) : [],
+      score,
+      timeframe: a.executionTimeframe || 'M5',
+      entryMode,
+      trailTriggerMoney: AUTO_TRADE_TRAIL_TRIGGER,
+      trailDistancePoints: AUTO_TRADE_TRAIL_DISTANCE_POINTS,
+      lockProfitMoney: AUTO_TRADE_LOCK_PROFIT
+    };
+
+    autoTradeState.lastSignalKey = key;
+    autoTradeState.lastSignalAt = now;
+    autoTradeState.lastExecution = command;
+
+    return res.json({success:true,enabled:true,action:'OPEN',command,analysis:a});
+  } catch (e) {
+    console.error('[AUTO-TRADE] signal error:', e.message);
+    return res.status(503).json({success:false,error:'Auto-trade signal unavailable'});
+  }
+});
+
+app.post('/api/v7/mt5/auto-status', (req, res) => {
+  if (!requireMt5Bridge(req, res)) return;
+  const body = req.body || {};
+  autoTradeState.openPositions = Math.max(0, Number(body.openPositions || 0));
+  autoTradeState.lastHeartbeatAt = Date.now();
+  if (body.lastExecution) autoTradeState.lastExecution = body.lastExecution;
+  res.json({
+    success:true,
+    receivedAt:autoTradeState.lastHeartbeatAt,
+    enabled:AUTO_TRADE_ENABLED,
+    openPositions:autoTradeState.openPositions,
+    maxOpen:AUTO_TRADE_MAX_OPEN,
+    lastAnalysisAt:autoTradeState.lastAnalysisAt
+  });
+});
+
+app.get('/api/v7/mt5/auto-config', (req, res) => {
+  if (!requireMt5Bridge(req, res)) return;
+  res.json({
+    success:true,
+    enabled:AUTO_TRADE_ENABLED,
+    symbol:String(process.env.MT5_SYMBOL || 'XAUUSD'),
+    minScore:AUTO_TRADE_MIN_SCORE,
+    lot:AUTO_TRADE_LOT,
+    maxLot:AUTO_TRADE_MAX_LOT,
+    maxOpen:AUTO_TRADE_MAX_OPEN,
+    magic:AUTO_TRADE_MAGIC,
+    trailTriggerMoney:AUTO_TRADE_TRAIL_TRIGGER,
+    trailDistancePoints:AUTO_TRADE_TRAIL_DISTANCE_POINTS,
+    lockProfitMoney:AUTO_TRADE_LOCK_PROFIT,
+    requireMarket:AUTO_TRADE_REQUIRE_MARKET
+  });
 });
 
 app.get('/api/analysis/xauusd',async(req,res)=>{
