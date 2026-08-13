@@ -1,0 +1,181 @@
+/* V-TRADE AI — Responsive PRO UI
+   Shared presentation layer only. No trading/auth logic is changed. */
+:root{
+  --vt-bg:#050810;
+  --vt-panel:rgba(10,16,29,.88);
+  --vt-border:rgba(148,163,184,.14);
+  --vt-teal:#35e0c2;
+  --vt-blue:#5f8cff;
+  --vt-gold:#f6c85f;
+  --vt-radius:18px;
+}
+*{box-sizing:border-box}
+html{width:100%;min-width:0;scroll-behavior:smooth}
+body{min-width:0;max-width:100%;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit}
+button,a,select{touch-action:manipulation}
+img,canvas,svg,video{max-width:100%;height:auto}
+
+/* Shared cards / controls */
+.glass-panel{border-radius:var(--vt-radius);border-color:var(--vt-border)!important}
+button,.btn,.ai-btn,.btn-buy,.btn-sell,select,input{min-height:42px}
+button{cursor:pointer}
+
+/* Main terminal */
+#mainLayout{min-height:0;width:100%;max-width:100vw}
+#mainWorkspace{min-width:0;width:100%;max-width:100%;overscroll-behavior:contain}
+#mainWorkspace>*{min-width:0}
+#tab-terminal-analysis{min-width:0}
+#signalCards>div{min-width:0;overflow:hidden}
+#signal-direction,#signal-entry,#signal-status,#signal-grade{overflow-wrap:anywhere;word-break:break-word}
+#tradingview_widget{min-width:0}
+
+/* Desktop polish */
+@media (min-width:1024px){
+  #mainWorkspace{padding:22px 24px!important}
+  #topHeader{padding-left:22px!important;padding-right:22px!important}
+  #signalCards{gap:14px!important}
+  #signalCards>div{border-radius:20px!important}
+}
+
+/* Tablet */
+@media (min-width:768px) and (max-width:1199px){
+  #mainWorkspace{padding:14px!important}
+  #topHeader{gap:10px!important}
+  #topHeader h1{max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+
+/* Mobile-first terminal layout */
+@media (max-width:767px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  body{padding-bottom:calc(72px + env(safe-area-inset-bottom))!important}
+
+  #topHeader{
+    position:sticky!important;top:0!important;
+    width:100%!important;max-width:100vw!important;
+    min-height:62px!important;padding:8px 10px!important;
+    gap:7px!important;flex-wrap:nowrap!important;
+    background:rgba(6,10,19,.96)!important;
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  }
+  #topHeader>div:first-child{min-width:0!important;flex:1 1 auto!important;gap:7px!important}
+  #topHeader .brand-icon{padding:9px!important;border-radius:13px!important}
+  #topHeader .mobile-menu-btn{width:40px;height:40px;padding:0!important;display:grid;place-items:center;border-radius:13px!important}
+  #topHeader .mobile-pro-title{min-width:0!important;overflow:hidden}
+  #topHeader h1{font-size:11px!important;line-height:1.2!important;max-width:calc(100vw - 165px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  #topHeader p{font-size:8.5px!important;max-width:calc(100vw - 165px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #topHeader .storage-badge{display:block!important;max-width:150px;font-size:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #topHeader .vt-premium-ribbon,#topHeader .vt-safety-pill{font-size:7px!important;padding:4px 6px!important;gap:4px!important}
+  #topHeader .vt-premium-ribbon{max-width:120px;overflow:hidden;white-space:nowrap}
+  #topHeader .vt-safety-pill{max-width:95px;overflow:hidden;white-space:nowrap}
+  #headerControls{min-width:0!important;gap:4px!important}
+  #headerControls button{min-height:40px!important}
+
+  #mainLayout{display:block!important;min-height:0!important}
+  #mainWorkspace{padding:10px!important;overflow:visible!important}
+  #tab-terminal-analysis{gap:10px!important}
+  #tab-terminal-analysis>div:first-child{
+    padding:12px!important;border-radius:17px!important;gap:10px!important;
+    background:linear-gradient(145deg,rgba(13,22,38,.95),rgba(7,12,22,.95))!important;
+  }
+  #tab-terminal-analysis>div:first-child>div:first-child h2{font-size:16px!important;line-height:1.3!important}
+  #tab-terminal-analysis>div:first-child>div:first-child p{font-size:9.5px!important;line-height:1.45!important}
+  #tab-terminal-analysis>div:first-child>div:last-child{width:100%!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important}
+  #terminalPairSelect{width:100%!important;min-width:0!important;height:46px!important;padding:9px 10px!important;font-size:11px!important}
+  #tab-terminal-analysis>div:first-child button{min-height:46px!important;padding:9px 12px!important;font-size:10px!important}
+
+  #signalCards{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  #signalCards>div{padding:13px!important;border-radius:16px!important}
+  #signalCard{grid-column:1/-1!important;min-height:145px}
+  #signalCards p{font-size:9px!important}
+  #signal-direction{font-size:clamp(20px,7vw,30px)!important;line-height:1.15!important;letter-spacing:.03em!important}
+  #signal-entry{max-width:100%!important}
+  #win-rate-val,#setup-score-val{font-size:24px!important}
+  #fvg-confidence,#sentiment-score{font-size:20px!important}
+
+  /* Charts and logs */
+  .chart-box{height:300px!important;min-height:260px!important}
+  #tradingview_widget{height:320px!important}
+  #terminal-logs{height:190px!important;font-size:9px!important;line-height:1.45!important}
+
+  /* Tables become horizontally scrollable inside their card, never the page */
+  table{max-width:100%;display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .overflow-x-auto{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* Bottom navigation / safe area */
+  #bottomNav,.md\\:hidden.fixed.bottom-0{
+    position:fixed!important;left:0!important;right:0!important;bottom:0!important;
+    width:100%!important;height:calc(67px + env(safe-area-inset-bottom))!important;
+    padding:5px 3px calc(5px + env(safe-area-inset-bottom))!important;
+    background:rgba(4,7,14,.97)!important;
+    border-top:1px solid rgba(148,163,184,.15)!important;
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    box-shadow:0 -10px 30px rgba(0,0,0,.3)!important;
+    z-index:80!important;
+  }
+  .md\\:hidden.fixed.bottom-0 button{min-width:56px;min-height:48px;padding:4px 5px!important;border-radius:12px}
+  .md\\:hidden.fixed.bottom-0 i{font-size:16px!important}
+  .md\\:hidden.fixed.bottom-0 span{font-size:8px!important;line-height:1.1!important}
+
+  /* Modals fit every phone including short landscape */
+  #authModal>div,[id$="Modal"]>div{width:min(100%,430px)!important;max-height:calc(100dvh - 18px)!important;overflow-y:auto!important;border-radius:20px!important}
+  #authModal{padding:9px!important;align-items:center!important}
+  input,select,textarea{font-size:16px!important} /* prevents iOS zoom */
+}
+
+/* Very small phones */
+@media (max-width:380px){
+  #topHeader .vt-premium-ribbon,#topHeader .vt-safety-pill{display:none!important}
+  #topHeader h1{max-width:145px!important}
+  #topHeader p{max-width:145px!important}
+  #tab-terminal-analysis>div:first-child>div:last-child{grid-template-columns:1fr!important}
+  #tab-terminal-analysis>div:first-child button{width:100%!important}
+  #signalCards{grid-template-columns:1fr!important}
+  #signalCard{grid-column:auto!important}
+  .md\\:hidden.fixed.bottom-0 button{min-width:52px}
+}
+
+/* Landscape phones */
+@media (max-width:767px) and (orientation:landscape){
+  #topHeader{min-height:54px!important}
+  .chart-box{height:260px!important}
+  #authModal>div,[id$="Modal"]>div{max-height:calc(100dvh - 10px)!important}
+}
+
+/* Shared secondary pages */
+.ai-desk-container{width:min(100%,900px)!important;margin:16px auto!important;padding:clamp(14px,3vw,24px)!important;border-radius:20px!important;background:linear-gradient(145deg,rgba(15,22,37,.96),rgba(7,11,20,.96))!important;border:1px solid var(--vt-border)!important;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.ai-buttons{display:flex;flex-wrap:wrap;gap:6px}
+.ai-btn{min-height:42px!important;border-radius:12px!important;padding:9px 13px!important}
+.ai-input-area{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:7px!important}
+.ai-chat-box{height:min(42vh,360px)!important;border:1px solid rgba(148,163,184,.12)}
+
+@media(max-width:767px){
+  .ai-desk-container{margin:10px!important;width:calc(100% - 20px)!important}
+  .ai-buttons .ai-btn{flex:1 1 calc(50% - 6px);min-width:130px}
+  .ai-input-area{grid-template-columns:minmax(0,1fr) 48px!important}
+}
+
+/* XAUUSD ICT page */
+.wrap{width:min(100%,1240px)!important}
+@media(max-width:800px){
+  .wrap{padding:12px!important}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  .cols{grid-template-columns:1fr!important}
+  .card{padding:13px!important;border-radius:16px!important}
+  .value{font-size:21px!important;overflow-wrap:anywhere}
+  .signal{font-size:28px!important}
+}
+@media(max-width:500px){
+  .wrap{padding:10px!important}
+  .grid{grid-template-columns:1fr!important}
+  .cols{gap:10px!important}
+  .row{align-items:flex-start}
+  td,th{padding:8px;font-size:11px}
+}
+
+/* Admin / Bootstrap page */
+@media(max-width:767px){
+  .container,.container-fluid{padding-left:10px!important;padding-right:10px!important}
+  .navbar{border-radius:14px!important}
+  .table-responsive{border-radius:14px;max-width:100%;overflow-x:auto}
+}
