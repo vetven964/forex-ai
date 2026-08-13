@@ -1132,106 +1132,111 @@ body{padding-bottom:0!important}
   #depositModal>div,#chatModal>div,#authModal>div{max-height:calc(100dvh - 12px)!important}
 }
 
-
 /* =========================================================
-   V-TRADE AI v7.0.0 — FINAL RESPONSIVE MODAL + HEADER FIX
-   UI-only. Do not change trading/auth/API logic.
+   V-TRADE AI v7.0.0 — FINAL RESPONSIVE PATCH 2
+   Fixes the remaining deployed UI issues seen on phone + PC.
+   UI only; no trading/API logic changes.
    ========================================================= */
 
-/* AI Support: compact, content-driven chat instead of a tall empty panel */
+/* PC / Laptop header: never clip the right-side controls */
+@media (min-width:1200px){
+  #topHeader{
+    display:grid!important;
+    grid-template-columns:minmax(250px,330px) minmax(0,1fr) auto!important;
+    align-items:center!important;
+    flex-wrap:nowrap!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  #topHeader>div:first-child{
+    width:auto!important;
+    min-width:0!important;
+    max-width:330px!important;
+    flex:none!important;
+  }
+  #topHeader>div:nth-child(2){
+    min-width:0!important;
+    width:100%!important;
+    justify-self:center!important;
+    overflow:hidden!important;
+  }
+  #headerControls{
+    min-width:0!important;
+    width:auto!important;
+    justify-self:end!important;
+    flex:none!important;
+    white-space:nowrap!important;
+  }
+  #headerControls button,#headerControls select{flex:none!important}
+}
+
+/* 1200–1399px: keep the header usable on smaller laptops */
+@media (min-width:1200px) and (max-width:1399px){
+  #topHeader{grid-template-columns:minmax(220px,280px) minmax(120px,1fr) auto!important;gap:8px!important;padding-left:12px!important;padding-right:12px!important}
+  #headerControls{gap:4px!important}
+  #headerControls select{padding-left:8px!important;padding-right:8px!important}
+  #headerControls button{padding-left:9px!important;padding-right:9px!important}
+  #headerControls #btnDeposit{max-width:170px!important}
+}
+
+/* AI Support: compact, content-driven modal instead of giant empty panel */
 #chatModal>div{
   height:auto!important;
   min-height:0!important;
-  display:flex!important;
-  flex-direction:column!important;
+  max-height:calc(100dvh - 32px)!important;
   overflow:hidden!important;
 }
 #chatModal #chatMsgBox{
-  flex:0 1 auto!important;
-  height:auto!important;
-  min-height:110px!important;
-  max-height:260px!important;
+  min-height:0!important;
+  max-height:360px!important;
   overflow-y:auto!important;
-  overscroll-behavior:contain!important;
-}
-#chatModal #chatMsgBox>div{
-  max-width:90%!important;
-  overflow-wrap:anywhere!important;
-  word-break:break-word!important;
-}
-#chatModal>div>div:last-child{
-  flex:0 0 auto!important;
-}
-#chatModal #chatInput{min-width:0!important;width:100%!important}
-
-@media (min-width:768px){
-  #chatModal>div{
-    width:min(560px,calc(100vw - 48px))!important;
-    max-width:560px!important;
-    max-height:calc(100dvh - 48px)!important;
-  }
-  #chatModal #chatMsgBox{min-height:130px!important;max-height:280px!important}
 }
 
 @media (max-width:767px){
-  #chatModal{padding:12px!important;align-items:center!important;justify-content:center!important}
+  #chatModal{
+    padding:10px!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
   #chatModal>div{
-    width:min(430px,calc(100vw - 24px))!important;
+    width:min(430px,calc(100vw - 20px))!important;
     max-width:430px!important;
-    max-height:calc(100dvh - 28px)!important;
+    height:auto!important;
+    min-height:280px!important;
+    max-height:calc(100dvh - 32px)!important;
+    margin:0!important;
     padding:0!important;
-    border-radius:22px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    border-radius:20px!important;
   }
   #chatModal>div>div:first-child{
-    padding:14px 16px!important;
     flex:0 0 auto!important;
-  }
-  #chatModal>div>div:first-child h3{
-    font-size:14px!important;
-    line-height:1.35!important;
-    padding-right:28px!important;
+    padding:13px!important;
   }
   #chatModal #chatMsgBox{
-    min-height:100px!important;
-    max-height:220px!important;
-    padding:12px 14px!important;
-    font-size:12px!important;
+    flex:0 1 auto!important;
+    min-height:90px!important;
+    max-height:min(360px,45dvh)!important;
+    padding:12px!important;
+    overflow-y:auto!important;
   }
-  #chatModal #chatMsgBox>div{max-width:92%!important;padding:10px!important;line-height:1.5!important}
   #chatModal>div>div:last-child{
-    padding:10px 12px!important;
-    gap:8px!important;
+    flex:0 0 auto!important;
+    padding:12px!important;
   }
-  #chatModal #chatInput{min-height:46px!important;padding:10px 12px!important}
-  #chatModal>div>div:last-child button{width:46px!important;min-width:46px!important;height:46px!important;padding:0!important}
+  #chatModal #chatInput{min-width:0!important;width:100%!important}
 }
 
 @media (max-width:380px){
-  #chatModal{padding:8px!important}
-  #chatModal>div{width:calc(100vw - 16px)!important;border-radius:18px!important}
-  #chatModal #chatMsgBox{min-height:88px!important;max-height:190px!important}
-  #chatModal>div>div:first-child{padding:12px!important}
-  #chatModal>div>div:first-child h3{font-size:13px!important}
+  #chatModal>div{min-height:250px!important;width:calc(100vw - 16px)!important}
+  #chatModal #chatMsgBox{min-height:75px!important;max-height:42dvh!important}
 }
 
 @media (max-width:767px) and (orientation:landscape){
-  #chatModal>div{max-height:calc(100dvh - 16px)!important}
-  #chatModal #chatMsgBox{min-height:70px!important;max-height:140px!important}
-}
-
-/* Desktop header: keep account/control group inside the viewport */
-@media (min-width:1200px){
-  #topHeader{overflow:visible!important;min-width:0!important}
-  #topHeader>div:first-child{min-width:240px!important;flex:1 1 300px!important;max-width:360px!important}
-  #headerControls{min-width:0!important;max-width:calc(100vw - 280px)!important;overflow:visible!important}
-  #headerControls #btnDeposit{max-width:250px!important;min-width:0!important}
-  #headerControls #btnDeposit span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
-  #headerControls #btnAuth{max-width:150px!important;min-width:0!important}
-}
-
-@media (min-width:768px) and (max-width:1199px){
-  #topHeader{overflow:visible!important}
-  #headerControls{min-width:0!important;max-width:55vw!important;overflow:visible!important}
-  #headerControls #btnDeposit{max-width:190px!important;min-width:0!important}
-  #headerControls #btnDeposit span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+  #chatModal>div{min-height:220px!important;max-height:calc(100dvh - 16px)!important}
+  #chatModal #chatMsgBox{max-height:38dvh!important}
 }
