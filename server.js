@@ -18,12 +18,18 @@ const HOST = '0.0.0.0';
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET || '';
+// Optional OpenAI AI-confirmation layer. The key stays server-side and is never sent to the browser.
+const OPENAI_API_KEY = String(process.env.OPENAI_API_KEY || '').trim();
+const OPENAI_MODEL = String(process.env.OPENAI_MODEL || 'gpt-5.6-luna').trim();
+const OPENAI_ENABLED = String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true';
+const OPENAI_TIMEOUT_MS = Math.max(2500, Number(process.env.OPENAI_TIMEOUT_MS || 9000));
+const OPENAI_MIN_SCORE = Math.max(0, Math.min(100, Number(process.env.OPENAI_MIN_SCORE || 76)));
 const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '7.0.0';
+const APP_VERSION = '7.1.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
@@ -1122,6 +1128,64 @@ function latestAlignedOrderBlock(c,bias,maxAge=20){
   return {found:false};
 }
 
+async function openAIConfirmXauAnalysis(a) {
+  if (!OPENAI_ENABLED || !OPENAI_API_KEY) {
+    return { enabled:false, configured:!!OPENAI_API_KEY, model:OPENAI_MODEL, status:'disabled' };
+  }
+  const compact = {
+    symbol:a.symbol, signal:a.signal, bias:a.bias, confidence:a.confidence, setupGrade:a.setupGrade,
+    status:a.status, actionable:a.actionable, entry:a.entry, stopLoss:a.stopLoss, takeProfit:a.takeProfit,
+    executionTimeframe:a.executionTimeframe, entryMode:a.entryMode, spread:a.spread, priceAgeSec:a.priceAgeSec,
+    score:a.score, confirmations:a.confirmations, decision:a.decision,
+    mt5:{brokerConnected:a.brokerConnected,feedMode:a.feedMode,bid:a.bid,ask:a.ask,spread:a.spread},
+    mtf:a.mtf, ict:a.ict,
+    timeframes:Object.fromEntries(Object.entries(a.timeframes||{}).map(([tf,v])=>[tf,{bias:v?.structure?.bias,rsi:v?.rsi,macd:v?.macd,adx:v?.adx,structure:v?.structure,liquiditySweep:v?.liquiditySweep}]))
+  };
+  const system = `You are the independent AI confirmation layer for V-TRADE AI XAUUSD.\n`+
+    `Analyze ONLY the supplied broker-native MT5/ICT data. Do not invent prices, candles, news, or confirmations.\n`+
+    `You are NOT allowed to override the deterministic risk/entry gate. If the engine says WAIT/NO TRADE or mandatory gates are missing, recommend WAIT.\n`+
+    `A BUY/SELL recommendation is valid only when the supplied evidence supports liquidity + MSS/BOS + aligned FVG/OB + displacement/momentum + premium/discount + MTF alignment + acceptable RR/spread.\n`+
+    `Return strict JSON with: decision (BUY|SELL|WAIT), confidence (0-100), agreement (AGREE|DISAGREE|NEUTRAL), reasons (array of short strings), missingConfirmations (array), riskFlags (array), summary (string).`;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),OPENAI_TIMEOUT_MS);
+  try {
+    const r=await fetch('https://api.openai.com/v1/responses',{
+      method:'POST',signal:controller.signal,
+      headers:{'Authorization':`Bearer ${OPENAI_API_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:OPENAI_MODEL,
+        reasoning:{effort:'low'},
+        store:false,
+        input:[
+          {role:'system',content:[{type:'input_text',text:system}]},
+          {role:'user',content:[{type:'input_text',text:JSON.stringify(compact)}]}
+        ],
+        text:{format:{type:'json_object'}}
+      })
+    });
+    const body=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(body?.error?.message || `OpenAI HTTP ${r.status}`);
+    const raw=body?.output_text || body?.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('') || '';
+    let parsed;
+    try { parsed=JSON.parse(raw); } catch (_) { throw new Error('OpenAI returned non-JSON confirmation'); }
+    const decision=['BUY','SELL','WAIT'].includes(parsed.decision)?parsed.decision:'WAIT';
+    const confidence=Math.max(0,Math.min(100,Number(parsed.confidence)||0));
+    return {enabled:true,configured:true,model:OPENAI_MODEL,status:'ok',decision,confidence,
+      agreement:['AGREE','DISAGREE','NEUTRAL'].includes(parsed.agreement)?parsed.agreement:'NEUTRAL',
+      reasons:Array.isArray(parsed.reasons)?parsed.reasons.slice(0,8).map(String):[],
+      missingConfirmations:Array.isArray(parsed.missingConfirmations)?parsed.missingConfirmations.slice(0,8).map(String):[],
+      riskFlags:Array.isArray(parsed.riskFlags)?parsed.riskFlags.slice(0,8).map(String):[],
+      summary:String(parsed.summary||'').slice(0,1000),
+      usage:body?.usage?{inputTokens:body.usage.input_tokens,outputTokens:body.usage.output_tokens,totalTokens:body.usage.total_tokens}:null,
+      gate:{engineSignal:a.signal,engineConfidence:a.confidence,enginePassed:a.confirmations?.allGatesPassed===true,
+        aiEligible:a.confidence>=OPENAI_MIN_SCORE && a.confirmations?.allGatesPassed===true,
+        finalSignal:(a.confirmations?.allGatesPassed===true && confidence>=OPENAI_MIN_SCORE && decision===a.signal && ['BUY','SELL'].includes(decision))?decision:'WAIT'}
+    };
+  } catch(e) {
+    return {enabled:true,configured:true,model:OPENAI_MODEL,status:e.name==='AbortError'?'timeout':'error',error:String(e.message||'OpenAI confirmation failed').slice(0,300),decision:'WAIT',confidence:0,agreement:'NEUTRAL',reasons:[],missingConfirmations:[],riskFlags:['AI confirmation unavailable; deterministic gate remains authoritative'],summary:'AI confirmation unavailable; no trade signal is promoted.'};
+  } finally { clearTimeout(timer); }
+}
+
 async function buildXauAnalysis() {
   const analysisStartedAt = Date.now();
   const analysisKey = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
@@ -1364,6 +1428,7 @@ app.get('/api/health',(req,res)=>{
     version:APP_VERSION,
     telegramConfigured:!!tg,
     telegramMode:getSessionConfig(req)?'user-session':(bot&&TELEGRAM_CHAT_ID?'env-fallback':'not-configured'),
+    ai:{enabled:OPENAI_ENABLED,configured:!!OPENAI_API_KEY,model:OPENAI_MODEL},
     ictEngine:'mtf-v3-smart-entry-radar-vtmarkets-mt5',
     dataFeed:'VT Markets MT5 bridge (broker-native, authoritative for XAUUSD signals)',
     mt5Connected:brokerFeedFresh(),
@@ -1465,13 +1530,25 @@ app.get('/api/news/xauusd', async (_req,res)=>{
   res.json({success:true,...news});
 });
 
+app.get('/api/ai/status',(_req,res)=>res.json({success:true,enabled:OPENAI_ENABLED,configured:!!OPENAI_API_KEY,model:OPENAI_MODEL,minScore:OPENAI_MIN_SCORE,provider:'OpenAI Responses API'}));
+
+app.get('/api/ai/analysis/xauusd',async(req,res)=>{
+  try {
+    const a=await buildXauAnalysis();
+    const ai=await openAIConfirmXauAnalysis(a);
+    res.set('Cache-Control','no-store');
+    res.json({success:true,engine:a,ai});
+  } catch(e) { res.status(503).json({success:false,error:'AI analysis temporarily unavailable'}); }
+});
+
 app.get('/api/analysis/xauusd',async(req,res)=>{
   try {
     if (req.get('x-vtrade-request') && !/^[a-zA-Z0-9._:-]{8,80}$/.test(req.get('x-vtrade-request'))) return res.status(400).json({success:false,error:'Invalid request id'});
     const a=await buildXauAnalysis();
     const tg = activeTelegramConfig(req);
     const sid = sessionIdFrom(req);
-    res.json({success:true,...a,telegramConfigured:!!tg});
+    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;
+    res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});
     storage.saveAnalysis(a).catch(()=>{});
     maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
