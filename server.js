@@ -23,7 +23,7 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.3.3';
+const APP_VERSION = '6.3.4';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
@@ -38,6 +38,7 @@ const pending2FA = new Map();
 const resetTokens = new Map();
 const USER_ACCOUNTS = loadUserAccounts();
 const authSessions = new Map();
+const authPasswordOverrides = new Map();
 
 function loadUserAccounts() {
   try {
@@ -83,9 +84,37 @@ function verifyTotp(code, secret, window=1) {
 function userTotpSecret(user){return String(user?.totpSecret||'').replace(/\s+/g,'').toUpperCase();}
 
 function verifyAdminPassword(password) {
+  const override = authPasswordOverrides.get('owner-admin');
+  if (override) return verifyPassword(password, override);
   if (ADMIN_PASSWORD_HASH) return verifyPassword(password, ADMIN_PASSWORD_HASH);
   // Plain ADMIN_PASSWORD is retained only for compatibility; use ADMIN_PASSWORD_HASH in production.
   return !!ADMIN_PASSWORD && safeEqual(password, ADMIN_PASSWORD);
+}
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(password || ''), salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+function passwordPolicy(password) {
+  const p = String(password || '');
+  return p.length >= 12 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p);
+}
+function getAccountBySessionUser(user) {
+  if (!user) return null;
+  if (user.id === 'owner-admin') return { id:'owner-admin', role:'admin', email:ADMIN_EMAIL, name:user.name };
+  return USER_ACCOUNTS.find(u => u.enabled && u.id === user.id) || null;
+}
+function verifyCurrentUserPassword(user, password) {
+  if (user?.id === 'owner-admin') return verifyAdminPassword(password);
+  const account = getAccountBySessionUser(user);
+  if (!account) return false;
+  const override = authPasswordOverrides.get(account.id);
+  return override ? verifyPassword(password, override) : verifyPassword(password, account.passwordHash);
+}
+function invalidateUserSessions(userId) {
+  for (const [token, session] of authSessions.entries()) {
+    if (session.id === userId) authSessions.delete(token);
+  }
 }
 
 function createAuthSession(user) {
@@ -269,8 +298,8 @@ app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standard
   const email=String(req.body?.email||'').trim().toLowerCase(), password=String(req.body?.password||'');
   if(!email||!password)return res.status(400).json({success:false,error:'Email and password are required'});
   let user=null, secret='';
-  if(ADMIN_EMAIL&&email===ADMIN_EMAIL&&verifyAdminPassword(password)){user={id:'owner-admin',email:ADMIN_EMAIL,name:'VET VEN',role:'admin',plan:'Admin',permissions:['*']};secret=ADMIN_TOTP_SECRET;}
-  else {const found=USER_ACCOUNTS.find(u=>u.enabled&&u.email===email&&verifyPassword(password,u.passwordHash));if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own']};secret=userTotpSecret(found);}}
+  if(ADMIN_EMAIL&&email===ADMIN_EMAIL&&verifyAdminPassword(password)){user={id:'owner-admin',email:ADMIN_EMAIL,name:'VET VEN',role:'admin',plan:'Admin',permissions:['*'],twoFactorEnabled:!!ADMIN_TOTP_SECRET};secret=ADMIN_TOTP_SECRET;}
+  else {const found=USER_ACCOUNTS.find(u=>{if(!u.enabled||u.email!==email)return false;const override=authPasswordOverrides.get(u.id);return override?verifyPassword(password,override):verifyPassword(password,u.passwordHash);});if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own'],twoFactorEnabled:!!userTotpSecret(found)};secret=userTotpSecret(found);}}
   if(!user)return res.status(401).json({success:false,error:'Invalid credentials'});
   if(secret){const challenge=crypto.randomBytes(32).toString('hex');pending2FA.set(challenge,{user,secret,expiresAt:Date.now()+300000,attempts:0});return res.json({success:true,requires2FA:true,challenge,expiresAt:Date.now()+300000,user:{id:user.id,email:user.email,name:user.name,role:user.role,plan:user.plan}});}
   const token=createAuthSession(user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user});
@@ -284,6 +313,34 @@ app.post('/api/auth/2fa/verify', rateLimit({windowMs:10*60_000,max:30,standardHe
  pending2FA.delete(challenge);const token=createAuthSession(p.user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user:p.user});
 });
 
+app.post('/api/auth/change-password', rateLimit({windowMs:15*60_000,max:8,standardHeaders:true,legacyHeaders:false}), requireAuth, async (req,res)=>{
+  const currentPassword=String(req.body?.currentPassword||'');
+  const newPassword=String(req.body?.newPassword||'');
+  const confirmPassword=String(req.body?.confirmPassword||'');
+  if(!currentPassword || !newPassword || !confirmPassword) return res.status(400).json({success:false,error:'Current password, new password and confirmation are required'});
+  if(newPassword !== confirmPassword) return res.status(400).json({success:false,error:'New password and confirmation do not match'});
+  if(currentPassword === newPassword) return res.status(400).json({success:false,error:'New password must be different from the current password'});
+  if(!passwordPolicy(newPassword)) return res.status(400).json({success:false,error:'New password must be at least 12 characters and include uppercase, lowercase, number and symbol'});
+  if(!verifyCurrentUserPassword(req.vtradeUser,currentPassword)) return res.status(401).json({success:false,error:'Current password is incorrect'});
+  const hash=hashPassword(newPassword);
+  const accountId=req.vtradeUser.id==='owner-admin' ? 'owner-admin' : req.vtradeUser.id;
+  if(req.vtradeUser.id!=='owner-admin' && !getAccountBySessionUser(req.vtradeUser)) return res.status(404).json({success:false,error:'Account not found'});
+  try {
+    await storage.saveAuthCredential(accountId,hash);
+  } catch (e) {
+    console.error('[AUTH] Password persistence failed:', e.message);
+    return res.status(503).json({success:false,error:'Password could not be saved securely. Please try again.'});
+  }
+  authPasswordOverrides.set(accountId,hash);
+  if(req.vtradeUser.id!=='owner-admin'){
+    const account=getAccountBySessionUser(req.vtradeUser);
+    if(account) account.passwordHash=hash;
+  }
+  invalidateUserSessions(req.vtradeUser.id);
+  res.set('Cache-Control','no-store');
+  res.json({success:true,message:'Password changed successfully. Please sign in again.',reauthenticate:true});
+});
+
 app.post('/api/auth/forgot-password', rateLimit({windowMs:15*60_000,max:5,standardHeaders:true,legacyHeaders:false}), async (req,res)=>{
  const email=String(req.body?.email||'').trim().toLowerCase(); if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({success:false,error:'Enter a valid email address'});
  if(!RESET_WEBHOOK_URL)return res.status(503).json({success:false,error:'Password recovery email service is not configured yet'});
@@ -295,6 +352,11 @@ app.post('/api/auth/forgot-password', rateLimit({windowMs:15*60_000,max:5,standa
 app.get('/api/auth/session', requireAuth, (req,res) => {
   res.set('Cache-Control','no-store');
   res.json({success:true,user:req.vtradeUser,expiresAt:req.vtradeUser.expiresAt});
+});
+
+app.get('/api/auth/profile', requireAuth, (req,res)=>{
+  res.set('Cache-Control','no-store');
+  res.json({success:true,user:{id:req.vtradeUser.id,email:req.vtradeUser.email,name:req.vtradeUser.name,role:req.vtradeUser.role,plan:req.vtradeUser.plan,twoFactorEnabled:!!req.vtradeUser.twoFactorEnabled}});
 });
 
 app.post('/api/auth/logout', requireAuth, (req,res) => {
@@ -1440,4 +1502,12 @@ app.use((err,req,res,next)=>{
   res.status(500).json({success:false,error:'Internal server error'});
 });
 
-(async()=>{ await storage.initStorage(); setInterval(()=>storage.cleanup().catch(()=>{}), 6*60*60*1000); app.listen(PORT,HOST,()=>console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`)); })();
+(async()=>{
+  await storage.initStorage();
+  try {
+    const storedAuth = await storage.loadAuthCredentials();
+    for (const row of storedAuth) if (row.userId && row.passwordHash) authPasswordOverrides.set(row.userId,row.passwordHash);
+    console.log(`[AUTH] Loaded ${storedAuth.length} persisted password override(s)`);
+  } catch (e) { console.error('[AUTH] Failed to load persisted credentials:', e.message); }
+  setInterval(()=>storage.cleanup().catch(()=>{}), 6*60*60*1000);
+  app.listen(PORT,HOST,()=>console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`)); })();
