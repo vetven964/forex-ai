@@ -145,9 +145,9 @@
         const authHeaders = () => ({'Content-Type':'application/json','x-vtrade-auth':vtradeAuthToken});
 
         async function requireAdminSession() {
-            if (!vtradeAuthToken) { window.location.href = 'index.html'; return false; }
+            if (!vtradeAuthToken) { /* Secure HttpOnly session cookie may be present. Let the API verify it. */ }
             try {
-                const r = await fetch(VTRADE_API_BASE + '/api/admin/session', {headers:{'x-vtrade-auth':vtradeAuthToken}, cache:'no-store'});
+                const r = await fetch(VTRADE_API_BASE + '/api/admin/session', {headers:authHeaders(), credentials:'include', cache:'no-store'});
                 const d = await r.json();
                 if (!r.ok || !d.success || d.admin?.role !== 'admin') throw new Error('Admin session required');
                 const badge = document.querySelector('.badge.bg-success');
@@ -163,7 +163,7 @@
 
         async function adminBroadcastSignal() {
             try {
-                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {method:'POST', headers:authHeaders(), body:JSON.stringify({type:document.getElementById("admin-signal-type").value})});
+                const r = await fetch((window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com') + '/api/v5/signal', {method:'POST', credentials:'include', headers:authHeaders(), body:JSON.stringify({type:document.getElementById("admin-signal-type").value})});
                 const d = await r.json();
                 if(!r.ok || !d.success) throw new Error(d.error || 'Signal not broadcast');
                 alert(`✅ Current verified XAUUSD signal sent: ${d.analysis?.signal || 'WAIT'}`);

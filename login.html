@@ -2,7 +2,7 @@
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),10000);
   try{
-    const r=await fetch(u,{...o,signal:controller.signal,cache:'no-store'});
+    const r=await fetch(u,{...o,credentials:'include',signal:controller.signal,cache:'no-store'});
     const d=await r.json().catch(()=>({}));
     return{r,d};
   }finally{clearTimeout(timer)}

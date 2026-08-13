@@ -127,9 +127,37 @@ function createAuthSession(user) {
   return token;
 }
 
+function parseCookies(req) {
+  const raw = String(req.headers.cookie || '');
+  const out = Object.create(null);
+  for (const part of raw.split(';')) {
+    const i = part.indexOf('=');
+    if (i < 0) continue;
+    const key = part.slice(0, i).trim();
+    if (!key) continue;
+    try { out[key] = decodeURIComponent(part.slice(i + 1).trim()); } catch (_) { out[key] = part.slice(i + 1).trim(); }
+  }
+  return out;
+}
+
 function authTokenFrom(req) {
-  const token = String(req.get('x-vtrade-auth') || '').trim();
-  return /^[a-f0-9]{64}$/i.test(token) ? token : null;
+  const headerToken = String(req.get('x-vtrade-auth') || '').trim();
+  if (/^[a-f0-9]{64}$/i.test(headerToken)) return headerToken;
+  const cookieToken = String(parseCookies(req).vtrade_session || '').trim();
+  return /^[a-f0-9]{64}$/i.test(cookieToken) ? cookieToken : null;
+}
+
+function setAuthCookie(res, token) {
+  const maxAge = Math.floor(AUTH_SESSION_TTL_MS / 1000);
+  const sameSite = process.env.RENDER ? 'None' : 'Lax';
+  const secure = process.env.RENDER ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `vtrade_session=${encodeURIComponent(token)}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=${sameSite}${secure}`);
+}
+
+function clearAuthCookie(res) {
+  const sameSite = process.env.RENDER ? 'None' : 'Lax';
+  const secure = process.env.RENDER ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `vtrade_session=; Path=/; Max-Age=0; HttpOnly; SameSite=${sameSite}${secure}`);
 }
 
 function getAuthSession(req) {
@@ -190,7 +218,7 @@ const corsOptions = {
   },
   methods: ['GET','POST','OPTIONS'],
   allowedHeaders: ['Content-Type','x-vtrade-session','x-vtrade-key','x-vtrade-admin-key','x-vtrade-auth','x-vtrade-request'],
-  credentials: false,
+  credentials: true,
   optionsSuccessStatus: 204,
   maxAge: 600
 };
@@ -288,7 +316,7 @@ app.get('/api/auth/health', (_req, res) => {
     success: true,
     auth: 'online',
     version: APP_VERSION,
-    adminConfigured: !!ADMIN_EMAIL && !!(ADMIN_PASSWORD_HASH || ADMIN_PASSWORD),
+    adminConfigured: !!ADMIN_EMAIL && !!(ADMIN_PASSWORD_HASH || ADMIN_PASSWORD || authPasswordOverrides.has('owner-admin')),
     twoFactorConfigured: !!ADMIN_TOTP_SECRET
   });
 });
@@ -302,7 +330,7 @@ app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standard
   else {const found=USER_ACCOUNTS.find(u=>{if(!u.enabled||u.email!==email)return false;const override=authPasswordOverrides.get(u.id);return override?verifyPassword(password,override):verifyPassword(password,u.passwordHash);});if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own'],twoFactorEnabled:!!userTotpSecret(found)};secret=userTotpSecret(found);}}
   if(!user)return res.status(401).json({success:false,error:'Invalid credentials'});
   if(secret){const challenge=crypto.randomBytes(32).toString('hex');pending2FA.set(challenge,{user,secret,expiresAt:Date.now()+300000,attempts:0});return res.json({success:true,requires2FA:true,challenge,expiresAt:Date.now()+300000,user:{id:user.id,email:user.email,name:user.name,role:user.role,plan:user.plan}});}
-  const token=createAuthSession(user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user});
+  const token=createAuthSession(user); setAuthCookie(res, token); res.set('Cache-Control','no-store'); res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user});
 });
 
 app.post('/api/auth/2fa/verify', rateLimit({windowMs:10*60_000,max:30,standardHeaders:true,legacyHeaders:false}), (req,res)=>{
@@ -310,7 +338,7 @@ app.post('/api/auth/2fa/verify', rateLimit({windowMs:10*60_000,max:30,standardHe
  if(!p||Date.now()>=p.expiresAt){pending2FA.delete(challenge);return res.status(401).json({success:false,error:'2FA challenge expired. Please sign in again.'});}
  p.attempts++; if(p.attempts>5){pending2FA.delete(challenge);return res.status(429).json({success:false,error:'Too many 2FA attempts. Please sign in again.'});}
  if(!verifyTotp(code,p.secret))return res.status(401).json({success:false,error:'Invalid verification code'});
- pending2FA.delete(challenge);const token=createAuthSession(p.user);res.set('Cache-Control','no-store');res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user:p.user});
+ pending2FA.delete(challenge); const token=createAuthSession(p.user); setAuthCookie(res, token); res.set('Cache-Control','no-store'); res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user:p.user});
 });
 
 app.post('/api/auth/change-password', rateLimit({windowMs:15*60_000,max:8,standardHeaders:true,legacyHeaders:false}), requireAuth, async (req,res)=>{
@@ -337,6 +365,7 @@ app.post('/api/auth/change-password', rateLimit({windowMs:15*60_000,max:8,standa
     if(account) account.passwordHash=hash;
   }
   invalidateUserSessions(req.vtradeUser.id);
+  clearAuthCookie(res);
   res.set('Cache-Control','no-store');
   res.json({success:true,message:'Password changed successfully. Please sign in again.',reauthenticate:true});
 });
@@ -362,6 +391,8 @@ app.get('/api/auth/profile', requireAuth, (req,res)=>{
 app.post('/api/auth/logout', requireAuth, (req,res) => {
   const token = authTokenFrom(req);
   if (token) authSessions.delete(token);
+  clearAuthCookie(res);
+  res.set('Cache-Control','no-store');
   res.json({success:true});
 });
 

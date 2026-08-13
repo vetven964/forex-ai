@@ -152,7 +152,7 @@ body{
             const headers = authHeaders(options.headers || {});
             headers.set('x-vtrade-request', (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`));
             try {
-            const res = await fetch(VTRADE_API_BASE + path, {...options, headers, signal: controller.signal});
+            const res = await fetch(VTRADE_API_BASE + path, {...options, headers, credentials:'include', signal: controller.signal});
             const text = await res.text();
             let data;
             try { data = JSON.parse(text); }
@@ -1912,11 +1912,15 @@ body{
         async function verifyOtpAndLogin(){ const code=document.getElementById('otpInputCode').value.trim(); if(!/^\d{6}$/.test(code))return alert('សូមបញ្ចូលលេខកូដ ៦ខ្ទង់។'); try{const r=await vtradeApiFetch('/api/auth/2fa/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challenge:window.vtrade2FAChallenge,code}),timeoutMs:8000});if(!r.ok||!r.data?.success)throw Error(r.data?.error||'2FA failed');finishVTradeLogin(r.data);}catch(e){alert('❌ 2FA មិនបាន: '+e.message);}}
         function finishVTradeLogin(d){vtradeAuthToken=d.token;sessionStorage.setItem('vtrade_auth_token',vtradeAuthToken);currentAuthUser=d.user;window.vtrade2FAChallenge='';updateAuthUI();closeModal('authModal');applyRoleUI();}
         async function restoreAuthSession() {
-            if (!vtradeAuthToken) { applyRoleUI(); return; }
             try {
-                const r = await vtradeApiFetch('/api/auth/session', {cache:'no-store'});
+                const r = await vtradeApiFetch('/api/auth/session', {cache:'no-store', timeoutMs:8000});
                 if (!r.ok || !r.data?.success) throw new Error('Session expired');
                 currentAuthUser = r.data.user;
+                // Keep the legacy header token only for backward compatibility.
+                if (r.data.token) {
+                    vtradeAuthToken = r.data.token;
+                    sessionStorage.setItem('vtrade_auth_token', vtradeAuthToken);
+                }
             } catch (_) {
                 vtradeAuthToken = '';
                 currentAuthUser = null;
