@@ -23,7 +23,7 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.3.5';
+const APP_VERSION = '7.0.0';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
@@ -446,7 +446,7 @@ app.post('/api/admin/broadcast', requireAuth, requireRole('admin'), telegramMuta
     const tg = activeTelegramConfig(req);
     if (!tg) return res.status(400).json({success:false,error:'Telegram is not connected'});
     const a = await buildXauAnalysis();
-    if (!['BUY','SELL'].includes(a.signal) || a.status !== 'ENTRY CONFIRMED' || Number(a.confidence||0) < Number(process.env.TELEGRAM_MIN_SCORE || 80)) {
+    if (!['BUY','SELL'].includes(a.signal) || !String(a.status || '').includes('ENTRY CONFIRMED') || Number(a.confidence||0) < Number(process.env.TELEGRAM_MIN_SCORE || 80)) {
       return res.status(409).json({success:false,error:'No confirmed high-confidence entry. Admin broadcast blocked.',analysis:a});
     }
     await tg.bot.sendMessage(tg.chatId, telegramText(a));
@@ -494,7 +494,7 @@ const NEWS_ERROR_RETRY_MS = Number(process.env.NEWS_ERROR_RETRY_MS || 120000);
 const NEWS_429_RETRY_MS = Number(process.env.NEWS_429_RETRY_MS || 10 * 60 * 1000);
 const NEWS_STALE_MAX_MS = Number(process.env.NEWS_STALE_MAX_MS || 30 * 60 * 1000);
 const NEWS_MAX_SOURCES = Math.max(1, Math.min(6, Number(process.env.NEWS_MAX_SOURCES || 4)));
-const AI_DATA_QUALITY_MIN = Math.max(60, Math.min(100, Number(process.env.AI_DATA_QUALITY_MIN || 85)));
+const AI_DATA_QUALITY_MIN = Math.max(60, Math.min(100, Number(process.env.AI_DATA_QUALITY_MIN || 75)));
 const NEWS_URLS = String(process.env.NEWS_CALENDAR_URLS || process.env.NEWS_CALENDAR_URL || 'https://nfs.faireconomy.media/ff_calendar_thisweek.json')
   .split(',').map(x => x.trim()).filter(Boolean);
 const NEWS_BRIDGE_MAX_AGE_MS = Number(process.env.NEWS_BRIDGE_MAX_AGE_MS || 10 * 60 * 1000);
@@ -503,14 +503,14 @@ const NEWS_CAUTION_MIN = Number(process.env.NEWS_CAUTION_MIN || 60);
 const NEWS_LIVE_WINDOW_MIN = Number(process.env.NEWS_LIVE_WINDOW_MIN || 2);
 const NEWS_POST_MIN = Number(process.env.NEWS_POST_MIN || 15);
 const TELEGRAM_NEWS_ALERTS = String(process.env.TELEGRAM_NEWS_ALERTS || 'true').toLowerCase() === 'true';
-const MIN_CONFLUENCE = Math.max(70, Number(process.env.MIN_CONFLUENCE || 85));
+const MIN_CONFLUENCE = Math.max(65, Math.min(95, Number(process.env.MIN_CONFLUENCE || 76)));
 const MAX_ENTRY_SPREAD = Number(process.env.MAX_ENTRY_SPREAD || 1.50);
 const CORE_MTF_TFS = ['H4','H1','M15'];
 const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
-const MIN_ENTRY_SCORE = Math.max(MIN_CONFLUENCE, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE));
-const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'true').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v6.3.4-standard-auth-security';
+const MIN_ENTRY_SCORE = Math.max(65, Math.min(95, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE)));
+const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'false').toLowerCase() === 'true';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v7.0.0-full-signal-engine';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
@@ -963,46 +963,59 @@ function nearestTarget(entry, direction, candles) {
   return null;
 }
 
-function recentLiquiditySweep(c, lookback=6) {
-  if (!c || c.length < 30) return {bias:'NONE', detail:'Insufficient swing history', fresh:false, index:null};
+function recentLiquiditySweep(c, lookback=8) {
+  if (!c || c.length < 30) return {bias:'NONE', detail:'Insufficient swing history', fresh:false, index:null, ageBars:null};
   const start=Math.max(10,c.length-lookback);
   for(let i=c.length-1;i>=start;i--){
     const prior=c.slice(0,i), sw=swings(prior,2); if(sw.highs.length<2||sw.lows.length<2) continue;
     const last=c[i], priorHigh=sw.highs[sw.highs.length-1].price, priorLow=sw.lows[sw.lows.length-1].price;
-    if(last.h>priorHigh&&last.c<priorHigh) return {bias:'BEARISH',detail:'Buy-side liquidity swept',level:priorHigh,index:i,fresh:(c.length-1-i)<=2};
-    if(last.l<priorLow&&last.c>priorLow) return {bias:'BULLISH',detail:'Sell-side liquidity swept',level:priorLow,index:i,fresh:(c.length-1-i)<=2};
+    const ageBars=c.length-1-i;
+    if(last.h>priorHigh&&last.c<priorHigh) return {bias:'BEARISH',detail:'Buy-side liquidity swept',level:priorHigh,index:i,fresh:ageBars<=5,ageBars};
+    if(last.l<priorLow&&last.c>priorLow) return {bias:'BULLISH',detail:'Sell-side liquidity swept',level:priorLow,index:i,fresh:ageBars<=5,ageBars};
   }
-  return {bias:'NONE',detail:'No recent confirmed liquidity sweep',fresh:false,index:null};
+  return {bias:'NONE',detail:'No recent confirmed liquidity sweep',fresh:false,index:null,ageBars:null};
 }
 function executionStructure(c) {
-  if(!c||c.length<45) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null};
-  // Use prior structure to define the break levels, then require a sequence:
-  // MSS on a recent closed candle -> BOS continuation on a later closed candle.
-  const context = c.slice(0, -2);
-  const sw=swings(context,2);
-  if(sw.highs.length<4||sw.lows.length<4) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null};
-  const prevHigh=sw.highs[sw.highs.length-1].price;
-  const prevLow=sw.lows[sw.lows.length-1].price;
-  const mssBar=c[c.length-2], bosBar=c[c.length-1];
-  const mssUp=mssBar.c>prevHigh, mssDown=mssBar.c<prevLow;
-  const bosUp=mssUp && bosBar.c>mssBar.h;
-  const bosDown=mssDown && bosBar.c<mssBar.l;
-  const lastHigh=sw.highs[sw.highs.length-1].price;
-  const lastLow=sw.lows[sw.lows.length-1].price;
+  if(!c||c.length<45) return {bias:'NONE',mss:'PENDING',bos:'PENDING',swingHigh:null,swingLow:null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null,mssAgeBars:null,bosAgeBars:null};
+  // v7: MSS/BOS are allowed to unfold over several closed candles instead of
+  // forcing the two events to occur on two consecutive candles. This removes
+  // an artificial gate that was suppressing valid ICT continuations.
+  const lookback=8, end=c.length-1, start=Math.max(20,end-lookback);
+  let found=null;
+  for(let i=end;i>=start;i--){
+    const prior=c.slice(0,i), sw=swings(prior,2); if(sw.highs.length<3||sw.lows.length<3) continue;
+    const hi=sw.highs[sw.highs.length-1].price, lo=sw.lows[sw.lows.length-1].price;
+    const bar=c[i];
+    if(bar.c>hi) { found={side:'BULLISH',mssIndex:i,mssLevel:hi}; break; }
+    if(bar.c<lo) { found={side:'BEARISH',mssIndex:i,mssLevel:lo}; break; }
+  }
   const recentSw=swings(c.slice(0,-1),2);
   const hs=recentSw.highs.slice(-2), ls=recentSw.lows.slice(-2);
   const bullishTrend=hs.length===2&&ls.length===2&&hs[1].price>hs[0].price&&ls[1].price>ls[0].price;
   const bearishTrend=hs.length===2&&ls.length===2&&hs[1].price<hs[0].price&&ls[1].price<ls[0].price;
+  const fallbackBias=bullishTrend?'BULLISH':bearishTrend?'BEARISH':'RANGE';
+  if(!found) {
+    return {bias:fallbackBias,mss:'PENDING',bos:'PENDING',swingHigh:recentSw.highs.at(-1)?.price??null,swingLow:recentSw.lows.at(-1)?.price??null,mssFresh:false,bosFresh:false,mssBar:null,bosBar:null,mssAgeBars:null,bosAgeBars:null};
+  }
+  let bosIndex=null;
+  for(let j=found.mssIndex+1;j<=end;j++){
+    const bar=c[j];
+    if(found.side==='BULLISH' && bar.c>c[j-1].h){ bosIndex=j; break; }
+    if(found.side==='BEARISH' && bar.c<c[j-1].l){ bosIndex=j; break; }
+  }
+  const mssAge=end-found.mssIndex, bosAge=bosIndex==null?null:end-bosIndex;
+  const bosFresh=bosIndex!=null && bosAge<=5;
+  const mssFresh=mssAge<=6;
   return {
-    bias:bosUp||bullishTrend?'BULLISH':bosDown||bearishTrend?'BEARISH':'RANGE',
-    mss:mssUp?'BULLISH':mssDown?'BEARISH':'PENDING',
-    bos:bosUp?'BULLISH':bosDown?'BEARISH':'PENDING',
-    swingHigh:lastHigh,
-    swingLow:lastLow,
-    mssFresh:mssUp||mssDown,
-    bosFresh:bosUp||bosDown,
-    mssBar:{timestamp:mssBar.t,close:mssBar.c},
-    bosBar:{timestamp:bosBar.t,close:bosBar.c}
+    bias:found.side,
+    mss:found.side,
+    bos:bosIndex!=null?found.side:'PENDING',
+    swingHigh:recentSw.highs.at(-1)?.price??null,
+    swingLow:recentSw.lows.at(-1)?.price??null,
+    mssFresh,bosFresh,
+    mssBar:{timestamp:c[found.mssIndex].t,close:c[found.mssIndex].c},
+    bosBar:bosIndex!=null?{timestamp:c[bosIndex].t,close:c[bosIndex].c}:null,
+    mssAgeBars:mssAge,bosAgeBars:bosAge
   };
 }
 function latestFreshFvg(c,maxAge=12){
@@ -1063,21 +1076,26 @@ function evaluateOpportunityHorizon({key,label,minutes,candles,higherBiases,live
   const bosOk=structure.bos===side && structure.bosFresh;
   const displacementOk=displacement.confirmed && displacement.direction===side;
   const retestOk=inZone;
+  const structureOk=mssOk || bosOk;
   const points=[
     {key:'htf',label:'Higher-TF alignment',points:htfOk?20:0,max:20,passed:htfOk},
     {key:'liquidity',label:'Fresh liquidity sweep',points:sweepOk?15:0,max:15,passed:sweepOk},
-    {key:'mss',label:'Fresh MSS',points:mssOk?15:0,max:15,passed:mssOk},
-    {key:'bos',label:'Fresh BOS',points:bosOk?10:0,max:10,passed:bosOk},
-    {key:'zone',label:'Aligned FVG / OB',points:(alignedFvg||alignedOb)?10:0,max:10,passed:alignedFvg||alignedOb},
-    {key:'retest',label:'Execution retest',points:retestOk?10:0,max:10,passed:retestOk},
+    {key:'mss',label:'Fresh MSS',points:mssOk?12:0,max:12,passed:mssOk},
+    {key:'bos',label:'Fresh BOS',points:bosOk?12:0,max:12,passed:bosOk},
+    {key:'zone',label:'Aligned FVG / OB',points:(alignedFvg||alignedOb)?12:0,max:12,passed:alignedFvg||alignedOb},
+    {key:'retest',label:'Execution retest / near zone',points:retestOk?8:(zoneIsNear?5:0),max:8,passed:retestOk||zoneIsNear},
+    {key:'displacement',label:'Directional displacement',points:displacementOk?6:0,max:6,passed:displacementOk},
     {key:'momentum',label:'RSI + MACD momentum',points:momentumOk?5:0,max:5,passed:momentumOk},
     {key:'trend',label:'ADX trend strength',points:trendOk?5:0,max:5,passed:trendOk},
     {key:'location',label:'Premium / Discount',points:pdOk?5:0,max:5,passed:pdOk}
   ];
-  const score=points.reduce((n,x)=>n+x.points,0);
-  let entry=null,stopLoss=null,takeProfit=[],riskReward=null;
+  const score=Math.min(100,points.reduce((n,x)=>n+x.points,0));
+  let entry=null,stopLoss=null,takeProfit=[],riskReward=null,entryMode='WATCH';
   if (zone) {
-    entry=side==='BULLISH'?live.executionBuy:live.executionSell;
+    // v7 supports both MARKET and LIMIT execution. If price is outside the ICT zone,
+    // the signal can still define a valid limit entry instead of waiting forever for retest.
+    entry = inZone ? (side==='BULLISH'?live.executionBuy:live.executionSell) : roundToDigits((zone.low+zone.high)/2,live.digits);
+    entryMode = inZone ? 'MARKET' : 'LIMIT';
     const buffer=Math.max(atr*0.30,0.8);
     stopLoss=side==='BULLISH'?roundToDigits(zone.low-buffer,live.digits):roundToDigits(zone.high+buffer,live.digits);
     const risk=Math.max(Math.abs(entry-stopLoss),0.5);
@@ -1086,18 +1104,16 @@ function evaluateOpportunityHorizon({key,label,minutes,candles,higherBiases,live
     takeProfit=[roundToDigits(tp1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+1):entry-risk*(minRR+1),live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+2):entry-risk*(minRR+2),live.digits)];
     riskReward=Number((Math.abs(takeProfit[0]-entry)/risk).toFixed(2));
   }
-  const strictReady=score>=threshold && htfOk && sweepOk && mssOk && bosOk && displacementOk && (alignedFvg||alignedOb) && retestOk && pdOk && momentumOk && trendOk && Number(riskReward||0)>=minRR;
-  // Tactical mode is for a very strong setup that is close to the execution zone but has not fully retested yet.
-  // It is still blocked by news at the global gate and is deliberately stricter than a normal WATCH state.
-  const tacticalReady=!strictReady && zoneIsNear && score>=threshold+5 && htfOk && bosOk && displacementOk && momentumOk && Number(riskReward||0)>=minRR+0.5 && (sweepOk || mssOk);
-  const signal=(strictReady||tacticalReady)?(side==='BULLISH'?'BUY':'SELL'):'WAIT';
-  const state=strictReady?'CONFIRMED':tacticalReady?'TACTICAL':'WATCH';
-  const reason=strictReady
-    ? `${label}: ${side} confirmed with MTF alignment + ICT structure + zone + momentum + RR ${riskReward}`
-    : tacticalReady
-      ? `${label}: ${side} tactical opportunity near zone; wait for exact retest/confirmation before aggressive entry`
+  const setupReady=score>=threshold && htfOk && structureOk && (sweepOk || bosOk) && (alignedFvg||alignedOb) && pdOk && (displacementOk||momentumOk) && trendOk && Number(riskReward||0)>=minRR && (retestOk||zoneIsNear);
+  const confirmedReady=setupReady && (retestOk || (sweepOk && bosOk && displacementOk && score>=threshold+4));
+  const signal=confirmedReady?(side==='BULLISH'?'BUY':'SELL'):'WAIT';
+  const state=confirmedReady?'CONFIRMED':setupReady?'READY':'WATCH';
+  const reason=confirmedReady
+    ? `${label}: ${side} ${entryMode} setup confirmed with ICT structure + liquidity + zone + RR ${riskReward}`
+    : setupReady
+      ? `${label}: ${side} setup ready; ${entryMode==='LIMIT'?'wait for limit zone touch':'wait for final trigger'}`
       : `${label}: waiting for ${points.filter(x=>!x.passed).map(x=>x.label).slice(0,3).join(', ') || 'better risk/reward'}`;
-  return {key,label,minutes,state,signal,bias:side,score,confidence:score,entry,entryZone:zone?{...zone,low:round2(zone.low),high:round2(zone.high)}:null,stopLoss,takeProfit,riskReward,higherAlignment:`${higherAligned}/${higherAvailable}`,zoneIsNear,inZone,microTrigger,microTimeframe:'M1',ict:{liquiditySweep:sweep,mss:structure.mss,bos:structure.bos,fvg,orderBlock:ob,displacement,m1:{bias:microSide,sweep:microSweep,fvg:microFvg,structure:microStructure}},technical:{rsi,macd,adx,m1Rsi:micro?.rsi,m1Macd:micro?.macd},premiumDiscount:pd,premiumDiscountOk:pdOk,scoreItems:points,reason};
+  return {key,label,minutes,state,signal,bias:side,score,confidence:score,entry,entryMode,entryZone:zone?{...zone,low:round2(zone.low),high:round2(zone.high)}:null,stopLoss,takeProfit,riskReward,higherAlignment:`${higherAligned}/${higherAvailable}`,zoneIsNear,inZone,microTrigger,microTimeframe:'M1',ict:{liquiditySweep:sweep,mss:structure.mss,bos:structure.bos,fvg,orderBlock:ob,displacement,m1:{bias:microSide,sweep:microSweep,fvg:microFvg,structure:microStructure}},technical:{rsi,macd,adx,m1Rsi:micro?.rsi,m1Macd:micro?.macd},premiumDiscount:pd,premiumDiscountOk:pdOk,scoreItems:points,reason};
 }
 
 function latestAlignedOrderBlock(c,bias,maxAge=20){
@@ -1150,7 +1166,7 @@ async function buildXauAnalysis() {
   const premiumDiscount=live.price>mid?'PREMIUM':'DISCOUNT';
   const pdOk=side==='BULLISH'?premiumDiscount==='DISCOUNT':side==='BEARISH'?premiumDiscount==='PREMIUM':false;
   const spreadOk=Number.isFinite(live.spread)&&live.spread<=MAX_ENTRY_SPREAD;
-  const biasOk=(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT)||(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,structureAgreement=mssOk&&bosOk;
+  const biasOk=(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT)||(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,zoneNearOk=!!candidateZone&&zoneDistance(live.price,candidateZone)<=Math.max(a*3.5,12),structureAgreement=mssOk||bosOk;
   const rsiM5=tfs.M5.rsi,macdM5=tfs.M5.macd,adxM5=tfs.M5.adx;
   const technicalMomentumOk=(side==='BULLISH'&&rsiM5!=null&&rsiM5>=50&&macdM5?.bias==='BULLISH')||(side==='BEARISH'&&rsiM5!=null&&rsiM5<=50&&macdM5?.bias==='BEARISH');
   const trendStrengthOk=!adxM5||adxM5.value>=18;
@@ -1177,15 +1193,32 @@ async function buildXauAnalysis() {
   if(!mssOk) reasons.push('Fresh M5 MSS not confirmed');
   if(!displacementOk) reasons.push('Directional displacement not confirmed');
   if(!(alignedFvg||alignedOb)) reasons.push('No fresh aligned FVG/OB');
-  if(!retestOk) reasons.push('Price has not retested the execution zone');
-  if(!bosOk) reasons.push('Fresh M5 BOS not confirmed');
+  if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');
+  if(!bosOk && !mssOk) reasons.push('Fresh M5 MSS/BOS structure break not confirmed');
   if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);
   if(!spreadOk) reasons.push(`Spread ${live.spread ?? '—'} exceeds max ${MAX_ENTRY_SPREAD}`);
-  if(!technicalMomentumOk) reasons.push('RSI/MACD momentum does not confirm the execution direction');
+  if(!technicalMomentumOk && !displacementOk) reasons.push('Momentum/displacement does not confirm the execution direction');
   if(!trendStrengthOk) reasons.push('ADX trend strength is too weak for the execution gate');
-  const setupReady=candlesFresh&&biasOk&&sweepOk&&mssOk&&bosOk&&displacementOk&&(alignedFvg||alignedOb)&&retestOk&&structureAgreement&&pdOk&&spreadOk&&technicalMomentumOk&&trendStrengthOk&&confluenceScore>=MIN_ENTRY_SCORE;
+  const provisionalEntry=candidateZone ? (retestOk ? (side==='BULLISH'?live.executionBuy:live.executionSell) : roundToDigits((candidateZone.low+candidateZone.high)/2,live.digits)) : null;
+  const provisionalBuffer=Math.max(a*0.35,0.8);
+  const provisionalSL=candidateZone ? (side==='BULLISH'?candidateZone.low-provisionalBuffer:candidateZone.high+provisionalBuffer) : null;
+  const provisionalRisk=candidateZone&&Number.isFinite(provisionalEntry)&&Number.isFinite(provisionalSL)?Math.max(Math.abs(provisionalEntry-provisionalSL),0.5):null;
+  const provisionalTarget=provisionalRisk!=null?nearestTarget(provisionalEntry,side,m5):null;
+  const provisionalTP1=provisionalRisk!=null ? (provisionalTarget && (side==='BULLISH'?provisionalTarget>provisionalEntry:provisionalTarget<provisionalEntry) ? provisionalTarget : (side==='BULLISH'?provisionalEntry+provisionalRisk*1.8:provisionalEntry-provisionalRisk*1.8)) : null;
+  const provisionalRR=provisionalRisk!=null&&provisionalTP1!=null?Math.abs(provisionalTP1-provisionalEntry)/provisionalRisk:0;
+  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);
   if(setupReady){
-    signal=side==='BULLISH'?'BUY':'SELL'; status='ENTRY CONFIRMED'; const z=candidateZone; entry=side==='BULLISH'?live.executionBuy:live.executionSell; const buffer=Math.max(a*0.35,0.8); sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits); const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*2:entry-risk*2,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1; tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3:entry-risk*3,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4:entry-risk*4,live.digits)]; trigger=`${side} confirmed: liquidity sweep + MSS + BOS + displacement + ${alignedFvg?'FVG':'OB'} retest`;
+    signal=side==='BULLISH'?'BUY':'SELL';
+    const z=candidateZone;
+    const limitEntry=!retestOk && !!z;
+    entry=limitEntry?roundToDigits((z.low+z.high)/2,live.digits):(side==='BULLISH'?live.executionBuy:live.executionSell);
+    const buffer=Math.max(a*0.35,0.8);
+    sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits);
+    const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*1.8:entry-risk*1.8,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1;
+    tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*2.7:entry-risk*2.7,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3.8:entry-risk*3.8,live.digits)];
+    const rr=Number((Math.abs(tp[0]-entry)/risk).toFixed(2));
+    status=limitEntry?'ENTRY CONFIRMED — LIMIT':'ENTRY CONFIRMED — MARKET';
+    trigger=`${side} confirmed: ${sweepOk?'liquidity sweep + ':''}${mssOk?'MSS + ':''}${bosOk?'BOS + ':''}${displacementOk?'displacement + ':''}${alignedFvg?'FVG':'OB'} ${limitEntry?'limit zone':'retest'} · RR ${rr}`;
   } else { if(side==='NEUTRAL') status='NO TRADE — MARKET NEUTRAL'; else if(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT) status='WAIT — BULLISH BIAS, NO ENTRY'; else if(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT) status='WAIT — BEARISH BIAS, NO ENTRY'; else status='NO TRADE — MTF CONFLICT'; trigger=reasons.slice(0,4).join('; ')||'No confirmed execution setup'; }
   const horizon5 = evaluateOpportunityHorizon({key:'M5',label:'5M SCALP',minutes:5,candles:m5,triggerCandles:m1,higherBiases:[tfs.M15?.structure?.bias,tfs.H1?.structure?.bias,tfs.H4?.structure?.bias],live,threshold:72,minRR:1.5});
   const horizon15 = evaluateOpportunityHorizon({key:'M15',label:'15M INTRADAY',minutes:15,candles:m15,triggerCandles:m5,higherBiases:[tfs.H1?.structure?.bias,tfs.H4?.structure?.bias],live,threshold:78,minRR:2});
@@ -1197,7 +1230,7 @@ async function buildXauAnalysis() {
   if(newsBlocked){
     signal='WAIT'; entry=null; sl=null; tp=[];
     if(!news.available){ status='NEWS UNAVAILABLE — NO ENTRY'; trigger='News feed unavailable; do not trade until USD high-impact calendar is verified'; }
-    else if(news.degraded || news.trusted === false){ status='NEWS DEGRADED — NO ENTRY'; trigger='News provider is rate-limited/stale; calendar is shown for context only. Wait for a fresh verified feed'; }
+    else if(news.degraded || news.trusted === false){ status='NEWS DEGRADED — CONTEXT ONLY'; trigger='News provider is degraded/stale; ICT + MT5 analysis remains active, but verify high-impact USD events before execution'; }
     else if(news.state==='LIVE'){ status='NEWS LIVE — NO ENTRY'; trigger=`${news.next?.title || 'High-impact USD news'} is live; wait for post-news sweep + MSS/BOS + displacement + retest`; }
     else if(news.state==='POST_NEWS'){ status='POST-NEWS — WAIT FOR REACTION'; trigger='High-impact USD news just passed; wait for post-news sweep + MSS/BOS + displacement + retest'; }
     else { status='NEWS LOCK — WAIT AFTER NEWS'; trigger=`${news.next?.title || 'High-impact USD news'} is due soon; wait for post-news confirmation`; }
@@ -1216,7 +1249,6 @@ async function buildXauAnalysis() {
     trigger=selectedOpportunity.reason;
   }
   if (newsBlocked) {
-    // Existing news gate already clears canonical entry. Also clear all horizon signals.
     horizon5.state=horizon15.state=horizon60.state='NEWS_LOCK';
   }
   let phase='NO_TRADE';
@@ -1238,7 +1270,7 @@ async function buildXauAnalysis() {
   const dataQuality = dataQualityItems.reduce((sum,x)=>sum+x.points,0);
   const dataQualityGrade = dataQuality>=95?'A+':dataQuality>=AI_DATA_QUALITY_MIN?'A':dataQuality>=75?'B':'C';
   const confirmations={mtfAligned:selectedOpportunity ? true : biasOk,mtfCount:selectedOpportunity ? Math.max(2, mtfCount) : mtfCount,liquiditySweep:selectedOpportunity ? true : sweepOk,mss:selectedOpportunity ? true : mssOk,bos:selectedOpportunity ? true : bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:selectedOpportunity ? true : retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,rsi:rsiM5,macd:macdM5,adx:adxM5,technicalMomentumOk,trendStrengthOk,allGatesPassed:(setupReady || !!selectedOpportunity) && !newsBlocked};
-  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:effectiveScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:selectedOpportunity?.entryZone || (setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null),candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:(selectedOpportunity?.key || (setupReady?'M5':'—')),opportunities:{M5:horizon5,M15:horizon15,H1:horizon60},microTiming:{timeframe:'M1',bias:tfs.M1?.structure?.bias || 'UNAVAILABLE',rsi:tfs.M1?.rsi ?? null,macd:tfs.M1?.macd ?? null,liquidity:tfs.M1?.liquiditySweep || null,structure:tfs.M1?.structure || null},bestOpportunity:selectedOpportunity,macroBias,availableHtf,score:{bull:side==='BULLISH'?effectiveScore:0,bear:side==='BEARISH'?effectiveScore:0,confidence:effectiveScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},dataQuality:{score:dataQuality,grade:dataQualityGrade,items:dataQualityItems,minRequired:AI_DATA_QUALITY_MIN},setupScore:effectiveScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,fullTimeframes:FULL_MTF_TFS,coreBiases,fullBiases,coreBull,coreBear,fullBull,fullBear,fullMtfCount,fullMtfAvailable,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:((setupReady || !!selectedOpportunity) && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:(setupReady || selectedOpportunity)?trigger:reasons.join(' | '),mandatoryGates:['News verified / not blocked','At least one valid opportunity horizon (M5/M15/H1)','MTF alignment for selected horizon','ICT structure + liquidity + FVG/OB','Risk/Reward threshold','Fresh liquidity sweep','Fresh M5 MSS','Fresh M5 BOS','Directional displacement','Fresh aligned FVG/OB','Retest','Premium/Discount alignment','Spread <= max','Confluence >= threshold'],passed:(setupReady || !!selectedOpportunity) && !newsBlocked,evidenceSummary:{passed:scoreItems.filter(x=>x.passed).map(x=>x.label),waiting:scoreItems.filter(x=>!x.passed).map(x=>x.label),dataQuality:dataQualityGrade}},
+  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:(selectedOpportunity?.entryMode==='LIMIT' || (!selectedOpportunity && setupReady && !retestOk))?entry:(signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null),quoteExecutionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:effectiveScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:selectedOpportunity?.entryZone || (setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null),candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:(selectedOpportunity?.key || (setupReady?'M5':'—')),entryMode:selectedOpportunity?.entryMode || (setupReady?(retestOk?'MARKET':'LIMIT'):'WATCH'),opportunities:{M5:horizon5,M15:horizon15,H1:horizon60},microTiming:{timeframe:'M1',bias:tfs.M1?.structure?.bias || 'UNAVAILABLE',rsi:tfs.M1?.rsi ?? null,macd:tfs.M1?.macd ?? null,liquidity:tfs.M1?.liquiditySweep || null,structure:tfs.M1?.structure || null},bestOpportunity:selectedOpportunity,macroBias,availableHtf,score:{bull:side==='BULLISH'?effectiveScore:0,bear:side==='BEARISH'?effectiveScore:0,confidence:effectiveScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},dataQuality:{score:dataQuality,grade:dataQualityGrade,items:dataQualityItems,minRequired:AI_DATA_QUALITY_MIN},setupScore:effectiveScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,fullTimeframes:FULL_MTF_TFS,coreBiases,fullBiases,coreBull,coreBear,fullBull,fullBear,fullMtfCount,fullMtfAvailable,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:((setupReady || !!selectedOpportunity) && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:(setupReady || selectedOpportunity)?trigger:reasons.join(' | '),mandatoryGates:['News not in live/lock/post-news window','At least one valid opportunity horizon (M5/M15/H1)','MTF alignment','ICT structure break (MSS or BOS) + liquidity','Risk/Reward >= 1.5','Aligned FVG/OB','Displacement or momentum','Premium/Discount alignment','Spread <= max','Confluence >= threshold','Retest or valid LIMIT zone'],passed:(setupReady || !!selectedOpportunity) && !newsBlocked,evidenceSummary:{passed:scoreItems.filter(x=>x.passed).map(x=>x.label),waiting:scoreItems.filter(x=>!x.passed).map(x=>x.label),dataQuality:dataQualityGrade}},
 aiReasoning:{
   direction:macroBias,
   confidence:effectiveScore,
@@ -1261,7 +1293,7 @@ function telegramText(a) {
   const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
   if (!actionable) throw new Error('No confirmed broker-native entry. Telegram Entry alert blocked.');
   const icon=a.signal==='BUY'?'🟢':'🔴';
-  const side=a.signal==='BUY'?'BUY NOW':'SELL NOW';
+  const side=a.signal==='BUY'?(a.entryMode==='LIMIT'?'BUY LIMIT':'BUY NOW'):(a.entryMode==='LIMIT'?'SELL LIMIT':'SELL NOW');
   const quoteSide=a.executionSide || (a.signal==='BUY'?'ASK':'BID');
   const tp=a.takeProfit || [];
   return `${icon} *V TRADE AI — XAUUSD*\n\n`+
@@ -1271,7 +1303,7 @@ function telegramText(a) {
     `TP1: *${tp[0] ?? '—'}*\n`+
     `TP2: *${tp[1] ?? '—'}*\n`+
     `TP3: *${tp[2] ?? '—'}*\n\n`+
-    `Broker: *VT Markets MT5*\n`+
+    `Mode: *${a.entryMode || 'MARKET'}*\n`+`Broker: *VT Markets MT5*\n`+
     `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
     `Score: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
     `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
@@ -1522,7 +1554,7 @@ app.post('/api/v5/signal',telegramMutationLimit,async(req,res)=>{
     if (!['BUY','SELL'].includes(requested)) {
       return res.status(409).json({success:false,error:'Telegram Entry alert accepts BUY or SELL only. WAIT is never broadcast as an entry.',analysis:a});
     }
-    if (requested !== a.signal || a.status !== 'ENTRY CONFIRMED' || a.confirmations?.allGatesPassed !== true || !Number.isFinite(Number(a.entry))) {
+    if (requested !== a.signal || !String(a.status || '').includes('ENTRY CONFIRMED') || a.confirmations?.allGatesPassed !== true || !Number.isFinite(Number(a.entry))) {
       return res.status(409).json({success:false,error:`No confirmed ${requested} entry from VT Markets MT5 right now. Current engine: ${a.signal} / ${a.status}`,analysis:a});
     }
     await tg.bot.sendMessage(tg.chatId, telegramText(a), {parse_mode:'Markdown'});

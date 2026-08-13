@@ -1,6 +1,6 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "6.3.5",
+  "version": "7.0.0",
   "description": "V Trade AI Advanced Real-Time XAUUSD MTF ICT + Technical Momentum + Verified News + Risk Decision Engine",
   "main": "server.js",
   "scripts": {

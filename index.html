@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="responsive-pro.css?v=6.3.5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V Trade AI Pro - Smart Entry Terminal (v6.3.5 VT Markets MT5 + News Radar + Premium Decision Engine)</title>
+    <title>V Trade AI Pro - Smart Entry Terminal (v7.0.0 Full Signal Engine — VT Markets MT5 + ICT + News Radar)</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Alpine.js -->
@@ -185,7 +185,7 @@ body{
                 <i class="fa-solid fa-terminal text-base"></i>
             </div>
             <div class="mobile-pro-title">
-                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v6.3.5</h1>
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v7.0.0</h1>
                 <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="txtHeaderStatus">Realtime Price + ICT Engine Active</span>
@@ -1576,16 +1576,16 @@ body{
             if(age) age.textContent = Number.isFinite(ageSec) ? `${ageSec}s` : '—';
             if(count) count.textContent = String(news?.upcoming?.length ?? 0);
             if(news?.sourceStatus==='DEGRADED' || news?.degraded){
-                label.textContent='NEWS DEGRADED · NO ENTRY';
+                label.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'NEWS DEGRADED · NO ENTRY':'NEWS DEGRADED · CONTEXT ONLY';
                 label.className='text-xl font-extrabold mt-1 text-amber-400';
-                detail.textContent=`News provider is temporarily rate-limited/unavailable. AI ប្រើ calendar snapshot ចាស់សម្រាប់ context ប៉ុណ្ណោះ និងមិនអនុញ្ញាត Entry រហូតដល់ feed LIVE · VERIFIED`;
+                detail.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'News feed degraded during a protected news window — entry remains locked.':'News feed degraded; AI continues ICT + MT5 analysis in context-only mode. Verify high-impact USD events before execution.';
                 next.textContent=news?.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '—'; return;
             }
             if(!news || news.available===false){
-                label.textContent='NEWS UNAVAILABLE · NO ENTRY';
+                label.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'NEWS UNAVAILABLE · NO ENTRY':'NEWS UNAVAILABLE · CONTEXT ONLY';
                 label.className='text-xl font-extrabold mt-1 text-red-400';
                 const diag = news?.sourceDiagnostics?.find(d=>d.status==='error');
-                detail.textContent=diag ? `News source unavailable: ${diag.error}. AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry` : 'មិនអាច verify USD high-impact news បាន — AI មិនស្មានព័ត៌មាន និងមិនអនុញ្ញាត Entry';
+                detail.textContent=diag ? `News source unavailable: ${diag.error}. AI will not invent news; ICT + MT5 analysis remains available in context-only mode.` : 'USD high-impact news could not be verified. ICT + MT5 analysis remains available, but verify news before execution.';
                 next.textContent='—'; return;
             }
             const m=Number(news.deltaMin);

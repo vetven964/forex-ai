@@ -26,7 +26,7 @@ services:
       - key: ALLOWED_ORIGINS
         value: https://vetven964.github.io
       - key: MT5_BRIDGE_API_KEY
-        generateValue: true
+        sync: false
       - key: MT5_SYMBOL
         value: XAUUSD
       - key: MT5_MAX_AGE_MS
@@ -56,7 +56,15 @@ services:
       - key: TELEGRAM_NEWS_ALERTS
         value: "true"
       - key: TELEGRAM_MIN_SCORE
-        value: "80"
+        value: "76"
+      - key: NEWS_FAIL_CLOSED
+        value: "false"
+      - key: AI_DATA_QUALITY_MIN
+        value: "75"
+      - key: MIN_CONFLUENCE
+        value: "76"
+      - key: MIN_ENTRY_SCORE
+        value: "76"
       - key: TELEGRAM_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
