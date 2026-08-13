@@ -1134,577 +1134,104 @@ body{padding-bottom:0!important}
 
 
 /* =========================================================
-   V-TRADE AI v7.0.0 — FINAL RESPONSIVE UI POLISH
-   Presentation only. No trading/auth/API logic is changed.
-   Targets: iPhone/Android all widths + tablet + laptop + desktop.
+   V-TRADE AI v7.0.0 — FINAL RESPONSIVE MODAL + HEADER FIX
+   UI-only. Do not change trading/auth/API logic.
    ========================================================= */
 
-:root{
-  --vt-bg:#050810;
-  --vt-surface:#0b1220;
-  --vt-surface-2:#0e1728;
-  --vt-line:rgba(148,163,184,.14);
-  --vt-line-strong:rgba(53,224,194,.22);
-  --vt-text:#f8fafc;
-  --vt-muted:#94a3b8;
-  --vt-teal:#35e0c2;
-  --vt-blue:#5f8cff;
-  --vt-gold:#f6c85f;
-  --vt-radius-lg:22px;
-  --vt-radius-md:17px;
-  --vt-shadow:0 16px 45px rgba(0,0,0,.22);
+/* AI Support: compact, content-driven chat instead of a tall empty panel */
+#chatModal>div{
+  height:auto!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+}
+#chatModal #chatMsgBox{
+  flex:0 1 auto!important;
+  height:auto!important;
+  min-height:110px!important;
+  max-height:260px!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+}
+#chatModal #chatMsgBox>div{
+  max-width:90%!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+}
+#chatModal>div>div:last-child{
+  flex:0 0 auto!important;
+}
+#chatModal #chatInput{min-width:0!important;width:100%!important}
+
+@media (min-width:768px){
+  #chatModal>div{
+    width:min(560px,calc(100vw - 48px))!important;
+    max-width:560px!important;
+    max-height:calc(100dvh - 48px)!important;
+  }
+  #chatModal #chatMsgBox{min-height:130px!important;max-height:280px!important}
 }
 
-html{width:100%;min-width:0;overflow-x:hidden}
-body{
-  width:100%;
-  min-width:0;
-  max-width:100%;
-  overflow-x:hidden!important;
-  background:
-    radial-gradient(circle at 50% -20%,rgba(53,224,194,.065),transparent 34%),
-    var(--vt-bg)!important;
-  color:var(--vt-text);
-}
-*,*::before,*::after{box-sizing:border-box}
-button,select,input,textarea{max-width:100%}
-button,a,select{touch-action:manipulation}
-img,svg,canvas,video{max-width:100%}
-
-/* ---------- Shared visual language ---------- */
-.glass-panel{
-  background:linear-gradient(145deg,rgba(12,19,33,.96),rgba(7,12,22,.96))!important;
-  border-color:var(--vt-line)!important;
-  box-shadow:0 10px 35px rgba(0,0,0,.12);
-}
-#mainWorkspace{min-width:0}
-#tab-terminal-analysis{min-width:0}
-#tab-terminal-analysis>*{min-width:0}
-#signalCards>div,
-#confirmationPanel,
-#aiEvidencePanel,
-#opportunityRadarPanel,
-#newsRiskCard,
-#newsResearchCard{
-  overflow:hidden;
-}
-
-/* ---------- Desktop 1600+ ---------- */
-@media (min-width:1600px){
-  #topHeader{
-    min-height:92px!important;
-    padding:14px 30px!important;
-  }
-  #mainLayout>aside{
-    width:292px!important;
-    flex-basis:292px!important;
-    padding:18px!important;
-  }
-  #mainWorkspace{
-    padding:26px 32px 42px!important;
-  }
-  #tab-terminal-analysis{
-    width:100%!important;
-    max-width:1680px!important;
-    margin:0 auto!important;
-    gap:18px!important;
-  }
-  #tab-terminal-analysis>div:first-child{
-    padding:22px 24px!important;
-    min-height:112px!important;
-    border-radius:24px!important;
-  }
-  #signalCards{gap:16px!important}
-  #signalCards>div{
-    padding:22px!important;
-    min-height:190px!important;
+@media (max-width:767px){
+  #chatModal{padding:12px!important;align-items:center!important;justify-content:center!important}
+  #chatModal>div{
+    width:min(430px,calc(100vw - 24px))!important;
+    max-width:430px!important;
+    max-height:calc(100dvh - 28px)!important;
+    padding:0!important;
     border-radius:22px!important;
   }
-  #signalCards #signalCard{min-height:220px!important}
-  #signal-direction{font-size:32px!important}
-}
-
-/* ---------- Standard desktop 1200–1599 ---------- */
-@media (min-width:1200px) and (max-width:1599px){
-  #mainLayout>aside{
-    width:268px!important;
-    flex-basis:268px!important;
+  #chatModal>div>div:first-child{
+    padding:14px 16px!important;
+    flex:0 0 auto!important;
   }
-  #mainWorkspace{padding:20px 22px 38px!important}
-  #tab-terminal-analysis{
-    max-width:1480px!important;
-    margin:0 auto!important;
-    gap:15px!important;
+  #chatModal>div>div:first-child h3{
+    font-size:14px!important;
+    line-height:1.35!important;
+    padding-right:28px!important;
   }
-  #signalCards{gap:13px!important}
-  #signalCards>div{padding:18px!important;border-radius:19px!important}
-}
-
-/* ---------- Laptop / small desktop 992–1199 ---------- */
-@media (min-width:992px) and (max-width:1199px){
-  #mainLayout>aside{
-    width:238px!important;
-    flex-basis:238px!important;
-    padding:12px!important;
+  #chatModal #chatMsgBox{
+    min-height:100px!important;
+    max-height:220px!important;
+    padding:12px 14px!important;
+    font-size:12px!important;
   }
-  #mainWorkspace{padding:16px!important}
-  #tab-terminal-analysis{gap:13px!important}
-  #tab-terminal-analysis>div:first-child{
-    padding:16px!important;
-    border-radius:20px!important;
-  }
-  #signalCards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
-  #signalCard{grid-column:span 2!important}
-  #signalCards>div{min-height:165px!important;padding:15px!important}
-  #signal-direction{font-size:24px!important}
-  #confirmationPanel>.grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-  #aiEvidenceList{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-}
-
-/* ---------- Tablet 768–991 ---------- */
-@media (min-width:768px) and (max-width:991px){
-  #topHeader{
-    min-height:78px!important;
+  #chatModal #chatMsgBox>div{max-width:92%!important;padding:10px!important;line-height:1.5!important}
+  #chatModal>div>div:last-child{
     padding:10px 12px!important;
     gap:8px!important;
   }
-  #mainLayout>aside{
-    width:214px!important;
-    flex-basis:214px!important;
-    padding:10px!important;
-  }
-  #mainLayout>aside nav button{
-    min-height:48px!important;
-    padding:9px 10px!important;
-    font-size:11px!important;
-  }
-  #mainWorkspace{padding:13px!important}
-  #tab-terminal-analysis{gap:11px!important}
-  #tab-terminal-analysis>div:first-child{
-    padding:14px!important;
-    border-radius:18px!important;
-  }
-  #signalCards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-  #signalCards #signalCard{grid-column:1/-1!important;min-height:160px!important}
-  #signalCards>div{min-height:145px!important;padding:14px!important}
-  #signal-direction{font-size:25px!important}
-  #confirmationPanel>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-  #aiEvidenceList{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #opportunityRadarList{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #chatModal #chatInput{min-height:46px!important;padding:10px 12px!important}
+  #chatModal>div>div:last-child button{width:46px!important;min-width:46px!important;height:46px!important;padding:0!important}
 }
 
-/* ---------- All phones ---------- */
-@media (max-width:767px){
-  html,body{
-    width:100%!important;
-    max-width:100vw!important;
-    overflow-x:hidden!important;
-  }
-  body{
-    padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;
-    font-size:14px;
-  }
-
-  /* Header: stable on narrow phones, no horizontal squeeze */
-  #topHeader{
-    position:sticky!important;
-    top:0!important;
-    z-index:90!important;
-    display:flex!important;
-    width:100%!important;
-    min-height:74px!important;
-    padding:9px 10px!important;
-    gap:7px!important;
-    flex-wrap:nowrap!important;
-    overflow:hidden!important;
-    border:0!important;
-    border-bottom:1px solid var(--vt-line)!important;
-    border-radius:0!important;
-    background:rgba(5,9,17,.97)!important;
-    backdrop-filter:blur(18px)!important;
-    -webkit-backdrop-filter:blur(18px)!important;
-  }
-  #topHeader>div:first-child{
-    min-width:0!important;
-    flex:1 1 auto!important;
-    gap:6px!important;
-    overflow:hidden!important;
-  }
-  #topHeader .mobile-menu-btn{
-    flex:0 0 40px!important;
-    width:40px!important;
-    height:40px!important;
-    min-width:40px!important;
-    padding:0!important;
-    display:grid!important;
-    place-items:center!important;
-    border-radius:13px!important;
-  }
-  #topHeader .brand-icon{
-    flex:0 0 42px!important;
-    width:42px!important;
-    height:42px!important;
-    min-width:42px!important;
-    padding:0!important;
-    display:grid!important;
-    place-items:center!important;
-    border-radius:14px!important;
-  }
-  #topHeader .mobile-pro-title{
-    min-width:0!important;
-    overflow:hidden!important;
-  }
-  #topHeader h1{
-    max-width:100%!important;
-    font-size:11.5px!important;
-    line-height:1.15!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  #topHeader p{
-    max-width:100%!important;
-    font-size:8.5px!important;
-    line-height:1.2!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  #headerControls{
-    flex:0 0 auto!important;
-    min-width:0!important;
-    gap:4px!important;
-  }
-  #headerControls>select{display:none!important}
-  #headerControls>button{
-    min-height:42px!important;
-    height:42px!important;
-    border-radius:13px!important;
-    padding:7px 9px!important;
-  }
-  #headerControls #btnDeposit{
-    width:44px!important;
-    min-width:44px!important;
-    padding:0!important;
-    justify-content:center!important;
-  }
-  #headerControls #btnDeposit span{display:none!important}
-  #headerControls #btnAuth{
-    width:44px!important;
-    min-width:44px!important;
-    max-width:44px!important;
-    padding:0!important;
-    justify-content:center!important;
-  }
-  #headerControls #btnAuth span{display:none!important}
-  #headerControls>button:last-child{
-    width:40px!important;
-    min-width:40px!important;
-    padding:0!important;
-  }
-
-  /* Live ticker stays readable and never creates page width */
-  #mobileLiveStrip{
-    width:100%!important;
-    max-width:100vw!important;
-    overflow:hidden!important;
-    white-space:nowrap!important;
-    position:sticky!important;
-    top:74px!important;
-    z-index:80!important;
-  }
-
-  #mainLayout{
-    display:block!important;
-    width:100%!important;
-    min-width:0!important;
-    overflow:visible!important;
-  }
-  #mainLayout>aside{display:none!important}
-  #mainWorkspace{
-    width:100%!important;
-    max-width:100vw!important;
-    min-width:0!important;
-    padding:10px 10px calc(94px + env(safe-area-inset-bottom))!important;
-    overflow:visible!important;
-  }
-  #tab-terminal-analysis{
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-    gap:11px!important;
-  }
-
-  /* Main terminal control card */
-  #tab-terminal-analysis>div:first-child{
-    width:100%!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    gap:10px!important;
-    padding:14px!important;
-    border-radius:19px!important;
-    overflow:hidden!important;
-  }
-  #tab-terminal-analysis>div:first-child>div:first-child{
-    min-width:0!important;
-    width:100%!important;
-  }
-  #tab-terminal-analysis>div:first-child>div:first-child h2{
-    font-size:17px!important;
-    line-height:1.3!important;
-    overflow-wrap:anywhere!important;
-  }
-  #tab-terminal-analysis>div:first-child>div:first-child p{
-    font-size:9.5px!important;
-    line-height:1.55!important;
-    overflow-wrap:anywhere!important;
-  }
-  #tab-terminal-analysis>div:first-child>div:last-child{
-    display:grid!important;
-    grid-template-columns:1fr!important;
-    width:100%!important;
-    gap:8px!important;
-  }
-  #terminalPairSelect{
-    width:100%!important;
-    min-width:0!important;
-    height:48px!important;
-    min-height:48px!important;
-  }
-  #tab-terminal-analysis>div:first-child button{
-    width:100%!important;
-    min-height:48px!important;
-    height:48px!important;
-  }
-
-  /* Signal cards: one hero + two-column metric grid */
-  #signalCards{
-    display:grid!important;
-    width:100%!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:9px!important;
-  }
-  #signalCards>div{
-    width:100%!important;
-    min-width:0!important;
-    min-height:0!important;
-    padding:13px!important;
-    border-radius:17px!important;
-  }
-  #signalCards #signalCard{
-    grid-column:1/-1!important;
-    min-height:150px!important;
-  }
-  #signalCards #winRateCard,
-  #signalCards #setupScoreCard,
-  #signalCards #fvgCard,
-  #signalCards #sentimentCard{
-    grid-column:span 1!important;
-    min-height:142px!important;
-  }
-  #signal-direction{
-    max-width:100%!important;
-    font-size:clamp(21px,6.5vw,29px)!important;
-    line-height:1.16!important;
-    overflow-wrap:anywhere!important;
-  }
-  #signal-entry,#signal-status,#signal-grade{
-    font-size:10px!important;
-    line-height:1.45!important;
-  }
-  #win-rate-val,#setup-score-val{
-    font-size:24px!important;
-  }
-  #fvg-confidence,#sentiment-score{
-    font-size:21px!important;
-    line-height:1.18!important;
-  }
-
-  /* Evidence / radar: no tiny unreadable 5-column cards */
-  #newsRiskCard,#newsResearchCard,
-  #confirmationPanel,#aiEvidencePanel,#opportunityRadarPanel{
-    width:100%!important;
-    min-width:0!important;
-    padding:13px!important;
-    border-radius:18px!important;
-  }
-  #confirmationPanel>.grid{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:7px!important;
-  }
-  #confirmationPanel .confirm-item{
-    min-width:0!important;
-    min-height:58px!important;
-    padding:8px!important;
-    border-radius:12px!important;
-    overflow:hidden!important;
-  }
-  #confirmationPanel .confirm-item span,
-  #confirmationPanel .confirm-item b{
-    display:block!important;
-    overflow-wrap:anywhere!important;
-    word-break:break-word!important;
-  }
-  #aiEvidenceList{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:7px!important;
-  }
-  #aiEvidenceList>div{
-    min-width:0!important;
-    padding:9px!important;
-    font-size:9px!important;
-    line-height:1.35!important;
-    border-radius:12px!important;
-    overflow:hidden!important;
-  }
-  #opportunityRadarList{
-    grid-template-columns:1fr!important;
-    gap:8px!important;
-  }
-  #opportunityRadarList>div{
-    min-width:0!important;
-    overflow:hidden!important;
-  }
-
-  /* Any remaining desktop grid becomes a single mobile column */
-  #tab-terminal-analysis>.grid.lg\:grid-cols-3{
-    display:grid!important;
-    grid-template-columns:1fr!important;
-    gap:10px!important;
-  }
-  #tab-terminal-analysis>.grid.lg\:grid-cols-3>.lg\:col-span-2{
-    grid-column:auto!important;
-  }
-  #terminal-logs{
-    width:100%!important;
-    max-width:100%!important;
-    height:220px!important;
-  }
-
-  /* Bottom navigation: iPhone safe-area + Android gesture area */
-  .md\:hidden.fixed.bottom-0{
-    position:fixed!important;
-    left:0!important;
-    right:0!important;
-    bottom:0!important;
-    width:100%!important;
-    height:calc(74px + env(safe-area-inset-bottom))!important;
-    padding:5px 4px calc(5px + env(safe-area-inset-bottom))!important;
-    display:flex!important;
-    z-index:100!important;
-    border-top:1px solid rgba(148,163,184,.14)!important;
-    background:rgba(4,8,15,.97)!important;
-    backdrop-filter:blur(18px)!important;
-    -webkit-backdrop-filter:blur(18px)!important;
-  }
-  .md\:hidden.fixed.bottom-0 button{
-    flex:1 1 0!important;
-    min-width:0!important;
-    min-height:48px!important;
-    padding:4px 2px!important;
-  }
-  .md\:hidden.fixed.bottom-0 span{
-    max-width:100%!important;
-    font-size:8px!important;
-    line-height:1.15!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-
-  /* All modals: centered, scroll-safe, no giant blank space */
-  #depositModal,#chatModal,#authModal{
-    position:fixed!important;
-    inset:0!important;
-    width:100vw!important;
-    height:100dvh!important;
-    min-height:100dvh!important;
-    padding:10px!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    overflow:hidden!important;
-    z-index:120!important;
-  }
-  #depositModal>div,#chatModal>div,#authModal>div{
-    width:min(440px,calc(100vw - 20px))!important;
-    max-width:440px!important;
-    max-height:calc(100dvh - 20px)!important;
-    height:auto!important;
-    min-height:0!important;
-    margin:0!important;
-    overflow:hidden!important;
-    border-radius:21px!important;
-  }
-  #chatModal>div{
-    height:min(560px,calc(100dvh - 24px))!important;
-    max-height:calc(100dvh - 24px)!important;
-  }
-  #chatModal>div>#chatMsgBox{
-    min-height:0!important;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch!important;
-  }
-  #chatModal input{min-width:0!important;height:44px!important}
-  #chatModal button{min-width:44px!important;height:44px!important}
-  #depositModal>div{
-    padding:16px!important;
-  }
-  #depositModal>div p{
-    font-size:13px!important;
-    line-height:1.55!important;
-    overflow-wrap:anywhere!important;
-  }
-  #depositModal>div .bg-gray-950{
-    font-size:12.5px!important;
-    line-height:1.55!important;
-    overflow-wrap:anywhere!important;
-    word-break:break-word!important;
-  }
-  #depositModal>div>button{
-    width:100%!important;
-    min-height:50px!important;
-  }
-}
-
-/* ---------- Very small phones 320–380 ---------- */
 @media (max-width:380px){
-  #topHeader{padding:8px!important;gap:5px!important}
-  #topHeader .brand-icon,
-  #topHeader .mobile-menu-btn{
-    width:38px!important;
-    height:38px!important;
-    min-width:38px!important;
-    flex-basis:38px!important;
-  }
-  #topHeader h1{font-size:10.5px!important}
-  #topHeader p{font-size:8px!important}
-  #signalCards{grid-template-columns:1fr!important}
-  #signalCards #signalCard,
-  #signalCards #winRateCard,
-  #signalCards #setupScoreCard,
-  #signalCards #fvgCard,
-  #signalCards #sentimentCard{grid-column:1!important}
-  #confirmationPanel>.grid,
-  #aiEvidenceList{grid-template-columns:1fr!important}
-  #confirmationPanel .confirm-item:last-child{grid-column:auto!important}
+  #chatModal{padding:8px!important}
+  #chatModal>div{width:calc(100vw - 16px)!important;border-radius:18px!important}
+  #chatModal #chatMsgBox{min-height:88px!important;max-height:190px!important}
+  #chatModal>div>div:first-child{padding:12px!important}
+  #chatModal>div>div:first-child h3{font-size:13px!important}
 }
 
-/* ---------- Landscape phones ---------- */
 @media (max-width:767px) and (orientation:landscape){
-  #topHeader{min-height:62px!important}
-  #mobileLiveStrip{top:62px!important}
-  #mainWorkspace{padding-bottom:86px!important}
-  #chatModal>div{height:calc(100dvh - 16px)!important;max-height:calc(100dvh - 16px)!important}
+  #chatModal>div{max-height:calc(100dvh - 16px)!important}
+  #chatModal #chatMsgBox{min-height:70px!important;max-height:140px!important}
 }
 
-/* ---------- Motion/accessibility ---------- */
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{
-    scroll-behavior:auto!important;
-    animation-duration:.01ms!important;
-    animation-iteration-count:1!important;
-    transition-duration:.01ms!important;
-  }
+/* Desktop header: keep account/control group inside the viewport */
+@media (min-width:1200px){
+  #topHeader{overflow:visible!important;min-width:0!important}
+  #topHeader>div:first-child{min-width:240px!important;flex:1 1 300px!important;max-width:360px!important}
+  #headerControls{min-width:0!important;max-width:calc(100vw - 280px)!important;overflow:visible!important}
+  #headerControls #btnDeposit{max-width:250px!important;min-width:0!important}
+  #headerControls #btnDeposit span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+  #headerControls #btnAuth{max-width:150px!important;min-width:0!important}
+}
+
+@media (min-width:768px) and (max-width:1199px){
+  #topHeader{overflow:visible!important}
+  #headerControls{min-width:0!important;max-width:55vw!important;overflow:visible!important}
+  #headerControls #btnDeposit{max-width:190px!important;min-width:0!important}
+  #headerControls #btnDeposit span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 }
