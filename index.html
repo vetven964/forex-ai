@@ -236,7 +236,7 @@ body{
             <button onclick="openModal('authModal')" id="btnAuth" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-user-shield"></i><span>Login</span>
             </button>
-            <button onclick="openModal('profileModal')" class="bg-gray-800 hover:bg-gray-700 text-amber-400 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer">
+            <button onclick="openProfileSecurity()" class="bg-gray-800 hover:bg-gray-700 text-amber-400 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer">
                 <i class="fa-solid fa-user-gear"></i>
             </button>
         </div>
@@ -2265,9 +2265,29 @@ body{
             }, 600);
         }
 
+        async function openProfileSecurity() {
+            if (!currentAuthUser || !vtradeAuthToken) {
+                try { await restoreAuthSession(); } catch (_) {}
+            }
+            if (!currentAuthUser || !vtradeAuthToken) {
+                openModal('authModal');
+                alert('⚠️ សូម Login ជាមុនសិន ដើម្បីចូល Profile & Security។');
+                return;
+            }
+            const name = currentAuthUser.name || localStorage.getItem('vtrade_logged_user') || '';
+            const nameInput = document.getElementById('profileName');
+            if (nameInput && name) nameInput.value = name;
+            openModal('profileModal');
+        }
+
         async function saveProfileSettings() {
             if (!currentAuthUser || !vtradeAuthToken) {
-                alert('⚠️ សូម Login ជាមុនសិន។');
+                try { await restoreAuthSession(); } catch (_) {}
+            }
+            if (!currentAuthUser || !vtradeAuthToken) {
+                closeModal('profileModal');
+                openModal('authModal');
+                alert('⚠️ Session មិនទាន់មាន ឬផុតកំណត់។ សូម Login ម្តងទៀតសិន។');
                 return;
             }
             const name = document.getElementById('profileName').value.trim();

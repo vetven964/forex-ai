@@ -23,11 +23,13 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
 const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
-const APP_VERSION = '6.3.4';
+const APP_VERSION = '6.3.5';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
 const AUTH_MAX_SESSIONS = Math.max(100, Math.min(10000, Number(process.env.AUTH_MAX_SESSIONS || 2000)));
+const AUTH_SESSION_SECRET = String(process.env.AUTH_SESSION_SECRET || '').trim();
+const revokedAuthTokens = new Map();
 const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const ADMIN_PASSWORD_HASH = String(process.env.ADMIN_PASSWORD_HASH || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '');
@@ -117,13 +119,48 @@ function invalidateUserSessions(userId) {
   }
 }
 
+function credentialFingerprint(user) {
+  let source = '';
+  if (user?.id === 'owner-admin') {
+    source = authPasswordOverrides.get('owner-admin') || ADMIN_PASSWORD_HASH || ADMIN_PASSWORD;
+  } else {
+    const account = getAccountBySessionUser(user);
+    source = authPasswordOverrides.get(user?.id) || account?.passwordHash || '';
+  }
+  return crypto.createHash('sha256').update(String(source)).digest('hex').slice(0, 24);
+}
+
+function createStatelessAuthToken(user) {
+  if (!AUTH_SESSION_SECRET) throw new Error('AUTH_SESSION_SECRET is not configured');
+  const now = Date.now();
+  const payload = { v:1, user, iat:now, exp:now + AUTH_SESSION_TTL_MS, pv:credentialFingerprint(user), jti:crypto.randomBytes(12).toString('hex') };
+  const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', AUTH_SESSION_SECRET).update(encoded).digest('base64url');
+  return `v1.${encoded}.${sig}`;
+}
+
+function verifyStatelessAuthToken(token) {
+  if (!AUTH_SESSION_SECRET || !/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) return null;
+  if (revokedAuthTokens.has(token)) return null;
+  try {
+    const [, encoded, sig] = token.split('.');
+    const expected = crypto.createHmac('sha256', AUTH_SESSION_SECRET).update(encoded).digest('base64url');
+    if (!safeEqual(sig, expected)) return null;
+    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    if (!payload?.user || Date.now() >= Number(payload.exp || 0)) return null;
+    if (credentialFingerprint(payload.user) !== String(payload.pv || '')) return null;
+    return { ...payload.user, createdAt:Number(payload.iat||Date.now()), expiresAt:Number(payload.exp), lastSeenAt:Date.now(), stateless:true };
+  } catch (_) { return null; }
+}
+
 function createAuthSession(user) {
+  const token = createStatelessAuthToken(user);
+  const session = { ...user, createdAt: Date.now(), expiresAt: Date.now() + AUTH_SESSION_TTL_MS, lastSeenAt: Date.now() };
   if (authSessions.size >= AUTH_MAX_SESSIONS) {
     const oldest = authSessions.keys().next().value;
     if (oldest) authSessions.delete(oldest);
   }
-  const token = crypto.randomBytes(32).toString('hex');
-  authSessions.set(token, { ...user, createdAt: Date.now(), expiresAt: Date.now() + AUTH_SESSION_TTL_MS, lastSeenAt: Date.now() });
+  authSessions.set(token, session);
   return token;
 }
 
@@ -142,9 +179,9 @@ function parseCookies(req) {
 
 function authTokenFrom(req) {
   const headerToken = String(req.get('x-vtrade-auth') || '').trim();
-  if (/^[a-f0-9]{64}$/i.test(headerToken)) return headerToken;
+  if (/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(headerToken) || /^[a-f0-9]{64}$/i.test(headerToken)) return headerToken;
   const cookieToken = String(parseCookies(req).vtrade_session || '').trim();
-  return /^[a-f0-9]{64}$/i.test(cookieToken) ? cookieToken : null;
+  return (/^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(cookieToken) || /^[a-f0-9]{64}$/i.test(cookieToken)) ? cookieToken : null;
 }
 
 function setAuthCookie(res, token) {
@@ -163,13 +200,11 @@ function clearAuthCookie(res) {
 function getAuthSession(req) {
   const token = authTokenFrom(req);
   if (!token) return null;
+  if (revokedAuthTokens.has(token)) return null;
   const session = authSessions.get(token);
-  if (!session || Date.now() >= session.expiresAt) {
-    if (token) authSessions.delete(token);
-    return null;
-  }
-  session.lastSeenAt = Date.now();
-  return session;
+  if (session && Date.now() < session.expiresAt) { session.lastSeenAt = Date.now(); return session; }
+  if (session) authSessions.delete(token);
+  return verifyStatelessAuthToken(token);
 }
 
 function requireAuth(req, res, next) {
@@ -390,7 +425,12 @@ app.get('/api/auth/profile', requireAuth, (req,res)=>{
 
 app.post('/api/auth/logout', requireAuth, (req,res) => {
   const token = authTokenFrom(req);
-  if (token) authSessions.delete(token);
+  if (token) {
+    const session = authSessions.get(token);
+    authSessions.delete(token);
+    const expiresAt = Number(session?.expiresAt || (Date.now() + AUTH_SESSION_TTL_MS));
+    revokedAuthTokens.set(token, expiresAt);
+  }
   clearAuthCookie(res);
   res.set('Cache-Control','no-store');
   res.json({success:true});
@@ -1502,7 +1542,7 @@ app.post('/telegram/webhook',async(req,res)=>{
   res.sendStatus(200);
 });
 
-setInterval(()=>{ const now=Date.now(); for (const [token,session] of authSessions) { if (!session.expiresAt || now>=session.expiresAt) authSessions.delete(token); } for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
+setInterval(()=>{ const now=Date.now(); for (const [token,session] of authSessions) { if (!session.expiresAt || now>=session.expiresAt) authSessions.delete(token); } for (const [token,expiresAt] of revokedAuthTokens) { if (now>=expiresAt) revokedAuthTokens.delete(token); } for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
 
 if(bot){
   bot.onText(/^\/price$/,async msg=>{

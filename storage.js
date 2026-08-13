@@ -3,6 +3,7 @@ const path = require('path');
 
 const DATA_DIR = process.env.VTRADE_DATA_DIR || path.join(__dirname, 'data');
 const LOCAL_FILE = path.join(DATA_DIR, 'vtrade-storage.jsonl');
+const AUTH_FILE = path.join(DATA_DIR, 'vtrade-auth.json');
 const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const RETENTION_DAYS = Math.max(1, Number(process.env.STORAGE_RETENTION_DAYS || 30));
 const QUOTE_INTERVAL_MS = Math.max(5000, Number(process.env.STORAGE_QUOTE_INTERVAL_MS || 10000));
@@ -30,6 +31,7 @@ async function initStorage() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )`);
       await pool.query(`CREATE INDEX IF NOT EXISTS idx_vtrade_events_created ON vtrade_events(created_at DESC)`);
+      await pool.query(`CREATE TABLE IF NOT EXISTS vtrade_auth_credentials (user_id TEXT PRIMARY KEY, password_hash TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
       await pool.query(`CREATE INDEX IF NOT EXISTS idx_vtrade_events_type ON vtrade_events(event_type, created_at DESC)`);
       mode = 'postgres'; ready = true; lastError = null;
       console.log('[STORAGE] PostgreSQL connected');
@@ -110,4 +112,40 @@ async function cleanup() {
   }
 }
 
-module.exports = { initStorage, saveQuote, saveAnalysis, getStatus, getHistory, cleanup };
+
+async function loadAuthCredentials() {
+  if (mode === 'postgres' && pool) {
+    try {
+      const r = await pool.query('SELECT user_id,password_hash FROM vtrade_auth_credentials');
+      return r.rows.map(x => ({userId:String(x.user_id), passwordHash:String(x.password_hash)}));
+    } catch (e) { lastError=e.message; return []; }
+  }
+  try {
+    const raw=fs.readFileSync(AUTH_FILE,'utf8');
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.map(x=>({userId:String(x.userId||''),passwordHash:String(x.passwordHash||'')})).filter(x=>x.userId&&x.passwordHash) : [];
+  } catch (_) { return []; }
+}
+
+async function saveAuthCredential(userId, passwordHash) {
+  const id=String(userId||'').trim(), hash=String(passwordHash||'').trim();
+  if (!id || !hash) throw new Error('Invalid auth credential');
+  if (mode === 'postgres' && pool) {
+    await pool.query(`INSERT INTO vtrade_auth_credentials(user_id,password_hash,updated_at)
+      VALUES($1,$2,NOW())
+      ON CONFLICT(user_id) DO UPDATE SET password_hash=EXCLUDED.password_hash,updated_at=NOW()`,[id,hash]);
+    return {persistent:true,mode:'postgres'};
+  }
+  fs.mkdirSync(DATA_DIR,{recursive:true});
+  let rows=[];
+  try { rows=JSON.parse(fs.readFileSync(AUTH_FILE,'utf8')); if(!Array.isArray(rows)) rows=[]; } catch (_) {}
+  const i=rows.findIndex(x=>String(x.userId)===id);
+  const row={userId:id,passwordHash:hash,updatedAt:new Date().toISOString()};
+  if(i>=0) rows[i]=row; else rows.push(row);
+  const tmp=AUTH_FILE+'.tmp';
+  fs.writeFileSync(tmp,JSON.stringify(rows,null,2),'utf8');
+  fs.renameSync(tmp,AUTH_FILE);
+  return {persistent:true,mode:'local'};
+}
+
+module.exports = { initStorage, saveQuote, saveAnalysis, getStatus, getHistory, cleanup, loadAuthCredentials, saveAuthCredential };
