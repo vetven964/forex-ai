@@ -53,7 +53,7 @@ const autoTradeState = {
   lastAnalysisAt: 0
 };
 
-const APP_VERSION = '7.2.3-LONG-TERM-ZONE-AI-AUTO-TELEGRAM';
+const APP_VERSION = '7.2.4-DIRECTION-SCORE-AUTO-TELEGRAM';
 const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || NaN);
 const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || NaN);
 const ZONE_PROXIMITY_ATR = Math.max(0.25, Number(process.env.ZONE_PROXIMITY_ATR || 1.25));
@@ -552,7 +552,7 @@ const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
 const MIN_ENTRY_SCORE = Math.max(65, Math.min(95, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE)));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'false').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v7.2.3-long-term-zone-engine';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v7.2.4-direction-score-engine';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
@@ -1182,7 +1182,7 @@ async function openAIConfirmXauAnalysis(a) {
     `Analyze ONLY the supplied broker-native MT5/ICT data. Do not invent prices, candles, news, or confirmations.\n`+
     `You are NOT allowed to override the deterministic risk/entry gate. If the engine says WAIT/NO TRADE or mandatory gates are missing, recommend WAIT.\n`+
     `A BUY/SELL recommendation is valid only when the supplied evidence supports liquidity + MSS/BOS + aligned FVG/OB + displacement/momentum + premium/discount + MTF alignment + acceptable RR/spread.\n`+
-    `Evaluate every supplied zone independently. EX Zone values are optional runtime configuration only; when not configured, derive dynamic zones from broker-native W1/D1/H4 FVG and Order Block evidence. Label each zone BULLISH, BEARISH, or WAIT from live evidence; never force a direction. Prefer event-based entry timing (zone touch + M1 confirmation) over inventing an exact future clock time.\n`+
+    `Evaluate every supplied zone independently. For the configured EX Zone 4346.92-4350.54, label BULLISH, BEARISH, or WAIT from the live evidence; never force a direction. Prefer event-based entry timing (zone touch + M1 confirmation) over inventing an exact future clock time.\n`+
     `Return strict JSON with: decision (BUY|SELL|WAIT), confidence (0-100), agreement (AGREE|DISAGREE|NEUTRAL), reasons (array of short strings), missingConfirmations (array), riskFlags (array), summary (string).`;
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),OPENAI_TIMEOUT_MS);
@@ -1287,6 +1287,25 @@ async function buildXauAnalysis() {
     {key:'trend',label:'ADX trend strength',points:trendStrengthOk?5:0,max:5,passed:trendStrengthOk}
   ];
   const rawScore=scoreItems.reduce((s,x)=>s+x.points,0),confluenceScore=Math.min(100,rawScore);
+
+  // Direction score is separate from setup/confluence strength.
+  // 80-100 = bullish, 60-79 = bullish bias, 40-59 = neutral,
+  // 20-39 = bearish bias, 0-19 = bearish. A low score is therefore
+  // a bearish direction score, not merely a weak setup. Entry still
+  // requires the deterministic ICT/MTF/risk gates below.
+  let directionScore=50;
+  if (side==='BULLISH') directionScore += 12;
+  else if (side==='BEARISH') directionScore -= 12;
+  directionScore += side==='BULLISH' ? Math.min(18, coreBull*6) : side==='BEARISH' ? -Math.min(18, coreBear*6) : 0;
+  if (sweepOk) directionScore += side==='BULLISH' ? 8 : -8;
+  if (mssOk) directionScore += side==='BULLISH' ? 7 : -7;
+  if (bosOk) directionScore += side==='BULLISH' ? 5 : -5;
+  if (displacementOk) directionScore += side==='BULLISH' ? 5 : -5;
+  if (technicalMomentumOk) directionScore += side==='BULLISH' ? 4 : -4;
+  if (alignedFvg || alignedOb) directionScore += side==='BULLISH' ? 4 : -4;
+  directionScore=Math.max(0,Math.min(100,Math.round(directionScore)));
+  const directionBand=directionScore>=80?'BULLISH':directionScore>=60?'BULLISH_BIAS':directionScore>=40?'NEUTRAL':directionScore>=20?'BEARISH_BIAS':'BEARISH';
+
   let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];
   if(!candlesFresh) reasons.push('Closed-candle data is stale — wait for fresh MT5 history');
   if(!biasOk) reasons.push('MTF core bias not aligned — need 2/3 H4/H1/M15 agreement');
@@ -1372,7 +1391,7 @@ async function buildXauAnalysis() {
   const dataQuality = dataQualityItems.reduce((sum,x)=>sum+x.points,0);
   const dataQualityGrade = dataQuality>=95?'A+':dataQuality>=AI_DATA_QUALITY_MIN?'A':dataQuality>=75?'B':'C';
   const confirmations={mtfAligned:selectedOpportunity ? true : biasOk,mtfCount:selectedOpportunity ? Math.max(2, mtfCount) : mtfCount,liquiditySweep:selectedOpportunity ? true : sweepOk,mss:selectedOpportunity ? true : mssOk,bos:selectedOpportunity ? true : bosOk,mssState:execStruct.mss,bosState:execStruct.bos,displacement,retest:selectedOpportunity ? true : retestOk,inZone,zoneIsNear,freshFvg:alignedFvg,freshOb:alignedOb,premiumDiscount,premiumDiscountOk:pdOk,spreadOk,maxSpread:MAX_ENTRY_SPREAD,rsi:rsiM5,macd:macdM5,adx:adxM5,technicalMomentumOk,trendStrengthOk,allGatesPassed:(setupReady || !!selectedOpportunity) && !newsBlocked};
-  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:(selectedOpportunity?.entryMode==='LIMIT' || (!selectedOpportunity && setupReady && !retestOk))?entry:(signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null),quoteExecutionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:effectiveScore,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:selectedOpportunity?.entryZone || (setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null),candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:(selectedOpportunity?.key || (setupReady?'M5':'—')),entryMode:selectedOpportunity?.entryMode || (setupReady?(retestOk?'MARKET':'LIMIT'):'WATCH'),opportunities:{M5:horizon5,M15:horizon15,H1:horizon60},microTiming:{timeframe:'M1',bias:tfs.M1?.structure?.bias || 'UNAVAILABLE',rsi:tfs.M1?.rsi ?? null,macd:tfs.M1?.macd ?? null,liquidity:tfs.M1?.liquiditySweep || null,structure:tfs.M1?.structure || null},bestOpportunity:selectedOpportunity,macroBias,availableHtf,score:{bull:side==='BULLISH'?effectiveScore:0,bear:side==='BEARISH'?effectiveScore:0,confidence:effectiveScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},dataQuality:{score:dataQuality,grade:dataQualityGrade,items:dataQualityItems,minRequired:AI_DATA_QUALITY_MIN},setupScore:effectiveScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,fullTimeframes:FULL_MTF_TFS,coreBiases,fullBiases,coreBull,coreBear,fullBull,fullBear,fullMtfCount,fullMtfAvailable,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:((setupReady || !!selectedOpportunity) && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:(setupReady || selectedOpportunity)?trigger:reasons.join(' | '),mandatoryGates:['News not in live/lock/post-news window','At least one valid opportunity horizon (M5/M15/H1)','MTF alignment','ICT structure break (MSS or BOS) + liquidity','Risk/Reward >= 1.5','Aligned FVG/OB','Displacement or momentum','Premium/Discount alignment','Spread <= max','Confluence >= threshold','Retest or valid LIMIT zone'],passed:(setupReady || !!selectedOpportunity) && !newsBlocked,evidenceSummary:{passed:scoreItems.filter(x=>x.passed).map(x=>x.label),waiting:scoreItems.filter(x=>!x.passed).map(x=>x.label),dataQuality:dataQualityGrade}},
+  const result = {symbol:'XAUUSD',engineVersion:AI_ENGINE_VERSION,scanIntervalMs:AI_FAST_SCAN_MS,feedMode,brokerConnected:brokerFeedFresh(),bid:live.bid,ask:live.ask,spread:live.spread,livePrice:live.price,executionPrice:(selectedOpportunity?.entryMode==='LIMIT' || (!selectedOpportunity && setupReady && !retestOk))?entry:(signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null),quoteExecutionPrice:signal==='BUY'?live.executionBuy:signal==='SELL'?live.executionSell:null,executionSide:signal==='BUY'?'ASK':signal==='SELL'?'BID':null,brokerDigits:live.digits,source:live.source,sourceDetail:live.sourceDetail,priceAsOf:live.priceAsOf,priceAgeSec:live.ageSec,stalePrice:live.stale,candleAgeSec:Math.round(candleAgeSec),timestamp:Date.now(),signal,phase,bias:macroBias,confidence:effectiveScore,aiScore:directionScore,directionScore,directionBand,setupGrade,status,actionable:signal==='BUY'?'BUY':signal==='SELL'?'SELL':'NO TRADE',entry,entryZone:selectedOpportunity?.entryZone || (setupReady?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null),candidateZone:candidateZone?{...candidateZone,low:round2(candidateZone.low),high:round2(candidateZone.high)}:null,stopLoss:sl,takeProfit:tp,trigger,executionTimeframe:(selectedOpportunity?.key || (setupReady?'M5':'—')),entryMode:selectedOpportunity?.entryMode || (setupReady?(retestOk?'MARKET':'LIMIT'):'WATCH'),opportunities:{M5:horizon5,M15:horizon15,H1:horizon60},microTiming:{timeframe:'M1',bias:tfs.M1?.structure?.bias || 'UNAVAILABLE',rsi:tfs.M1?.rsi ?? null,macd:tfs.M1?.macd ?? null,liquidity:tfs.M1?.liquiditySweep || null,structure:tfs.M1?.structure || null},bestOpportunity:selectedOpportunity,macroBias,availableHtf,score:{bull:directionScore>=50?directionScore:0,bear:directionScore<50?100-directionScore:0,confidence:effectiveScore,aiScore:directionScore,directionScore,directionBand,confluence:effectiveScore,grade:setupGrade,items:scoreItems,blockedReasons:reasons},dataQuality:{score:dataQuality,grade:dataQualityGrade,items:dataQualityItems,minRequired:AI_DATA_QUALITY_MIN},setupScore:effectiveScore,confirmations,ict:{liquiditySweep:sweep,mss:execStruct.mss,bos:execStruct.bos,fvg:f,orderBlock:ob,premiumDiscount},news,timeframes:tfs,mtf:{coreTimeframes:CORE_MTF_TFS,fullTimeframes:FULL_MTF_TFS,coreBiases,fullBiases,coreBull,coreBear,fullBull,fullBear,fullMtfCount,fullMtfAvailable,d1Bias,requiredAlignment:MIN_MTF_ALIGNMENT},decision:{state:((setupReady || !!selectedOpportunity) && !newsBlocked)?(signal==='BUY'?'CONFIRMED_BUY':'CONFIRMED_SELL'):(side==='NEUTRAL'?'NO_TRADE':'WAIT'),reason:(setupReady || selectedOpportunity)?trigger:reasons.join(' | '),mandatoryGates:['News not in live/lock/post-news window','At least one valid opportunity horizon (M5/M15/H1)','MTF alignment','ICT structure break (MSS or BOS) + liquidity','Risk/Reward >= 1.5','Aligned FVG/OB','Displacement or momentum','Premium/Discount alignment','Spread <= max','Confluence >= threshold','Retest or valid LIMIT zone'],passed:(setupReady || !!selectedOpportunity) && !newsBlocked,evidenceSummary:{passed:scoreItems.filter(x=>x.passed).map(x=>x.label),waiting:scoreItems.filter(x=>!x.passed).map(x=>x.label),dataQuality:dataQualityGrade}},
 aiReasoning:{
   direction:macroBias,
   confidence:effectiveScore,
@@ -1517,7 +1536,7 @@ function telegramText(a) {
     `TP4: *${tp[3] ?? '—'}*\n\n`+
     `Mode: *${a.entryMode || 'MARKET'}*\n`+`Broker: *VT Markets MT5*\n`+
     `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
-    `Score: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
+    `AI Score: *${a.directionScore ?? a.aiScore ?? 50}/100* | Bias: *${a.directionBand || a.bias || 'NEUTRAL'}*\n`+`Confluence: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
     `EX Zone: *${a.referenceZone ? `${a.referenceZone.low}–${a.referenceZone.high}` : 'Dynamic — AI calculated'}* | Bias: *${a.referenceZone?.direction ?? a.bias}* | ${a.referenceZone?.rangeType ?? 'DYNAMIC'} zone\n`+
     `Entry timing: *${a.entryTiming || 'WAIT'}*\n`+
     `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
@@ -1569,7 +1588,11 @@ async function maybeTelegramAlert(a, tg, sessionId) {
 
   // Entry alerts remain strict and deduplicated.
   const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
-  if(actionable && Number(a.confidence || 0) >= Number(process.env.TELEGRAM_MIN_SCORE || 80) && (!o || o.state==='CONFIRMED')) {
+  const aiScore=Number(a.directionScore ?? a.aiScore ?? 50);
+  const buyScoreMin=80;
+  const sellScoreMax=19;
+  const directionScoreOk=(a.signal==='BUY' && aiScore>=buyScoreMin) || (a.signal==='SELL' && aiScore<=sellScoreMax);
+  if(actionable && directionScoreOk && (!o || o.state==='CONFIRMED')) {
     const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
     if(telegramAlertKeys.get(dedupeKey)!==key) {
       telegramAlertKeys.set(dedupeKey,key);

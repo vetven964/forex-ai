@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function showAnalysisResult(a) {
-    alert(`📊 XAUUSD LIVE ICT Analysis\nSignal: ${a.signal || 'WAIT'}\nStatus: ${a.status || '—'}\nScore: ${a.confidence ?? '—'}/100\nBias: ${a.bias || '—'}\nNews: ${a.news?.label || 'NEWS UNAVAILABLE'}`);
+    alert(`📊 XAUUSD LIVE ICT Analysis\nSignal: ${a.signal || 'WAIT'}\nStatus: ${a.status || '—'}\nAI Score: ${a.directionScore ?? '—'}/100\nDirection: ${a.directionBand || a.bias || 'NEUTRAL'}\nConfluence: ${a.confidence ?? '—'}/100\nNews: ${a.news?.label || 'NEWS UNAVAILABLE'}`);
 }
 
 function showBestSetup(a) {
