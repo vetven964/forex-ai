@@ -1319,7 +1319,7 @@ async function buildXauAnalysis() {
   let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];
   if(!candlesFresh) reasons.push('Closed-candle data is stale — wait for fresh MT5 history');
   if(!biasOk) reasons.push('MTF core bias not aligned — need 2/3 H4/H1/M15 agreement');
-  if(fullMtfAvailable < 4) reasons.push(`MTF context incomplete — ${fullMtfAvailable}/6 timeframes available`);
+  if(availableHtf < 2) reasons.push(`Core MTF context incomplete — ${availableHtf}/3 H4/H1/M15 timeframes available`);
   if(!sweepOk) reasons.push('Fresh liquidity sweep not confirmed');
   if(!mssOk) reasons.push('Fresh M5 MSS not confirmed');
   if(!displacementOk) reasons.push('Directional displacement not confirmed');
@@ -1648,7 +1648,31 @@ async function runTelegramAutoAlertScan() {
 
     const a = await buildXauAnalysis();
     const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };
-    const sent = await maybeTelegramAlert(a, tg, `env:${TELEGRAM_CHAT_ID}`);
+    const dedupeKey=`env:${TELEGRAM_CHAT_ID}`;
+    let sent = await maybeTelegramAlert(a, tg, dedupeKey);
+
+    // Auto mode also sends a state-change WAIT update when the engine has a
+    // strong directional bias but the deterministic entry gates are not ready.
+    // This proves the scanner/Telegram pipeline is alive without ever forcing
+    // a BUY/SELL entry. Entry alerts remain strict inside maybeTelegramAlert().
+    const waitScore=Number(a.directionScore ?? a.aiScore ?? 0);
+    const waitState=`${a.signal}:${a.bias}:${waitScore}:${a.status}:${a.confirmations?.allGatesPassed===true}`;
+    const WAIT_MIN_SCORE=75;
+    if (!sent && a.signal==='WAIT' && waitScore>=WAIT_MIN_SCORE && waitState!==telegramAutoLastState) {
+      const waiting=Array.isArray(a.score?.blockedReasons)?a.score.blockedReasons.slice(0,6):[];
+      const msg=`🟡 V TRADE AI — XAUUSD WAIT\n\n`+
+        `Price: ${Number(a.livePrice ?? a.bid ?? 0).toFixed(2)}\n`+
+        `Bias: ${a.bias || 'NEUTRAL'}\n`+
+        `Direction Score: ${waitScore}/100\n`+
+        `Confidence: ${Number(a.confidence ?? 0)}/100\n`+
+        `Status: NO TRADE — confirmation pending\n\n`+
+        `Waiting for:\n${waiting.length?waiting.map(x=>`• ${x}`).join('\n'):'• Final ICT confirmation'}\n\n`+
+        `⚠️ WAIT alert only — no order is authorized until all entry gates pass.`;
+      await tg.bot.sendMessage(tg.chatId,msg);
+      sent=true;
+      console.log(`[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore}`);
+    }
+
     const stateKey=`${a.signal}:${a.status}:${a.directionScore ?? a.aiScore ?? '-'}:${a.confirmations?.allGatesPassed===true}`;
     if (stateKey !== telegramAutoLastState) {
       if (sent) console.log(`[TELEGRAM AUTO] Alert sent | signal=${a.signal} | score=${a.directionScore ?? a.aiScore ?? '-'} | status=${a.status}`);
@@ -2069,7 +2093,7 @@ if(bot){
   });
   bot.onText(/^\/signal$/,async msg=>{
     try { const a=await buildXauAnalysis(); await bot.sendMessage(msg.chat.id,telegramText(a)); }
-    catch(_){ await bot.sendMessage(msg.chat.id,'⚠️ ICT analysis unavailable.'); }
+    catch(e){ console.warn('[TELEGRAM /signal] Analysis blocked:',String(e?.message||e)); await bot.sendMessage(msg.chat.id,'⚠️ ICT analysis unavailable. Check server logs for the exact reason.'); }
   });
   bot.onText(/^\/status$/,msg=>bot.sendMessage(msg.chat.id,'🟢 V TRADE AI online — MTF ICT engine active.'));
   if(process.env.RENDER && APP_BASE_URL && TELEGRAM_WEBHOOK_SECRET){
