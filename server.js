@@ -1615,6 +1615,12 @@ async function maybeTelegramAlert(a, tg, sessionId) {
 
 let telegramAutoLastReadinessLog = '';
 let telegramAutoLastState = '';
+let telegramAutoLastWaitKey = '';
+let telegramAutoLastWaitSentAt = 0;
+const TELEGRAM_WAIT_ALERT_COOLDOWN_MS = Math.max(
+  60000,
+  Number(process.env.TELEGRAM_WAIT_ALERT_COOLDOWN_MS || 15 * 60 * 1000)
+);
 
 function telegramAutoReadinessSnapshot() {
   const q=brokerFeed.quote;
@@ -1656,9 +1662,24 @@ async function runTelegramAutoAlertScan() {
     // This proves the scanner/Telegram pipeline is alive without ever forcing
     // a BUY/SELL entry. Entry alerts remain strict inside maybeTelegramAlert().
     const waitScore=Number(a.directionScore ?? a.aiScore ?? 0);
-    const waitState=`${a.signal}:${a.bias}:${waitScore}:${a.status}:${a.confirmations?.allGatesPassed===true}`;
     const WAIT_MIN_SCORE=75;
-    if (!sent && a.signal==='WAIT' && waitScore>=WAIT_MIN_SCORE && waitState!==telegramAutoLastState) {
+
+    // WAIT alerts are event/state based, NOT score/price based.
+    // A changing score or live price must never cause a Telegram message every scan.
+    // The key only changes when the directional state or entry-gate state changes.
+    const waitGateState = [
+      a.confirmations?.allGatesPassed===true ? 'PASS' : 'WAIT',
+      a.bias || 'NEUTRAL',
+      Array.isArray(a.score?.blockedReasons)
+        ? a.score.blockedReasons.map(x => String(x).split(' — ')[0].split(' — ')[0]).sort().join('|')
+        : ''
+    ].join(':');
+
+    const now=Date.now();
+    const waitCooldownExpired=(now-telegramAutoLastWaitSentAt)>=TELEGRAM_WAIT_ALERT_COOLDOWN_MS;
+
+    if (!sent && a.signal==='WAIT' && waitScore>=WAIT_MIN_SCORE &&
+        waitGateState!==telegramAutoLastWaitKey && waitCooldownExpired) {
       const waiting=Array.isArray(a.score?.blockedReasons)?a.score.blockedReasons.slice(0,6):[];
       const msg=`🟡 V TRADE AI — XAUUSD WAIT\n\n`+
         `Price: ${Number(a.livePrice ?? a.bid ?? 0).toFixed(2)}\n`+
@@ -1670,10 +1691,13 @@ async function runTelegramAutoAlertScan() {
         `⚠️ WAIT alert only — no order is authorized until all entry gates pass.`;
       await tg.bot.sendMessage(tg.chatId,msg);
       sent=true;
-      console.log(`[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore}`);
+      telegramAutoLastWaitKey=waitGateState;
+      telegramAutoLastWaitSentAt=now;
+      console.log(`[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore} | cooldown=${Math.round(TELEGRAM_WAIT_ALERT_COOLDOWN_MS/60000)}m`);
     }
 
-    const stateKey=`${a.signal}:${a.status}:${a.directionScore ?? a.aiScore ?? '-'}:${a.confirmations?.allGatesPassed===true}`;
+    // State logging is also stable: score/status/price changes alone do not count as a new state.
+    const stateKey=`${a.signal}:${a.bias || 'NEUTRAL'}:${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`;
     if (stateKey !== telegramAutoLastState) {
       if (sent) console.log(`[TELEGRAM AUTO] Alert sent | signal=${a.signal} | score=${a.directionScore ?? a.aiScore ?? '-'} | status=${a.status}`);
       else console.log(`[TELEGRAM AUTO] Scan OK | signal=${a.signal} | bias=${a.bias} | score=${a.directionScore ?? a.aiScore ?? '-'} | status=${a.status} | gates=${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`);
@@ -1978,8 +2002,18 @@ app.get('/api/analysis/xauusd',async(req,res)=>{
     storage.saveAnalysis(a).catch(()=>{});
     maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
-    console.error('ICT analysis:',e.message);
-    res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});
+    const reason=String(e?.message||'ICT analysis temporarily unavailable');
+    console.error('ICT analysis:',reason);
+    if (analysisCache.data) {
+      return res.json({
+        success:true,
+        cached:true,
+        cacheAgeSec:Math.max(0,Math.round((Date.now()-analysisCache.at)/1000)),
+        warning:'Live analysis temporarily unavailable; returning latest deterministic analysis.',
+        ...analysisCache.data
+      });
+    }
+    res.status(503).json({success:false,error:'ICT analysis temporarily unavailable',detail:reason.slice(0,220)});
   }
 });
 
@@ -2092,8 +2126,24 @@ if(bot){
     }
   });
   bot.onText(/^\/signal$/,async msg=>{
-    try { const a=await buildXauAnalysis(); await bot.sendMessage(msg.chat.id,telegramText(a)); }
-    catch(e){ console.warn('[TELEGRAM /signal] Analysis blocked:',String(e?.message||e)); await bot.sendMessage(msg.chat.id,'⚠️ ICT analysis unavailable. Check server logs for the exact reason.'); }
+    try {
+      const a=await buildXauAnalysis();
+      await bot.sendMessage(msg.chat.id,telegramText(a));
+    } catch(e) {
+      const reason=String(e?.message||'Unknown analysis error');
+      console.error(`[TELEGRAM /signal] Analysis blocked: ${reason}`);
+
+      // If the realtime build hits a transient news/MT5/cache race, use the
+      // most recent deterministic analysis already produced by the auto scanner.
+      // Never invent a signal; clearly mark it as cached.
+      if (analysisCache.data) {
+        const cached={...analysisCache.data, cached:true, cacheAgeSec:Math.max(0,Math.round((Date.now()-analysisCache.at)/1000))};
+        await bot.sendMessage(msg.chat.id,telegramText(cached));
+        console.warn(`[TELEGRAM /signal] Served cached analysis after transient error: ${reason}`);
+      } else {
+        await bot.sendMessage(msg.chat.id,`⚠️ ICT analysis unavailable.\nReason: ${reason.slice(0,220)}`);
+      }
+    }
   });
   bot.onText(/^\/status$/,msg=>bot.sendMessage(msg.chat.id,'🟢 V TRADE AI online — MTF ICT engine active.'));
   if(process.env.RENDER && APP_BASE_URL && TELEGRAM_WEBHOOK_SECRET){
