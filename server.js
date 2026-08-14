@@ -966,10 +966,15 @@ function analyzeTF(c) {
   const e20=ema(closes,20), e50=ema(closes,50);
   const r=rsi(closes,AI_RSI_PERIOD), m=macd(closes), dx=adx(c,AI_ADX_PERIOD), vb=volumeBias(c);
   const trend=e20&&e50 ? (e20>e50?'BULLISH':e20<e50?'BEARISH':'NEUTRAL') : 'UNKNOWN';
+  // Expose the same fresh ICT zones used by the opportunity engine so every
+  // MTF row (including M1) can show a directional setup without inventing one.
+  const side=s?.bias==='BULLISH'||s?.bias==='BEARISH' ? s.bias : trend;
+  const fvg=latestFreshFvg(c, Math.min(12, Math.max(6, c.length-3)));
+  const ob=latestAlignedOrderBlock(c, side, Math.min(20, Math.max(6, c.length-3)));
   return {
     structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,rsi:r==null?null:Math.round(r*100)/100,
     macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL'}:null,
-    adx:dx,volume:vb,last:c[c.length-1]?.c
+    adx:dx,volume:vb,last:c[c.length-1]?.c,fvg,orderBlock:ob
   };
 }
 
@@ -1533,74 +1538,90 @@ function formatPrice(n) {
   return Number.isFinite(Number(n)) ? Number(n).toFixed(2) : '—';
 }
 
+function mtfPreviewLevels(tf, a, t, side, zone) {
+  if (!zone || !Number.isFinite(Number(zone.low)) || !Number.isFinite(Number(zone.high))) return null;
+  const low=Math.min(Number(zone.low),Number(zone.high));
+  const high=Math.max(Number(zone.low),Number(zone.high));
+  const digits=Number.isFinite(Number(a?.brokerDigits)) ? Number(a.brokerDigits) : 2;
+  const atrValue=Number(t?.atr || a?.timeframes?.M5?.atr || a?.timeframes?.M15?.atr || 0);
+  const buffer=Math.max(atrValue*0.30,0.80);
+  const entry=roundToDigits((low+high)/2,digits);
+  const sl=side==='BULLISH' ? roundToDigits(low-buffer,digits) : roundToDigits(high+buffer,digits);
+  const risk=Math.max(Math.abs(entry-sl),0.50);
+  const tp1=roundToDigits(side==='BULLISH'?entry+risk*1.5:entry-risk*1.5,digits);
+  const tp2=roundToDigits(side==='BULLISH'?entry+risk*2.5:entry-risk*2.5,digits);
+  const tp3=roundToDigits(side==='BULLISH'?entry+risk*3.5:entry-risk*3.5,digits);
+  return {zone:{low:round2(low),high:round2(high)},entry,sl,tp:[tp1,tp2,tp3],preview:true};
+}
+
 function mtfSignalFromTimeframe(tf, a) {
   const t = a?.timeframes?.[tf];
-  const bias = String(t?.structure?.bias || 'NEUTRAL').toUpperCase();
+  const bias = String(t?.structure?.bias || t?.trend || 'NEUTRAL').toUpperCase();
 
-  // The confirmed opportunity is the only source allowed to produce an
-  // actionable BUY/SELL with exact entry/SL/TP values.
+  // A confirmed opportunity remains the only source of an actionable entry.
+  // For the MTF dashboard we also show a directional WATCH setup when the
+  // timeframe has a real ICT FVG/OB zone but its confirmation gates are not ready.
   const op = a?.opportunities?.[tf];
-  if (op && (op.signal === 'BUY' || op.signal === 'SELL') && op.state === 'CONFIRMED') {
-    return {
-      signal: op.signal,
-      zone: op.entryZone || null,
-      entry: op.entry,
-      sl: op.stopLoss,
-      tp: Array.isArray(op.takeProfit) ? op.takeProfit : [],
-      score: op.score,
-      state: 'CONFIRMED'
-    };
+  if (op && (op.signal === 'BUY' || op.signal === 'SELL')) {
+    const side=op.signal;
+    if (op.entryZone && Number.isFinite(Number(op.entry)) && Number.isFinite(Number(op.stopLoss))) {
+      return {
+        signal: side,
+        zone: op.entryZone,
+        entry: op.entry,
+        sl: op.stopLoss,
+        tp: Array.isArray(op.takeProfit) ? op.takeProfit : [],
+        score: op.score,
+        state: op.state === 'CONFIRMED' ? 'CONFIRMED' : 'WATCH'
+      };
+    }
+    const preview=mtfPreviewLevels(tf,a,t,side,op.entryZone);
+    if(preview) return {signal:side,...preview,score:op.score,state:op.state==='CONFIRMED'?'CONFIRMED':'WATCH'};
   }
 
-  // If this timeframe has no confirmed opportunity, report its real directional
-  // bias rather than inventing an entry.
-  if (bias === 'BULLISH') return { signal: 'BULLISH', state: 'WAIT' };
-  if (bias === 'BEARISH') return { signal: 'BEARISH', state: 'WAIT' };
+  if (bias === 'BULLISH' || bias === 'BEARISH') {
+    const side=bias;
+    const fvg=t?.fvg?.found && String(t.fvg.type).toUpperCase()===side ? t.fvg : null;
+    const ob=t?.orderBlock?.found && String(t.orderBlock.type).toUpperCase()===side ? t.orderBlock : null;
+    const zone=fvg || ob;
+    const preview=mtfPreviewLevels(tf,a,t,side,zone);
+    if(preview) return {signal:side,...preview,score:null,state:'WATCH'};
+    return {signal:side,state:'WATCH'};
+  }
 
   return { signal: 'SIDEWAY', state: 'RANGE' };
 }
 
 function telegramMtfText(a) {
   const order = ['M1', 'M5', 'M15', 'H1'];
-  const labels = {M1:'M1', M5:'M5', M15:'M15', H1:'H1'};
   const lines = [];
-
   for (const tf of order) {
-    const s = mtfSignalFromTimeframe(tf, a);
-
-    if (s.signal === 'BUY' || s.signal === 'SELL') {
-      const icon = s.signal === 'BUY' ? '🟢' : '🔴';
-      const zone = s.zone && Number.isFinite(Number(s.zone.low)) &&
-        Number.isFinite(Number(s.zone.high))
-        ? `${formatPrice(s.zone.low)} – ${formatPrice(s.zone.high)}`
-        : '—';
-
+    const s=mtfSignalFromTimeframe(tf,a);
+    const label=tf;
+    if (s.signal==='BUY' || s.signal==='SELL') {
+      const icon=s.signal==='BUY'?'🟢':'🔴';
+      const sideName=s.signal==='BUY'?'Buy':'Sell';
+      const zone=s.zone && Number.isFinite(Number(s.zone.low)) && Number.isFinite(Number(s.zone.high))
+        ? `${formatPrice(s.zone.low)} – ${formatPrice(s.zone.high)}` : '—';
+      const state=s.state==='CONFIRMED'?'CONFIRMED':'WATCH — confirmation pending';
       lines.push(
-        `${icon} *${labels[tf]} ${s.signal}*`,
-        `${s.signal === 'BUY' ? 'Buy' : 'Sell'} Zone: *${zone}*`,
+        `${icon} *${label} ${s.signal}* — ${state}`,
+        `${sideName} Zone: *${zone}*`,
         `Entry: *${formatPrice(s.entry)}*`,
         `SL: *${formatPrice(s.sl)}*`,
-        `TP1: *${formatPrice(s.tp[0])}*`,
-        `TP2: *${formatPrice(s.tp[1])}*`,
-        `TP3: *${formatPrice(s.tp[2])}*`,
-        ''
-      );
-    } else if (s.signal === 'SIDEWAY') {
-      lines.push(
-        `🟡 *${labels[tf]} SIDEWAY*`,
-        `No Trade — wait for breakout / rejection confirmation`,
+        `TP1: *${formatPrice(s.tp?.[0])}*`,
+        `TP2: *${formatPrice(s.tp?.[1])}*`,
+        `TP3: *${formatPrice(s.tp?.[2])}*`,
         ''
       );
     } else {
-      const icon = s.signal === 'BULLISH' ? '🟢' : '🔴';
       lines.push(
-        `${icon} *${labels[tf]} ${s.signal}*`,
-        `No confirmed entry on ${labels[tf]}`,
+        `🟡 *${label} SIDEWAY*`,
+        `No Trade`,
         ''
       );
     }
   }
-
   return lines.join('\n').trim();
 }
 
