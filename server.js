@@ -53,7 +53,11 @@ const autoTradeState = {
   lastAnalysisAt: 0
 };
 
-const APP_VERSION = '7.2.0-AUTO-TRADE';
+const APP_VERSION = '7.2.2-ZONE-AI-AUTO-TELEGRAM';
+const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || 4346.92);
+const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || 4350.54);
+const ZONE_PROXIMITY_ATR = Math.max(0.25, Number(process.env.ZONE_PROXIMITY_ATR || 1.25));
+const ZONE_ALERT_ENABLED = String(process.env.ZONE_ALERT_ENABLED || 'true').toLowerCase() === 'true';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
 const AUTH_SESSION_TTL_MS = Math.max(15 * 60 * 1000, Number(process.env.AUTH_SESSION_TTL_MS || 8 * 60 * 60 * 1000));
 const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));
@@ -292,11 +296,18 @@ const bot = TELEGRAM_TOKEN
   ? new TelegramBot(TELEGRAM_TOKEN, { polling: process.env.RENDER ? false : true })
   : null;
 
+// Owner/admin automatic Telegram alerts. Render does not need browser polling:
+// the server scans the confirmed XAUUSD engine and sends deduplicated alerts itself.
+const TELEGRAM_AUTO_ALERT_ENABLED = String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase() === 'true';
+const TELEGRAM_AUTO_ALERT_INTERVAL_MS = Math.max(5000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 15000));
+let telegramAutoAlertRunning = false;
+
 // Per-user Telegram connections. The bot token is server-side only.
 // Render restarts clear this in-memory map; users can reconnect from Telegram Setup.
 const telegramSessions = new Map();
 const telegramAlertKeys = new Map();
 const telegramNewsKeys = new Map();
+const telegramZoneKeys = new Map();
 const MAX_TELEGRAM_SESSIONS = 1000;
 
 function sessionIdFrom(req) {
@@ -317,6 +328,7 @@ function getSessionConfig(req) {
     telegramSessions.delete(sid);
     telegramAlertKeys.delete(sid);
     telegramNewsKeys.delete(sid);
+    telegramZoneKeys.delete(sid);
     return null;
   }
   return session;
@@ -1131,7 +1143,7 @@ function evaluateOpportunityHorizon({key,label,minutes,candles,higherBiases,live
     const risk=Math.max(Math.abs(entry-stopLoss),0.5);
     const target=nearestTarget(entry,side,candles);
     const tp1=target && (side==='BULLISH'?target>entry:target<entry) ? target : (side==='BULLISH'?entry+risk*minRR:entry-risk*minRR);
-    takeProfit=[roundToDigits(tp1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+1):entry-risk*(minRR+1),live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+2):entry-risk*(minRR+2),live.digits)];
+    takeProfit=[roundToDigits(tp1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+1):entry-risk*(minRR+1),live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+2):entry-risk*(minRR+2),live.digits),roundToDigits(side==='BULLISH'?entry+risk*(minRR+3.5):entry-risk*(minRR+3.5),live.digits)];
     riskReward=Number((Math.abs(takeProfit[0]-entry)/risk).toFixed(2));
   }
   const setupReady=score>=threshold && htfOk && structureOk && (sweepOk || bosOk) && (alignedFvg||alignedOb) && pdOk && (displacementOk||momentumOk) && trendOk && Number(riskReward||0)>=minRR && (retestOk||zoneIsNear);
@@ -1163,12 +1175,14 @@ async function openAIConfirmXauAnalysis(a) {
     score:a.score, confirmations:a.confirmations, decision:a.decision,
     mt5:{brokerConnected:a.brokerConnected,feedMode:a.feedMode,bid:a.bid,ask:a.ask,spread:a.spread},
     mtf:a.mtf, ict:a.ict,
-    timeframes:Object.fromEntries(Object.entries(a.timeframes||{}).map(([tf,v])=>[tf,{bias:v?.structure?.bias,rsi:v?.rsi,macd:v?.macd,adx:v?.adx,structure:v?.structure,liquiditySweep:v?.liquiditySweep}]))
+    timeframes:Object.fromEntries(Object.entries(a.timeframes||{}).map(([tf,v])=>[tf,{bias:v?.structure?.bias,rsi:v?.rsi,macd:v?.macd,adx:v?.adx,structure:v?.structure,liquiditySweep:v?.liquiditySweep}])),
+    zoneRadar:a.zoneRadar, referenceZone:a.referenceZone, entryTiming:a.entryTiming
   };
   const system = `You are the independent AI confirmation layer for V-TRADE AI XAUUSD.\n`+
     `Analyze ONLY the supplied broker-native MT5/ICT data. Do not invent prices, candles, news, or confirmations.\n`+
     `You are NOT allowed to override the deterministic risk/entry gate. If the engine says WAIT/NO TRADE or mandatory gates are missing, recommend WAIT.\n`+
     `A BUY/SELL recommendation is valid only when the supplied evidence supports liquidity + MSS/BOS + aligned FVG/OB + displacement/momentum + premium/discount + MTF alignment + acceptable RR/spread.\n`+
+    `Evaluate every supplied zone independently. For the configured EX Zone 4346.92-4350.54, label BULLISH, BEARISH, or WAIT from the live evidence; never force a direction. Prefer event-based entry timing (zone touch + M1 confirmation) over inventing an exact future clock time.\n`+
     `Return strict JSON with: decision (BUY|SELL|WAIT), confidence (0-100), agreement (AGREE|DISAGREE|NEUTRAL), reasons (array of short strings), missingConfirmations (array), riskFlags (array), summary (string).`;
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),OPENAI_TIMEOUT_MS);
@@ -1303,7 +1317,7 @@ async function buildXauAnalysis() {
     const buffer=Math.max(a*0.35,0.8);
     sl=side==='BULLISH'?roundToDigits(z.low-buffer,live.digits):roundToDigits(z.high+buffer,live.digits);
     const risk=Math.max(Math.abs(entry-sl),0.5),structureTarget=nearestTarget(entry,side,m5),minTp1=side==='BULLISH'?entry+risk*1.8:entry-risk*1.8,target1=structureTarget&&(side==='BULLISH'?structureTarget>minTp1:structureTarget<minTp1)?structureTarget:minTp1;
-    tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*2.7:entry-risk*2.7,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3.8:entry-risk*3.8,live.digits)];
+    tp=[roundToDigits(target1,live.digits),roundToDigits(side==='BULLISH'?entry+risk*2.7:entry-risk*2.7,live.digits),roundToDigits(side==='BULLISH'?entry+risk*3.8:entry-risk*3.8,live.digits),roundToDigits(side==='BULLISH'?entry+risk*4.8:entry-risk*4.8,live.digits)];
     const rr=Number((Math.abs(tp[0]-entry)/risk).toFixed(2));
     status=limitEntry?'ENTRY CONFIRMED — LIMIT':'ENTRY CONFIRMED — MARKET';
     trigger=`${side} confirmed: ${sweepOk?'liquidity sweep + ':''}${mssOk?'MSS + ':''}${bosOk?'BOS + ':''}${displacementOk?'displacement + ':''}${alignedFvg?'FVG':'OB'} ${limitEntry?'limit zone':'retest'} · RR ${rr}`;
@@ -1371,10 +1385,86 @@ aiReasoning:{
 },
 performance:{analysisMs:Date.now()-analysisStartedAt,cacheMs:ANALYSIS_CACHE_MS,scanIntervalMs:AI_FAST_SCAN_MS},
 riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  result.zoneRadar=buildZoneRadar(result);
+  result.entryTiming=result.zoneRadar.entryTiming;
+  result.referenceZone=result.zoneRadar.referenceZone;
   analysisCache.key = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
   analysisCache.at = Date.now();
   analysisCache.data = result;
   return result;
+}
+
+function zoneBiasFromEvidence(a, zone) {
+  const live=Number(a?.livePrice);
+  const bias=String(a?.bias || 'NEUTRAL').toUpperCase();
+  const signal=String(a?.signal || 'WAIT').toUpperCase();
+  const inside=zoneContains(live, zone);
+  const distance=zoneDistance(live, zone);
+  const atr=Number(a?.timeframes?.M5?.atr || a?.timeframes?.M15?.atr || 0);
+  const near=inside || distance <= Math.max(atr*ZONE_PROXIMITY_ATR, 2);
+  const ictSide=signal==='BUY'?'BULLISH':signal==='SELL'?'BEARISH':bias;
+  let direction='WAIT';
+  let reason='No confirmed direction for this zone';
+  if (inside) {
+    if (signal==='BUY' && a?.confirmations?.allGatesPassed===true) { direction='BULLISH'; reason='Price is inside zone and broker-native BUY gates are confirmed'; }
+    else if (signal==='SELL' && a?.confirmations?.allGatesPassed===true) { direction='BEARISH'; reason='Price is inside zone and broker-native SELL gates are confirmed'; }
+    else if (bias==='BULLISH' || bias==='BEARISH') { direction=bias; reason=`Price is inside zone; ${bias} is the current MTF bias, but entry confirmation is pending`; }
+  } else if (near) {
+    if (bias==='BULLISH' && zone.high <= live) { direction='BULLISH'; reason='Bullish discount/pullback zone is near price'; }
+    else if (bias==='BEARISH' && zone.low >= live) { direction='BEARISH'; reason='Bearish premium/retest zone is near price'; }
+    else if (signal==='BUY' || signal==='SELL') { direction=ictSide; reason=`Zone is near price and current execution side is ${ictSide}`; }
+  } else if (bias==='BULLISH' && zone.high < live) {
+    direction='BULLISH'; reason='Zone is below live price and aligned with bullish pullback logic';
+  } else if (bias==='BEARISH' && zone.low > live) {
+    direction='BEARISH'; reason='Zone is above live price and aligned with bearish retest logic';
+  }
+  return {direction,inside,near,distance:round2(distance),reason};
+}
+
+function zoneProfile(a, zone, label='ZONE') {
+  if (!zone || !Number.isFinite(Number(zone.low)) || !Number.isFinite(Number(zone.high))) return null;
+  const low=Math.min(Number(zone.low),Number(zone.high)), high=Math.max(Number(zone.low),Number(zone.high));
+  const width=round2(high-low);
+  const atr=Number(a?.timeframes?.M5?.atr || a?.timeframes?.M15?.atr || 0);
+  const rangeType=width <= Math.max(2, atr*0.75) ? 'SHORT' : 'LONG';
+  const evidence=zoneBiasFromEvidence(a,{low,high});
+  const confirmed=['BUY','SELL'].includes(String(a?.signal||'')) && a?.confirmations?.allGatesPassed===true;
+  let entryTiming='WAIT — confirmation pending';
+  if (confirmed) entryTiming=String(a.entryMode||'MARKET').toUpperCase()==='MARKET' ? 'NOW — broker-native confirmation passed' : 'LIMIT — wait for zone touch + M1 confirmation';
+  else if (evidence.near) entryTiming='NEAR — wait for fresh M1 sweep + MSS/BOS + displacement';
+  return {label,low:round2(low),high:round2(high),width,rangeType,direction:evidence.direction,inside:evidence.inside,near:evidence.near,distance:evidence.distance,reason:evidence.reason,entryTiming};
+}
+
+function buildZoneRadar(a) {
+  const reference=zoneProfile(a,{low:EX_ZONE_LOW,high:EX_ZONE_HIGH},'EX ZONE');
+  const zones=[];
+  if(reference) zones.push(reference);
+  const seen=new Set([`${EX_ZONE_LOW}:${EX_ZONE_HIGH}`]);
+  for(const [key,o] of Object.entries(a?.opportunities||{})) {
+    if (!o?.entryZone) continue;
+    const k=`${Number(o.entryZone.low)}:${Number(o.entryZone.high)}`;
+    if(seen.has(k)) continue;
+    seen.add(k);
+    zones.push(zoneProfile(a,o.entryZone,`${key} ${o.entryZone.type||'ZONE'}`));
+  }
+  if (a?.candidateZone) {
+    const k=`${Number(a.candidateZone.low)}:${Number(a.candidateZone.high)}`;
+    if(!seen.has(k)) zones.push(zoneProfile(a,a.candidateZone,`ENGINE ${a.candidateZone.type||'ZONE'}`));
+  }
+  const confirmed=['BUY','SELL'].includes(String(a?.signal||'')) && a?.confirmations?.allGatesPassed===true;
+  const entryTiming = confirmed
+    ? (String(a.entryMode||'MARKET').toUpperCase()==='MARKET' ? 'NOW — confirmed market entry' : 'LIMIT — enter only after price reaches the calculated zone')
+    : 'WAIT — no exact future clock time is guaranteed; enter only after live confirmation';
+  const scanTimeLocal=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Phnom_Penh',dateStyle:'short',timeStyle:'medium'}).format(new Date(a?.timestamp||Date.now()));
+  return {
+    referenceZone:reference,
+    zones,
+    direction: String(a?.signal||'WAIT')==='BUY'?'BULLISH':String(a?.signal||'WAIT')==='SELL'?'BEARISH':String(a?.bias||'NEUTRAL'),
+    entryTiming,
+    scanTimeLocal,
+    exactClockForecast:false,
+    note:'Entry timing is event-based, not a guaranteed clock-time forecast. Zones are recalculated from live VT Markets MT5 candles/quote.'
+  };
 }
 
 function telegramText(a) {
@@ -1390,10 +1480,13 @@ function telegramText(a) {
     `SL: *${a.stopLoss}*\n`+
     `TP1: *${tp[0] ?? '—'}*\n`+
     `TP2: *${tp[1] ?? '—'}*\n`+
-    `TP3: *${tp[2] ?? '—'}*\n\n`+
+    `TP3: *${tp[2] ?? '—'}*\n`+
+    `TP4: *${tp[3] ?? '—'}*\n\n`+
     `Mode: *${a.entryMode || 'MARKET'}*\n`+`Broker: *VT Markets MT5*\n`+
     `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
     `Score: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
+    `EX Zone: *${a.referenceZone?.low ?? EX_ZONE_LOW}–${a.referenceZone?.high ?? EX_ZONE_HIGH}* | Bias: *${a.referenceZone?.direction ?? a.bias}* | ${a.referenceZone?.rangeType ?? '—'} zone\n`+
+    `Entry timing: *${a.entryTiming || 'WAIT'}*\n`+
     `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
     `⚠️ Broker-native quote at scan time. Verify MT5 quote/spread before execution.`;
 }
@@ -1420,6 +1513,27 @@ async function maybeTelegramAlert(a, tg, sessionId) {
     }
   }
 
+  // Reference-zone radar: state-change based, so it does not spam every scan.
+  if (ZONE_ALERT_ENABLED && a?.zoneRadar?.referenceZone) {
+    const z=a.zoneRadar.referenceZone;
+    const state=`${z.direction}:${z.inside?'IN':z.near?'NEAR':'FAR'}:${a.signal}:${a.entryMode}`;
+    if (telegramZoneKeys.get(dedupeKey)!==state && (z.inside || z.near)) {
+      const icon=z.direction==='BULLISH'?'🟢':z.direction==='BEARISH'?'🔴':'🟡';
+      const msg=`${icon} V TRADE AI — XAUUSD ZONE RADAR\n\n`+
+        `EX Zone: ${z.low}–${z.high}\n`+
+        `AI Direction: ${z.direction}\n`+
+        `Zone Type: ${z.rangeType}\n`+
+        `Distance: ${z.distance}\n`+
+        `Status: ${z.inside?'PRICE INSIDE ZONE':'PRICE NEAR ZONE'}\n`+
+        `Timing: ${z.entryTiming}\n`+
+        `Reason: ${z.reason}\n\n`+
+        `⚠️ Zone alert is not an entry order. Wait for live ICT confirmation.`;
+      await tg.bot.sendMessage(tg.chatId,msg);
+      sent=true;
+    }
+    telegramZoneKeys.set(dedupeKey,state);
+  }
+
   // Entry alerts remain strict and deduplicated.
   const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
   if(actionable && Number(a.confidence || 0) >= Number(process.env.TELEGRAM_MIN_SCORE || 80) && (!o || o.state==='CONFIRMED')) {
@@ -1431,6 +1545,22 @@ async function maybeTelegramAlert(a, tg, sessionId) {
     }
   }
   return sent;
+}
+
+async function runTelegramAutoAlertScan() {
+  if (!TELEGRAM_AUTO_ALERT_ENABLED || !bot || !TELEGRAM_CHAT_ID || telegramAutoAlertRunning) return;
+  telegramAutoAlertRunning = true;
+  try {
+    const a = await buildXauAnalysis();
+    const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };
+    const sent = await maybeTelegramAlert(a, tg, `env:${TELEGRAM_CHAT_ID}`);
+    if (sent) console.log('[TELEGRAM AUTO] Alert sent');
+  } catch (e) {
+    // MT5 feed/news can be temporarily unavailable. Fail closed: never manufacture an alert.
+    console.warn('[TELEGRAM AUTO] Scan skipped:', e?.message || e);
+  } finally {
+    telegramAutoAlertRunning = false;
+  }
 }
 
 app.get('/api/v5/news/diagnostics', async (_req,res) => {
@@ -1642,7 +1772,7 @@ app.get('/api/v7/mt5/auto-signal', async (req, res) => {
       magic: AUTO_TRADE_MAGIC,
       entry: Number(a.entry),
       stopLoss: Number(a.stopLoss),
-      takeProfit: Array.isArray(a.takeProfit) ? a.takeProfit.slice(0,3).map(Number).filter(Number.isFinite) : [],
+      takeProfit: Array.isArray(a.takeProfit) ? a.takeProfit.slice(0,4).map(Number).filter(Number.isFinite) : [],
       score,
       timeframe: a.executionTimeframe || 'M5',
       entryMode,
@@ -1773,6 +1903,7 @@ app.post('/api/telegram/disconnect',telegramMutationLimit,(req,res)=>{
   if(sid) {
     telegramSessions.delete(sid);
     telegramAlertKeys.delete(sid);
+    telegramZoneKeys.delete(sid);
   }
   res.json({success:true,connected:false});
 });
@@ -1806,7 +1937,8 @@ app.post('/telegram/webhook',async(req,res)=>{
   res.sendStatus(200);
 });
 
-setInterval(()=>{ const now=Date.now(); for (const [token,session] of authSessions) { if (!session.expiresAt || now>=session.expiresAt) authSessions.delete(token); } for (const [token,expiresAt] of revokedAuthTokens) { if (now>=expiresAt) revokedAuthTokens.delete(token); } for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid); } } }, 10*60*1000);
+setInterval(()=>{ const now=Date.now(); for (const [token,session] of authSessions) { if (!session.expiresAt || now>=session.expiresAt) authSessions.delete(token); } for (const [token,expiresAt] of revokedAuthTokens) { if (now>=expiresAt) revokedAuthTokens.delete(token); } for (const [sid,session] of telegramSessions) { if (!session.expiresAt || now>=session.expiresAt) { telegramSessions.delete(sid); telegramAlertKeys.delete(sid); telegramNewsKeys.delete(sid);
+    telegramZoneKeys.delete(sid); } } }, 10*60*1000);
 
 if(bot){
   bot.onText(/^\/price$/,async msg=>{
@@ -1845,4 +1977,14 @@ app.use((err,req,res,next)=>{
     console.log(`[AUTH] Loaded ${storedAuth.length} persisted password override(s)`);
   } catch (e) { console.error('[AUTH] Failed to load persisted credentials:', e.message); }
   setInterval(()=>storage.cleanup().catch(()=>{}), 6*60*60*1000);
-  app.listen(PORT,HOST,()=>console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`)); })();
+  app.listen(PORT,HOST,()=>{
+    console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`);
+    if (TELEGRAM_AUTO_ALERT_ENABLED && bot && TELEGRAM_CHAT_ID) {
+      console.log(`[TELEGRAM AUTO] Enabled — interval ${TELEGRAM_AUTO_ALERT_INTERVAL_MS}ms`);
+      runTelegramAutoAlertScan().catch(()=>{});
+      setInterval(()=>runTelegramAutoAlertScan().catch(()=>{}), TELEGRAM_AUTO_ALERT_INTERVAL_MS);
+    } else {
+      console.log('[TELEGRAM AUTO] Disabled or Telegram env credentials missing');
+    }
+  });
+})();
