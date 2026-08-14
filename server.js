@@ -1529,6 +1529,22 @@ function buildZoneRadar(a) {
   };
 }
 
+function telegramWaitText(a) {
+  const score=Number(a?.directionScore ?? a?.aiScore ?? 0);
+  const blocked=Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0,6) : [];
+  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
+  const icon=bias==='BEARISH'?'🔴':bias==='BULLISH'?'🟢':'🟡';
+  return `${icon} *V TRADE AI — XAUUSD WAIT*\n\n`+
+    `Price: *${Number(a?.livePrice ?? a?.bid ?? 0).toFixed(2)}*\n`+
+    `Bias: *${bias}*\n`+
+    `Direction Score: *${score}/100*\n`+
+    `Confidence: *${Number(a?.confidence ?? 0)}/100*\n`+
+    `Status: *${a?.status || 'NO TRADE — confirmation pending'}*\n\n`+
+    `Waiting for:\n${blocked.length ? blocked.map(x=>`• ${x}`).join('\n') : '• Final ICT entry confirmation'}\n\n`+
+    `⚠️ WAIT only — no order is authorized until all entry gates pass.\n`+
+    `Broker: *VT Markets MT5* | Quote age: *${a?.priceAgeSec ?? '—'}s*`;
+}
+
 function telegramText(a) {
   const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
   if (!actionable) throw new Error('No confirmed broker-native entry. Telegram Entry alert blocked.');
@@ -2002,18 +2018,8 @@ app.get('/api/analysis/xauusd',async(req,res)=>{
     storage.saveAnalysis(a).catch(()=>{});
     maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
-    const reason=String(e?.message||'ICT analysis temporarily unavailable');
-    console.error('ICT analysis:',reason);
-    if (analysisCache.data) {
-      return res.json({
-        success:true,
-        cached:true,
-        cacheAgeSec:Math.max(0,Math.round((Date.now()-analysisCache.at)/1000)),
-        warning:'Live analysis temporarily unavailable; returning latest deterministic analysis.',
-        ...analysisCache.data
-      });
-    }
-    res.status(503).json({success:false,error:'ICT analysis temporarily unavailable',detail:reason.slice(0,220)});
+    console.error('ICT analysis:',e.message);
+    res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});
   }
 });
 
@@ -2128,18 +2134,21 @@ if(bot){
   bot.onText(/^\/signal$/,async msg=>{
     try {
       const a=await buildXauAnalysis();
-      await bot.sendMessage(msg.chat.id,telegramText(a));
-    } catch(e) {
+      const isEntry=['BUY','SELL'].includes(String(a?.signal||'')) &&
+        (a?.status === 'ENTRY CONFIRMED' || String(a?.status||'').includes('ENTRY CONFIRMED')) &&
+        Number.isFinite(Number(a?.entry)) &&
+        (a?.bestOpportunity || a?.confirmations?.allGatesPassed === true);
+      await bot.sendMessage(msg.chat.id, isEntry ? telegramText(a) : telegramWaitText(a));
+    } catch(e){
       const reason=String(e?.message||'Unknown analysis error');
       console.error(`[TELEGRAM /signal] Analysis blocked: ${reason}`);
-
-      // If the realtime build hits a transient news/MT5/cache race, use the
-      // most recent deterministic analysis already produced by the auto scanner.
-      // Never invent a signal; clearly mark it as cached.
       if (analysisCache.data) {
-        const cached={...analysisCache.data, cached:true, cacheAgeSec:Math.max(0,Math.round((Date.now()-analysisCache.at)/1000))};
-        await bot.sendMessage(msg.chat.id,telegramText(cached));
-        console.warn(`[TELEGRAM /signal] Served cached analysis after transient error: ${reason}`);
+        const cached={...analysisCache.data,cached:true,cacheAgeSec:Math.max(0,Math.round((Date.now()-analysisCache.at)/1000))};
+        const isEntry=['BUY','SELL'].includes(String(cached?.signal||'')) &&
+          (cached?.status === 'ENTRY CONFIRMED' || String(cached?.status||'').includes('ENTRY CONFIRMED')) &&
+          Number.isFinite(Number(cached?.entry)) &&
+          (cached?.bestOpportunity || cached?.confirmations?.allGatesPassed === true);
+        await bot.sendMessage(msg.chat.id, isEntry ? telegramText(cached) : telegramWaitText(cached));
       } else {
         await bot.sendMessage(msg.chat.id,`⚠️ ICT analysis unavailable.\nReason: ${reason.slice(0,220)}`);
       }
