@@ -299,7 +299,7 @@ const bot = TELEGRAM_TOKEN
 // Owner/admin automatic Telegram alerts. Render does not need browser polling:
 // the server scans the confirmed XAUUSD engine and sends deduplicated alerts itself.
 const TELEGRAM_AUTO_ALERT_ENABLED = String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase() === 'true';
-const TELEGRAM_AUTO_ALERT_INTERVAL_MS = Math.max(5000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 15000));
+const TELEGRAM_AUTO_ALERT_INTERVAL_MS = Math.max(5000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 5000));
 let telegramAutoAlertRunning = false;
 
 // Per-user Telegram connections. The bot token is server-side only.
@@ -1232,7 +1232,17 @@ async function buildXauAnalysis() {
   const newsPromise = fetchXauNews();
   const rawM1=parseBrokerCandles('M1'),rawM5=parseBrokerCandles('M5'),rawM15=parseBrokerCandles('M15'),rawH1=parseBrokerCandles('H1'),rawH4=parseBrokerCandles('H4'),rawD1=parseBrokerCandles('D1'),rawW1=parseBrokerCandles('W1');
   const live=brokerLivePrice();
-  if(!live||!rawM5||!rawM15||!rawH1||!rawH4) throw new Error('VT Markets MT5 feed not ready');
+  const readinessMissing=[];
+  if(!live) readinessMissing.push('QUOTE');
+  for (const tf of ['M5','M15','H1','H4']) {
+    const rows = {M5:rawM5,M15:rawM15,H1:rawH1,H4:rawH4}[tf];
+    if(!rows) readinessMissing.push(tf);
+  }
+  if(readinessMissing.length) {
+    const age = brokerFeed.quote ? Math.max(0,Math.round((Date.now()-brokerFeed.receivedAt)/1000)) : null;
+    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;
+    throw new Error(detail);
+  }
   // Structure/ICT decisions use CLOSED candles; live quote remains the execution price.
   const m1=rawM1?closedCandles(rawM1,1):[],m5=closedCandles(rawM5,5),m15=closedCandles(rawM15,15),h1=closedCandles(rawH1,60),h4=closedCandles(rawH4,240),d1=rawD1?closedCandles(rawD1,1440):[],w1=rawW1?closedCandles(rawW1,10080):[];
   if(m5.length<AI_MIN_BARS||m15.length<30||h1.length<30||h4.length<30) throw new Error('VT Markets MT5 closed-candle history not ready');
@@ -1603,17 +1613,55 @@ async function maybeTelegramAlert(a, tg, sessionId) {
   return sent;
 }
 
+let telegramAutoLastReadinessLog = '';
+let telegramAutoLastState = '';
+
+function telegramAutoReadinessSnapshot() {
+  const q=brokerFeed.quote;
+  const ageSec=q ? Math.max(0,Math.round((Date.now()-brokerFeed.receivedAt)/1000)) : null;
+  const required=['M5','M15','H1','H4'];
+  const frames={};
+  for (const tf of required) {
+    const arr=brokerFeed.timeframes?.[tf];
+    frames[tf]=Array.isArray(arr)?arr.length:0;
+  }
+  const connected=brokerFeedFresh();
+  const ready=connected && required.every(tf=>frames[tf]>=30);
+  return {ready,connected,ageSec,frames};
+}
+
 async function runTelegramAutoAlertScan() {
   if (!TELEGRAM_AUTO_ALERT_ENABLED || !bot || !TELEGRAM_CHAT_ID || telegramAutoAlertRunning) return;
   telegramAutoAlertRunning = true;
   try {
+    const r=telegramAutoReadinessSnapshot();
+    const readinessKey=`${r.ready?'READY':'NOT_READY'}:${r.connected?'CONNECTED':'DISCONNECTED'}:${r.frames.M5}:${r.frames.M15}:${r.frames.H1}:${r.frames.H4}`;
+    if (readinessKey !== telegramAutoLastReadinessLog) {
+      if (r.ready) {
+        console.log(`[TELEGRAM AUTO] MT5 READY | ageSec=${r.ageSec} | M5=${r.frames.M5} M15=${r.frames.M15} H1=${r.frames.H1} H4=${r.frames.H4}`);
+      } else {
+        console.warn(`[TELEGRAM AUTO] Waiting for MT5 MTF | connected=${r.connected} ageSec=${r.ageSec===null?'null':r.ageSec} | M5=${r.frames.M5} M15=${r.frames.M15} H1=${r.frames.H1} H4=${r.frames.H4}`);
+      }
+      telegramAutoLastReadinessLog=readinessKey;
+    }
+    if (!r.ready) return;
+
     const a = await buildXauAnalysis();
     const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };
     const sent = await maybeTelegramAlert(a, tg, `env:${TELEGRAM_CHAT_ID}`);
-    if (sent) console.log('[TELEGRAM AUTO] Alert sent');
+    const stateKey=`${a.signal}:${a.status}:${a.directionScore ?? a.aiScore ?? '-'}:${a.confirmations?.allGatesPassed===true}`;
+    if (stateKey !== telegramAutoLastState) {
+      if (sent) console.log(`[TELEGRAM AUTO] Alert sent | signal=${a.signal} | score=${a.directionScore ?? a.aiScore ?? '-'} | status=${a.status}`);
+      else console.log(`[TELEGRAM AUTO] Scan OK | signal=${a.signal} | bias=${a.bias} | score=${a.directionScore ?? a.aiScore ?? '-'} | status=${a.status} | gates=${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`);
+      telegramAutoLastState=stateKey;
+    }
   } catch (e) {
-    // MT5 feed/news can be temporarily unavailable. Fail closed: never manufacture an alert.
-    console.warn('[TELEGRAM AUTO] Scan skipped:', e?.message || e);
+    // Fail closed: never manufacture an alert. Log the exact readiness/analysis reason.
+    const msg=String(e?.message || e);
+    if (msg !== telegramAutoLastState) {
+      console.warn('[TELEGRAM AUTO] Scan blocked:', msg);
+      telegramAutoLastState=msg;
+    }
   } finally {
     telegramAutoAlertRunning = false;
   }
@@ -1687,6 +1735,19 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     storage.saveQuote(q).catch(()=>{});
     res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
   } catch(e){ res.status(400).json({success:false,error:'Invalid MT5 payload'}); }
+});
+
+app.get('/api/v5/mt5/readiness',(_req,res)=>{
+  const q=brokerFeed.quote;
+  const ageSec=q?Math.max(0,Math.round((Date.now()-brokerFeed.receivedAt)/1000)):null;
+  const frames={};
+  for (const tf of ['M1','M5','M15','H1','H4','D1','W1']) {
+    const arr=brokerFeed.timeframes?.[tf];
+    frames[tf]={available:Array.isArray(arr)&&arr.length>=30,bars:Array.isArray(arr)?arr.length:0};
+  }
+  const required=['M5','M15','H1','H4'];
+  const ready=brokerFeedFresh() && required.every(tf=>frames[tf].available);
+  res.json({success:true,ready,connected:brokerFeedFresh(),feedMode:'VT Markets MT5',symbol:brokerFeed.symbol,ageSec,maxAgeMs:MT5_MAX_AGE_MS,required,frames});
 });
 
 app.get('/api/v5/mt5/status',(_req,res)=>{
@@ -2037,6 +2098,7 @@ app.use((err,req,res,next)=>{
     console.log(`V TRADE AI v${APP_VERSION} Smart Entry PRO server listening on ${HOST}:${PORT}`);
     if (TELEGRAM_AUTO_ALERT_ENABLED && bot && TELEGRAM_CHAT_ID) {
       console.log(`[TELEGRAM AUTO] Enabled — interval ${TELEGRAM_AUTO_ALERT_INTERVAL_MS}ms`);
+      console.log('[TELEGRAM AUTO] Waiting for broker-native MT5 quote + M5/M15/H1/H4 history before scanning.');
       runTelegramAutoAlertScan().catch(()=>{});
       setInterval(()=>runTelegramAutoAlertScan().catch(()=>{}), TELEGRAM_AUTO_ALERT_INTERVAL_MS);
     } else {
