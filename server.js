@@ -552,7 +552,7 @@ const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];
 const MIN_MTF_ALIGNMENT = Math.max(2, Math.min(3, Number(process.env.MIN_MTF_ALIGNMENT || 2)));
 const MIN_ENTRY_SCORE = Math.max(65, Math.min(95, Number(process.env.MIN_ENTRY_SCORE || MIN_CONFLUENCE)));
 const NEWS_FAIL_CLOSED = String(process.env.NEWS_FAIL_CLOSED || 'false').toLowerCase() === 'true';
-const AI_ENGINE_VERSION = 'advanced-mtf-ict-v7.0.0-full-signal-engine';
+const AI_ENGINE_VERSION = 'advanced-mtf-ict-v7.2.3-long-term-zone-engine';
 const AI_MIN_BARS = Number(process.env.AI_MIN_BARS || 50);
 const AI_RSI_PERIOD = Number(process.env.AI_RSI_PERIOD || 14);
 const AI_ADX_PERIOD = Number(process.env.AI_ADX_PERIOD || 14);
@@ -1182,7 +1182,7 @@ async function openAIConfirmXauAnalysis(a) {
     `Analyze ONLY the supplied broker-native MT5/ICT data. Do not invent prices, candles, news, or confirmations.\n`+
     `You are NOT allowed to override the deterministic risk/entry gate. If the engine says WAIT/NO TRADE or mandatory gates are missing, recommend WAIT.\n`+
     `A BUY/SELL recommendation is valid only when the supplied evidence supports liquidity + MSS/BOS + aligned FVG/OB + displacement/momentum + premium/discount + MTF alignment + acceptable RR/spread.\n`+
-    `Evaluate every supplied zone independently. For the configured EX Zone 4346.92-4350.54, label BULLISH, BEARISH, or WAIT from the live evidence; never force a direction. Prefer event-based entry timing (zone touch + M1 confirmation) over inventing an exact future clock time.\n`+
+    `Evaluate every supplied zone independently. EX Zone values are optional runtime configuration only; when not configured, derive dynamic zones from broker-native W1/D1/H4 FVG and Order Block evidence. Label each zone BULLISH, BEARISH, or WAIT from live evidence; never force a direction. Prefer event-based entry timing (zone touch + M1 confirmation) over inventing an exact future clock time.\n`+
     `Return strict JSON with: decision (BUY|SELL|WAIT), confidence (0-100), agreement (AGREE|DISAGREE|NEUTRAL), reasons (array of short strings), missingConfirmations (array), riskFlags (array), summary (string).`;
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),OPENAI_TIMEOUT_MS);

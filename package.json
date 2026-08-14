@@ -1,6 +1,6 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "7.2.0",
+  "version": "7.2.3",
   "description": "V Trade AI XAUUSD MTF ICT + Auto-Trade MT5 Execution + Profit-Lock Trailing",
   "main": "server.js",
   "scripts": {
