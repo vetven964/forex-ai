@@ -1,4 +1,4 @@
-require('dotenv').config();
+// V-TRADE AI — FULL MTF SIGNAL DISPLAY (M1/M5/M15/H1)\nrequire('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -1529,25 +1529,114 @@ function buildZoneRadar(a) {
   };
 }
 
+function formatPrice(n) {
+  return Number.isFinite(Number(n)) ? Number(n).toFixed(2) : '—';
+}
+
+function mtfSignalFromTimeframe(tf, a) {
+  const t = a?.timeframes?.[tf];
+  const bias = String(t?.structure?.bias || 'NEUTRAL').toUpperCase();
+
+  // The confirmed opportunity is the only source allowed to produce an
+  // actionable BUY/SELL with exact entry/SL/TP values.
+  const op = a?.opportunities?.[tf];
+  if (op && (op.signal === 'BUY' || op.signal === 'SELL') && op.state === 'CONFIRMED') {
+    return {
+      signal: op.signal,
+      zone: op.entryZone || null,
+      entry: op.entry,
+      sl: op.stopLoss,
+      tp: Array.isArray(op.takeProfit) ? op.takeProfit : [],
+      score: op.score,
+      state: 'CONFIRMED'
+    };
+  }
+
+  // If this timeframe has no confirmed opportunity, report its real directional
+  // bias rather than inventing an entry.
+  if (bias === 'BULLISH') return { signal: 'BULLISH', state: 'WAIT' };
+  if (bias === 'BEARISH') return { signal: 'BEARISH', state: 'WAIT' };
+
+  return { signal: 'SIDEWAY', state: 'RANGE' };
+}
+
+function telegramMtfText(a) {
+  const order = ['M1', 'M5', 'M15', 'H1'];
+  const labels = {M1:'M1', M5:'M5', M15:'M15', H1:'H1'};
+  const lines = [];
+
+  for (const tf of order) {
+    const s = mtfSignalFromTimeframe(tf, a);
+
+    if (s.signal === 'BUY' || s.signal === 'SELL') {
+      const icon = s.signal === 'BUY' ? '🟢' : '🔴';
+      const zone = s.zone && Number.isFinite(Number(s.zone.low)) &&
+        Number.isFinite(Number(s.zone.high))
+        ? `${formatPrice(s.zone.low)} – ${formatPrice(s.zone.high)}`
+        : '—';
+
+      lines.push(
+        `${icon} *${labels[tf]} ${s.signal}*`,
+        `${s.signal === 'BUY' ? 'Buy' : 'Sell'} Zone: *${zone}*`,
+        `Entry: *${formatPrice(s.entry)}*`,
+        `SL: *${formatPrice(s.sl)}*`,
+        `TP1: *${formatPrice(s.tp[0])}*`,
+        `TP2: *${formatPrice(s.tp[1])}*`,
+        `TP3: *${formatPrice(s.tp[2])}*`,
+        ''
+      );
+    } else if (s.signal === 'SIDEWAY') {
+      lines.push(
+        `🟡 *${labels[tf]} SIDEWAY*`,
+        `No Trade — wait for breakout / rejection confirmation`,
+        ''
+      );
+    } else {
+      const icon = s.signal === 'BULLISH' ? '🟢' : '🔴';
+      lines.push(
+        `${icon} *${labels[tf]} ${s.signal}*`,
+        `No confirmed entry on ${labels[tf]}`,
+        ''
+      );
+    }
+  }
+
+  return lines.join('\n').trim();
+}
+
 function telegramWaitText(a) {
-  const score=Number(a?.directionScore ?? a?.aiScore ?? 0);
-  const blocked=Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0,6) : [];
-  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
-  const icon=bias==='BEARISH'?'🔴':bias==='BULLISH'?'🟢':'🟡';
-  return `${icon} *V TRADE AI — XAUUSD WAIT*\n\n`+
-    `Price: *${Number(a?.livePrice ?? a?.bid ?? 0).toFixed(2)}*\n`+
-    `Bias: *${bias}*\n`+
-    `Direction Score: *${score}/100*\n`+
-    `Confidence: *${Number(a?.confidence ?? 0)}/100*\n`+
-    `Status: *${a?.status || 'NO TRADE — confirmation pending'}*\n\n`+
-    `Waiting for:\n${blocked.length ? blocked.map(x=>`• ${x}`).join('\n') : '• Final ICT entry confirmation'}\n\n`+
-    `⚠️ WAIT only — no order is authorized until all entry gates pass.\n`+
+  const score = Number(a?.directionScore ?? a?.aiScore ?? 0);
+  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
+  const blocked = Array.isArray(a?.score?.blockedReasons)
+    ? a.score.blockedReasons.slice(0, 6)
+    : [];
+
+  return `🟡 *V TRADE AI — XAUUSD WAIT*\n\n` +
+    `Price: *${formatPrice(a?.livePrice ?? a?.bid)}*\n` +
+    `Bias: *${bias}*\n` +
+    `Direction Score: *${score}/100*\n` +
+    `Confidence: *${Number(a?.confidence ?? 0)}/100*\n` +
+    `Status: *${a?.status || 'NO TRADE — confirmation pending'}*\n\n` +
+    `*MTF LIVE SIGNALS*\n\n` +
+    `${telegramMtfText(a)}\n\n` +
+    `Waiting for:\n` +
+    `${blocked.length
+      ? blocked.map(x => `• ${x}`).join('\n')
+      : '• Final ICT entry confirmation'}\n\n` +
+    `⚠️ WAIT only — no order is authorized until all entry gates pass.\n` +
     `Broker: *VT Markets MT5* | Quote age: *${a?.priceAgeSec ?? '—'}s*`;
 }
 
 function telegramText(a) {
-  const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
-  if (!actionable) throw new Error('No confirmed broker-native entry. Telegram Entry alert blocked.');
+  const o=a?.bestOpportunity;
+  const actionable =
+    ['BUY','SELL'].includes(a?.signal) &&
+    String(a?.status || '').includes('ENTRY CONFIRMED') &&
+    Number.isFinite(Number(a?.entry)) &&
+    (!!o || a?.confirmations?.allGatesPassed === true);
+
+  if (!actionable) return telegramWaitText(a);
+
   const icon=a.signal==='BUY'?'🟢':'🔴';
   const side=a.signal==='BUY'?(a.entryMode==='LIMIT'?'BUY LIMIT':'BUY NOW'):(a.entryMode==='LIMIT'?'SELL LIMIT':'SELL NOW');
   const quoteSide=a.executionSide || (a.signal==='BUY'?'ASK':'BID');
