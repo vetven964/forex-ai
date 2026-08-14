@@ -53,9 +53,9 @@ const autoTradeState = {
   lastAnalysisAt: 0
 };
 
-const APP_VERSION = '7.2.2-ZONE-AI-AUTO-TELEGRAM';
-const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || 4346.92);
-const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || 4350.54);
+const APP_VERSION = '7.2.3-LONG-TERM-ZONE-AI-AUTO-TELEGRAM';
+const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || NaN);
+const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || NaN);
 const ZONE_PROXIMITY_ATR = Math.max(0.25, Number(process.env.ZONE_PROXIMITY_ATR || 1.25));
 const ZONE_ALERT_ENABLED = String(process.env.ZONE_ALERT_ENABLED || 'true').toLowerCase() === 'true';
 const APP_BASE_URL = (process.env.APP_BASE_URL || '').replace(/\/$/, '');
@@ -1230,17 +1230,17 @@ async function buildXauAnalysis() {
   const now = Date.now();
   if (analysisCache.data && analysisCache.key === analysisKey && now - analysisCache.at < ANALYSIS_CACHE_MS) return analysisCache.data;
   const newsPromise = fetchXauNews();
-  const rawM1=parseBrokerCandles('M1'),rawM5=parseBrokerCandles('M5'),rawM15=parseBrokerCandles('M15'),rawH1=parseBrokerCandles('H1'),rawH4=parseBrokerCandles('H4'),rawD1=parseBrokerCandles('D1');
+  const rawM1=parseBrokerCandles('M1'),rawM5=parseBrokerCandles('M5'),rawM15=parseBrokerCandles('M15'),rawH1=parseBrokerCandles('H1'),rawH4=parseBrokerCandles('H4'),rawD1=parseBrokerCandles('D1'),rawW1=parseBrokerCandles('W1');
   const live=brokerLivePrice();
   if(!live||!rawM5||!rawM15||!rawH1||!rawH4) throw new Error('VT Markets MT5 feed not ready');
   // Structure/ICT decisions use CLOSED candles; live quote remains the execution price.
-  const m1=rawM1?closedCandles(rawM1,1):[],m5=closedCandles(rawM5,5),m15=closedCandles(rawM15,15),h1=closedCandles(rawH1,60),h4=closedCandles(rawH4,240),d1=rawD1?closedCandles(rawD1,1440):[];
+  const m1=rawM1?closedCandles(rawM1,1):[],m5=closedCandles(rawM5,5),m15=closedCandles(rawM15,15),h1=closedCandles(rawH1,60),h4=closedCandles(rawH4,240),d1=rawD1?closedCandles(rawD1,1440):[],w1=rawW1?closedCandles(rawW1,10080):[];
   if(m5.length<AI_MIN_BARS||m15.length<30||h1.length<30||h4.length<30) throw new Error('VT Markets MT5 closed-candle history not ready');
-  const [m1a,m5a,m15a,h1a,h4a,d1a]=await Promise.all([
+  const [m1a,m5a,m15a,h1a,h4a,d1a,w1a]=await Promise.all([
     Promise.resolve(m1.length>=30?analyzeTF(m1):null),Promise.resolve(analyzeTF(m5)),Promise.resolve(analyzeTF(m15)),
-    Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null)
+    Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null),Promise.resolve(w1.length>=20?analyzeTF(w1):null)
   ]);
-  const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a},a=tfs.M5.atr||5;
+  const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a,W1:w1a},a=tfs.M5.atr||5;
   const candleAgeSec=m5.length?Math.max(0,(Date.now()-m5[m5.length-1].t)/1000):Infinity,candlesFresh=candleAgeSec<=15*60;
   // Full MTF context is visible to the engine, while the execution gate remains
   // intentionally strict on H4/H1/M15. D1 and M5/M1 add context; they cannot
@@ -1386,12 +1386,43 @@ aiReasoning:{
 performance:{analysisMs:Date.now()-analysisStartedAt,cacheMs:ANALYSIS_CACHE_MS,scanIntervalMs:AI_FAST_SCAN_MS},
 riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
   result.zoneRadar=buildZoneRadar(result);
+  result.longTerm=buildLongTermRadar(result);
   result.entryTiming=result.zoneRadar.entryTiming;
   result.referenceZone=result.zoneRadar.referenceZone;
   analysisCache.key = `${brokerFeed.receivedAt}:${bridgeNews.receivedAt}:${newsCache.at}`;
   analysisCache.at = Date.now();
   analysisCache.data = result;
   return result;
+}
+
+function buildLongTermRadar(a) {
+  const live=Number(a?.livePrice);
+  const tfs=a?.timeframes||{};
+  const macroBias=String(tfs.W1?.structure?.bias || tfs.D1?.structure?.bias || tfs.H4?.structure?.bias || a?.bias || 'NEUTRAL').toUpperCase();
+  const candidates=[];
+  const add=(tf,obj,type)=>{
+    if(!obj || !Number.isFinite(Number(obj.low)) || !Number.isFinite(Number(obj.high))) return;
+    const low=Math.min(Number(obj.low),Number(obj.high)), high=Math.max(Number(obj.low),Number(obj.high));
+    const width=high-low;
+    const dist=zoneDistance(live,{low,high});
+    const atr=Number(tfs[tf]?.atr||0);
+    const near=zoneContains(live,{low,high}) || dist<=Math.max(atr*1.25,2);
+    const direction=String(obj.type||obj.bias||macroBias).toUpperCase();
+    candidates.push({timeframe:tf,type,low:round2(low),high:round2(high),width:round2(width),direction:direction.includes('BEAR')?'BEARISH':direction.includes('BULL')?'BULLISH':macroBias,inside:zoneContains(live,{low,high}),near,distance:round2(dist),source:'VT Markets MT5 closed candles'});
+  };
+  for(const tf of ['W1','D1','H4']) {
+    const x=tfs[tf];
+    if(!x) continue;
+    if(x.fvg?.found) add(tf,x.fvg,'FVG');
+    if(x.orderBlock?.found) add(tf,x.orderBlock,'ORDER BLOCK');
+  }
+  candidates.sort((x,y)=>(x.near===y.near?x.distance-y.distance:(x.near?-1:1)));
+  const top=candidates.slice(0,8);
+  const aligned=(macroBias==='BULLISH'&&['BULLISH'].includes(String(tfs.D1?.structure?.bias||'')))||(macroBias==='BEARISH'&&['BEARISH'].includes(String(tfs.D1?.structure?.bias||'')));
+  let state='WAIT';
+  if(top.some(z=>z.inside) && aligned) state='LONG-TERM WATCH';
+  if(top.some(z=>z.near) && aligned) state='LONG-TERM SETUP NEAR';
+  return {mode:'LONG_TERM',macroBias,weeklyBias:tfs.W1?.structure?.bias||'UNAVAILABLE',dailyBias:tfs.D1?.structure?.bias||'UNAVAILABLE',h4Bias:tfs.H4?.structure?.bias||'UNAVAILABLE',state,zones:top,holdingHorizon:'H4 → D1 → W1',entryRule:'Do not enter from long-term zone alone. Wait for M15/M5 liquidity sweep + MSS/BOS + displacement + RR gate.',note:'Long-term zones are dynamic and recalculated from broker-native MT5 closed candles. W1 is optional; D1/H4 remain authoritative when W1 history is unavailable.'};
 }
 
 function zoneBiasFromEvidence(a, zone) {
@@ -1436,10 +1467,11 @@ function zoneProfile(a, zone, label='ZONE') {
 }
 
 function buildZoneRadar(a) {
-  const reference=zoneProfile(a,{low:EX_ZONE_LOW,high:EX_ZONE_HIGH},'EX ZONE');
+  const hasReference=Number.isFinite(EX_ZONE_LOW)&&Number.isFinite(EX_ZONE_HIGH);
+  const reference=hasReference?zoneProfile(a,{low:EX_ZONE_LOW,high:EX_ZONE_HIGH},'EX ZONE'):null;
   const zones=[];
   if(reference) zones.push(reference);
-  const seen=new Set([`${EX_ZONE_LOW}:${EX_ZONE_HIGH}`]);
+  const seen=new Set(reference?[`${EX_ZONE_LOW}:${EX_ZONE_HIGH}`]:[]);
   for(const [key,o] of Object.entries(a?.opportunities||{})) {
     if (!o?.entryZone) continue;
     const k=`${Number(o.entryZone.low)}:${Number(o.entryZone.high)}`;
@@ -1459,6 +1491,7 @@ function buildZoneRadar(a) {
   return {
     referenceZone:reference,
     zones,
+    longTerm:buildLongTermRadar(a),
     direction: String(a?.signal||'WAIT')==='BUY'?'BULLISH':String(a?.signal||'WAIT')==='SELL'?'BEARISH':String(a?.bias||'NEUTRAL'),
     entryTiming,
     scanTimeLocal,
@@ -1485,7 +1518,7 @@ function telegramText(a) {
     `Mode: *${a.entryMode || 'MARKET'}*\n`+`Broker: *VT Markets MT5*\n`+
     `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
     `Score: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
-    `EX Zone: *${a.referenceZone?.low ?? EX_ZONE_LOW}–${a.referenceZone?.high ?? EX_ZONE_HIGH}* | Bias: *${a.referenceZone?.direction ?? a.bias}* | ${a.referenceZone?.rangeType ?? '—'} zone\n`+
+    `EX Zone: *${a.referenceZone ? `${a.referenceZone.low}–${a.referenceZone.high}` : 'Dynamic — AI calculated'}* | Bias: *${a.referenceZone?.direction ?? a.bias}* | ${a.referenceZone?.rangeType ?? 'DYNAMIC'} zone\n`+
     `Entry timing: *${a.entryTiming || 'WAIT'}*\n`+
     `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
     `⚠️ Broker-native quote at scan time. Verify MT5 quote/spread before execution.`;
