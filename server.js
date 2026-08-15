@@ -1840,8 +1840,7 @@ if (
 } finally {
   telegramAutoAlertRunning = false;
 }
-
-
+}
 app.get('/api/v5/news/diagnostics', async (_req,res) => {
   try {
     const news = await fetchXauNews();
@@ -2299,4 +2298,4 @@ app.use((err,req,res,next)=>{
       console.log('[TELEGRAM AUTO] Disabled or Telegram env credentials missing');
     }
   });
-})();}
+})();
