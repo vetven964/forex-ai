@@ -1800,27 +1800,29 @@ async function runTelegramAutoAlertScan() {
         ? a.score.blockedReasons.map(x => String(x).split(' — ')[0].split(' — ')[0]).sort().join('|')
         : ''
     ].join(':');
+    const now = Date.now();
+const waitCooldownExpired =
+  (now - telegramAutoLastWaitSentAt) >= TELEGRAM_WAIT_ALERT_COOLDOWN_MS;
 
-    const now=Date.now();
-    const waitCooldownExpired=(now-telegramAutoLastWaitSentAt)>=TELEGRAM_WAIT_ALERT_COOLDOWN_MS;
+if (
+  !sent &&
+  a.signal === 'WAIT' &&
+  waitScore >= WAIT_MIN_SCORE &&
+  waitGateState !== telegramAutoLastWaitKey &&
+  waitCooldownExpired
+) {
+  const waitText = telegramWaitText(a);
 
-    if (!sent && a.signal==='WAIT' && waitScore>=WAIT_MIN_SCORE &&
-        waitGateState!==telegramAutoLastWaitKey && waitCooldownExpired) {
-      const waiting=Array.isArray(a.score?.blockedReasons)?a.score.blockedReasons.slice(0,6):[];
-      const msg=`🟡 V TRADE AI — XAUUSD WAIT\n\n`+
-        `Price: ${Number(a.livePrice ?? a.bid ?? 0).toFixed(2)}\n`+
-        `Bias: ${a.bias || 'NEUTRAL'}\n`+
-        `Direction Score: ${waitScore}/100\n`+
-        `Confidence: ${Number(a.confidence ?? 0)}/100\n`+
-        `Status: NO TRADE — confirmation pending\n\n`+
-        `Waiting for:\n${waiting.length?waiting.map(x=>`• ${x}`).join('\n'):'• Final ICT confirmation'}\n\n`+
-        `⚠️ WAIT alert only — no order is authorized until all entry gates pass.`;
-      await tg.bot.sendMessage(tg.chatId,msg);
-      sent=true;
-      telegramAutoLastWaitKey=waitGateState;
-      telegramAutoLastWaitSentAt=now;
-      console.log(`[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore} | cooldown=${Math.round(TELEGRAM_WAIT_ALERT_COOLDOWN_MS/60000)}m`);
-    }
+  await tg.bot.sendMessage(tg.chatId, waitText);
+
+  sent = true;
+  telegramAutoLastWaitKey = waitGateState;
+  telegramAutoLastWaitSentAt = now;
+
+  console.log(
+    `[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore} | cooldown=${Math.round(TELEGRAM_WAIT_ALERT_COOLDOWN_MS / 60000)}m`
+  );
+}
 
     // State logging is also stable: score/status/price changes alone do not count as a new state.
     const stateKey=`${a.signal}:${a.bias || 'NEUTRAL'}:${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`;
@@ -1830,16 +1832,15 @@ async function runTelegramAutoAlertScan() {
       telegramAutoLastState=stateKey;
     }
   } catch (e) {
-    // Fail closed: never manufacture an alert. Log the exact readiness/analysis reason.
-    const msg=String(e?.message || e);
-    if (msg !== telegramAutoLastState) {
-      console.warn('[TELEGRAM AUTO] Scan blocked:', msg);
-      telegramAutoLastState=msg;
-    }
-  } finally {
-    telegramAutoAlertRunning = false;
-  }
+  // Fail closed: never manufacture an alert. Log the exact readiness/analysis reason.
+  const msg = String(e?.message || e);
+
+  console.warn('[TELEGRAM AUTO] Scan blocked:', msg);
+  telegramAutoLastState = msg;
+} finally {
+  telegramAutoAlertRunning = false;
 }
+
 
 app.get('/api/v5/news/diagnostics', async (_req,res) => {
   try {
@@ -2298,4 +2299,4 @@ app.use((err,req,res,next)=>{
       console.log('[TELEGRAM AUTO] Disabled or Telegram env credentials missing');
     }
   });
-})();
+})();}
