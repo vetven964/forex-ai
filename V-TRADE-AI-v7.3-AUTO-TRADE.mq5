@@ -1,21 +1,21 @@
 //+------------------------------------------------------------------+
-//| V-TRADE AI v7.3 XAUUSD MANUAL SIGNAL + SMART TRAILING                               |
-//| Server analysis + Telegram signal + optional local execution                            |
+//| V-TRADE AI v7.3 XAUUSD MANUAL SIGNAL + SMART TRAILING            |
+//| Server analysis + Telegram signal + optional local execution     |
 //| IMPORTANT: test on Cent/Demo first. No profit guarantee.         |
 //+------------------------------------------------------------------+
 #property strict
-#property version   "7.3.0"
+#property version   "7.300"
 #property description "V-TRADE AI server signal -> MT5 execution with profit-lock trailing."
 
 #include <Trade/Trade.mqh>
 CTrade trade;
 
-input string InpServerBaseUrl = "https://YOUR-RENDER-SERVICE.onrender.com";
+input string InpServerBaseUrl = "https://forexai-6xw6.onrender.com";
 input string InpBridgeKey     = "CHANGE_ME";
-input string InpSymbol        = "XAUUSD";
+input string InpSymbol        = "XAUUSD-STDc";
 input bool   InpAutoTrade     = false; // KEEP FALSE for manual-entry mode
 input double InpLot           = 0.01;
-input double InpMaxLot        = 0.10;
+input double InpMaxLot        = 0.02;
 input bool   InpManageManualPositions = true; // manage manually opened XAUUSD positions (magic=0)
 input int    InpMagic         = 572007;
 input int    InpPollSeconds   = 3;
@@ -74,8 +74,6 @@ string ExtractFirstTP(const string json)
    return StringSubstr(json,p,e-p);
 }
 
-// MQL5 WebRequest overload used here has 7 parameters:
-// method, url, headers, timeout, data[], result[], result_headers.
 bool HttpGet(const string url,string &body)
 {
    char data[],result[]; string result_headers=""; string headers=HeaderKey();
@@ -94,9 +92,13 @@ bool HttpPost(const string url,const string payload)
    char data[],result[]; string result_headers="";
    string headers="Content-Type: application/json\r\n"+HeaderKey();
    StringToCharArray(payload,data,0,WHOLE_ARRAY,CP_UTF8);
-   // Remove the terminating zero byte from the HTTP body.
+   // StringToCharArray adds a terminating zero byte. WebRequest sends the whole array,
+   // so the array itself must be resized; merely changing a local size variable is not enough.
    int data_size=ArraySize(data);
-   if(data_size>0 && data[data_size-1]==0) data_size--;
+   if(data_size>0 && data[data_size-1]==0)
+   {
+      ArrayResize(data,data_size-1);
+   }
    ResetLastError();
    int code=WebRequest("POST",url,headers,7000,data,result,result_headers);
    if(code<200||code>=300)
@@ -136,12 +138,6 @@ double MoneyToPriceDistance(double money,double volume)
    return (money/(tickValue*volume))*tickSize;
 }
 
-// Step trailing:
-// +2.00 -> protect 0.00
-// +4.00 -> protect +2.00
-// +6.00 -> protect +4.00 ...
-// BUY moves SL upward; SELL moves SL downward.
-// The SL never moves backwards.
 void TrailOurPositions()
 {
    double point=SymbolInfoDouble(InpSymbol,SYMBOL_POINT);
@@ -153,13 +149,11 @@ void TrailOurPositions()
    {
       ulong ticket=PositionGetTicket(i);
       if(ticket==0 || !PositionSelectByTicket(ticket)) continue;
-
       if(PositionGetString(POSITION_SYMBOL)!=InpSymbol) continue;
 
       long magic=PositionGetInteger(POSITION_MAGIC);
       bool isOurPosition=(magic==InpMagic);
       bool isManualPosition=(InpManageManualPositions && magic==0);
-
       if(!isOurPosition && !isManualPosition) continue;
 
       double profit=PositionGetDouble(POSITION_PROFIT);
@@ -173,7 +167,6 @@ void TrailOurPositions()
       double vol=PositionGetDouble(POSITION_VOLUME);
       double open=PositionGetDouble(POSITION_PRICE_OPEN);
 
-      // Lock the previous +2.00 step.
       double protectedProfit=MathMax(0.0,MathFloor((profit/step)+1e-9)-1.0)*step;
       double lockDistance=MoneyToPriceDistance(protectedProfit,vol);
       if(lockDistance<0) continue;
@@ -182,33 +175,25 @@ void TrailOurPositions()
       if(type==POSITION_TYPE_BUY)
       {
          desired=NormalizeDouble(open+lockDistance,digits);
-         // Never place a BUY SL above current Bid or below broker stop distance.
          double stopLevel=SymbolInfoInteger(InpSymbol,SYMBOL_TRADE_STOPS_LEVEL)*point;
          desired=MathMin(desired,bid-stopLevel);
          desired=NormalizeDouble(desired,digits);
          if(desired>0 && (sl==0 || desired>sl+point))
          {
             if(trade.PositionModify(ticket,desired,tp))
-               Print("V-TRADE STEP TRAIL BUY ticket=",ticket,
-                     " profit=",DoubleToString(profit,2),
-                     " protected=",DoubleToString(protectedProfit,2),
-                     " SL=",DoubleToString(desired,digits));
+               Print("V-TRADE STEP TRAIL BUY ticket=",ticket," profit=",DoubleToString(profit,2)," protected=",DoubleToString(protectedProfit,2)," SL=",DoubleToString(desired,digits));
          }
       }
       else if(type==POSITION_TYPE_SELL)
       {
          desired=NormalizeDouble(open-lockDistance,digits);
-         // Never place a SELL SL below current Ask or inside broker stop distance.
          double stopLevel=SymbolInfoInteger(InpSymbol,SYMBOL_TRADE_STOPS_LEVEL)*point;
          desired=MathMax(desired,ask+stopLevel);
          desired=NormalizeDouble(desired,digits);
          if(desired>0 && (sl==0 || desired<sl-point))
          {
             if(trade.PositionModify(ticket,desired,tp))
-               Print("V-TRADE STEP TRAIL SELL ticket=",ticket,
-                     " profit=",DoubleToString(profit,2),
-                     " protected=",DoubleToString(protectedProfit,2),
-                     " SL=",DoubleToString(desired,digits));
+               Print("V-TRADE STEP TRAIL SELL ticket=",ticket," profit=",DoubleToString(profit,2)," protected=",DoubleToString(protectedProfit,2)," SL=",DoubleToString(desired,digits));
          }
       }
    }
@@ -217,7 +202,6 @@ void TrailOurPositions()
 void PollSignal()
 {
    if(!InpAutoTrade)return;
-
    string body="";
    if(!HttpGet(InpServerBaseUrl+"/api/v7/mt5/auto-signal",body))return;
 
@@ -266,7 +250,7 @@ int OnInit()
 {
    if(!SymbolSelect(InpSymbol,true))Print("V-TRADE: unable to select symbol ",InpSymbol);
    EventSetTimer(MathMax(1,InpPollSeconds));
-   Print("V-TRADE AI v7.2.1 Auto-Trade EA initialized. AutoTrade=",InpAutoTrade);
+   Print("V-TRADE AI v7.3 Manual Smart Signal EA initialized. AutoTrade=",InpAutoTrade);
    return(INIT_SUCCEEDED);
 }
 
