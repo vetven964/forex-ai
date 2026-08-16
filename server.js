@@ -53,7 +53,7 @@ const autoTradeState = {
   lastAnalysisAt: 0
 };
 
-const APP_VERSION = '7.2.4-DIRECTION-SCORE-AUTO-TELEGRAM';
+const APP_VERSION = '7.3.0-MANUAL-SMART-SIGNAL';
 const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || NaN);
 const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || NaN);
 const ZONE_PROXIMITY_ATR = Math.max(0.25, Number(process.env.ZONE_PROXIMITY_ATR || 1.25));
@@ -299,7 +299,7 @@ const bot = TELEGRAM_TOKEN
 // Owner/admin automatic Telegram alerts. Render does not need browser polling:
 // the server scans the confirmed XAUUSD engine and sends deduplicated alerts itself.
 const TELEGRAM_AUTO_ALERT_ENABLED = String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase() === 'true';
-const TELEGRAM_AUTO_ALERT_INTERVAL_MS = Math.max(5000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 5000));
+const TELEGRAM_AUTO_ALERT_INTERVAL_MS = Math.max(5000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 60000));
 let telegramAutoAlertRunning = false;
 
 // Per-user Telegram connections. The bot token is server-side only.
@@ -1419,6 +1419,33 @@ aiReasoning:{
 },
 performance:{analysisMs:Date.now()-analysisStartedAt,cacheMs:ANALYSIS_CACHE_MS,scanIntervalMs:AI_FAST_SCAN_MS},
 riskNote:'No system can guarantee profit or prevent losses. This engine blocks entries unless all defined confirmation gates pass. Verify broker price, spread, size and risk before any order.'};
+  // v7.3 Manual Smart Signal mode:
+  // Server analyzes; Telegram alerts; the trader manually opens the position.
+  // MT5 EA may manage manual XAUUSD positions with step-based +2.00 account-currency trailing.
+  result.tradeMode = 'MANUAL_SIGNAL_ONLY';
+  result.executionPolicy = {
+    autoEntry: false,
+    manualEntry: true,
+    allowedLots: [0.01, 0.02, 0.05, 0.10],
+    defaultLots: [0.01, 0.02],
+    largeLotRequiresManualConfirmation: true,
+    scanIntervalMs: 60000,
+    trailing: {
+      enabled: true,
+      stepProfitMoney: 2.00,
+      rule: 'BUY: SL moves upward; SELL: SL moves downward; each new step protects the previous profit step.'
+    }
+  };
+  result.mtfTopDown = {
+    order: ['H4','H1','M15','M5','M1'],
+    roles: {
+      H4: 'macro bias',
+      H1: 'primary trend',
+      M15: 'setup confirmation',
+      M5: 'entry setup',
+      M1: 'entry trigger'
+    }
+  };
   result.zoneRadar=buildZoneRadar(result);
   result.longTerm=buildLongTermRadar(result);
   result.entryTiming=result.zoneRadar.entryTiming;
@@ -1593,7 +1620,7 @@ function mtfSignalFromTimeframe(tf, a) {
 }
 
 function telegramMtfText(a) {
-  const order = ['M1', 'M5', 'M15', 'H1'];
+  const order = ['H4', 'H1', 'M15', 'M5', 'M1'];
   const lines = [];
   for (const tf of order) {
     const s=mtfSignalFromTimeframe(tf,a);
