@@ -1,4 +1,5 @@
-// V-TRADE AI — FULL MTF SIGNAL DISPLAY (M1/M5/M15/H1)\nrequire('dotenv').config();
+// V-TRADE AI — FULL MTF SIGNAL DISPLAY (M1/M5/M15/H1)
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -28,7 +29,11 @@ const MT5_BRIDGE_API_KEY = process.env.MT5_BRIDGE_API_KEY || '';
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || '';
 const REQUIRE_WEBHOOK_SECRET = String(process.env.REQUIRE_WEBHOOK_SECRET || (process.env.RENDER ? 'true' : 'false')).toLowerCase() === 'true';
 const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));
-const MT5_MAX_AGE_MS = Number(process.env.MT5_MAX_AGE_MS || 15000);
+// Broker-native MT5 feed freshness.
+// 15s is the normal execution freshness; 60s is only the connection/watchdog window.
+// Never use a stale quote to promote a trade signal.
+const MT5_MAX_AGE_MS = Math.max(5000, Number(process.env.MT5_MAX_AGE_MS || 15000));
+const MT5_CONNECTED_MAX_AGE_MS = Math.max(MT5_MAX_AGE_MS, Number(process.env.MT5_CONNECTED_MAX_AGE_MS || 60000));
 // MT5 Auto-Trade safety/execution policy.
 // The actual order is placed by the MT5 Expert Advisor on the user's Windows/MT5 terminal.
 // Render/server never receives the broker password and never places a broker order itself.
@@ -53,7 +58,7 @@ const autoTradeState = {
   lastAnalysisAt: 0
 };
 
-const APP_VERSION = '7.3.0-MANUAL-SMART-SIGNAL';
+const APP_VERSION = '7.3.1-FEED-STABLE';
 const EX_ZONE_LOW = Number(process.env.EX_ZONE_LOW || NaN);
 const EX_ZONE_HIGH = Number(process.env.EX_ZONE_HIGH || NaN);
 const ZONE_PROXIMITY_ATR = Math.max(0.25, Number(process.env.ZONE_PROXIMITY_ATR || 1.25));
@@ -525,7 +530,16 @@ app.post('/api/admin/pricing', requireAuth, requireRole('admin'), (req,res) => {
 app.use(express.static(path.join(__dirname)));
 
 const cache = new Map();
-const brokerFeed = { quote: null, timeframes: null, receivedAt: 0, symbol: null };
+const brokerFeed = {
+  quote: null,
+  timeframes: null,
+  receivedAt: 0,
+  symbol: null,
+  sequence: 0,
+  lastRequestAt: 0,
+  lastServerTime: 0,
+  lastError: null
+};
 const newsCache = { at: 0, data: null };
 const analysisCache = { key: '', at: 0, data: null };
 const ANALYSIS_CACHE_MS = Math.max(250, Number(process.env.ANALYSIS_CACHE_MS || 750));
@@ -769,8 +783,28 @@ async function fetchXauNews() {
   newsCache.at=now; newsCache.data=data; return data;
 }
 
+function brokerFeedAgeMs() {
+  return brokerFeed.quote && brokerFeed.receivedAt
+    ? Math.max(0, Date.now() - brokerFeed.receivedAt)
+    : null;
+}
+
 function brokerFeedFresh() {
-  return !!brokerFeed.quote && (Date.now() - brokerFeed.receivedAt) <= MT5_MAX_AGE_MS;
+  const age = brokerFeedAgeMs();
+  return age !== null && age <= MT5_MAX_AGE_MS;
+}
+
+function brokerFeedConnected() {
+  const age = brokerFeedAgeMs();
+  return age !== null && age <= MT5_CONNECTED_MAX_AGE_MS;
+}
+
+function brokerFeedState() {
+  if (!brokerFeed.quote) return 'DISCONNECTED';
+  const age = brokerFeedAgeMs();
+  if (age <= MT5_MAX_AGE_MS) return 'READY';
+  if (age <= MT5_CONNECTED_MAX_AGE_MS) return 'STALE';
+  return 'DISCONNECTED';
 }
 
 function roundToDigits(value, digits = 2) {
@@ -1927,14 +1961,44 @@ app.post('/api/v5/mt5/quote', (req,res) => {
     const bid=Number(q.bid), ask=Number(q.ask), last=Number(q.last), serverTimeRaw=Number(q.serverTime);
     const serverTime = Number.isFinite(serverTimeRaw) && serverTimeRaw > 0 ? (serverTimeRaw < 1e12 ? serverTimeRaw*1000 : serverTimeRaw) : Date.now();
     if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid<=0 || ask<=0 || ask<bid) return res.status(400).json({success:false,error:'Invalid quote'});
-    brokerFeed.quote={bid,ask,last,spread:Number(q.spread)||ask-bid,serverTime:Number.isFinite(serverTime)?serverTime:Date.now()};
+    const receivedAt = Date.now();
+    const incomingFrames = q.timeframes || q.bars || {};
+    if (!incomingFrames || typeof incomingFrames !== 'object') {
+      return res.status(400).json({success:false,error:'Invalid MT5 timeframe payload'});
+    }
+
+    brokerFeed.quote={
+      bid, ask, last,
+      spread:Number.isFinite(Number(q.spread)) ? Number(q.spread) : ask-bid,
+      serverTime
+    };
     // Python bridge v2 sends MTF candles under `bars`; older builds used `timeframes`.
-    brokerFeed.timeframes=q.timeframes || q.bars || {};
-    brokerFeed.receivedAt=Date.now();
+    brokerFeed.timeframes=incomingFrames;
+    brokerFeed.receivedAt=receivedAt;
+    brokerFeed.lastRequestAt=receivedAt;
+    brokerFeed.lastServerTime=serverTime;
     brokerFeed.symbol=String(q.symbol);
+    brokerFeed.sequence += 1;
+    brokerFeed.lastError=null;
     analysisCache.key=''; analysisCache.data=null;
     storage.saveQuote(q).catch(()=>{});
-    res.json({success:true,source:'VT Markets MT5',symbol:brokerFeed.symbol,receivedAt:brokerFeed.receivedAt});
+
+    const frames=['M5','M15','H1','H4'];
+    const counts=Object.fromEntries(frames.map(tf=>[
+      tf,
+      Array.isArray(incomingFrames[tf]) ? incomingFrames[tf].length : 0
+    ]));
+    console.log(`[MT5 FEED] QUOTE OK | seq=${brokerFeed.sequence} | symbol=${brokerFeed.symbol} | state=READY | M5=${counts.M5} M15=${counts.M15} H1=${counts.H1} H4=${counts.H4}`);
+    res.json({
+      success:true,
+      source:'VT Markets MT5',
+      symbol:brokerFeed.symbol,
+      receivedAt,
+      sequence:brokerFeed.sequence,
+      state:'READY',
+      ageSec:0,
+      counts
+    });
   } catch(e){ res.status(400).json({success:false,error:'Invalid MT5 payload'}); }
 });
 
@@ -1953,17 +2017,36 @@ app.get('/api/v5/mt5/readiness',(_req,res)=>{
 
 app.get('/api/v5/mt5/status',(_req,res)=>{
   const q=brokerFeed.quote;
+  const ageMs=brokerFeedAgeMs();
+  const state=brokerFeedState();
+  const frames=brokerFeed.timeframes || {};
+  const required=['M5','M15','H1','H4'];
+  const counts=Object.fromEntries(required.map(tf=>[
+    tf, Array.isArray(frames[tf]) ? frames[tf].length : 0
+  ]));
+  const mtfReady=required.every(tf=>counts[tf] > 0);
+  res.set('Cache-Control','no-store');
   res.json({
     success:true,
-    connected:brokerFeedFresh(),
+    connected:brokerFeedConnected(),
+    fresh:brokerFeedFresh(),
+    state,
+    mtfReady,
     feedMode:'VT Markets MT5',
     authoritative:true,
     symbol:brokerFeed.symbol,
-    ageSec:q?Math.round((Date.now()-brokerFeed.receivedAt)/1000):null,
+    ageSec:ageMs===null?null:Math.round(ageMs/1000),
     maxAgeMs:MT5_MAX_AGE_MS,
+    connectedMaxAgeMs:MT5_CONNECTED_MAX_AGE_MS,
+    sequence:brokerFeed.sequence,
+    lastRequestAt:brokerFeed.lastRequestAt || null,
+    lastServerTime:brokerFeed.lastServerTime || null,
+    serverTimeAgeSec:brokerFeed.lastServerTime ? Math.max(0,Math.round((Date.now()-brokerFeed.lastServerTime)/1000)) : null,
+    counts,
     bid:q?.bid??null,
     ask:q?.ask??null,
-    spread:q?.spread??null
+    spread:q?.spread??null,
+    lastError:brokerFeed.lastError
   });
 });
 
