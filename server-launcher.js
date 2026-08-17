@@ -27,12 +27,15 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     '  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);',
     "  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 8).map(String) : [];",
     "  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';",
-    '  const ai = a?.ai || null;',
+    '  const ai = a?.aiConfirmation || a?.ai || null;',
     "  const aiDecision = String(ai?.decision || a?.aiDecision || 'WAIT').toUpperCase();",
     '  const aiConfidence = Number(ai?.confidence ?? a?.aiConfidence ?? 0);',
     "  const agreement = String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();",
     "  const broker = String(a?.broker || 'VT Markets MT5');",
-    "  const quoteAge = Number.isFinite(Number(a?.quoteAge)) ? Number(a.quoteAge) : 0;",
+    "  const quoteAgeValue = a?.quoteAge ?? a?.quote_age ?? a?.feedAgeSec;",
+    "  const quoteAge = Number.isFinite(Number(quoteAgeValue)) ? Number(quoteAgeValue) : 0;",
+    "  const zone = a?.entryZone || a?.executionZone || null;",
+    "  const entryZone = zone && Number.isFinite(Number(zone.low)) && Number.isFinite(Number(zone.high)) ? `${Number(zone.low).toFixed(2)} — ${Number(zone.high).toFixed(2)}` : 'WAITING FOR CONFIRMATION';",
     "  const gateLine = blocked.length ? blocked.map(x => '• ' + x).join('\\n') : '• Entry gates not confirmed';",
     '  return [',
     "    '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*',",
@@ -48,7 +51,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     "    '🔎 *ICT ENTRY GATES*',",
     '    gateLine,',
     "    '',",
-    "    '🎯 Entry Zone: *WAITING FOR CONFIRMATION*',",
+    "    '🎯 Entry Zone: *' + entryZone + '*',",
     "    '🛑 Stop Loss (SL): *—*',",
     "    '🎯 Take Profit 1 (TP1): *—*',",
     "    '🎯 Take Profit 2 (TP2): *—*',",
@@ -70,6 +73,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   );
 
   console.log('[V-TRADE LAUNCHER] clean server source formatter active');
+  console.log('[V-TRADE LAUNCHER] Advanced ICT WAIT card formatter installed');
   mod._compile(source, filename);
 };
 
