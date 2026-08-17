@@ -3,40 +3,56 @@
 const Module = require('module');
 const originalLoad = Module._load;
 
+function valueFromLine(text, label, fallback = '—') {
+  const lines = String(text || '').split(/\r?\n/);
+  const line = lines.find(x => x.trimStart().startsWith(label + ':'));
+  if (!line) return fallback;
+  const value = line.slice(line.indexOf(':') + 1).trim();
+  const star = value.match(/^\*([^*]*)\*/);
+  return star && typeof star[1] === 'string' ? star[1] : value || fallback;
+}
+
 function normalizeWait(text) {
   if (typeof text !== 'string' || !text.includes('V TRADE AI — XAUUSD WAIT')) return text;
   if (text.includes('ADVANCED ICT SIGNAL')) return text;
 
-  const pick = (label, fallback = '—') => {
-    const m = text.match(new RegExp(label + ': \\*([^*]*)\\*'));
-    return m ? m[1].trim() : fallback;
-  };
-  const price = pick('Price');
-  const bias = pick('Bias', 'NEUTRAL');
-  const directionScore = pick('Direction Score', '0/100');
-  const confidence = pick('Confidence', '0/100');
-  const status = pick('Status', 'WAIT — NO ENTRY');
-  const aiConfirm = pick('AI Confirm', 'WAIT');
-  const ai = text.match(/AI Confirm: \\*[^*]*\\* \\| Confidence: \\*([^*]*)\\* \\| Agreement: \\*([^*]*)\\*/);
-  const aiConfidence = ai ? ai[1].trim() : '0/100';
-  const agreement = ai ? ai[2].trim() : 'NEUTRAL';
-  const broker = text.match(/Broker: \\*([^*]*)\\* \\| Quote age: \\*([^*]*)\\*/);
-  const brokerName = broker ? broker[1].trim() : 'VT Markets MT5';
-  const quoteAge = broker ? broker[2].trim() : '—';
+  const price = valueFromLine(text, 'Price', '—');
+  const bias = String(valueFromLine(text, 'Bias', 'NEUTRAL') || 'NEUTRAL').toUpperCase();
+  const directionScore = valueFromLine(text, 'Direction Score', '0/100');
+  const confidence = valueFromLine(text, 'Confidence', '0/100');
+  const status = valueFromLine(text, 'Status', 'WAIT — NO ENTRY');
+
+  const aiLine = String(text.split(/\r?\n/).find(x => x.includes('AI Confirm:')) || '');
+  const aiParts = aiLine.split('|').map(x => x.trim());
+  const aiConfirm = ((aiParts[0] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'WAIT';
+  const aiConfidence = ((aiParts[1] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || '0/100';
+  const agreement = ((aiParts[2] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'NEUTRAL';
+
+  const brokerLine = String(text.split(/\r?\n/).find(x => x.includes('Broker:')) || '');
+  const brokerParts = brokerLine.split('|').map(x => x.trim());
+  const brokerName = ((brokerParts[0] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'VT Markets MT5';
+  const quoteAge = ((brokerParts[1] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim().replace(/s$/i, '')) || '—';
+
+  const waitingIndex = text.indexOf('Waiting for:');
   const blocked = [];
-  const waiting = text.split('Waiting for:')[1]?.split('⚠️')[0] || '';
-  for (const line of waiting.split(/\\n|\n/)) {
-    const s = line.replace(/^\\s*•\\s*/, '').trim();
-    if (s) blocked.push(s);
+  if (waitingIndex >= 0) {
+    const waiting = text.slice(waitingIndex).split('⚠️')[0];
+    for (const raw of waiting.split(/\r?\n/)) {
+      const s = raw.replace(/^\s*•\s*/, '').replace(/\*/g, '').trim();
+      if (s && s !== 'Waiting for:') blocked.push(s);
+    }
   }
+
+  const has = pattern => blocked.some(x => pattern.test(x));
   const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
   const gates = [
-    ['💧 Liquidity Sweep', blocked.some(x => /liquidity sweep/i.test(x)) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['📐 M5 MSS', blocked.some(x => /M5 MSS(?!\\/BOS)/i.test(x)) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['💥 Displacement', blocked.some(x => /displacement/i.test(x)) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['🏗️ M5 MSS/BOS', blocked.some(x => /MSS\\/BOS/i.test(x)) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['📍 Execution', /premium/i.test(text) ? '⏳ WAIT FOR DISCOUNT' : '⏳ WAITING']
+    ['💧 Liquidity Sweep', has(/liquidity sweep/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
+    ['📐 M5 MSS', has(/Fresh M5 MSS not confirmed/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
+    ['💥 Displacement', has(/displacement/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
+    ['🏗️ M5 MSS/BOS', has(/MSS\/BOS/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
+    ['📍 Execution Zone', /premium/i.test(text) ? '⏳ WAIT FOR DISCOUNT' : '⏳ WAITING']
   ];
+
   return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n` +
     `📊 Asset: *XAU/USD (Gold)*\n` +
     `💰 Price: *${price}*\n` +
