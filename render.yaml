@@ -71,6 +71,16 @@ services:
         value: "76"
       - key: MIN_ENTRY_SCORE
         value: "76"
+      - key: OPENAI_ENABLED
+        value: "true"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.6-luna
+      - key: OPENAI_TIMEOUT_MS
+        value: "9000"
+      - key: OPENAI_MIN_SCORE
+        value: "76"
       - key: AUTO_TRADE_ENABLED
         value: "false"
       - key: AUTO_TRADE_MIN_SCORE
