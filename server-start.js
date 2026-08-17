@@ -1,6 +1,40 @@
 // V-TRADE AI launcher: keeps server.js unchanged while adding compatibility layers
-// for the OpenAI Responses API and ensuring manual Telegram /signal messages include AI confirmation.
+// for the OpenAI Responses API, Telegram diagnostics, and the 1H/15M/5M direction profile.
 const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
+const Module = require('module');
+const path = require('path');
+
+// Direction profile: 1H = macro direction, 15M = confirmation, 5M = entry trigger.
+// This is intentionally applied at load-time so the large, stable server.js is not
+// rewritten in-place. Full MTF context (D1/H4/M1) remains available for display/radar.
+const DIRECTION_TFS = ['H1', 'M15', 'M5'];
+const DIRECTION_ALIGNMENT = 2;
+const originalJsLoader = Module._extensions['.js'];
+Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
+  if (path.resolve(filename) !== path.resolve(__dirname, 'server.js')) {
+    return originalJsLoader(mod, filename);
+  }
+
+  let source = fs.readFileSync(filename, 'utf8');
+  source = source.replace(
+    "const CORE_MTF_TFS = ['H4','H1','M15'];",
+    "const CORE_MTF_TFS = ['H1','M15','M5'];"
+  );
+  source = source.replace(
+    "need 2/3 H4/H1/M15 agreement",
+    "need 2/3 H1/M15/M5 agreement"
+  );
+  source = source.replace(
+    "MTF alignment",
+    "MTF alignment (H1/15M/5M)"
+  );
+  source = source.replace(
+    "strict on H4/H1/M15",
+    "strict on H1/M15/5M"
+  );
+  return mod._compile(source, filename);
+};
 
 // OpenAI Responses API compatibility wrapper.
 // IMPORTANT: OpenAI is a confirmation layer only. When the deterministic ICT/MTF
@@ -27,9 +61,6 @@ if (typeof originalFetch === 'function' && !originalFetch.__vtradeOpenAiPatch) {
         try { supplied = JSON.parse(userText); } catch (_) {}
 
         // Do not waste an OpenAI call on an unqualified deterministic WAIT.
-        // This also prevents misleading logs such as confidence=99 WAIT from
-        // looking like an AI-generated trade veto. BUY/SELL candidates still
-        // go through the full Responses + JSON Schema confirmation flow.
         if (supplied && supplied.signal === 'WAIT') {
           const blockedReasons = Array.isArray(supplied?.score?.blockedReasons)
             ? supplied.score.blockedReasons.slice(0, 12).map(String)
@@ -120,9 +151,6 @@ if (!originalSendMessage.__vtradeSignalAiPatch) {
       const keyConfigured = !!String(process.env.OPENAI_API_KEY || '').trim();
       const isSignalWait = typeof finalText === 'string' && finalText.includes('AI Confirm: *NOT RUN*');
 
-      // Direction/ICT diagnostics: log the complete decision evidence whenever
-      // the Telegram auto-signal is sent. This does not loosen any entry gate;
-      // it only makes the exact direction and blocking conditions visible.
       if (typeof finalText === 'string' && (finalText.includes('MTF LIVE SIGNALS') || finalText.includes('NO TRADE') || finalText.includes('ENTRY CONFIRMED'))) {
         const compact = finalText
           .replace(/\*/g, '')
