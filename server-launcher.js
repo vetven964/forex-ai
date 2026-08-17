@@ -42,7 +42,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     "    '⚡ Action: *' + action + '*',",
     "    '',",
     "    '📈 Bias: *' + bias + '*',",
-    "    " + '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
+    "    '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
     "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*',",
     "    '',",
     "    '🔎 *ICT ENTRY GATES*',",
