@@ -73,15 +73,17 @@ if (typeof originalFetch === 'function' && !originalFetch.__vtradeOpenAiPatch) {
           const blockedReasons = Array.isArray(supplied?.score?.blockedReasons)
             ? supplied.score.blockedReasons.slice(0, 12).map(String)
             : [];
+          const confluenceScore = Number(supplied?.score?.confluence ?? supplied?.score?.total ?? 0);
+          const directionScore = Number(supplied?.directionScore ?? supplied?.score?.direction ?? supplied?.score?.aiScore ?? 50);
           const gateSnapshot = {
             signal: supplied.signal,
             bias: supplied.bias ?? supplied.direction ?? supplied.macroBias ?? null,
-            score: supplied.score?.confluence ?? supplied.score?.total ?? supplied.score ?? null,
+            confluenceScore: Number.isFinite(confluenceScore) ? confluenceScore : null,
+            directionScore: Number.isFinite(directionScore) ? directionScore : null,
             phase: supplied.phase ?? null,
             setupGrade: supplied.setupGrade ?? null,
             status: supplied.status ?? null,
             trigger: supplied.trigger ?? null,
-            directionScore: supplied.directionScore ?? supplied.score?.direction ?? null,
             blockedReasons
           };
           console.log(`[ICT GATE DEBUG] ${JSON.stringify(gateSnapshot)}`);
