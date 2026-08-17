@@ -1,15 +1,14 @@
-// V-TRADE AI Telegram card boundary patch.
+// V-TRADE AI Telegram WAIT card boundary patch.
 // Loaded before the app so every node-telegram-bot-api sendMessage call is normalized.
 const Module = require('module');
 const originalLoad = Module._load;
 
 function valueFromLine(text, label, fallback = '—') {
-  const lines = String(text || '').split(/\r?\n/);
-  const line = lines.find(x => x.trimStart().startsWith(label + ':'));
+  const line = String(text || '').split(/\r?\n/).find(x => x.trimStart().startsWith(label + ':'));
   if (!line) return fallback;
   const value = line.slice(line.indexOf(':') + 1).trim();
   const star = value.match(/^\*([^*]*)\*/);
-  return star && typeof star[1] === 'string' ? star[1] : value || fallback;
+  return star && star[1] != null ? String(star[1]).trim() : (value || fallback);
 }
 
 function normalizeWait(text) {
@@ -46,40 +45,47 @@ function normalizeWait(text) {
   const has = pattern => blocked.some(x => pattern.test(x));
   const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
   const gates = [
-    ['💧 Liquidity Sweep', has(/liquidity sweep/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['📐 M5 MSS', has(/Fresh M5 MSS not confirmed/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['💥 Displacement', has(/displacement/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
-    ['🏗️ M5 MSS/BOS', has(/MSS\/BOS/i) ? '❌ NOT CONFIRMED' : '✅ CONFIRMED'],
+    ['💧 Liquidity Sweep', has(/liquidity sweep/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['📐 M5 MSS', has(/Fresh M5 MSS not confirmed/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['💥 Displacement', has(/displacement/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['🏗️ M5 MSS/BOS', has(/MSS\/BOS/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['📊 ADX Gate', has(/ADX/i) ? '❌ TOO WEAK' : '⏳ WAITING'],
     ['📍 Execution Zone', /premium/i.test(text) ? '⏳ WAIT FOR DISCOUNT' : '⏳ WAITING']
   ];
 
   return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n` +
     `📊 Asset: *XAU/USD (Gold)*\n` +
     `💰 Price: *${price}*\n` +
-    `⚡ Action: *${action}*\n` +
+    `⚡ Action: *${action}*\n\n` +
     `📈 Bias: *${bias}* | Direction Score: *${directionScore}* | Confidence: *${confidence}*\n\n` +
     `🔎 *ICT ENTRY GATES*\n` + gates.map(([k,v]) => `${k}: *${v}*`).join('\n') + `\n\n` +
     `🤖 AI Confirm: *${aiConfirm}* | Confidence: *${aiConfidence}* | Agreement: *${agreement}*\n\n` +
     `🎯 Entry Zone: *WAITING FOR CONFIRMATION*\n` +
     `🛑 Stop Loss (SL): *—*\n` +
-    `🎯 TP1: *—*\n` +
-    `🎯 TP2: *—*\n` +
-    `🎯 TP3: *—*\n\n` +
+    `🎯 Take Profit 1 (TP1): *—*\n` +
+    `🎯 Take Profit 2 (TP2): *—*\n` +
+    `🎯 Take Profit 3 (TP3): *—*\n\n` +
     `⚡ Status: *WAIT — NO ORDER AUTHORIZED*\n` +
     `⏳ ${status}\n\n` +
     `🏦 Broker: *${brokerName}* | Quote age: *${quoteAge}s*\n` +
     `🔒 *WAIT only — no order is authorized until all entry gates pass.*`;
 }
 
+function patchTelegramBot(Bot) {
+  if (!Bot || !Bot.prototype || Bot.prototype.__vtradeCardPatch) return;
+  const originalSendMessage = Bot.prototype.sendMessage;
+  if (typeof originalSendMessage !== 'function') return;
+  Bot.prototype.sendMessage = function(chatId, text, options, ...rest) {
+    const normalized = normalizeWait(text);
+    if (normalized !== text) console.log('[TELEGRAM CARD] WAIT message normalized to Advanced ICT format');
+    return originalSendMessage.call(this, chatId, normalized, options, ...rest);
+  };
+  Bot.prototype.__vtradeCardPatch = true;
+  console.log('[TELEGRAM CARD] WAIT formatter boundary patch active');
+}
+
 Module._load = function(request, parent, isMain) {
   const exported = originalLoad.apply(this, arguments);
-  if (request === 'node-telegram-bot-api' && exported && exported.prototype && !exported.prototype.__vtradeCardPatch) {
-    const originalSendMessage = exported.prototype.sendMessage;
-    exported.prototype.sendMessage = function(chatId, text, options, ...rest) {
-      return originalSendMessage.call(this, chatId, normalizeWait(text), options, ...rest);
-    };
-    exported.prototype.__vtradeCardPatch = true;
-    console.log('[TELEGRAM CARD] WAIT formatter boundary patch active');
-  }
+  if (request === 'node-telegram-bot-api') patchTelegramBot(exported);
   return exported;
 };
