@@ -26,67 +26,10 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
     "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
   );
 
-  // Keep the execution-gate explanation consistent with the live H1/M15/M5 profile.
+  // Keep the execution-gate wording consistent with the live H1/M15/M5 profile.
   source = source.replace(
     /MTF core bias not aligned — need 2\/3 H4\/H1\/M15 agreement/g,
     'MTF core bias not aligned — need 2/3 H1/M15/M5 agreement'
-  );
-
-  // Add an explicit H1/M15/M5 checklist to the existing Telegram MTF section.
-  // This is diagnostic only: it never changes the deterministic entry gates.
-  source = source.replace(
-    /function telegramMtfText\(a\) \{[\s\S]*?\n\}\n\nasync function maybeTelegramAlert/,
-    `function telegramMtfText(a) {
-  const order = ['H1', 'M15', 'M5', 'H4', 'M1'];
-  const core = ['H1', 'M15', 'M5'];
-  const lines = ['*MTF CORE CHECK — H1 / M15 / M5*'];
-  let bullish = 0, bearish = 0;
-
-  for (const tf of order) {
-    const t = a?.timeframes?.[tf];
-    const bias = String(t?.structure?.bias || t?.trend || 'NEUTRAL').toUpperCase();
-    const coreTf = core.includes(tf);
-    if (bias === 'BULLISH') bullish++;
-    if (bias === 'BEARISH') bearish++;
-    const icon = bias === 'BULLISH' ? '🟢' : bias === 'BEARISH' ? '🔴' : '🟡';
-    const marker = coreTf ? ' CORE' : ' CONTEXT';
-    lines.push(`${icon} ${tf}${marker}: *${bias}*`);
-  }
-
-  const alignedSide = bullish >= DIRECTION_ALIGNMENT ? 'BULLISH' : bearish >= DIRECTION_ALIGNMENT ? 'BEARISH' : 'NEUTRAL';
-  const alignedCount = Math.max(bullish, bearish);
-  lines.push('');
-  lines.push(`Alignment: *${alignedCount}/3* ${alignedSide}`);
-  lines.push(`Gate: *${alignedCount >= DIRECTION_ALIGNMENT ? 'PASS' : 'WAIT'}* — requires 2/3 H1/M15/M5`);
-  lines.push('');
-
-  for (const tf of order) {
-    const s = mtfSignalFromTimeframe(tf, a);
-    const label = tf;
-    if (s.signal === 'BUY' || s.signal === 'SELL') {
-      const icon = s.signal === 'BUY' ? '🟢' : '🔴';
-      const sideName = s.signal === 'BUY' ? 'Buy' : 'Sell';
-      const zone = s.zone && Number.isFinite(Number(s.zone.low)) && Number.isFinite(Number(s.zone.high))
-        ? `${formatPrice(s.zone.low)} – ${formatPrice(s.zone.high)}` : '—';
-      const state = s.state === 'CONFIRMED' ? 'CONFIRMED' : 'WATCH — confirmation pending';
-      lines.push(
-        `${icon} *${label} ${s.signal}* — ${state}`,
-        `${sideName} Zone: *${zone}*`,
-        `Entry: *${formatPrice(s.entry)}*`,
-        `SL: *${formatPrice(s.sl)}*`,
-        `TP1: *${formatPrice(s.tp?.[0])}*`,
-        `TP2: *${formatPrice(s.tp?.[1])}*`,
-        `TP3: *${formatPrice(s.tp?.[2])}*`,
-        ''
-      );
-    } else {
-      lines.push(`🟡 *${label} SIDEWAY*`, 'No Trade', '');
-    }
-  }
-  return lines.join('\\n').trim();
-}
-
-async function maybeTelegramAlert`
   );
 
   const profileHeader = `\nconst VTRADE_DIRECTION_PROFILE = Object.freeze({\n  timeframes: ['H1','M15','M5'],\n  alignmentRequired: 2,\n  roles: Object.freeze({ H1: 'macro-direction', M15: 'confirmation', M5: 'entry-trigger' })\n});\n`;
