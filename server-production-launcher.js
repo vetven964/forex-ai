@@ -48,6 +48,16 @@ function patchMtfAndContext(source) {
   return source;
 }
 
+function patchMt5StartupReadiness(source) {
+  // Do not let the first browser request during a Render restart become a
+  // 503/error. The server must stay online so the MT5 bridge can connect, while
+  // ICT analysis remains fail-closed until QUOTE + M5/M15/H1/H4 are ready.
+  const old = "    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;\n    throw new Error(detail);";
+  const replacement = "    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;\n    return {\n      feedReady:false,\n      signal:'WAIT',\n      status:'WAIT',\n      bias:'NEUTRAL',\n      directionBand:'NEUTRAL',\n      directionScore:0,\n      confidence:0,\n      setupReady:false,\n      tradeAuthorized:false,\n      entry:null,\n      stopLoss:null,\n      tp1:null,\n      tp2:null,\n      tp3:null,\n      confirmations:{allGatesPassed:false,feedReady:false},\n      score:{blockedReasons:[detail],confidence:0},\n      mt5:{ready:false,missing:readinessMissing,ageSec,maxAgeMs:MT5_MAX_AGE_MS}\n    };";
+  if (source.includes(old)) source=source.replace(old,replacement);
+  return source;
+}
+
 function patchFrontend(source) {
   source=source.replace("font:14px Segoe UI,Arial,sans-serif", "font:14px 'Kantumruy Pro','Noto Sans Khmer','Segoe UI',Arial,sans-serif");
   source=source.replace("font-family:Segoe UI,Arial,sans-serif", "font-family:'Kantumruy Pro','Noto Sans Khmer','Segoe UI',Arial,sans-serif");
@@ -57,7 +67,9 @@ function patchFrontend(source) {
 Module._extensions['.js']=function vtradeServerLoader(mod,filename){
   if(path.resolve(filename)!==SERVER_FILE) return originalLoader(mod,filename);
   let source=fs.readFileSync(filename,'utf8');
+  source=patchMt5StartupReadiness(source);
   source=patchMtfAndContext(source);
+  console.log('[V-TRADE LAUNCHER] MT5 startup readiness gate active');
   console.log('[V-TRADE LAUNCHER] resolved MTF bias + neutral P/D logic active');
   console.log('[V-TRADE LAUNCHER] strict ICT execution gates active');
   mod._compile(source,filename);
