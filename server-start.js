@@ -1,10 +1,10 @@
-// V-TRADE AI launcher: applies the live H1/15M/5M direction profile before server.js loads.
+// V-TRADE AI launcher: applies the live H4/H1/M15 direction profile before server.js loads.
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 
-const DIRECTION_TFS = ['H1', 'M15', 'M5'];
+const DIRECTION_TFS = ['H4', 'H1', 'M15'];
 const DIRECTION_ALIGNMENT = 2;
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 
@@ -15,28 +15,79 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
 
   source = source.replace(
     /const\s+CORE_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
-    "const CORE_MTF_TFS = ['H1','M15','M5'];"
+    "const CORE_MTF_TFS = ['H4','H1','M15'];"
   );
   source = source.replace(
     /const\s+FULL_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
     "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
   );
 
-  // Keep the execution-gate wording consistent with the live H1/M15/M5 profile.
+  // Keep the execution-gate wording consistent with the live H4/H1/M15 profile.
   source = source.replace(
-    /MTF core bias not aligned — need 2\/3 H4\/H1\/M15 agreement/g,
-    'MTF core bias not aligned — need 2/3 H1/M15/M5 agreement'
+    /MTF core bias not aligned — need 2\/3 H1\/M15\/M5 agreement/g,
+    'MTF core bias not aligned — need 2/3 H4/H1/M15 agreement'
   );
 
-  // Normalize the Telegram MTF order after all source substitutions. This prevents
-  // accidental duplicate M5 labels while preserving H4 as context.
+  // Normalize the Telegram MTF order after all source substitutions.
   source = source.replace(
     /const\s+order\s*=\s*\[[^\]]*\]\s*;/,
-    "const order = ['H4','H1','M15','M5','M1'];"
+    "const order = ['D1','H4','H1','M15','M5','M1'];"
   );
 
-  const profileHeader = `\nconst VTRADE_DIRECTION_PROFILE = Object.freeze({\n  timeframes: ['H1','M15','M5'],\n  alignmentRequired: 2,\n  roles: Object.freeze({ H1: 'macro-direction', M15: 'confirmation', M5: 'entry-trigger' })\n});\n`;
+  // Improve MTF direction display when pure HH/HL swing structure is ranging.
+  // The raw ICT structure remains intact; this only supplies a transparent
+  // directional score from independent EMA/price/MACD/RSI/momentum evidence.
+  const profileHeader = `
+const VTRADE_DIRECTION_PROFILE = Object.freeze({
+  timeframes: ['H4','H1','M15'],
+  alignmentRequired: 2,
+  roles: Object.freeze({ H4: 'macro-direction', H1: 'confirmation', M15: 'execution-context' })
+});
+
+function vtradeMtfStructure(c, raw) {
+  const s = { ...(raw || {}) };
+  if (!Array.isArray(c) || c.length < 30) return s;
+  const closes = c.slice(-200).map(x => Number(x.c)).filter(Number.isFinite);
+  if (closes.length < 30) return s;
+  const e20 = ema(closes, 20), e50 = ema(closes, 50);
+  const m = macd(closes), r = rsi(closes, AI_RSI_PERIOD);
+  const last = closes[closes.length - 1];
+  const anchor = closes[Math.max(0, closes.length - 6)];
+  let bull = 0, bear = 0;
+  if (Number.isFinite(e20) && Number.isFinite(e50)) {
+    if (e20 > e50) bull++; else if (e20 < e50) bear++;
+  }
+  if (Number.isFinite(e20)) {
+    if (last > e20) bull++; else if (last < e20) bear++;
+  }
+  if (m) {
+    if (m.histogram > 0) bull++; else if (m.histogram < 0) bear++;
+  }
+  if (Number.isFinite(r)) {
+    if (r >= 52) bull++; else if (r <= 48) bear++;
+  }
+  if (Number.isFinite(anchor)) {
+    if (last > anchor) bull++; else if (last < anchor) bear++;
+  }
+  const total = bull + bear;
+  const directionScore = total ? Math.round(50 + ((bull - bear) / total) * 50) : 50;
+  let bias = s.bias;
+  if (bull >= 3 && bull > bear) bias = 'BULLISH';
+  else if (bear >= 3 && bear > bull) bias = 'BEARISH';
+  else if (!['BULLISH','BEARISH'].includes(bias)) bias = 'RANGE';
+  return { ...s, bias, score: Math.max(0, Math.min(100, directionScore)), directionScore, strength: Math.max(0, Math.min(100, directionScore)), evidence: { bull, bear, total } };
+}
+`;
   source = `${profileHeader}${source}`;
+
+  // analyzeTF uses structure() for the public MTF row. Feed it through the
+  // transparent directional profile so H4/H1/M15 do not stay at 50/100 solely
+  // because the latest three swing points are temporarily range-bound.
+  source = source.replace(
+    "const s=structure(c), sweep=liquiditySweep(c), a=atr(c,14);",
+    "let s=structure(c); s=vtradeMtfStructure(c,s); const sweep=liquiditySweep(c), a=atr(c,14);"
+  );
+
   return mod._compile(source, filename);
 };
 
