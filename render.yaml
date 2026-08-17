@@ -57,6 +57,12 @@ services:
         value: "true"
       - key: TELEGRAM_MIN_SCORE
         value: "76"
+      - key: TELEGRAM_AUTO_ALERT_ENABLED
+        value: "true"
+      - key: TELEGRAM_AUTO_ALERT_INTERVAL_MS
+        value: "15000"
+      - key: TELEGRAM_WAIT_ALERT_COOLDOWN_MS
+        value: "900000"
       - key: NEWS_FAIL_CLOSED
         value: "false"
       - key: AI_DATA_QUALITY_MIN
