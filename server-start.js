@@ -31,12 +31,28 @@ if (typeof originalFetch === 'function' && !originalFetch.__vtradeOpenAiPatch) {
         // looking like an AI-generated trade veto. BUY/SELL candidates still
         // go through the full Responses + JSON Schema confirmation flow.
         if (supplied && supplied.signal === 'WAIT') {
+          const blockedReasons = Array.isArray(supplied?.score?.blockedReasons)
+            ? supplied.score.blockedReasons.slice(0, 12).map(String)
+            : [];
+          const gateSnapshot = {
+            signal: supplied.signal,
+            bias: supplied.bias ?? supplied.direction ?? supplied.macroBias ?? null,
+            score: supplied.score?.confluence ?? supplied.score?.total ?? supplied.score ?? null,
+            phase: supplied.phase ?? null,
+            setupGrade: supplied.setupGrade ?? null,
+            status: supplied.status ?? null,
+            trigger: supplied.trigger ?? null,
+            directionScore: supplied.directionScore ?? supplied.score?.direction ?? null,
+            blockedReasons
+          };
+          console.log(`[ICT GATE DEBUG] ${JSON.stringify(gateSnapshot)}`);
+
           const skipped = {
             decision: 'WAIT',
             confidence: 0,
             agreement: 'NEUTRAL',
             reasons: ['Deterministic ICT/MTF engine is WAIT; AI confirmation skipped until a qualified BUY/SELL candidate exists.'],
-            missingConfirmations: Array.isArray(supplied?.score?.blockedReasons) ? supplied.score.blockedReasons.slice(0, 8).map(String) : [],
+            missingConfirmations: blockedReasons,
             riskFlags: ['No AI veto/approval is applied while the deterministic entry gate is not qualified.'],
             summary: 'AI confirmation is intentionally skipped because the deterministic engine has not produced a qualified BUY/SELL candidate.'
           };
