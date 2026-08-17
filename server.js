@@ -1255,8 +1255,8 @@ async function openAIConfirmXauAnalysis(a) {
       summary:String(parsed.summary||'').slice(0,1000),
       usage:body?.usage?{inputTokens:body.usage.input_tokens,outputTokens:body.usage.output_tokens,totalTokens:body.usage.total_tokens}:null,
       gate:{engineSignal:a.signal,engineConfidence:a.confidence,enginePassed:a.confirmations?.allGatesPassed===true,
-        aiEligible:a.confidence>=OPENAI_MIN_SCORE && a.confirmations?.allGatesPassed===true,
-        finalSignal:(a.confirmations?.allGatesPassed===true && confidence>=OPENAI_MIN_SCORE && decision===a.signal && ['BUY','SELL'].includes(decision))?decision:'WAIT'}
+        aiEligible:confidence>=OPENAI_MIN_SCORE && a.confirmations?.allGatesPassed===true,
+        finalSignal:(a.confirmations?.allGatesPassed===true && confidence>=OPENAI_MIN_SCORE && decision===a.signal && agreement==='AGREE' && ['BUY','SELL'].includes(decision))?decision:'WAIT'}
     };
   } catch(e) {
     return {enabled:true,configured:true,model:OPENAI_MODEL,status:e.name==='AbortError'?'timeout':'error',error:String(e.message||'OpenAI confirmation failed').slice(0,300),decision:'WAIT',confidence:0,agreement:'NEUTRAL',reasons:[],missingConfirmations:[],riskFlags:['AI confirmation unavailable; deterministic gate remains authoritative'],summary:'AI confirmation unavailable; no trade signal is promoted.'};
@@ -1698,7 +1698,8 @@ function telegramWaitText(a) {
     `Bias: *${bias}*\n` +
     `Direction Score: *${score}/100*\n` +
     `Confidence: *${Number(a?.confidence ?? 0)}/100*\n` +
-    `Status: *${a?.status || 'NO TRADE — confirmation pending'}*\n\n` +
+    `Status: *${a?.status || 'NO TRADE — confirmation pending'}*\n` +
+    `AI Confirm: *${a?.aiConfirmation?.decision || 'NOT RUN'}* | Confidence: *${a?.aiConfirmation?.confidence ?? '—'}/100* | Agreement: *${a?.aiConfirmation?.agreement || '—'}*\n\n` +
     `*MTF LIVE SIGNALS*\n\n` +
     `${telegramMtfText(a)}\n\n` +
     `Waiting for:\n` +
@@ -1734,6 +1735,7 @@ function telegramText(a) {
     `Mode: *${a.entryMode || 'MARKET'}*\n`+`Broker: *VT Markets MT5*\n`+
     `Quote age: *${a.priceAgeSec ?? '—'}s* | Spread: *${a.spread ?? '—'}*\n`+
     `AI Score: *${a.directionScore ?? a.aiScore ?? 50}/100* | Bias: *${a.directionBand || a.bias || 'NEUTRAL'}*\n`+`Confluence: *${a.confidence}/100* | TF: *${a.executionTimeframe}* | RR: *${o?.riskReward ?? '—'}*\n`+
+    `AI Confirm: *${a.aiConfirmation?.decision || 'NOT RUN'}* | Confidence: *${a.aiConfirmation?.confidence ?? '—'}/100* | Agreement: *${a.aiConfirmation?.agreement || '—'}*\n`+
     `EX Zone: *${a.referenceZone ? `${a.referenceZone.low}–${a.referenceZone.high}` : 'Dynamic — AI calculated'}* | Bias: *${a.referenceZone?.direction ?? a.bias}* | ${a.referenceZone?.rangeType ?? 'DYNAMIC'} zone\n`+
     `Entry timing: *${a.entryTiming || 'WAIT'}*\n`+
     `Time: *${a.priceAsOf || new Date().toISOString()}*\n\n`+
@@ -1784,12 +1786,20 @@ async function maybeTelegramAlert(a, tg, sessionId) {
   }
 
   // Entry alerts remain strict and deduplicated.
-  const o=a?.bestOpportunity; const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
+  const o=a?.bestOpportunity;
+  const actionable = ['BUY','SELL'].includes(a.signal) && (a.status === 'ENTRY CONFIRMED' || String(a.status||'').includes('ENTRY CONFIRMED')) && Number.isFinite(Number(a.entry)) && (!!o || a.confirmations?.allGatesPassed === true);
+  const aiGateRequired = OPENAI_ENABLED && !!OPENAI_API_KEY;
+  const aiGateOk = !aiGateRequired || (
+    a.aiConfirmation?.status === 'ok' &&
+    a.aiConfirmation?.gate?.finalSignal === a.signal &&
+    a.aiConfirmation?.agreement === 'AGREE' &&
+    Number(a.aiConfirmation?.confidence) >= OPENAI_MIN_SCORE
+  );
   const aiScore=Number(a.directionScore ?? a.aiScore ?? 50);
   const buyScoreMin=80;
   const sellScoreMax=19;
   const directionScoreOk=(a.signal==='BUY' && aiScore>=buyScoreMin) || (a.signal==='SELL' && aiScore<=sellScoreMax);
-  if(actionable && directionScoreOk && (!o || o.state==='CONFIRMED')) {
+  if(actionable && directionScoreOk && aiGateOk && (!o || o.state==='CONFIRMED')) {
     const key=`${a.signal}:${a.status}:${a.entryZone?.low ?? '-'}:${a.entryZone?.high ?? '-'}:${a.entry ?? '-'}:${a.stopLoss ?? '-'}:${(a.takeProfit||[]).join(',')}`;
     if(telegramAlertKeys.get(dedupeKey)!==key) {
       telegramAlertKeys.set(dedupeKey,key);
@@ -1840,6 +1850,13 @@ async function runTelegramAutoAlertScan() {
     if (!r.ready) return;
 
     const a = await buildXauAnalysis();
+    // Run the independent AI confirmation on every auto scan. The deterministic ICT/MTF engine
+    // remains authoritative; AI can only confirm or veto an already-qualified BUY/SELL.
+    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : {enabled:false,configured:!!OPENAI_API_KEY,model:OPENAI_MODEL,status:'disabled'};
+    a.aiConfirmation = ai;
+    if (OPENAI_ENABLED && OPENAI_API_KEY) {
+      console.log(`[AI CONFIRM] status=${ai.status} decision=${ai.decision} confidence=${ai.confidence ?? 0} agreement=${ai.agreement || 'NEUTRAL'} final=${ai.gate?.finalSignal || 'WAIT'}`);
+    }
     const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };
     const dedupeKey=`env:${TELEGRAM_CHAT_ID}`;
     let sent = await maybeTelegramAlert(a, tg, dedupeKey);
