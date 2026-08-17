@@ -21,14 +21,31 @@ function patchExecutionLogic(source) {
     source = source.replace(gatePattern, `$1\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`);
   }
   source = source.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}", "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
-  source = source.replace("const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);", "const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);");
+  source = source.replace("const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);", "const setupReady=candlesFresh&&biasOk&&structureAgreement&&sweepOk&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&displacementOk&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);");
   source = source.replace("if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');", "if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
   source = source.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
   source = source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
+  // Horizon opportunities are context only. The canonical M5 ICT gate is the sole
+  // authorization path so Telegram/Web/MT5 cannot promote a looser opportunity.
+  source = source.replace("const selectedOpportunity = safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null;", "const selectedOpportunity = setupReady ? (safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null) : null;");
+  source = source.replace(/\s*if \(selectedOpportunity && !setupReady && !newsBlocked\) \{[\s\S]*?\n  \}\n  if \(newsBlocked\)/, "\n  if (newsBlocked)");
   if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) {
     source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true;`);
   }
   source = source.replace(/(setupReady\s*:\s*setupReady\s*,?)/, `$1\n    tradeAuthorized,`);
+  return source;
+}
+
+function patchMtfBias(source) {
+  // Structure can legitimately be RANGE while EMA/MACD still provide a directional
+  // bias. Use a deterministic hierarchy for MTF display/alignment:
+  // structure > EMA trend > RSI/MACD momentum. This avoids false 0/3 alignment
+  // without inventing an execution signal.
+  const needle = "return {\n    structure:s,trend";
+  if (source.includes(needle)) {
+    const replacement = "const structureBias=(s?.bias==='BULLISH'||s?.bias==='BEARISH')?s.bias:null;\n  const trendBias=(trend==='BULLISH'||trend==='BEARISH')?trend:null;\n  const momentumBias=(m?.histogram>0)?'BULLISH':(m?.histogram<0)?'BEARISH':null;\n  const resolvedBias=structureBias||trendBias||momentumBias||'NEUTRAL';\n  const directionScore=Math.max(0,Math.min(100,Math.round(50 + (resolvedBias==='BULLISH'?12:resolvedBias==='BEARISH'?-12:0) + (trendBias===resolvedBias?(resolvedBias==='BULLISH'?10:-10):0) + (momentumBias===resolvedBias?(resolvedBias==='BULLISH'?8:-8):0) + (r!=null ? (resolvedBias==='BULLISH'?(r>=50?6:-3):resolvedBias==='BEARISH'?(r<=50?-6:3):0) : 0) + (dx?.value>=18 ? (resolvedBias==='BULLISH'?4:resolvedBias==='BEARISH'?-4:0) : 0))));\n  return {\n    structure:{...s,bias:resolvedBias,rawBias:s?.bias||null,score:directionScore},trend,resolvedBias,directionScore";
+    source = source.replace(needle, replacement);
+  }
   return source;
 }
 
@@ -93,7 +110,7 @@ function patchWaitCard(source) {
     "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*','',",
     "    '🔒 No order until all required ICT execution gates pass.',",
     "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'].join('\\n');",
-    '}', ''
+    "}", ""
   ].join('\n');
   const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*(?=\n\s*function\s+)/;
   if (pattern.test(source)) source = source.replace(pattern, waitSource);
@@ -113,8 +130,9 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
   let source = fs.readFileSync(filename, 'utf8');
   source = patchExecutionLogic(source);
+  source = patchMtfBias(source);
   source = patchWaitCard(source);
-  console.log('[V-TRADE LAUNCHER] production ICT execution policy active');
+  console.log('[V-TRADE LAUNCHER] production MTF bias + strict ICT authorization active');
   console.log('[V-TRADE LAUNCHER] production WAIT/AUTHORIZED-card logic active');
   mod._compile(source, filename);
 };
