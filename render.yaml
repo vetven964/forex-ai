@@ -16,7 +16,7 @@ services:
       - key: NODE_VERSION
         value: "24.14.1"
       - key: NODE_OPTIONS
-        value: "--require=./direction-profile-patch.js"
+        value: "--require=./direction-profile-patch.js --require=./telegram-card-patch.js"
       - key: APP_BASE_URL
         value: https://vetven964.github.io
       - key: ADMIN_EMAIL
