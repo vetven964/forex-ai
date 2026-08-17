@@ -1,6 +1,5 @@
 // V-TRADE AI Telegram WAIT card boundary patch.
-// This patch runs before server.js and changes the actual WAIT formatter at its source,
-// so Telegram output no longer depends on a second sendMessage formatter.
+// Patches the real telegramWaitText() source before server.js is compiled.
 const Module = require('module');
 const path = require('path');
 const fs = require('fs');
@@ -29,18 +28,15 @@ function normalizeWait(text) {
   const directionScore = valueFromLine(text, 'Direction Score', '0/100');
   const confidence = valueFromLine(text, 'Confidence', '0/100');
   const status = valueFromLine(text, 'Status', 'WAIT — NO ENTRY');
-
   const aiLine = String(text.split(/\r?\n/).find(x => x.includes('AI Confirm:')) || '');
   const aiParts = aiLine.split('|').map(x => x.trim());
   const aiConfirm = ((aiParts[0] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'WAIT';
   const aiConfidence = ((aiParts[1] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || '0/100';
   const agreement = ((aiParts[2] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'NEUTRAL';
-
   const brokerLine = String(text.split(/\r?\n/).find(x => x.includes('Broker:')) || '');
   const brokerParts = brokerLine.split('|').map(x => x.trim());
   const brokerName = ((brokerParts[0] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim()) || 'VT Markets MT5';
   const quoteAge = ((brokerParts[1] || '').split(':').slice(1).join(':').replace(/\*/g, '').trim().replace(/s$/i, '')) || '—';
-
   const waitingIndex = text.indexOf('Waiting for:');
   const blocked = [];
   if (waitingIndex >= 0) {
@@ -50,7 +46,6 @@ function normalizeWait(text) {
       if (s && s !== 'Waiting for:') blocked.push(s);
     }
   }
-
   const has = pattern => blocked.some(x => pattern.test(x));
   const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
   const gates = [
@@ -61,7 +56,6 @@ function normalizeWait(text) {
     ['📊 ADX Gate', has(/ADX/i) ? '❌ TOO WEAK' : '⏳ WAITING'],
     ['📍 Execution Zone', /premium/i.test(text) ? '⏳ WAIT FOR DISCOUNT' : '⏳ WAITING']
   ];
-
   return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n` +
     `📊 Asset: *XAU/USD (Gold)*\n` +
     `💰 Price: *${price}*\n` +
@@ -81,25 +75,49 @@ function normalizeWait(text) {
 }
 
 function patchServerSource(source) {
-  // Replace the real telegramWaitText() implementation in server.js.
-  // This is deliberately source-level so the old MTF LIVE SIGNALS block cannot win later.
   const start = source.indexOf('function telegramWaitText(a) {');
   const end = source.indexOf('\nfunction telegramText(a) {', start);
-  if (start < 0 || end < 0) return source;
+  if (start < 0 || end < 0) {
+    console.warn('[TELEGRAM CARD] telegramWaitText() not found in server.js');
+    return source;
+  }
 
   const replacement = `function telegramWaitText(a) {
-  const raw = [
-    \\`Price: *${'${formatPrice(a?.livePrice ?? a?.bid)}'}*\\`,
-    \\`Bias: *${'${String(a?.bias || a?.directionBand || \'NEUTRAL\').toUpperCase()}'}*\\`,
-    \\`Direction Score: *${'${Number(a?.directionScore ?? a?.aiScore ?? 0)}'}/100*\\`,
-    \\`Confidence: *${'${Number(a?.confidence ?? 0)}'}/100*\\`,
-    \\`Status: *${'${a?.status || \'NO TRADE — confirmation pending\'}'}*\\`,
-    \\`AI Confirm: *${'${a?.aiConfirmation?.decision || \'NOT RUN\'}'}* | Confidence: *${'${a?.aiConfirmation?.confidence ?? \'—\'}'}/100* | Agreement: *${'${a?.aiConfirmation?.agreement || \'—\'}'}*\\`,
-    \\`Broker: *VT Markets MT5* | Quote age: *${'${a?.priceAgeSec ?? \'—\'}'}s*\\`
-  ].join('\\n');
-  return normalizeWait(\
-    \\`🟡 *V TRADE AI — XAUUSD WAIT*\\n\\n${'${raw}'}\\n\\nWaiting for:\\n${'${Array.isArray(a?.score?.blockedReasons) && a.score.blockedReasons.length ? a.score.blockedReasons.slice(0, 6).map(x => `• ${x}`).join(\\'\\n\\') : \\'• Final ICT entry confirmation\\'}'}\\n\\n⚠️ WAIT only — no order is authorized until all entry gates pass.\\`
-  );
+  const price = Number.isFinite(Number(a?.livePrice ?? a?.bid)) ? Number(a.livePrice ?? a.bid).toFixed(2) : '—';
+  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
+  const directionScore = Number(a?.directionScore ?? a?.aiScore ?? 0);
+  const confidence = Number(a?.confidence ?? 0);
+  const status = String(a?.status || 'NO TRADE — confirmation pending');
+  const aiDecision = String(a?.aiConfirmation?.decision || 'NOT RUN');
+  const aiConfidence = String(a?.aiConfirmation?.confidence ?? '—');
+  const aiAgreement = String(a?.aiConfirmation?.agreement || '—');
+  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 6).map(String) : [];
+  const has = pattern => blocked.some(x => pattern.test(x));
+  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
+  const gates = [
+    ['💧 Liquidity Sweep', has(/liquidity sweep/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['📐 M5 MSS', has(/Fresh M5 MSS not confirmed/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['💥 Displacement', has(/displacement/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['🏗️ M5 MSS/BOS', has(/MSS\\/BOS/i) ? '❌ NOT CONFIRMED' : '⏳ WAITING'],
+    ['📊 ADX Gate', has(/ADX/i) ? '❌ TOO WEAK' : '⏳ WAITING'],
+    ['📍 Execution Zone', blocked.some(x => /premium/i.test(x)) ? '⏳ WAIT FOR DISCOUNT' : '⏳ WAITING']
+  ];
+  return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\\n\\n` +
+    `📊 Asset: *XAU/USD (Gold)*\\n` +
+    `💰 Price: *${price}*\\n` +
+    `⚡ Action: *${action}*\\n\\n` +
+    `📈 Bias: *${bias}* | Direction Score: *${directionScore}/100* | Confidence: *${confidence}/100*\\n\\n` +
+    `🔎 *ICT ENTRY GATES*\\n` + gates.map(([k,v]) => `${k}: *${v}*`).join('\\n') + `\\n\\n` +
+    `🤖 AI Confirm: *${aiDecision}* | Confidence: *${aiConfidence}/100* | Agreement: *${aiAgreement}*\\n\\n` +
+    `🎯 Entry Zone: *WAITING FOR CONFIRMATION*\\n` +
+    `🛑 Stop Loss (SL): *—*\\n` +
+    `🎯 Take Profit 1 (TP1): *—*\\n` +
+    `🎯 Take Profit 2 (TP2): *—*\\n` +
+    `🎯 Take Profit 3 (TP3): *—*\\n\\n` +
+    `⚡ Status: *WAIT — NO ORDER AUTHORIZED*\\n` +
+    `⏳ ${status}\\n\\n` +
+    `🏦 Broker: *VT Markets MT5* | Quote age: *${a?.priceAgeSec ?? '—'}s*\\n` +
+    `🔒 *WAIT only — no order is authorized until all entry gates pass.*`;
 }
 `;
   return source.slice(0, start) + replacement + source.slice(end);
@@ -113,7 +131,6 @@ Module._extensions['.js'] = function vtradeTelegramSourceLoader(mod, filename) {
   return mod._compile(source, filename);
 };
 
-// Keep a safe Telegram boundary as a final fallback for any other caller.
 const originalLoad = Module._load;
 function patchTelegramBot(Bot) {
   if (!Bot || !Bot.prototype || Bot.prototype.__vtradeCardPatch) return;
