@@ -1,7 +1,16 @@
 // V-TRADE AI Telegram WAIT card boundary patch.
-// Loaded before the app so every node-telegram-bot-api sendMessage call is normalized.
+// This patch runs before server.js and changes the actual WAIT formatter at its source,
+// so Telegram output no longer depends on a second sendMessage formatter.
 const Module = require('module');
-const originalLoad = Module._load;
+const path = require('path');
+const fs = require('fs');
+
+const SERVER_FILE = path.resolve(__dirname, 'server.js');
+const originalJsLoader = Module._extensions['.js'];
+
+function formatPrice(n) {
+  return Number.isFinite(Number(n)) ? Number(n).toFixed(2) : '—';
+}
 
 function valueFromLine(text, label, fallback = '—') {
   const line = String(text || '').split(/\r?\n/).find(x => x.trimStart().startsWith(label + ':'));
@@ -71,6 +80,41 @@ function normalizeWait(text) {
     `🔒 *WAIT only — no order is authorized until all entry gates pass.*`;
 }
 
+function patchServerSource(source) {
+  // Replace the real telegramWaitText() implementation in server.js.
+  // This is deliberately source-level so the old MTF LIVE SIGNALS block cannot win later.
+  const start = source.indexOf('function telegramWaitText(a) {');
+  const end = source.indexOf('\nfunction telegramText(a) {', start);
+  if (start < 0 || end < 0) return source;
+
+  const replacement = `function telegramWaitText(a) {
+  const raw = [
+    \\`Price: *${'${formatPrice(a?.livePrice ?? a?.bid)}'}*\\`,
+    \\`Bias: *${'${String(a?.bias || a?.directionBand || \'NEUTRAL\').toUpperCase()}'}*\\`,
+    \\`Direction Score: *${'${Number(a?.directionScore ?? a?.aiScore ?? 0)}'}/100*\\`,
+    \\`Confidence: *${'${Number(a?.confidence ?? 0)}'}/100*\\`,
+    \\`Status: *${'${a?.status || \'NO TRADE — confirmation pending\'}'}*\\`,
+    \\`AI Confirm: *${'${a?.aiConfirmation?.decision || \'NOT RUN\'}'}* | Confidence: *${'${a?.aiConfirmation?.confidence ?? \'—\'}'}/100* | Agreement: *${'${a?.aiConfirmation?.agreement || \'—\'}'}*\\`,
+    \\`Broker: *VT Markets MT5* | Quote age: *${'${a?.priceAgeSec ?? \'—\'}'}s*\\`
+  ].join('\\n');
+  return normalizeWait(\
+    \\`🟡 *V TRADE AI — XAUUSD WAIT*\\n\\n${'${raw}'}\\n\\nWaiting for:\\n${'${Array.isArray(a?.score?.blockedReasons) && a.score.blockedReasons.length ? a.score.blockedReasons.slice(0, 6).map(x => `• ${x}`).join(\\'\\n\\') : \\'• Final ICT entry confirmation\\'}'}\\n\\n⚠️ WAIT only — no order is authorized until all entry gates pass.\\`
+  );
+}
+`;
+  return source.slice(0, start) + replacement + source.slice(end);
+}
+
+Module._extensions['.js'] = function vtradeTelegramSourceLoader(mod, filename) {
+  if (path.resolve(filename) !== SERVER_FILE) return originalJsLoader(mod, filename);
+  let source = fs.readFileSync(filename, 'utf8');
+  source = patchServerSource(source);
+  console.log('[TELEGRAM CARD] server.js WAIT formatter patched at source boundary');
+  return mod._compile(source, filename);
+};
+
+// Keep a safe Telegram boundary as a final fallback for any other caller.
+const originalLoad = Module._load;
 function patchTelegramBot(Bot) {
   if (!Bot || !Bot.prototype || Bot.prototype.__vtradeCardPatch) return;
   const originalSendMessage = Bot.prototype.sendMessage;
@@ -81,11 +125,12 @@ function patchTelegramBot(Bot) {
     return originalSendMessage.call(this, chatId, normalized, options, ...rest);
   };
   Bot.prototype.__vtradeCardPatch = true;
-  console.log('[TELEGRAM CARD] WAIT formatter boundary patch active');
+  console.log('[TELEGRAM CARD] sendMessage fallback patch active');
 }
-
 Module._load = function(request, parent, isMain) {
   const exported = originalLoad.apply(this, arguments);
   if (request === 'node-telegram-bot-api') patchTelegramBot(exported);
   return exported;
 };
+
+console.log('[TELEGRAM CARD] source-level WAIT formatter patch active');
