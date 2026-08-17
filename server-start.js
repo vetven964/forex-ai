@@ -104,6 +104,18 @@ if (!originalSendMessage.__vtradeSignalAiPatch) {
       const keyConfigured = !!String(process.env.OPENAI_API_KEY || '').trim();
       const isSignalWait = typeof finalText === 'string' && finalText.includes('AI Confirm: *NOT RUN*');
 
+      // Direction/ICT diagnostics: log the complete decision evidence whenever
+      // the Telegram auto-signal is sent. This does not loosen any entry gate;
+      // it only makes the exact direction and blocking conditions visible.
+      if (typeof finalText === 'string' && (finalText.includes('MTF LIVE SIGNALS') || finalText.includes('NO TRADE') || finalText.includes('ENTRY CONFIRMED'))) {
+        const compact = finalText
+          .replace(/\*/g, '')
+          .replace(/\\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .slice(0, 5000);
+        console.log(`[ICT DIRECTION DEBUG]\n${compact}`);
+      }
+
       if (enabled && keyConfigured && isSignalWait) {
         const port = Number(process.env.PORT || 10000);
         const controller = new AbortController();
