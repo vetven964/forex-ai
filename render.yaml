@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node -r ./mt5-readiness-patch.js -r ./telegram-card-patch.js server-start.js
+    startCommand: node -r ./telegram-card-patch.js server-start.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
