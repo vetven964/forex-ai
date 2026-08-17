@@ -8,13 +8,11 @@ const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const originalLoader = Module._extensions['.js'];
 
 function patchExecutionLogic(source) {
-  // Define executionLocationOk in the same buildXauAnalysis scope as pdOk.
-  // The previous launcher only inserted this variable when one exact source
-  // string matched. A small server refactor broke that match and left the
-  // later confirmations block referencing an undefined variable.
-  const pdPattern = /(const\s+pdOk\s*=\s*side==='BULLISH'\?premiumDiscount==='DISCOUNT':side==='BEARISH'\?premiumDiscount==='PREMIUM':false;)/;
-  if (pdPattern.test(source) && !source.includes('const executionLocationOk=')) {
-    source = source.replace(pdPattern, `$1\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`);
+  // Define executionLocationOk only after retestOk/zoneNearOk exist.
+  // This avoids the production ReferenceError that blocked ICT analysis and Telegram scans.
+  const gatePattern = /(const\s+biasOk=[\s\S]*?structureAgreement=mssOk\|\|bosOk;)/;
+  if (gatePattern.test(source) && !source.includes('const executionLocationOk=')) {
+    source = source.replace(gatePattern, `$1\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`);
   }
 
   source = source.replace(
