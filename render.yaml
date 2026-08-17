@@ -13,6 +13,8 @@ services:
         value: "true"
       - key: PORT
         value: "10000"
+      - key: NODE_VERSION
+        value: "24.14.1"
       - key: APP_BASE_URL
         value: https://vetven964.github.io
       - key: ADMIN_EMAIL
