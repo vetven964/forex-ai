@@ -1,12 +1,33 @@
 // V-TRADE AI production launcher
 // One startup path for Render + npm start.
-// The launcher only normalizes Telegram WAIT output; trading/ICT gates stay in server.js.
+// Applies a narrow source-boundary patch to the deterministic ICT gate and
+// normalizes the Telegram WAIT card. Core trading calculations remain in server.js.
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const originalLoader = Module._extensions['.js'];
+
+function patchExecutionLogic(source) {
+  const pdAnchor = "  const pdOk=side==='BULLISH'?premiumDiscount==='DISCOUNT':side==='BEARISH'?premiumDiscount==='PREMIUM':false;";
+  const pdPatch = `${pdAnchor}\n  // A valid bullish discount FVG/OB may be staged as LIMIT while live price is premium.\n  // A valid bearish premium FVG/OB may be staged as LIMIT while live price is discount.\n  const zoneMid = candidateZone ? (Number(candidateZone.low) + Number(candidateZone.high)) / 2 : NaN;\n  const zonePremiumDiscount = Number.isFinite(zoneMid) ? (zoneMid > mid ? 'PREMIUM' : 'DISCOUNT') : 'UNKNOWN';\n  const zonePdOk = side==='BULLISH' ? zonePremiumDiscount==='DISCOUNT' : side==='BEARISH' ? zonePremiumDiscount==='PREMIUM' : false;`;
+  if (!source.includes(pdAnchor)) { console.warn('[V-TRADE PATCH] premium/discount anchor not found'); return source; }
+  source = source.replace(pdAnchor, pdPatch);
+
+  const setupAnchor = "  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);";
+  const setupPatch = "  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;\n  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);";
+  if (!source.includes(setupAnchor)) { console.warn('[V-TRADE PATCH] setupReady anchor not found'); return source; }
+  source = source.replace(setupAnchor, setupPatch);
+
+  const reasonAnchor = "  if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);";
+  const reasonPatch = "  if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);";
+  if (source.includes(reasonAnchor)) source = source.replace(reasonAnchor, reasonPatch);
+
+  const confirmAnchor = "premiumDiscountOk:pdOk";
+  if (source.includes(confirmAnchor)) source = source.replace(confirmAnchor, "premiumDiscountOk:executionLocationOk");
+  return source;
+}
 
 function patchWaitCard(source) {
   const advancedWait = [
@@ -36,51 +57,29 @@ function patchWaitCard(source) {
     "  const phase = premium ? 'PREMIUM — WAIT FOR DISCOUNT' : (sweep || mss || displacement || fvgob) ? 'SETUP FORMING — WAIT FOR CONFIRMATION' : 'WAITING FOR QUALIFIED SETUP';",
     "  const gateLine = blocked.length ? blocked.map(x => '• ' + x).join('\\n') : '• No confirmed entry gate';",
     '  return [',
-    "    '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*',",
-    "    '',",
-    "    '📊 Asset: *XAU/USD (Gold)*',",
+    "    '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*',", "    '',", "    '📊 Asset: *XAU/USD (Gold)*',",
     "    '💰 Price: *' + (Number.isFinite(price) ? price.toFixed(2) : '—') + '*',",
-    "    '⚡ Action: *' + action + '*',",
-    "    '🧭 Phase: *' + phase + '*',",
-    "    '',",
-    "    '📈 Bias: *' + bias + '*',",
-    "    '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
-    "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*',",
-    "    '',",
-    "    '🔎 *ICT ENTRY GATES*',",
-    '    gateLine,',
-    "    '',",
-    "    '🎯 Execution Zone: *' + entryZone + '*',",
-    "    '🟢 Entry: *WAIT — gate confirmation required*',",
-    "    '🛑 Stop Loss (SL): *WAIT*',",
-    "    '🎯 TP1: *WAIT*',",
-    "    '🎯 TP2: *WAIT*',",
-    "    '🎯 TP3: *WAIT*',",
-    "    '',",
+    "    '⚡ Action: *' + action + '*',", "    '🧭 Phase: *' + phase + '*',", "    '',",
+    "    '📈 Bias: *' + bias + '*',", "    '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
+    "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*',", "    '',",
+    "    '🔎 *ICT ENTRY GATES*',", '    gateLine,', "    '',",
+    "    '🎯 Execution Zone: *' + entryZone + '*',", "    '🟢 Entry: *WAIT — gate confirmation required*',",
+    "    '🛑 Stop Loss (SL): *WAIT*',", "    '🎯 TP1: *WAIT*',", "    '🎯 TP2: *WAIT*',", "    '🎯 TP3: *WAIT*',", "    '',",
     "    '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
-    "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*',",
-    "    '',",
-    "    '🔒 No order until all required ICT execution gates pass.',",
-    "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'",
-    "  ].join('\\n');",
-    '}',
-    ''
+    "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*',", "    '',", "    '🔒 No order until all required ICT execution gates pass.',",
+    "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'", "  ].join('\\n');", '}', ''
   ].join('\n');
-
-  // Replace the complete WAIT formatter without depending on the next function name.
-  // This is intentionally broad so older server.js formatter variants cannot survive.
   const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*(?=\n\s*function\s+)/;
-  if (!pattern.test(source)) {
-    console.warn('[V-TRADE LAUNCHER] telegramWaitText() not found; source unchanged');
-    return source;
-  }
+  if (!pattern.test(source)) { console.warn('[V-TRADE LAUNCHER] telegramWaitText() not found; source unchanged'); return source; }
   return source.replace(pattern, advancedWait);
 }
 
 Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
   let source = fs.readFileSync(filename, 'utf8');
+  source = patchExecutionLogic(source);
   source = patchWaitCard(source);
+  console.log('[V-TRADE LAUNCHER] production ICT execution policy active');
   console.log('[V-TRADE LAUNCHER] production WAIT-card logic active');
   mod._compile(source, filename);
 };
