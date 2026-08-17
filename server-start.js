@@ -185,6 +185,47 @@ if (!originalSendMessage.__vtradeSignalAiPatch) {
       const enabled = String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true';
       const keyConfigured = !!String(process.env.OPENAI_API_KEY || '').trim();
       const isSignalWait = typeof finalText === 'string' && finalText.includes('AI Confirm: *NOT RUN*');
+
+      // Render the deterministic WAIT state as the same compact Advanced ICT card
+      // used by confirmed signals. WAIT never receives fabricated Entry/SL/TP values.
+      if (typeof finalText === 'string' && finalText.includes('V TRADE AI — XAUUSD WAIT')) {
+        const pick = (label, fallback = '—') => {
+          const re = new RegExp(`${label}: \\*([^*]*)\\*`);
+          const m = finalText.match(re);
+          return m ? m[1].trim() : fallback;
+        };
+        const price = pick('Price');
+        const bias = pick('Bias', 'NEUTRAL');
+        const directionScore = pick('Direction Score', '0/100');
+        const confidence = pick('Confidence', '0/100');
+        const status = pick('Status', 'WAIT — NO ENTRY');
+        const aiConfirm = pick('AI Confirm', 'WAIT');
+        const aiConfidenceMatch = finalText.match(/AI Confirm: \*[^*]*\* \\| Confidence: \\*([^*]*)\\* \\| Agreement: \\*([^*]*)\\*/);
+        const aiConfidence = aiConfidenceMatch ? aiConfidenceMatch[1].trim() : '0/100';
+        const agreement = aiConfidenceMatch ? aiConfidenceMatch[2].trim() : 'NEUTRAL';
+        const brokerMatch = finalText.match(/Broker: \\*([^*]*)\\* \\| Quote age: \\*([^*]*)\\*/);
+        const broker = brokerMatch ? brokerMatch[1].trim() : 'VT Markets MT5';
+        const quoteAge = brokerMatch ? brokerMatch[2].trim() : '—';
+        const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
+        finalText =
+          `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n` +
+          `📊 Asset: *XAU/USD (Gold)*\n` +
+          `💰 Price: *${price}*\n` +
+          `⚡ Action: *${action}*\n` +
+          `🎯 Entry Zone: *WAITING FOR CONFIRMATION*\n\n` +
+          `🛑 Stop Loss (SL): *—*\n` +
+          `🎯 Take Profit 1 (TP1): *—*\n` +
+          `🎯 Take Profit 2 (TP2): *—*\n` +
+          `🎯 Take Profit 3 (TP3): *—*\n\n` +
+          `⚙️ Analysis: *Real-time Order Block & Liquidity Sweep*\n` +
+          `📈 Bias: *${bias}* | Direction Score: *${directionScore}* | Confidence: *${confidence}*\n` +
+          `🤖 AI Confirm: *${aiConfirm}* | Confidence: *${aiConfidence}* | Agreement: *${agreement}*\n` +
+          `⚡ Status: *WAIT — NO ORDER AUTHORIZED*\n\n` +
+          `⏳ Waiting for fresh liquidity sweep + M5 MSS/BOS + displacement + discount execution.\n` +
+          `🏦 Broker: *${broker}* | Quote age: *${quoteAge}s*\n` +
+          `🔒 WAIT only — no order is authorized until all entry gates pass.`;
+      }
+
       if (typeof finalText === 'string' && (finalText.includes('MTF LIVE SIGNALS') || finalText.includes('NO TRADE') || finalText.includes('ENTRY CONFIRMED'))) {
         const compact = finalText.replace(/\*/g,'').replace(/\\n/g,'\n').replace(/\n{3,}/g,'\n\n').slice(0,5000);
         console.log(`[ICT DIRECTION DEBUG]\n${compact}`);
