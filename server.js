@@ -1304,8 +1304,10 @@ async function buildXauAnalysis() {
   const macroBias=coreBull>coreBear?'BULLISH':coreBear>coreBull?'BEARISH':'NEUTRAL';
   const mtfCount=Math.max(coreBull,coreBear);
   const fullMtfCount=Math.max(fullBull,fullBear);
-  const availableHtf=CORE_MTF_TFS.filter(tf=>['BULLISH','BEARISH'].includes(tfs[tf]?.structure?.bias)).length;
-  const fullMtfAvailable=fullBiases.filter(x=>['BULLISH','BEARISH'].includes(x.bias)).length;
+  // History availability is independent from directional bias. SIDEWAY is valid data,
+  // not a missing timeframe. Alignment remains a separate safety gate below.
+  const availableHtf=CORE_MTF_TFS.filter(tf=>Array.isArray({M5:m5,M15:m15,H1:h1,H4:h4}[tf]) && {M5:m5,M15:m15,H1:h1,H4:h4}[tf].length>=30).length;
+  const fullMtfAvailable=FULL_MTF_TFS.filter(tf=>Array.isArray({M1:m1,M5:m5,M15:m15,H1:h1,H4:h4,D1:d1,W1:w1}[tf]) && {M1:m1,M5:m5,M15:m15,H1:h1,H4:h4,D1:d1,W1:w1}[tf].length>=30).length;
 
   const execStruct=executionStructure(m5),sweep=recentLiquiditySweep(m5,6),displacement=candleDisplacement(m5),f=latestFreshFvg(m5,12),ob=latestAlignedOrderBlock(m5,macroBias,20),side=macroBias;
   const alignedFvg=f.found&&f.type===side,alignedOb=ob.found&&ob.type===side,zoneCandidates=[];
