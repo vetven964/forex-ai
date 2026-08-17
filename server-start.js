@@ -17,10 +17,6 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
     /const\s+CORE_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
     "const CORE_MTF_TFS = ['H1','M15','M5'];"
   );
-  source = source.replace(/H4\/H1\/M15/g, 'H1/M15/M5');
-  source = source.replace(/H4,\s*H1,\s*M15/g, 'H1, M15, M5');
-  source = source.replace(/H4'\s*,\s*'H1'\s*,\s*'M15'/g, "H1','M15','M5'");
-  source = source.replace(/H4\s*\/\s*H1\s*\/\s*M15/g, 'H1/M15/M5');
   source = source.replace(
     /const\s+FULL_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
     "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
@@ -30,6 +26,13 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
   source = source.replace(
     /MTF core bias not aligned — need 2\/3 H4\/H1\/M15 agreement/g,
     'MTF core bias not aligned — need 2/3 H1/M15/M5 agreement'
+  );
+
+  // Normalize the Telegram MTF order after all source substitutions. This prevents
+  // accidental duplicate M5 labels while preserving H4 as context.
+  source = source.replace(
+    /const\s+order\s*=\s*\[[^\]]*\]\s*;/,
+    "const order = ['H4','H1','M15','M5','M1'];"
   );
 
   const profileHeader = `\nconst VTRADE_DIRECTION_PROFILE = Object.freeze({\n  timeframes: ['H1','M15','M5'],\n  alignmentRequired: 2,\n  roles: Object.freeze({ H1: 'macro-direction', M15: 'confirmation', M5: 'entry-trigger' })\n});\n`;
