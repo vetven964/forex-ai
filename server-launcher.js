@@ -10,8 +10,7 @@ const originalLoader = Module._extensions['.js'];
 
 function patchExecutionLogic(source) {
   // Hard fix for the production ReferenceError seen in Render:
-  // "executionLocationOk is not defined". The launcher must be able to recover
-  // even when the exact source layout changes between server.js revisions.
+  // "executionLocationOk is not defined".
   if (!/\bconst\s+executionLocationOk\s*=/.test(source) && /\bexecutionLocationOk\b/.test(source)) {
     const firstUse = source.search(/\bexecutionLocationOk\b/);
     if (firstUse >= 0) {
@@ -31,13 +30,11 @@ function patchExecutionLogic(source) {
   source = source.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
   source = source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
 
-  // Normalize the final authorization flag for downstream Web/Telegram consumers.
-  // A signal is never authorized merely because direction score is high: the
-  // deterministic setup must be ready and there must be no blocked ICT gates.
+  // One normalized authorization flag. setupReady already contains the full
+  // deterministic ICT execution gate chain, so do not duplicate or weaken it.
   if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) {
-    source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true&&executionLocationOk===true&&Array.isArray(reasons)?reasons.length===0:false;`);
+    source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true;`);
   }
-  // Make the normalized flag visible when the analysis object already exposes setupReady.
   source = source.replace(/(setupReady\s*:\s*setupReady\s*,?)/, `$1\n    tradeAuthorized,`);
   source = source.replace(/(setupReady\s*,)(?![\s\S]*tradeAuthorized)/, `$1\n    tradeAuthorized,`);
   return source;
@@ -62,7 +59,7 @@ function patchWaitCard(source) {
     "  const low = Number(zone?.low);",
     "  const high = Number(zone?.high);",
     "  const entryZone = Number.isFinite(low) && Number.isFinite(high) ? `${low.toFixed(2)} — ${high.toFixed(2)}` : 'WAITING FOR CONFIRMATION';",
-    "  const authorized = a?.tradeAuthorized === true || (a?.setupReady === true && a?.executionLocationOk === true && blocked.length === 0);",
+    "  const authorized = a?.tradeAuthorized === true || (a?.setupReady === true && blocked.length === 0);",
     "  const side = bias === 'BULLISH' ? 'BUY' : bias === 'BEARISH' ? 'SELL' : '';",
     "  if (authorized && side) {",
     "    const entry = Number(a?.entry ?? a?.entryPrice ?? a?.livePrice);",
@@ -123,9 +120,7 @@ function patchWaitCard(source) {
 }
 
 function patchFrontend(source) {
-  // Critical UI correctness: missing numeric data must stay "—", never become 0/100.
   source = source.replace("const fmt=n=>Number.isFinite(Number(n))?Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const pct=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(100,Math.round(Number(n)))):'—';", "const fmt=n=>n!==null&&n!==undefined&&n!==''&&Number.isFinite(Number(n))?Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const pct=n=>n!==null&&n!==undefined&&n!==''&&Number.isFinite(Number(n))?Math.max(0,Math.min(100,Math.round(Number(n)))):'—';");
-  // Khmer font fallback for PC + phone without changing the existing layout.
   source = source.replace("font:14px Segoe UI,Arial,sans-serif", "font:14px 'Kantumruy Pro','Noto Sans Khmer','Segoe UI',Arial,sans-serif");
   const oldGate="function gate(label,v,detail=''){return `<div class=\"gate\"><span class=\"dot ${v===true?'pass':'wait'}\"></span><div><b>${label}</b><small>${v===true?'PASS':'WAIT'}${detail?' · '+detail:''}</small></div></div>`}";
   const newGate="function gate(label,v,detail=''){const km=lang==='km';const labels={'MTF Alignment':'ការតម្រឹម MTF','Liquidity Sweep':'Liquidity Sweep','MSS':'MSS','BOS':'BOS','Displacement':'Displacement','FVG':'FVG','Order Block':'Order Block','Premium / Discount':'Premium / Discount','Execution Zone':'តំបន់ប្រតិបត្តិ','Momentum':'Momentum','ADX Trend':'ADX Trend','Spread':'Spread'};const d=detail?String(detail):'';const detailKm={'PREMIUM':'PREMIUM','DISCOUNT':'DISCOUNT','UNKNOWN':'មិនស្គាល់'}[d]||d;return `<div class=\"gate\"><span class=\"dot ${v===true?'pass':'wait'}\"></span><div><b>${km?(labels[label]||label):label}</b><small>${v===true?(km?'ជាប់':'PASS'):(km?'រង់ចាំ':'WAIT')}${detail?' · '+(km?detailKm:detail):''}</small></div></div>`}";
@@ -134,10 +129,8 @@ function patchFrontend(source) {
   const newReasons="const reasons=a.score?.blockedReasons||[];const reasonKm=x=>{const s=String(x||'');const m={'MTF core bias not aligned — need 2/3 H4/H1/M15 agreement':'MTF Core មិនទាន់តម្រឹម — ត្រូវការ H4/H1/M15 យ៉ាងហោចណាស់ 2/3','Fresh liquidity sweep not confirmed':'មិនទាន់ Confirm Liquidity Sweep ថ្មី','Fresh M5 MSS not confirmed':'មិនទាន់ Confirm M5 MSS ថ្មី','Directional displacement not confirmed':'មិនទាន់ Confirm Directional Displacement','No fresh aligned FVG/OB':'មិនមាន FVG/OB ថ្មីដែលតម្រឹម','Price is outside the execution zone':'តម្លៃនៅក្រៅ Execution Zone','Fresh M5 MSS/BOS structure break not confirmed':'មិនទាន់ Confirm M5 MSS/BOS Structure Break','Momentum/displacement does not confirm the execution direction':'Momentum/Displacement មិនទាន់បញ្ជាក់ទិសដៅ Entry'};return m[s]||s};$('reasons').innerHTML=reasons.length?reasons.map(x=>`• ${lang==='km'?reasonKm(x):x}`).join('<br>'):(lang==='km'?'ICT Gate ទាំងអស់បានជាប់។':'All deterministic gates passed.');window.vtradeNotify&&window.vtradeNotify(a);";
   source = source.replace(oldReasons,newReasons);
 
-  // Browser notifications: permission is requested only after a user gesture.
-  // Notifications are state-change based to avoid 5-second refresh spam.
   if (!source.includes('window.vtradeNotify=')) {
-    const notificationScript = `<script>\n(()=>{\n  let lastKey='';\n  const keyOf=a=>{const side=String(a?.bias||a?.directionBand||'NEUTRAL').toUpperCase();const auth=a?.tradeAuthorized===true||(a?.setupReady===true&&a?.executionLocationOk===true&&!(a?.score?.blockedReasons||[]).length);const p=a?.entry??a?.entryPrice??a?.livePrice??a?.price;const sl=a?.sl??a?.stopLoss;const tp1=a?.tp1??a?.takeProfit1;return [side,auth,p,sl,tp1].join('|');};\n  const notify=async(a)=>{try{if(!('Notification' in window))return;const k=keyOf(a);if(!k||k===lastKey)return;lastKey=k;const side=String(a?.bias||a?.directionBand||'NEUTRAL').toUpperCase();const auth=a?.tradeAuthorized===true||(a?.setupReady===true&&a?.executionLocationOk===true&&!(a?.score?.blockedReasons||[]).length);if(Notification.permission!=='granted')return;const title=auth&&side==='BULLISH'?'🟢 BUY — TRADE AUTHORIZED':auth&&side==='BEARISH'?'🔴 SELL — TRADE AUTHORIZED':side==='BULLISH'?'🟡 BUY BIAS — WAIT':side==='BEARISH'?'🟡 SELL BIAS — WAIT':'🟡 WAIT — NO ENTRY';const body=auth?'ICT execution gates passed. Entry/SL/TP are ready.':((a?.score?.blockedReasons||[]).slice(0,3).join(' • ')||'Waiting for ICT confirmation.');new Notification(title,{body,tag:'vtrade-signal',renotify:true});}catch(e){}};\n  window.vtradeNotify=notify;\n  document.addEventListener('click',async()=>{try{if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();}catch(e){}},{once:true});\n})();\n</script>`;\n    source = source.replace('</body>', notificationScript+'\n</body>');\n  }
+    const notificationScript = `<script>\n(()=>{\n  let lastKey='';\n  const keyOf=a=>{const side=String(a?.bias||a?.directionBand||'NEUTRAL').toUpperCase();const auth=a?.tradeAuthorized===true||(a?.setupReady===true&&!(a?.score?.blockedReasons||[]).length);const p=a?.entry??a?.entryPrice??a?.livePrice??a?.price;const sl=a?.sl??a?.stopLoss;const tp1=a?.tp1??a?.takeProfit1;return [side,auth,p,sl,tp1].join('|');};\n  const notify=async(a)=>{try{if(!('Notification' in window))return;const k=keyOf(a);if(!k||k===lastKey)return;lastKey=k;const side=String(a?.bias||a?.directionBand||'NEUTRAL').toUpperCase();const auth=a?.tradeAuthorized===true||(a?.setupReady===true&&!(a?.score?.blockedReasons||[]).length);if(Notification.permission!=='granted')return;const title=auth&&side==='BULLISH'?'🟢 BUY — TRADE AUTHORIZED':auth&&side==='BEARISH'?'🔴 SELL — TRADE AUTHORIZED':side==='BULLISH'?'🟡 BUY BIAS — WAIT':side==='BEARISH'?'🟡 SELL BIAS — WAIT':'🟡 WAIT — NO ENTRY';const body=auth?'ICT execution gates passed. Entry/SL/TP are ready.':((a?.score?.blockedReasons||[]).slice(0,3).join(' • ')||'Waiting for ICT confirmation.');new Notification(title,{body,tag:'vtrade-signal',renotify:true});}catch(e){}};\n  window.vtradeNotify=notify;\n  document.addEventListener('click',async()=>{try{if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();}catch(e){}},{once:true});\n})();\n</script>`;\n    source = source.replace('</body>', notificationScript+'\n</body>');\n  }
   return source;
 }
 
