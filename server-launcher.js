@@ -11,14 +11,28 @@ const originalLoader = Module._extensions['.js'];
 
 function patchExecutionLogic(source) {
   const pdAnchor = "  const pdOk=side==='BULLISH'?premiumDiscount==='DISCOUNT':side==='BEARISH'?premiumDiscount==='PREMIUM':false;";
-  const pdPatch = `${pdAnchor}\n  // A valid bullish discount FVG/OB may be staged as LIMIT while live price is premium.\n  // A valid bearish premium FVG/OB may be staged as LIMIT while live price is discount.\n  const zoneMid = candidateZone ? (Number(candidateZone.low) + Number(candidateZone.high)) / 2 : NaN;\n  const zonePremiumDiscount = Number.isFinite(zoneMid) ? (zoneMid > mid ? 'PREMIUM' : 'DISCOUNT') : 'UNKNOWN';\n  const zonePdOk = side==='BULLISH' ? zonePremiumDiscount==='DISCOUNT' : side==='BEARISH' ? zonePremiumDiscount==='PREMIUM' : false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`;
-  if (!source.includes(pdAnchor)) { console.warn('[V-TRADE PATCH] premium/discount anchor not found'); return source; }
+  if (!source.includes(pdAnchor)) {
+    console.warn('[V-TRADE PATCH] premium/discount anchor not found');
+    return source;
+  }
+
+  const pdPatch = pdAnchor;
   source = source.replace(pdAnchor, pdPatch);
+
+  // IMPORTANT: retestOk and atr are declared in this scope immediately before this
+  // anchor. Keep the limit-zone calculation after those declarations so the launcher
+  // cannot introduce a temporal-dead-zone or undefined-variable runtime error.
+  const retestAnchor = "  const retestOk=inZone;";
+  const retestPatch = `${retestAnchor}\n  // A valid bullish discount FVG/OB may be staged as LIMIT while live price is premium.\n  // A valid bearish premium FVG/OB may be staged as LIMIT while live price is discount.\n  const zoneMid = zone ? (Number(zone.low) + Number(zone.high)) / 2 : NaN;\n  const zonePremiumDiscount = Number.isFinite(zoneMid) ? (zoneMid > mid ? 'PREMIUM' : 'DISCOUNT') : 'UNKNOWN';\n  const zonePdOk = side==='BULLISH' ? zonePremiumDiscount==='DISCOUNT' : side==='BEARISH' ? zonePremiumDiscount==='PREMIUM' : false;\n  const limitZoneReady=!!zone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(zone.high)<live.price)||(side==='BEARISH'&&Number(zone.low)>live.price))&&zoneDistance(live.price,zone)<=Math.max(atr*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`;
+  if (!source.includes(retestAnchor)) {
+    console.warn('[V-TRADE PATCH] retest anchor not found');
+    return source;
+  }
+  source = source.replace(retestAnchor, retestPatch);
 
   const setupAnchor = "  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);";
   const setupPatch = "  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);";
-  if (!source.includes(setupAnchor)) { console.warn('[V-TRADE PATCH] setupReady anchor not found'); return source; }
-  source = source.replace(setupAnchor, setupPatch);
+  if (source.includes(setupAnchor)) source = source.replace(setupAnchor, setupPatch);
 
   const reasonAnchor = "  if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);";
   const reasonPatch = "  if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);";
@@ -70,7 +84,10 @@ function patchWaitCard(source) {
     "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'", "  ].join('\\n');", '}', ''
   ].join('\n');
   const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*(?=\n\s*function\s+)/;
-  if (!pattern.test(source)) { console.warn('[V-TRADE LAUNCHER] telegramWaitText() not found; source unchanged'); return source; }
+  if (!pattern.test(source)) {
+    console.warn('[V-TRADE LAUNCHER] telegramWaitText() not found; source unchanged');
+    return source;
+  }
   return source.replace(pattern, advancedWait);
 }
 
