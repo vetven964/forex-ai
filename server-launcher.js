@@ -10,7 +10,6 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
 
   let source = fs.readFileSync(filename, 'utf8');
 
-  // Keep the intended H4/H1/M15 direction profile without changing trade gates.
   source = source.replace(
     /const\s+CORE_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
     "const CORE_MTF_TFS = ['H4','H1','M15'];"
@@ -20,58 +19,56 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
   );
 
-  const advancedWait = `
-function telegramWaitText(a) {
-  const price = Number(a?.price);
-  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
-  const directionScore = Number(a?.directionScore ?? a?.aiScore ?? 0);
-  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);
-  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 8).map(String) : [];
-  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';
-  const ai = a?.ai || null;
-  const aiDecision = String(ai?.decision || a?.aiDecision || 'WAIT').toUpperCase();
-  const aiConfidence = Number(ai?.confidence ?? a?.aiConfidence ?? 0);
-  const agreement = String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();
-  const broker = String(a?.broker || 'VT Markets MT5');
-  const quoteAge = Number.isFinite(Number(a?.quoteAge)) ? Number(a.quoteAge) : 0;
-  const gateLine = blocked.length ? blocked.map(x => '• ' + x).join('\\n') : '• Entry gates not confirmed';
-  return [
-    '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*',
-    '',
-    '📊 Asset: *XAU/USD (Gold)*',
-    `💰 Price: *${Number.isFinite(price) ? price.toFixed(2) : '—'}*`,
-    `⚡ Action: *${action}*`,
-    '',
-    `📈 Bias: *${bias}*`,
-    `📊 Direction Score: *${Number.isFinite(directionScore) ? directionScore : 0}/100*`,
-    `🧠 Confidence: *${Number.isFinite(confidence) ? confidence : 0}/100*`,
-    '',
-    '🔎 *ICT ENTRY GATES*',
-    gateLine,
-    '',
-    `🎯 Entry Zone: *WAITING FOR CONFIRMATION*`,
-    '🛑 Stop Loss (SL): *—*',
-    '🎯 Take Profit 1 (TP1): *—*',
-    '🎯 Take Profit 2 (TP2): *—*',
-    '🎯 Take Profit 3 (TP3): *—*',
-    '',
-    `🤖 AI Confirm: *${aiDecision}* | Confidence: *${Number.isFinite(aiConfidence) ? aiConfidence : 0}/100* | Agreement: *${agreement}*`,
-    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*',
-    '',
-    '🔒 WAIT only — no order is authorized until all entry gates pass.',
-    `🏦 Broker: *${broker}* | Quote age: *${quoteAge}s*`
-  ].join('\\n');
-}
-`;
+  const advancedWait = [
+    'function telegramWaitText(a) {',
+    '  const price = Number(a?.price);',
+    "  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();",
+    '  const directionScore = Number(a?.directionScore ?? a?.aiScore ?? 0);',
+    '  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);',
+    "  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 8).map(String) : [];",
+    "  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';",
+    '  const ai = a?.ai || null;',
+    "  const aiDecision = String(ai?.decision || a?.aiDecision || 'WAIT').toUpperCase();",
+    '  const aiConfidence = Number(ai?.confidence ?? a?.aiConfidence ?? 0);',
+    "  const agreement = String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();",
+    "  const broker = String(a?.broker || 'VT Markets MT5');",
+    "  const quoteAge = Number.isFinite(Number(a?.quoteAge)) ? Number(a.quoteAge) : 0;",
+    "  const gateLine = blocked.length ? blocked.map(x => '• ' + x).join('\\n') : '• Entry gates not confirmed';",
+    '  return [',
+    "    '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*',",
+    "    '',",
+    "    '📊 Asset: *XAU/USD (Gold)*',",
+    "    '💰 Price: *' + (Number.isFinite(price) ? price.toFixed(2) : '—') + '*',",
+    "    '⚡ Action: *' + action + '*',",
+    "    '',",
+    "    '📈 Bias: *' + bias + '*',",
+    "    " + '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
+    "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*',",
+    "    '',",
+    "    '🔎 *ICT ENTRY GATES*',",
+    '    gateLine,',
+    "    '',",
+    "    '🎯 Entry Zone: *WAITING FOR CONFIRMATION*',",
+    "    '🛑 Stop Loss (SL): *—*',",
+    "    '🎯 Take Profit 1 (TP1): *—*',",
+    "    '🎯 Take Profit 2 (TP2): *—*',",
+    "    '🎯 Take Profit 3 (TP3): *—*',",
+    "    '',",
+    "    '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
+    "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*',",
+    "    '',",
+    "    '🔒 WAIT only — no order is authorized until all entry gates pass.',",
+    "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'",
+    "  ].join('\\n');",
+    '}',
+    ''
+  ].join('\n');
 
-  // Replace only the WAIT formatter. This is the single source of truth for WAIT Telegram output.
   source = source.replace(
-    /function\s+telegramWaitText\s*\(a\)\s*\{[\\s\\S]*?\n\}\s*\n\s*function\s+telegramMtfText/,
-    advancedWait + '\nfunction telegramMtfText'
+    /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*\n\s*function\s+telegramMtfText/,
+    advancedWait + 'function telegramMtfText'
   );
 
-  // Do not use the legacy launcher AI bridge or Telegram prototype interception.
-  // The server itself owns Telegram formatting and the deterministic WAIT gate.
   console.log('[V-TRADE LAUNCHER] clean server source formatter active');
   mod._compile(source, filename);
 };
