@@ -21,7 +21,7 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
 
   let source = fs.readFileSync(filename, 'utf8');
 
-  // Replace the core profile even if server.js has formatting/spacing changes.
+  // Apply the H1/M15/M5 execution profile safely.
   source = source.replace(
     /const\s+CORE_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
     "const CORE_MTF_TFS = ['H1','M15','M5'];"
@@ -30,11 +30,18 @@ Module._extensions['.js'] = function vtradeJsLoader(mod, filename) {
   // Keep legacy labels from misleading the scoring/debug output.
   source = source.replace(/H4\/H1\/M15/g, 'H1/M15/M5');
   source = source.replace(/H4,\s*H1,\s*M15/g, 'H1, M15, M5');
-  source = source.replace(/H4'\s*,\s*'H1'\s*,\s*'M15'/g, "H1','M15','M5");
+  source = source.replace(/H4'\s*,\s*'H1'\s*,\s*'M15'/g, "H1','M15','M5'");
   source = source.replace(/H4\s*\/\s*H1\s*\/\s*M15/g, 'H1/15M/5M');
 
-  // Export a small immutable profile so diagnostics can report exactly what the
-  // launcher is enforcing without changing the existing server architecture.
+  // Safety normalization: never allow the launcher to produce a malformed
+  // FULL_MTF_TFS declaration. This specifically protects against the previous
+  // M5 quote corruption seen in Render startup logs.
+  source = source.replace(
+    /const\s+FULL_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
+    "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
+  );
+
+  // Export a small immutable profile for diagnostics.
   const profileHeader = `\nconst VTRADE_DIRECTION_PROFILE = Object.freeze({\n  timeframes: ['H1','M15','M5'],\n  alignmentRequired: 2,\n  roles: Object.freeze({ H1: 'macro-direction', M15: 'confirmation', M5: 'entry-trigger' })\n});\n`;
   source = `${profileHeader}${source}`;
 
