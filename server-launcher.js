@@ -1,3 +1,6 @@
+// V-TRADE AI production launcher
+// Keeps Render and `npm start` on one startup path and installs the Telegram
+// WAIT-card formatter before server.js is compiled.
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
@@ -5,23 +8,10 @@ const path = require('path');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const originalLoader = Module._extensions['.js'];
 
-Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
-  if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
-
-  let source = fs.readFileSync(filename, 'utf8');
-
-  source = source.replace(
-    /const\s+CORE_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
-    "const CORE_MTF_TFS = ['H4','H1','M15'];"
-  );
-  source = source.replace(
-    /const\s+FULL_MTF_TFS\s*=\s*\[[^\]]*\]\s*;/,
-    "const FULL_MTF_TFS = ['D1','H4','H1','M15','M5','M1'];"
-  );
-
+function patchWaitCard(source) {
   const advancedWait = [
     'function telegramWaitText(a) {',
-    '  const price = Number(a?.price);',
+    '  const price = Number(a?.price ?? a?.livePrice ?? a?.bid);',
     "  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();",
     '  const directionScore = Number(a?.directionScore ?? a?.aiScore ?? 0);',
     '  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);',
@@ -32,7 +22,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     '  const aiConfidence = Number(ai?.confidence ?? a?.aiConfidence ?? 0);',
     "  const agreement = String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();",
     "  const broker = String(a?.broker || 'VT Markets MT5');",
-    "  const quoteAgeValue = a?.quoteAge ?? a?.quote_age ?? a?.feedAgeSec;",
+    "  const quoteAgeValue = a?.quoteAge ?? a?.quote_age ?? a?.feedAgeSec ?? a?.priceAgeSec;",
     "  const quoteAge = Number.isFinite(Number(quoteAgeValue)) ? Number(quoteAgeValue) : 0;",
     "  const zone = a?.entryZone || a?.executionZone || null;",
     "  const entryZone = zone && Number.isFinite(Number(zone.low)) && Number.isFinite(Number(zone.high)) ? `${Number(zone.low).toFixed(2)} — ${Number(zone.high).toFixed(2)}` : 'WAITING FOR CONFIRMATION';",
@@ -67,13 +57,20 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
     ''
   ].join('\n');
 
-  source = source.replace(
-    /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*\n\s*function\s+telegramMtfText/,
-    advancedWait + 'function telegramMtfText'
-  );
+  const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*\n\s*function\s+telegramMtfText/;
+  if (!pattern.test(source)) {
+    console.warn('[V-TRADE LAUNCHER] telegramWaitText() boundary not found; server source left unchanged');
+    return source;
+  }
+  return source.replace(pattern, advancedWait + 'function telegramMtfText');
+}
 
-  console.log('[V-TRADE LAUNCHER] clean server source formatter active');
-  console.log('[V-TRADE LAUNCHER] Advanced ICT WAIT card formatter installed');
+Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
+  if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
+
+  let source = fs.readFileSync(filename, 'utf8');
+  source = patchWaitCard(source);
+  console.log('[V-TRADE LAUNCHER] production source patch active');
   mod._compile(source, filename);
 };
 
