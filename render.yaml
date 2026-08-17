@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node -r ./telegram-card-patch.js server-start.js
+    startCommand: node -r ./mt5-readiness-patch.js -r ./telegram-card-patch.js server-start.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -17,6 +17,10 @@ services:
         value: "24.14.1"
       - key: NODE_OPTIONS
         value: "--require=./direction-profile-patch.js --require=./telegram-card-patch.js"
+      - key: MT5_ANALYSIS_READY_WAIT_MS
+        value: "10000"
+      - key: MT5_ANALYSIS_READY_POLL_MS
+        value: "250"
       - key: APP_BASE_URL
         value: https://vetven964.github.io
       - key: ADMIN_EMAIL
