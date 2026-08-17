@@ -4,7 +4,7 @@
   "description": "V Trade AI XAUUSD MTF ICT + Auto-Trade MT5 Execution + Profit-Lock Trailing",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server-start.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
