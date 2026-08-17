@@ -1,11 +1,11 @@
-// V-TRADE AI launcher: keeps server.js unchanged while adding a compatibility layer
+// V-TRADE AI launcher: keeps server.js unchanged while adding compatibility layers
 // for the OpenAI Responses API and ensuring manual Telegram /signal messages include AI confirmation.
 const TelegramBot = require('node-telegram-bot-api');
 
 // OpenAI Responses API compatibility wrapper.
-// The engine already sends a Responses API request, but older JSON-output syntax can
-// be rejected by newer reasoning models. Normalize it to strict JSON Schema here and
-// log the real API error (without ever logging the API key).
+// IMPORTANT: OpenAI is a confirmation layer only. When the deterministic ICT/MTF
+// engine has no BUY/SELL candidate, do not call the model and do not manufacture
+// a directional signal from an unqualified WAIT state.
 const originalFetch = global.fetch;
 if (typeof originalFetch === 'function' && !originalFetch.__vtradeOpenAiPatch) {
   const patchedFetch = async function (url, options = {}) {
@@ -22,6 +22,32 @@ if (typeof originalFetch === 'function' && !originalFetch.__vtradeOpenAiPatch) {
 
       if (typeof options.body === 'string') {
         const payload = JSON.parse(options.body);
+        const userText = payload?.input?.find?.(x => x?.role === 'user')?.content?.find?.(x => x?.type === 'input_text')?.text || '';
+        let supplied = null;
+        try { supplied = JSON.parse(userText); } catch (_) {}
+
+        // Do not waste an OpenAI call on an unqualified deterministic WAIT.
+        // This also prevents misleading logs such as confidence=99 WAIT from
+        // looking like an AI-generated trade veto. BUY/SELL candidates still
+        // go through the full Responses + JSON Schema confirmation flow.
+        if (supplied && supplied.signal === 'WAIT') {
+          const skipped = {
+            decision: 'WAIT',
+            confidence: 0,
+            agreement: 'NEUTRAL',
+            reasons: ['Deterministic ICT/MTF engine is WAIT; AI confirmation skipped until a qualified BUY/SELL candidate exists.'],
+            missingConfirmations: Array.isArray(supplied?.score?.blockedReasons) ? supplied.score.blockedReasons.slice(0, 8).map(String) : [],
+            riskFlags: ['No AI veto/approval is applied while the deterministic entry gate is not qualified.'],
+            summary: 'AI confirmation is intentionally skipped because the deterministic engine has not produced a qualified BUY/SELL candidate.'
+          };
+          console.log(`[OPENAI] confirmation skipped | engineSignal=WAIT | reason=deterministic gate pending`);
+          return new Response(JSON.stringify({
+            id: 'vtrade-ai-skip',
+            output_text: JSON.stringify(skipped),
+            usage: null
+          }), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+
         if (payload && payload.text?.format?.type === 'json_object') {
           payload.text = {
             format: {
