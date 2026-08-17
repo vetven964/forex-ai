@@ -1,7 +1,5 @@
 // V-TRADE AI production launcher
 // One startup path for Render + npm start.
-// Applies a narrow source-boundary patch to the deterministic ICT gate and
-// normalizes the Telegram WAIT card. Core trading calculations remain in server.js.
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
@@ -10,34 +8,18 @@ const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const originalLoader = Module._extensions['.js'];
 
 function patchExecutionLogic(source) {
-  // Current server.js keeps the canonical ICT calculation in buildXauAnalysis().
-  // Patch that exact block instead of relying on stale variable names from older builds.
   const gateAnchor = "  const biasOk=(side==='BULLISH'&&coreBull>=MIN_MTF_ALIGNMENT)||(side==='BEARISH'&&coreBear>=MIN_MTF_ALIGNMENT),sweepOk=sweep.bias===side&&sweep.fresh,mssOk=execStruct.mss===side&&execStruct.mssFresh,bosOk=execStruct.bos===side&&execStruct.bosFresh,displacementOk=displacement.confirmed&&displacement.direction===side,retestOk=!!candidateZone&&inZone,zoneNearOk=!!candidateZone&&zoneDistance(live.price,candidateZone)<=Math.max(a*3.5,12),structureAgreement=mssOk||bosOk;";
-  const gatePatch = `${gateAnchor}\n  // A valid bullish discount FVG/OB can be staged as a LIMIT below premium price.\n  // A valid bearish premium FVG/OB can be staged as a LIMIT above discount price.\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`;
-  if (!source.includes(gateAnchor)) {
-    console.warn('[V-TRADE PATCH] current ICT gate anchor not found');
-    return source;
-  }
+  const gatePatch = `${gateAnchor}\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`;
+  if (!source.includes(gateAnchor)) return source;
   source = source.replace(gateAnchor, gatePatch);
-
-  source = source.replace(
-    "{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}",
-    "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}"
-  );
-
+  source = source.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}", "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
   const setupAnchor = "  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);";
   const setupPatch = "  const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);";
   if (source.includes(setupAnchor)) source = source.replace(setupAnchor, setupPatch);
-
-  source = source.replace(
-    "  if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');",
-    "  if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');"
-  );
-  source = source.replace(
-    "  if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);",
-    "  if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);"
-  );
-  source = source.replace(/premiumDiscountOk:pdOk/g, 'premiumDiscountOk:executionLocationOk');
+  source = source.replace("  if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');", "  if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
+  source = source.replace("  if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "  if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
+  // Scope this rewrite to buildXauAnalysis(). Do not touch helper functions that have their own pdOk.
+  source = source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
   return source;
 }
 
@@ -82,10 +64,7 @@ function patchWaitCard(source) {
     "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'", "  ].join('\\n');", '}', ''
   ].join('\n');
   const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*(?=\n\s*function\s+)/;
-  if (!pattern.test(source)) {
-    console.warn('[V-TRADE LAUNCHER] telegramWaitText() not found; source unchanged');
-    return source;
-  }
+  if (!pattern.test(source)) return source;
   return source.replace(pattern, advancedWait);
 }
 
