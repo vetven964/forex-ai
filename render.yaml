@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node server-timeout-hotfix.js
+    startCommand: node server-launcher.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -32,6 +32,8 @@ services:
       - key: MT5_SYMBOL
         value: XAUUSD
       - key: MT5_MAX_AGE_MS
+        value: "15000"
+      - key: ANALYSIS_REQUEST_TIMEOUT_MS
         value: "15000"
       - key: DATABASE_URL
         sync: false
