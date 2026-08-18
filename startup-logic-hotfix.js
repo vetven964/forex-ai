@@ -143,6 +143,20 @@ async function restoreRegisteredUsers() {
   source = source.replace("order: ['H4','H1','M15','M5','M1'],", "order: ['H4','H1','M15','M5'],", 1);
   source = source.replace("M1: 'entry trigger'", "M5: 'entry execution trigger'", 1);
 
+  // Telegram policy: do not send WAIT/BUY-BIAS messages as "signals".
+  // The scanner may continue evaluating every minute, but Telegram only emits
+  // an actionable BUY/SELL after the full deterministic gates + Truth Guard pass.
+  // This prevents the repeated WAIT spam seen while MTF/ICT/ADX data is incomplete.
+  if (!source.includes('TELEGRAM_WAIT_ALERTS_ENABLED')) {
+    const marker = "const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));";
+    const inject = `${marker}\n// Telegram signal policy: WAIT is dashboard-only by default; never promote WAIT as a trade signal.\nconst TELEGRAM_WAIT_ALERTS_ENABLED = String(process.env.TELEGRAM_WAIT_ALERTS_ENABLED || 'false').toLowerCase() === 'true';`;
+    if (source.includes(marker)) source = source.replace(marker, inject, 1);
+  }
+  source = source.replace(
+    "if (\n  !sent &&\n  a.signal === 'WAIT' &&",
+    "if (\n  TELEGRAM_WAIT_ALERTS_ENABLED &&\n  !sent &&\n  a.signal === 'WAIT' &&"
+  );
+
   return source;
 }
 
@@ -158,7 +172,7 @@ try {
   const patched = patchServer(source);
   if (patched !== source) {
     fs.writeFileSync(SERVER_FILE, patched, 'utf8');
-    console.log('[V-TRADE HOTFIX] production server integrity/auth/MTF patch applied');
+    console.log('[V-TRADE HOTFIX] production server integrity/auth/MTF/Telegram patch applied');
   } else {
     console.log('[V-TRADE HOTFIX] no server source changes required');
   }
