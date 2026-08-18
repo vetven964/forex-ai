@@ -52,60 +52,58 @@ function patchTelegramWaitFormat() {
       return;
     }
 
-    const replacement = `${TELEGRAM_FORMAT_MARKER}\nfunction telegramWaitText(a) {
+    const replacement = String.raw`${TELEGRAM_FORMAT_MARKER}
+function telegramWaitText(a) {
   const score = Number(a?.directionScore ?? a?.aiScore ?? 0);
   const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
-  const blocked = Array.isArray(a?.score?.blockedReasons)
-    ? a.score.blockedReasons.slice(0, 6)
-    : [];
-  const gates = Array.isArray(blocked) ? blocked : [];
-  const gateLine = (label, ok) => `${label}: ${ok ? '✅ CONFIRMED' : '❌ NOT CONFIRMED'}`;
-  const hasGate = (keywords) => gates.some(x => keywords.some(k => String(x).toLowerCase().includes(k)));
-
+  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 6) : [];
+  const hasGate = (keywords) => blocked.some(x => keywords.some(k => String(x).toLowerCase().includes(k)));
+  const gateLine = (label, ok) => label + ': ' + (ok ? '✅ CONFIRMED' : '❌ NOT CONFIRMED');
   const liquidity = hasGate(['liquidity sweep', 'sweep']);
   const displacement = hasGate(['displacement', 'directional displacement']);
   const momentum = hasGate(['momentum']);
   const execution = hasGate(['execution direction', 'execution']);
-
-  const status = String(a?.status || 'WAIT — NO ENTRY').replace(/^WAIT\s*[—-]?\s*/i, '');
   const aiDecision = a?.aiConfirmation?.decision || 'NOT RUN';
   const aiConfidence = a?.aiConfirmation?.confidence ?? '—';
   const aiAgreement = a?.aiConfirmation?.agreement || '—';
+  const councilCount = a?.analystCouncil?.bullishCount ?? a?.analystCouncil?.count ?? '—';
+  const winRate = a?.analystCouncil?.verifiedWinRate ?? 'N/A';
+  const sample = a?.analystCouncil?.sample ?? 0;
 
-  return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\\n\\n` +
-    `📊 Asset: *XAU/USD (Gold)*\\n` +
-    `💰 Price: *${formatPrice(a?.livePrice ?? a?.bid)}*\\n\\n` +
-    `🟡 *ACTION: WAIT — ${bias === 'BULLISH' ? 'BUY BIAS' : bias === 'BEARISH' ? 'SELL BIAS' : 'NO BIAS'}*\\n` +
-    `📈 Bias: *${bias}*\\n` +
-    `⚡ Direction Score: *${score}/100*\\n` +
-    `🧠 Confidence: *${Number(a?.confidence ?? 0)}/100*\\n\\n` +
-    `🔎 *ICT ENTRY GATES*\\n` +
-    `• ${gateLine('Liquidity Sweep', liquidity)}\\n` +
-    `• ${gateLine('Displacement', displacement)}\\n` +
-    `• ${gateLine('Momentum', momentum)}\\n` +
-    `• ${gateLine('Execution Direction', execution)}\\n\\n` +
-    `🧠 *ANALYST COUNCIL*\\n` +
-    `• Consensus: *${bias} ${a?.analystCouncil?.bullishCount ?? a?.analystCouncil?.count ?? '—'}/3*\\n` +
-    `• Confidence: *${score}/100*\\n` +
-    `• Verified Win Rate: *${a?.analystCouncil?.verifiedWinRate ?? 'N/A'}*\\n` +
-    `• Sample: *${a?.analystCouncil?.sample ?? 0}*\\n\\n` +
-    `🎯 *EXECUTION*\\n` +
-    `• Zone: *WAITING FOR CONFIRMATION*\\n` +
-    `• Entry: *WAIT*\\n` +
-    `• Stop Loss: *WAIT*\\n` +
-    `• TP1: *WAIT*\\n` +
-    `• TP2: *WAIT*\\n` +
-    `• TP3: *WAIT*\\n\\n` +
-    `🤖 *AI CONFIRM*\\n` +
-    `• Decision: *${aiDecision}*\\n` +
-    `• Confidence: *${aiConfidence}/100*\\n` +
-    `• Agreement: *${aiAgreement}*\\n\\n` +
-    `🟡 *STATUS*\\n` +
-    `*WAIT — NO ORDER AUTHORIZED*\\n\\n` +
-    `🔐 *TRUTH GUARD*\\n` +
-    `No order until entry gates + analyst council + risk/data checks pass.\\n\\n` +
-    `🏦 Broker: *VT Markets MT5*\\n` +
-    `⏱ Quote age: *${a?.priceAgeSec ?? '—'}s*`;
+  return '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n' +
+    '📊 Asset: *XAU/USD (Gold)*\n' +
+    '💰 Price: *' + formatPrice(a?.livePrice ?? a?.bid) + '*\n\n' +
+    '🟡 *ACTION: WAIT — ' + (bias === 'BULLISH' ? 'BUY BIAS' : bias === 'BEARISH' ? 'SELL BIAS' : 'NO BIAS') + '*\n' +
+    '📈 Bias: *' + bias + '*\n' +
+    '⚡ Direction Score: *' + score + '/100*\n' +
+    '🧠 Confidence: *' + Number(a?.confidence ?? 0) + '/100*\n\n' +
+    '🔎 *ICT ENTRY GATES*\n' +
+    '• ' + gateLine('Liquidity Sweep', liquidity) + '\n' +
+    '• ' + gateLine('Displacement', displacement) + '\n' +
+    '• ' + gateLine('Momentum', momentum) + '\n' +
+    '• ' + gateLine('Execution Direction', execution) + '\n\n' +
+    '🧠 *ANALYST COUNCIL*\n' +
+    '• Consensus: *' + bias + ' ' + councilCount + '/3*\n' +
+    '• Confidence: *' + score + '/100*\n' +
+    '• Verified Win Rate: *' + winRate + '*\n' +
+    '• Sample: *' + sample + '*\n\n' +
+    '🎯 *EXECUTION*\n' +
+    '• Zone: *WAITING FOR CONFIRMATION*\n' +
+    '• Entry: *WAIT*\n' +
+    '• Stop Loss: *WAIT*\n' +
+    '• TP1: *WAIT*\n' +
+    '• TP2: *WAIT*\n' +
+    '• TP3: *WAIT*\n\n' +
+    '🤖 *AI CONFIRM*\n' +
+    '• Decision: *' + aiDecision + '*\n' +
+    '• Confidence: *' + aiConfidence + '/100*\n' +
+    '• Agreement: *' + aiAgreement + '*\n\n' +
+    '🟡 *STATUS*\n' +
+    '*WAIT — NO ORDER AUTHORIZED*\n\n' +
+    '🔐 *TRUTH GUARD*\n' +
+    'No order until entry gates + analyst council + risk/data checks pass.\n\n' +
+    '🏦 Broker: *VT Markets MT5*\n' +
+    '⏱ Quote age: *' + (a?.priceAgeSec ?? '—') + 's*';
 }
 `;
 
@@ -146,17 +144,10 @@ function installRuntimeDiagnostics() {
         const url = typeof input === 'string' ? input : String(input?.url || '');
         const isOpenAI = /api\.openai\.com/i.test(url);
         const isTelegram = /api\.telegram\.org/i.test(url);
-
-        // HARD COST GUARD: when OPENAI_ENABLED=false, no OpenAI request may leave Render.
-        // This protects the account from accidental calls from legacy /api/ai routes
-        // or overlapping hotfixes even when an API key is still configured.
         if (isOpenAI && String(process.env.OPENAI_ENABLED || 'false').toLowerCase() !== 'true') {
           console.warn('[OPENAI BLOCKED] OPENAI_ENABLED=false — no API request sent');
-          return new Response(JSON.stringify({
-            error: { type: 'disabled', code: 'openai_disabled', message: 'OpenAI integration is disabled by OPENAI_ENABLED=false' }
-          }), { status: 503, headers: { 'content-type': 'application/json' } });
+          return new Response(JSON.stringify({ error: { type: 'disabled', code: 'openai_disabled', message: 'OpenAI integration is disabled by OPENAI_ENABLED=false' } }), { status: 503, headers: { 'content-type': 'application/json' } });
         }
-
         let response;
         try {
           response = await originalFetch(input, init);
@@ -186,7 +177,6 @@ function installRuntimeDiagnostics() {
 }
 
 try {
-  // Patch the known duplicate-declaration guard before the production launcher chain loads.
   patchLauncherSafety();
   installRuntimeDiagnostics();
   let source = fs.readFileSync(SERVER_FILE, 'utf8');
@@ -198,8 +188,6 @@ try {
   patchTelegramWaitFormat();
   console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled');
   console.log(`[V-TRADE DIAGNOSTIC] OpenAI hard guard=${String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true' ? 'OFF' : 'ON'}`);
-  // IMPORTANT: keep the existing Pre-Market MTF startup chain.
-  // server-strength-hotfix -> server-timeout-hotfix -> server.js
   require('./server-strength-hotfix.js');
 } catch (err) {
   console.error('[V-TRADE DIAGNOSTIC] startup failed:', redact(err?.stack || err?.message || err));
