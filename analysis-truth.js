@@ -31,34 +31,21 @@ function buildTimeframeSignals(a) {
     let side = structureBias;
     if (side === 'NEUTRAL' && macdBias !== 'NEUTRAL') side = macdBias;
     if (side === 'NEUTRAL' && Number.isFinite(rsi)) side = rsi > 50 ? 'BULLISH' : rsi < 50 ? 'BEARISH' : 'NEUTRAL';
-
-    // A timeframe signal is directional evidence, not an order authorization.
-    // 55/45 avoids turning tiny fluctuations around 50 into fake BUY/SELL calls.
     let signal = 'WAIT';
     if (side === 'BULLISH' && score >= 55) signal = 'BUY';
     if (side === 'BEARISH' && score <= 45) signal = 'SELL';
-
     const reasons = [];
     if (structureBias !== 'NEUTRAL') reasons.push(`Structure ${structureBias}`);
     if (macdBias !== 'NEUTRAL') reasons.push(`MACD ${macdBias}`);
     if (Number.isFinite(rsi)) reasons.push(`RSI ${rsi.toFixed(1)}`);
     if (row?.sweep?.bias && sideOf(row.sweep.bias) !== 'NEUTRAL') reasons.push(`Sweep ${sideOf(row.sweep.bias)}`);
     if (row?.adx?.trendStrength) reasons.push(`ADX ${row.adx.trendStrength}`);
-
     signals[tf] = {
-      timeframe:tf,
-      signal,
-      side,
-      score,
-      confidence:score,
-      available:true,
+      timeframe:tf, signal, side, score, confidence:score, available:true,
       status:signal === 'WAIT' ? 'WAIT_CONFIRMATION' : 'DIRECTIONAL_SIGNAL',
-      reasons:reasons.slice(0,6),
-      structure:structureBias,
-      momentum:macdBias,
+      reasons:reasons.slice(0,6), structure:structureBias, momentum:macdBias,
       rsi:Number.isFinite(rsi) ? Math.round(rsi*100)/100 : null
     };
-
     if (signal === 'BUY') bullWeight += weights[tf];
     if (signal === 'SELL') bearWeight += weights[tf];
     availableWeight += weights[tf];
@@ -71,17 +58,12 @@ function buildTimeframeSignals(a) {
   const executionFrame = dominantSide === 'BUY' || dominantSide === 'SELL'
     ? (signals.M1?.signal === dominantSide ? 'M1' : signals.M5?.signal === dominantSide ? 'M5' : signals.M15?.signal === dominantSide ? 'M15' : 'M15')
     : null;
-
   return {
-    version:'1.0-per-timeframe-confluence',
-    signals,
-    dominantSignal:dominantSide,
+    version:'1.1-per-timeframe-confluence', signals, dominantSignal:dominantSide,
     dominantSide:dominantSide === 'BUY' ? 'BULLISH' : dominantSide === 'SELL' ? 'BEARISH' : 'NEUTRAL',
-    confluenceScore,
-    alignedTimeframes:aligned.map(x => x),
-    weightedVotes:{BUY:bullWeight,SELL:bearWeight},
-    executionTimeframe:executionFrame,
-    note:'Per-timeframe signals are evidence. Final trade authorization still requires deterministic engine gates, ICT confirmation, risk/data gates, Truth Guard, and optional AI confirmation.'
+    confluenceScore, alignedTimeframes:aligned.map(x => x),
+    weightedVotes:{BUY:bullWeight,SELL:bearWeight}, executionTimeframe:executionFrame,
+    note:'Per-timeframe signals are evidence. Final trade authorization still requires deterministic ICT gates, risk/data checks, Truth Guard, and optional AI confirmation.'
   };
 }
 
@@ -89,11 +71,13 @@ function buildAnalystCouncil(a) {
   const t = a?.timeframes || {};
   const core = ['H4', 'H1', 'M15'];
   const available = core.filter(tf => t[tf]);
-  const biases = available.map(tf => sideOf(t[tf]?.structure?.bias || t[tf]?.trend));
+  const biases = available.map(tf => sideOf(t[tf]?.structure?.bias || t[tf]?.resolvedBias || t[tf]?.trend));
   const bull = biases.filter(x => x === 'BULLISH').length;
   const bear = biases.filter(x => x === 'BEARISH').length;
   const structureSide = bull > bear ? 'BULLISH' : bear > bull ? 'BEARISH' : 'NEUTRAL';
   const structureConfidence = available.length ? clamp(55 + Math.abs(bull - bear) * 15 - (bull && bear ? 8 : 0)) : 0;
+  const coreBiasReady = available.length >= 3 && Math.max(bull, bear) >= 2 && bull !== bear;
+  const coreBiasVotes = Math.max(bull, bear);
 
   const m5 = t.M5 || {};
   const rsi = Number(m5.rsi);
@@ -105,7 +89,7 @@ function buildAnalystCouncil(a) {
   const momentumConfidence = momentumSide === 'NEUTRAL' ? 35 : clamp(60 + (Number.isFinite(rsi) && (rsi >= 55 || rsi <= 45) ? 15 : 0));
 
   const ict = a?.ict || {};
-  const sweepSide = sideOf(ict.liquiditySweep?.bias);
+  const sweepSide = sideOf(ict.liquiditySweep?.bias || ict.sweep?.bias);
   const mssSide = sideOf(ict.mss);
   const bosSide = sideOf(ict.bos);
   const fvgSide = sideOf(ict.fvg?.type);
@@ -134,7 +118,7 @@ function buildAnalystCouncil(a) {
   if (Number.isFinite(dataQuality) && dataQuality < 90) { riskReasons.push(`Data quality ${Math.round(dataQuality)}/100`); riskVeto = true; }
 
   const analysts = [
-    { id:'structure', name:'Structure Analyst', role:'H4/H1/M15 structure', ...vote(structureSide, structureConfidence, [`${bull} bullish / ${bear} bearish core TFs`, ...available.map(tf => `${tf}:${sideOf(t[tf]?.structure?.bias || t[tf]?.trend)}`)]) },
+    { id:'structure', name:'Structure Analyst', role:'H4/H1/M15 structure', ...vote(structureSide, structureConfidence, [`${bull} bullish / ${bear} bearish core TFs`, ...available.map(tf => `${tf}:${sideOf(t[tf]?.structure?.bias || t[tf]?.resolvedBias || t[tf]?.trend)}`)]) },
     { id:'momentum', name:'Momentum Analyst', role:'RSI + MACD + trend', ...vote(momentumSide, momentumConfidence, momentumReasons) },
     { id:'ict', name:'ICT / Liquidity Analyst', role:'Sweep + MSS/BOS + FVG/OB', ...vote(ictSide, ictConfidence, ictReasons) },
     { id:'risk', name:'Risk Analyst', role:'Spread + RR + news + data quality', ...vote('NEUTRAL', riskVeto ? 20 : 80, riskReasons.length ? riskReasons : ['Risk gates clear'], riskVeto) }
@@ -149,16 +133,16 @@ function buildAnalystCouncil(a) {
   const consensusRatio = active.length ? consensusVotes / active.length : 0;
   const avgConfidence = active.length ? clamp(active.reduce((s, x) => s + x.confidence, 0) / active.length) : 0;
   const vetoes = analysts.filter(x => x.veto);
-  const ready = directional.every(x => x.vote !== 'NEUTRAL') && consensus !== 'NEUTRAL' && consensusVotes === directional.length && consensusRatio === 1 && vetoes.length === 0;
-  const tradeSide = consensus === 'BULLISH' ? 'BUY' : consensus === 'BEARISH' ? 'SELL' : 'WAIT';
-
+  const councilReady = coreBiasReady && structureSide !== 'NEUTRAL';
+  const tradeSide = structureSide === 'BULLISH' ? 'BUY' : structureSide === 'BEARISH' ? 'SELL' : 'WAIT';
   return {
-    version:'1.2-transparent-council', analysts, consensus,
-    consensusVotes:`${consensusVotes}/${directional.length}`,
+    version:'1.3-workflow-council', analysts, consensus, consensusVotes:`${consensusVotes}/${directional.length}`,
     consensusRatio:Number(consensusRatio.toFixed(2)), confidence:avgConfidence,
+    coreBias:{required:'2/3 H4/H1/M15',votes:coreBiasVotes,available:available.length,side:structureSide,ready:coreBiasReady,
+      detail:available.map(tf=>({timeframe:tf,bias:sideOf(t[tf]?.structure?.bias || t[tf]?.resolvedBias || t[tf]?.trend)}))},
     confidenceMeaning:'Evidence-strength score only; NOT win probability, profit probability, or guaranteed accuracy.',
-    vetoes:vetoes.map(x => ({analyst:x.name,reasons:x.reasons})), ready, tradeSide,
-    note:'A trade is authorized only when deterministic gates, all three directional analysts, risk/data gates, and optional AI confirmation agree.'
+    vetoes:vetoes.map(x => ({analyst:x.name,reasons:x.reasons})), ready:councilReady, tradeSide,
+    note:'Council establishes bias. Deterministic engine gates establish setup/execution. No single analyst or AI score can authorize an order.'
   };
 }
 
@@ -174,15 +158,55 @@ function verifiedMetricsFromAnalysis(a) {
   return {
     verifiedWinRate:sample>0?Number((wins/sample*100).toFixed(2)):null,
     verifiedSampleSize:sample, verifiedWins:wins, verifiedLosses:losses,
-    status:sample>0?'VERIFIED_CLOSED_TRADES':'NO_VERIFIED_OUTCOME_DATA',
-    formula:'wins / closed trades × 100', confidenceMeaning:'AI/engine confidence is not a win rate.',
-    note:'Only actual recorded closed-trade outcomes can change this percentage.'
+    status:sample>0?'VERIFIED_CLOSED_TRADES':'NO_VERIFIED_OUTCOME_DATA', formula:'wins / closed trades × 100',
+    confidenceMeaning:'AI/engine confidence is not a win rate.', note:'Only actual recorded closed-trade outcomes can change this percentage.'
   };
+}
+
+function buildExecutionWorkflow(a, council) {
+  const c = a?.confirmations || {};
+  const side = a?.signal === 'BUY' ? 'BULLISH' : a?.signal === 'SELL' ? 'BEARISH' : (council?.tradeSide === 'BUY' ? 'BULLISH' : council?.tradeSide === 'SELL' ? 'BEARISH' : 'NEUTRAL');
+  const feedReady = a?.feedReady !== false && a?.mt5?.ready !== false;
+  const dataQualityOk = Number(a?.dataQuality?.score || 0) >= 90;
+  const coreBiasReady = council?.coreBias?.ready === true;
+  const sweepOk = c.sweepOk === true || c.liquiditySweepOk === true || a?.ict?.liquiditySweep?.confirmed === true;
+  const displacementOk = c.displacementOk === true || a?.ict?.displacement?.confirmed === true;
+  const structureShiftOk = c.structureAgreement === true || c.mssOk === true || c.bosOk === true || ['BULLISH','BEARISH'].includes(sideOf(a?.ict?.mss)) || ['BULLISH','BEARISH'].includes(sideOf(a?.ict?.bos));
+  const zoneOk = c.executionZoneOk === true || c.premiumDiscountOk === true || c.locationOk === true || a?.zoneRadar?.executionZoneOk === true || a?.referenceZone?.executionZoneOk === true;
+  const riskOk = c.spreadOk !== false && (!Number.isFinite(Number(a?.bestOpportunity?.riskReward ?? a?.riskReward)) || Number(a?.bestOpportunity?.riskReward ?? a?.riskReward) >= 1.5) && !['LIVE','LOCK','POST_NEWS'].includes(String(a?.news?.state || '').toUpperCase());
+  const engineReady = c.allGatesPassed === true;
+  const ai = a?.aiConfirmation;
+  const aiConfigured = !!ai && ai.configured === true && ai.enabled === true;
+  const aiReady = !aiConfigured || (ai.decision === a?.signal && ai.agreement === 'AGREE' && Number(ai.confidence) >= 76);
+  const setupReady = coreBiasReady && sweepOk && displacementOk && structureShiftOk && zoneOk;
+  const executionReady = engineReady && setupReady && riskOk && feedReady && dataQualityOk;
+  const finalReady = executionReady && aiReady;
+  const blockers = [];
+  if (!feedReady) blockers.push('MT5_FEED');
+  if (!dataQualityOk) blockers.push('DATA_QUALITY');
+  if (!coreBiasReady) blockers.push('MTF_2_OF_3');
+  if (!sweepOk) blockers.push('LIQUIDITY_SWEEP');
+  if (!displacementOk) blockers.push('DISPLACEMENT');
+  if (!structureShiftOk) blockers.push('MSS_BOS');
+  if (!zoneOk) blockers.push('EXECUTION_ZONE');
+  if (!riskOk) blockers.push('RISK');
+  if (!engineReady) blockers.push('ENGINE_GATES');
+  if (!aiReady) blockers.push('AI_CONFIRMATION');
+  const stages = [
+    {id:'DATA',label:'Data / MT5',passed:feedReady && dataQualityOk,detail:feedReady && dataQualityOk?'PASS':'WAIT — feed/data quality'},
+    {id:'BIAS',label:'MTF Bias',passed:coreBiasReady,detail:coreBiasReady?`${council.coreBias.votes}/3 ${council.coreBias.side}`:'WAIT — need 2/3 H4/H1/M15'},
+    {id:'SETUP',label:'ICT Setup',passed:setupReady,detail:setupReady?'PASS':'WAIT — sweep + displacement + MSS/BOS + zone'},
+    {id:'EXECUTION',label:'Execution',passed:executionReady,detail:executionReady?'PASS':'WAIT — engine/risk/location gates'},
+    {id:'AI',label:'AI Confirmation',passed:aiReady,detail:!aiConfigured?'OPTIONAL':aiReady?'PASS':'WAIT — AI must agree'},
+    {id:'FINAL',label:'Authorization',passed:finalReady,detail:finalReady?'BUY/SELL AUTHORIZED':'NO ORDER AUTHORIZED'}
+  ];
+  return {version:'1.0-basic-workflow',side,stages,feedReady,dataQualityOk,coreBiasReady,sweepOk,displacementOk,structureShiftOk,zoneOk,riskOk,engineReady,aiConfigured,aiReady,setupReady,executionReady,finalReady,blockers,decision:finalReady ? (a?.signal || 'WAIT') : 'WAIT'};
 }
 
 function applyTruthGuard(a) {
   const timeframeSignals = buildTimeframeSignals(a);
   const council=buildAnalystCouncil(a);
+  const workflow=buildExecutionWorkflow(a,council);
   const engineSide=a?.signal==='BUY'?'BULLISH':a?.signal==='SELL'?'BEARISH':'NEUTRAL';
   const councilAgrees=engineSide!=='NEUTRAL' && council.tradeSide===(engineSide==='BULLISH'?'BUY':'SELL');
   const engineGate=a?.confirmations?.allGatesPassed===true;
@@ -190,18 +214,36 @@ function applyTruthGuard(a) {
   const ai=a?.aiConfirmation;
   const aiConfigured=!!ai && ai.configured===true && ai.enabled===true;
   const aiOk=!aiConfigured || (ai.decision===a?.signal && ai.agreement==='AGREE' && Number(ai.confidence)>=76);
-  const guardPass=engineGate && council.ready && councilAgrees && dataQualityOk && aiOk;
+  const guardPass=engineGate && council.ready && councilAgrees && dataQualityOk && aiOk && workflow.finalReady;
   const truthMetrics=verifiedMetricsFromAnalysis(a);
-  const out={...a, timeframeSignals, analystCouncil:council, truthMetrics, confidenceMeaning:'Setup/evidence confidence only — never a win-rate claim.', guard:{engineGate,councilReady:council.ready,councilAgrees,dataQualityOk,aiConfigured,aiOk,pass:guardPass,blockedBy:[!engineGate?'ENGINE_GATE':null,!council.ready?'ANALYST_COUNCIL':null,!councilAgrees?'COUNCIL_DISAGREEMENT':null,!dataQualityOk?'DATA_QUALITY':null,!aiOk?'AI_CONFIRMATION':null].filter(Boolean)}};
+  const out={...a, timeframeSignals, analystCouncil:council, executionWorkflow:workflow, truthMetrics,
+    confidenceMeaning:'Setup/evidence confidence only — never a win-rate claim.',
+    guard:{engineGate,councilReady:council.ready,councilAgrees,dataQualityOk,aiConfigured,aiOk,workflowReady:workflow.finalReady,pass:guardPass,
+      blockedBy:[!engineGate?'ENGINE_GATE':null,!council.ready?'MTF_BIAS':null,!councilAgrees?'COUNCIL_DISAGREEMENT':null,!dataQualityOk?'DATA_QUALITY':null,!workflow.sweepOk?'LIQUIDITY_SWEEP':null,!workflow.displacementOk?'DISPLACEMENT':null,!workflow.structureShiftOk?'MSS_BOS':null,!workflow.zoneOk?'EXECUTION_ZONE':null,!aiOk?'AI_CONFIRMATION':null].filter(Boolean)}};
+
+  if (out.aiConfirmation) {
+    out.aiConfirmation={...out.aiConfirmation,
+      rawDecision:out.aiConfirmation.decision,
+      rawConfidence:Number(out.aiConfirmation.confidence),
+      executionEligible:workflow.executionReady === true,
+      status:workflow.executionReady ? 'EXECUTION_ELIGIBLE' : 'ADVISORY_ONLY'
+    };
+    if (!workflow.executionReady) {
+      out.aiConfirmation.decision='WAIT';
+      out.aiConfirmation.agreement='WAIT';
+      out.aiConfirmation.confidence=Math.min(50,Number(out.aiConfirmation.rawConfidence)||0);
+      out.aiConfirmation.summary='AI advisory only — deterministic ICT execution gates are not ready.';
+    }
+  }
 
   if (['BUY','SELL'].includes(out.signal) && !guardPass) {
     out.signal='WAIT'; out.phase='WAIT'; out.status='WAIT — TRUTH GUARD BLOCKED ENTRY'; out.actionable='NO TRADE';
     out.entry=null; out.stopLoss=null; out.takeProfit=[]; out.entryMode='WATCH'; out.executionTimeframe='—';
     out.confirmations={...(out.confirmations||{}),allGatesPassed:false,truthGuardPassed:false};
     out.tradeAuthorized=false;
-    out.decision={...(out.decision||{}),state:'WAIT',passed:false,reason:`Truth guard blocked: ${out.guard.blockedBy.join(', ') || 'additional confirmation required'}`};
-    out.score={...(out.score||{}),blockedReasons:[...(out.score?.blockedReasons||[]),...out.guard.blockedBy.map(x=>`Truth guard: ${x}`)]};
-    out.aiReasoning={...(out.aiReasoning||{}),summary:`WAIT — Truth guard blocked entry: ${out.guard.blockedBy.join(', ') || 'additional confirmation required'}`};
+    out.decision={...(out.decision||{}),state:'WAIT',passed:false,reason:`WAIT — ${workflow.blockers.join(', ') || 'additional confirmation required'}`};
+    out.score={...(out.score||{}),blockedReasons:[...(out.score?.blockedReasons||[]),...workflow.blockers.map(x=>`Workflow: ${x}`)]};
+    out.aiReasoning={...(out.aiReasoning||{}),summary:`WAIT — execution workflow blocked: ${workflow.blockers.join(', ') || 'additional confirmation required'}`};
     if(out.zoneRadar) out.zoneRadar={...out.zoneRadar,entryTiming:'WAIT — truth guard confirmation required'};
     if(out.referenceZone) out.referenceZone={...out.referenceZone,entryTiming:'WAIT — truth guard confirmation required'};
     out.entryTiming='WAIT — truth guard confirmation required';
@@ -214,4 +256,4 @@ function applyTruthGuard(a) {
   return out;
 }
 
-module.exports={buildAnalystCouncil,applyTruthGuard,verifiedMetricsFromAnalysis,buildTimeframeSignals};
+module.exports={buildAnalystCouncil,applyTruthGuard,verifiedMetricsFromAnalysis,buildTimeframeSignals,buildExecutionWorkflow};
