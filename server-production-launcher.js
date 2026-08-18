@@ -36,8 +36,6 @@ console.log('[V-TRADE CORS] GitHub Pages origin allowlist active');`;
 }
 
 function patchPublicPricing(source) {
-  // The public pricing page must not require authentication. Keep the private
-  // /api/pricing endpoint protected and add a read-only public endpoint for the website.
   if (source.includes("app.get('/api/public/pricing'")) return source;
   const marker = "app.get('/api/pricing', requireAuth, (req,res) => {";
   if (!source.includes(marker)) return source;
@@ -67,7 +65,9 @@ function patchMtfAndContext(source) {
   source=source.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}", "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
   source=source.replace("if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');", "if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
   source=source.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
-  source=source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
+  // IMPORTANT: do not rewrite confirmations to executionLocationOk here.
+  // confirmations is evaluated before the setup block where executionLocationOk is declared.
+  // Referencing it here creates a JavaScript TDZ runtime error.
   source=source.replace("const selectedOpportunity = safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null;", "const selectedOpportunity = setupReady ? (safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null) : null;");
   source=source.replace(/\s*if \(selectedOpportunity && !setupReady && !newsBlocked\) \{[\s\S]*?\n  \}\n  if \(newsBlocked\)/, "\n  if (newsBlocked)");
   if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) source=source.replace(/(const\s+setupReady\s*=.*?;)/, "$1\n  const tradeAuthorized=setupReady===true;");
