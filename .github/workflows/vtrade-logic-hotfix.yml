@@ -1,0 +1,73 @@
+name: V TRADE AI logic hotfix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: "!contains(github.event.head_commit.message, '[logic-hotfix-applied]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch backend and dashboard mapping
+        shell: python
+        run: |
+          from pathlib import Path
+
+          server = Path('server.js')
+          s = server.read_text(encoding='utf-8')
+
+          old = """    brokerFeed.quote={\n      bid, ask, last,\n      spread:Number.isFinite(Number(q.spread)) ? Number(q.spread) : ask-bid,\n      serverTime\n    };"""
+          new = """    brokerFeed.quote={\n      bid, ask, last,\n      digits:Number.isFinite(Number(q.digits)) ? Number(q.digits) : 2,\n      spread:Number.isFinite(Number(q.spread)) ? Number(q.spread) : ask-bid,\n      serverTime\n    };"""
+          if old not in s:
+              raise SystemExit('server quote block not found')
+          s = s.replace(old, new, 1)
+
+          old = """  const trend=e20&&e50 ? (e20>e50?'BULLISH':e20<e50?'BEARISH':'NEUTRAL') : 'UNKNOWN';\n  // Expose the same fresh ICT zones used by the opportunity engine so every\n  // MTF row (including M1) can show a directional setup without inventing one.\n  const side=s?.bias==='BULLISH'||s?.bias==='BEARISH' ? s.bias : trend;\n  const fvg=latestFreshFvg(c, Math.min(12, Math.max(6, c.length-3)));\n  const ob=latestAlignedOrderBlock(c, side, Math.min(20, Math.max(6, c.length-3)));\n  return {\n    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,rsi:r==null?null:Math.round(r*100)/100,\n    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL'}:null,\n    adx:dx,volume:vb,last:c[c.length-1]?.c,fvg,orderBlock:ob\n  };"""
+          new = """  const trend=e20&&e50 ? (e20>e50?'BULLISH':e20<e50?'BEARISH':'NEUTRAL') : 'UNKNOWN';\n  // Expose the same fresh ICT zones used by the opportunity engine so every\n  // MTF row (including M1) can show a directional setup without inventing one.\n  const side=s?.bias==='BULLISH'||s?.bias==='BEARISH' ? s.bias : trend;\n  const fvg=latestFreshFvg(c, Math.min(12, Math.max(6, c.length-3)));\n  const ob=latestAlignedOrderBlock(c, side, Math.min(20, Math.max(6, c.length-3)));\n\n  // Direction score is a timeframe-local directional reading, not an entry\n  // authorization score.  The deterministic entry gate below remains strict.\n  let directionScore=50;\n  if(side==='BULLISH') directionScore+=18;\n  else if(side==='BEARISH') directionScore-=18;\n  if(trend===side) directionScore += side==='BULLISH'?10:-10;\n  if(r!=null){\n    if(side==='BULLISH' && r>=50) directionScore+=5;\n    if(side==='BEARISH' && r<=50) directionScore-=5;\n  }\n  const macdBias=m ? (m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL') : 'NEUTRAL';\n  if(macdBias===side) directionScore += side==='BULLISH'?5:-5;\n  if(dx && Number(dx.value)>=18) directionScore += side==='BULLISH'?5:-5;\n  if(sweep?.bias===side) directionScore += side==='BULLISH'?7:-7;\n  directionScore=Math.max(0,Math.min(100,Math.round(directionScore)));\n\n  return {\n    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,\n    score:directionScore,directionScore,\n    rsi:r==null?null:Math.round(r*100)/100,\n    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:macdBias}:null,\n    adx:dx,volume:vb,last:c[c.length-1]?.c,fvg,orderBlock:ob\n  };"""
+          if old not in s:
+              raise SystemExit('server analyzeTF block not found')
+          s = s.replace(old, new, 1)
+
+          old = """  const [m1a,m5a,m15a,h1a,h4a,d1a,w1a]=await Promise.all([\n    Promise.resolve(m1.length>=30?analyzeTF(m1):null),Promise.resolve(analyzeTF(m5)),Promise.resolve(analyzeTF(m15)),\n    Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null),Promise.resolve(w1.length>=20?analyzeTF(w1):null)\n  ]);\n  const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a,W1:w1a},a=tfs.M5.atr||5;"""
+          new = """  const [m1a,m5a,m15a,h1a,h4a,d1a,w1a]=await Promise.all([\n    Promise.resolve(m1.length>=30?analyzeTF(m1):null),Promise.resolve(analyzeTF(m5)),Promise.resolve(analyzeTF(m15)),\n    Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null),Promise.resolve(w1.length>=20?analyzeTF(w1):null)\n  ]);\n  const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a,W1:w1a},a=tfs.M5.atr||5;\n\n  // Preserve the broker-native closed candles in the analysis response so the\n  // dashboard chart can render the exact same data used by the ICT engine.\n  // Keep the payload compact and capped at the latest 300 bars per timeframe.\n  const closedByTf={M1:m1,M5:m5,M15:m15,H1:h1,H4:h4,D1:d1,W1:w1};\n  for(const [tf,analysis] of Object.entries(tfs)){\n    if(!analysis) continue;\n    const rows=Array.isArray(closedByTf[tf])?closedByTf[tf].slice(-300):[];\n    analysis.candles=rows.map(x=>({t:x.t,o:x.o,h:x.h,l:x.l,c:x.c,v:x.v||0}));\n  }"""
+          if old not in s:
+              raise SystemExit('server tfs block not found')
+          s = s.replace(old, new, 1)
+
+          server.write_text(s, encoding='utf-8')
+
+          dash = Path('premium-dashboard-live.html')
+          d = dash.read_text(encoding='utf-8')
+          old = "function renderGates(a){const c=a.confirmations||{};const items=[['MTF Alignment',c.mtfAligned,`${c.mtfCount??0}/3`],['Liquidity Sweep',c.liquiditySweep],['MSS',c.mss],['BOS',c.bos],['Displacement',c.displacement],['FVG',c.freshFvg],['Order Block',c.freshOb],['Premium / Discount',c.premiumDiscountOk,String(c.premiumDiscount||'—')],['Execution Zone',c.retest||c.inZone||c.zoneIsNear],['Momentum',c.technicalMomentumOk],['ADX Trend',c.trendStrengthOk],['Spread',c.spreadOk]];"
+          new = "function renderGates(a){const c=a.confirmations||{};const displacementOk=c.displacement===true||c.displacement?.confirmed===true;const items=[['MTF Alignment',c.mtfAligned,`${c.mtfCount??0}/3`],['Liquidity Sweep',c.liquiditySweep],['MSS',c.mss],['BOS',c.bos],['Displacement',displacementOk,c.displacement?.direction||''],['FVG',c.freshFvg],['Order Block',c.freshOb],['Premium / Discount',c.premiumDiscountOk,String(c.premiumDiscount||'—')],['Execution Zone',c.retest||c.inZone||c.zoneIsNear],['Momentum',c.technicalMomentumOk],['ADX Trend',c.trendStrengthOk],['Spread',c.spreadOk]];"
+          if old not in d:
+              raise SystemExit('dashboard gate block not found')
+          d = d.replace(old, new, 1)
+
+          old = "function renderChart(a){const candles=a.timeframes?.M15?.candles||a.timeframes?.M15?.bars||[];const arr=Array.isArray(candles)?candles.slice(-40).map(x=>Number(x.close??x.c??x[4])).filter(Number.isFinite):[];"
+          new = "function renderChart(a){const candles=a.timeframes?.M15?.candles||a.timeframes?.M15?.bars||[];const arr=Array.isArray(candles)?candles.slice(-60).map(x=>Number(x.close??x.c??x[4])).filter(Number.isFinite):[];"
+          if old not in d:
+              raise SystemExit('dashboard chart block not found')
+          d = d.replace(old, new, 1)
+
+          dash.write_text(d, encoding='utf-8')
+      - name: Validate JavaScript syntax
+        run: |
+          node --check server.js
+      - name: Commit hotfix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server.js premium-dashboard-live.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix MTF data mapping and candle rendering [logic-hotfix-applied]"
+          git push
