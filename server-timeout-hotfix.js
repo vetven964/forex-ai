@@ -11,9 +11,6 @@ function patchActiveEngine(source) {
   let out = source;
   let hits = 0;
 
-  // package-access-hotfix injects a persistent member route that uses fs.
-  // server.js historically did not import fs, so make the dependency explicit
-  // in the in-memory production source before any injected route is evaluated.
   if (!/^const\s+fs\s*=\s*require\(['"]fs['"]\);/m.test(out)) {
     out = "const fs = require('fs');\n" + out;
     hits++;
@@ -49,7 +46,11 @@ function patchActiveEngine(source) {
   out = out.replace("higherBiases:[tfs.H4?.structure?.bias,tfs.D1?.structure?.bias]","higherBiases:[tfs.H4?.resolvedBias,tfs.D1?.resolvedBias]");
 
   const marker="  let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];";
-  const zoneLogic="  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;\n";
+  // IMPORTANT: do not read pdOk here. pdOk is declared later in the active
+  // analysis scope, so referencing it here creates a temporal-dead-zone error.
+  // zonePdOk is derived locally from already-available zone/side data and is
+  // safe to use at this injection point.
+  const zoneLogic="  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=zonePdOk||limitZoneReady;\n";
   if (out.includes(marker) && !out.includes('const zoneMid=Number.isFinite(Number(candidateZone?.low))')) { out = out.replace(marker, zoneLogic + marker); hits++; }
   const oldSetup="const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);";
   const newSetup="const setupReady=candlesFresh&&biasOk&&structureAgreement&&sweepOk&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&displacementOk&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);";
