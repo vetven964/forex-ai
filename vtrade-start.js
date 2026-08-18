@@ -39,8 +39,9 @@ img,svg,canvas,video{max-width:100%;}
   #vtradePreMarket .vpm-head{gap:8px!important;margin-bottom:8px!important;}
   #vtradePreMarket .vpm-title{font-size:15px!important;line-height:1.25!important;}
   #vtradePreMarket .vpm-sub{font-size:8px!important;line-height:1.35!important;}
-  #vtradePreMarket .vpm-actions{width:100%!important;display:flex!important;overflow-x:auto!important;gap:5px!important;padding-bottom:2px!important;}
-  #vtradePreMarket .vpm-btn{min-height:38px!important;padding:7px 9px!important;font-size:9px!important;flex:0 0 auto!important;}
+  #vtradePreMarket .vpm-actions{width:100%!important;display:flex!important;overflow-x:auto!important;gap:5px!important;padding:0 4px 3px 0!important;}
+  #vtradePreMarket .vpm-btn{min-height:38px!important;padding:7px 9px!important;font-size:9px!important;flex:0 0 auto!important;white-space:nowrap!important;}
+  #vtradePreMarket #vpmAnalyze{min-width:74px!important;}
   #vtradePreMarket .vpm-grid{grid-template-columns:1fr!important;gap:7px!important;}
   #vtradePreMarket .vpm-box{padding:10px!important;border-radius:11px!important;}
   #vtradePreMarket .vpm-score{font-size:25px!important;}
@@ -113,4 +114,5 @@ patchFile(TELEGRAM, source => {
 });
 
 console.log('[VTRADE START] phone UI + Telegram core-MTF truth sync ready');
+require('./vtrade-logic-ui-hotfix.js');
 require('./ai-telegram-diagnostic-hotfix.js');
