@@ -3,8 +3,8 @@
 //| Sends broker-native XAUUSD quotes + MTF candles to V-TRADE AI.  |
 //+------------------------------------------------------------------+
 #property strict
-#property version   "1.803"
-#property description "VT Markets MT5 -> V-TRADE AI bridge with verified D1 candle transport"
+#property version   "1.804"
+#property description "VT Markets MT5 -> V-TRADE AI bridge with verified M5/M15/H1/H4/D1 candle transport"
 
 input string InpServerURL = "https://forexai-6xw6.onrender.com";
 input string InpApiKey = "";
@@ -89,7 +89,7 @@ void SendSnapshot(){
       ulong elapsed=GetTickCount64()-started;
       if(code>=200&&code<300){
          g_fail_count=0;g_last_ok_ms=(uint)GetTickCount64();SaveSequence();
-         Print("V-TRADE Bridge v1.803 OK | seq=",g_sequence," | MTF=M5,M15,H1,H4,D1 READY | D1 requested=",InpBarsD1," | ms=",elapsed);
+         Print("V-TRADE Bridge v1.804 OK | seq=",g_sequence," | MTF=M5,M15,H1,H4,D1 READY | D1 requested=",InpBarsD1," | ms=",elapsed);
          return;
       }
       int err=GetLastError(); bool retryable=(code==1003||code<0);
@@ -102,9 +102,9 @@ int OnInit(){
    int timer_seconds=MathMax(2,InpTimerSeconds);
    if(!SymbolSelect(BridgeSymbol(),true)){Print("V-TRADE Bridge SymbolSelect FAILED | symbol=",BridgeSymbol()," | error=",GetLastError());return INIT_FAILED;}
    if(!EventSetTimer(timer_seconds)){Print("V-TRADE Bridge EventSetTimer FAILED | error=",GetLastError());return INIT_FAILED;}
-   Print("V-TRADE Bridge v1.803 STARTED | MTF=M5,M15,H1,H4,D1 | D1 bars=",InpBarsD1," | Timer=",timer_seconds,"s | Symbol=",BridgeSymbol());
+   Print("V-TRADE Bridge v1.804 STARTED | MTF=M5,M15,H1,H4,D1 | D1 bars=",InpBarsD1," | Timer=",timer_seconds,"s | Symbol=",BridgeSymbol());
    return INIT_SUCCEEDED;
 }
-void OnDeinit(const int reason){SaveSequence();EventKillTimer();Print("V-TRADE Bridge v1.803 STOPPED | reason=",reason," | lastSequence=",g_sequence," | failCount=",g_fail_count);}
+void OnDeinit(const int reason){SaveSequence();EventKillTimer();Print("V-TRADE Bridge v1.804 STOPPED | reason=",reason," | lastSequence=",g_sequence," | failCount=",g_fail_count);}
 void OnTimer(){string sym=BridgeSymbol();if(!SymbolInfoInteger(sym,SYMBOL_SELECT))SymbolSelect(sym,true);MqlTick tick;if(!SymbolInfoTick(sym,tick)){Print("V-TRADE Bridge waiting for tick | symbol=",sym);return;}SendSnapshot();}
 void OnTick(){}
