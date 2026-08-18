@@ -1005,9 +1005,28 @@ function analyzeTF(c) {
   const side=s?.bias==='BULLISH'||s?.bias==='BEARISH' ? s.bias : trend;
   const fvg=latestFreshFvg(c, Math.min(12, Math.max(6, c.length-3)));
   const ob=latestAlignedOrderBlock(c, side, Math.min(20, Math.max(6, c.length-3)));
+
+  // Direction score is a timeframe-local directional reading, not an entry
+  // authorization score.  The deterministic entry gate below remains strict.
+  let directionScore=50;
+  if(side==='BULLISH') directionScore+=18;
+  else if(side==='BEARISH') directionScore-=18;
+  if(trend===side) directionScore += side==='BULLISH'?10:-10;
+  if(r!=null){
+    if(side==='BULLISH' && r>=50) directionScore+=5;
+    if(side==='BEARISH' && r<=50) directionScore-=5;
+  }
+  const macdBias=m ? (m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL') : 'NEUTRAL';
+  if(macdBias===side) directionScore += side==='BULLISH'?5:-5;
+  if(dx && Number(dx.value)>=18) directionScore += side==='BULLISH'?5:-5;
+  if(sweep?.bias===side) directionScore += side==='BULLISH'?7:-7;
+  directionScore=Math.max(0,Math.min(100,Math.round(directionScore)));
+
   return {
-    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,rsi:r==null?null:Math.round(r*100)/100,
-    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL'}:null,
+    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,
+    score:directionScore,directionScore,
+    rsi:r==null?null:Math.round(r*100)/100,
+    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:macdBias}:null,
     adx:dx,volume:vb,last:c[c.length-1]?.c,fvg,orderBlock:ob
   };
 }
@@ -1290,6 +1309,16 @@ async function buildXauAnalysis() {
     Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null),Promise.resolve(w1.length>=20?analyzeTF(w1):null)
   ]);
   const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a,W1:w1a},a=tfs.M5.atr||5;
+
+  // Preserve the broker-native closed candles in the analysis response so the
+  // dashboard chart can render the exact same data used by the ICT engine.
+  // Keep the payload compact and capped at the latest 300 bars per timeframe.
+  const closedByTf={M1:m1,M5:m5,M15:m15,H1:h1,H4:h4,D1:d1,W1:w1};
+  for(const [tf,analysis] of Object.entries(tfs)){
+    if(!analysis) continue;
+    const rows=Array.isArray(closedByTf[tf])?closedByTf[tf].slice(-300):[];
+    analysis.candles=rows.map(x=>({t:x.t,o:x.o,h:x.h,l:x.l,c:x.c,v:x.v||0}));
+  }
   const candleAgeSec=m5.length?Math.max(0,(Date.now()-m5[m5.length-1].t)/1000):Infinity,candlesFresh=candleAgeSec<=15*60;
   // Full MTF context is visible to the engine, while the execution gate remains
   // intentionally strict on H4/H1/M15. D1 and M5/M1 add context; they cannot
@@ -1988,6 +2017,7 @@ app.post('/api/v5/mt5/quote', (req,res) => {
 
     brokerFeed.quote={
       bid, ask, last,
+      digits:Number.isFinite(Number(q.digits)) ? Number(q.digits) : 2,
       spread:Number.isFinite(Number(q.spread)) ? Number(q.spread) : ask-bid,
       serverTime
     };
