@@ -80,7 +80,7 @@ function patchMt5StartupReadiness(source) {
   const replacement = "    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;\n    return {feedReady:false,signal:'WAIT',status:'WAIT',bias:'NEUTRAL',directionBand:'NEUTRAL',directionScore:0,confidence:0,setupReady:false,tradeAuthorized:false,entry:null,stopLoss:null,tp1:null,tp2:null,tp3:null,confirmations:{allGatesPassed:false,feedReady:false},score:{blockedReasons:[detail],confidence:0},mt5:{ready:false,missing:readinessMissing,ageSec,maxAgeMs:MT5_MAX_AGE_MS}};";
   if (source.includes(old)) source=source.replace(old,replacement);
   const oldAi = "    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;\n    res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
-  const newAi = "    if(a?.feedReady===false){ return res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:null}); }\n    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;\n    res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
+  const newAi = "    if(a?.feedReady===false){ return res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:null}); }\n    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;\n    const {applyTruthGuard}=require('./analysis-truth');\n    const guarded=applyTruthGuard({...a,aiConfirmation:ai});\n    res.json({success:true,...guarded,telegramConfigured:!!tg,aiConfirmation:guarded.aiConfirmation});";
   if (source.includes(oldAi)) source=source.replace(oldAi,newAi);
   return source;
 }
@@ -102,6 +102,7 @@ Module._extensions['.js']=function vtradeServerLoader(mod,filename){
   console.log('[V-TRADE LAUNCHER] MT5 startup readiness gate active');
   console.log('[V-TRADE LAUNCHER] resolved MTF bias + neutral P/D logic active');
   console.log('[V-TRADE LAUNCHER] strict ICT execution gates active');
+  console.log('[V-TRADE LAUNCHER] basic workflow + Truth Guard active');
   mod._compile(source,filename);
 };
 
