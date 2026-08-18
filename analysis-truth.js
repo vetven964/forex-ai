@@ -10,6 +10,81 @@ function vote(side, confidence, reasons, veto = false) {
   return { vote: sideOf(side), confidence: clamp(confidence), reasons: Array.isArray(reasons) ? reasons.slice(0, 6).map(String) : [], veto: !!veto };
 }
 
+function buildTimeframeSignals(a) {
+  const t = a?.timeframes || {};
+  const frames = ['M1', 'M5', 'M15', 'H1', 'H4'];
+  const weights = { M1:1, M5:2, M15:3, H1:4, H4:5 };
+  const signals = {};
+  let bullWeight = 0, bearWeight = 0, availableWeight = 0;
+
+  for (const tf of frames) {
+    const row = t[tf];
+    if (!row) {
+      signals[tf] = { timeframe:tf, signal:'WAIT', side:'NEUTRAL', score:null, confidence:null, available:false, status:'DATA_UNAVAILABLE', reasons:['No verified candle/analysis data for this timeframe.'] };
+      continue;
+    }
+    const structureBias = sideOf(row?.structure?.bias || row?.resolvedBias || row?.trend || row?.bias);
+    const macdBias = sideOf(row?.macd?.bias);
+    const rsi = Number(row?.rsi);
+    const rawScore = Number(row?.directionScore ?? row?.score);
+    const score = Number.isFinite(rawScore) ? clamp(rawScore) : 50;
+    let side = structureBias;
+    if (side === 'NEUTRAL' && macdBias !== 'NEUTRAL') side = macdBias;
+    if (side === 'NEUTRAL' && Number.isFinite(rsi)) side = rsi > 50 ? 'BULLISH' : rsi < 50 ? 'BEARISH' : 'NEUTRAL';
+
+    // A timeframe signal is directional evidence, not an order authorization.
+    // 55/45 avoids turning tiny fluctuations around 50 into fake BUY/SELL calls.
+    let signal = 'WAIT';
+    if (side === 'BULLISH' && score >= 55) signal = 'BUY';
+    if (side === 'BEARISH' && score <= 45) signal = 'SELL';
+
+    const reasons = [];
+    if (structureBias !== 'NEUTRAL') reasons.push(`Structure ${structureBias}`);
+    if (macdBias !== 'NEUTRAL') reasons.push(`MACD ${macdBias}`);
+    if (Number.isFinite(rsi)) reasons.push(`RSI ${rsi.toFixed(1)}`);
+    if (row?.sweep?.bias && sideOf(row.sweep.bias) !== 'NEUTRAL') reasons.push(`Sweep ${sideOf(row.sweep.bias)}`);
+    if (row?.adx?.trendStrength) reasons.push(`ADX ${row.adx.trendStrength}`);
+
+    signals[tf] = {
+      timeframe:tf,
+      signal,
+      side,
+      score,
+      confidence:score,
+      available:true,
+      status:signal === 'WAIT' ? 'WAIT_CONFIRMATION' : 'DIRECTIONAL_SIGNAL',
+      reasons:reasons.slice(0,6),
+      structure:structureBias,
+      momentum:macdBias,
+      rsi:Number.isFinite(rsi) ? Math.round(rsi*100)/100 : null
+    };
+
+    if (signal === 'BUY') bullWeight += weights[tf];
+    if (signal === 'SELL') bearWeight += weights[tf];
+    availableWeight += weights[tf];
+  }
+
+  const dominantSide = bullWeight > bearWeight ? 'BUY' : bearWeight > bullWeight ? 'SELL' : 'WAIT';
+  const dominantWeight = Math.max(bullWeight, bearWeight);
+  const confluenceScore = availableWeight ? clamp((dominantWeight / availableWeight) * 100) : 0;
+  const aligned = frames.filter(tf => signals[tf]?.available && signals[tf]?.signal === dominantSide);
+  const executionFrame = dominantSide === 'BUY' || dominantSide === 'SELL'
+    ? (signals.M1?.signal === dominantSide ? 'M1' : signals.M5?.signal === dominantSide ? 'M5' : signals.M15?.signal === dominantSide ? 'M15' : 'M15')
+    : null;
+
+  return {
+    version:'1.0-per-timeframe-confluence',
+    signals,
+    dominantSignal:dominantSide,
+    dominantSide:dominantSide === 'BUY' ? 'BULLISH' : dominantSide === 'SELL' ? 'BEARISH' : 'NEUTRAL',
+    confluenceScore,
+    alignedTimeframes:aligned.map(x => x),
+    weightedVotes:{BUY:bullWeight,SELL:bearWeight},
+    executionTimeframe:executionFrame,
+    note:'Per-timeframe signals are evidence. Final trade authorization still requires deterministic engine gates, ICT confirmation, risk/data gates, Truth Guard, and optional AI confirmation.'
+  };
+}
+
 function buildAnalystCouncil(a) {
   const t = a?.timeframes || {};
   const core = ['H4', 'H1', 'M15'];
@@ -106,6 +181,7 @@ function verifiedMetricsFromAnalysis(a) {
 }
 
 function applyTruthGuard(a) {
+  const timeframeSignals = buildTimeframeSignals(a);
   const council=buildAnalystCouncil(a);
   const engineSide=a?.signal==='BUY'?'BULLISH':a?.signal==='SELL'?'BEARISH':'NEUTRAL';
   const councilAgrees=engineSide!=='NEUTRAL' && council.tradeSide===(engineSide==='BULLISH'?'BUY':'SELL');
@@ -116,7 +192,7 @@ function applyTruthGuard(a) {
   const aiOk=!aiConfigured || (ai.decision===a?.signal && ai.agreement==='AGREE' && Number(ai.confidence)>=76);
   const guardPass=engineGate && council.ready && councilAgrees && dataQualityOk && aiOk;
   const truthMetrics=verifiedMetricsFromAnalysis(a);
-  const out={...a, analystCouncil:council, truthMetrics, confidenceMeaning:'Setup/evidence confidence only — never a win-rate claim.', guard:{engineGate,councilReady:council.ready,councilAgrees,dataQualityOk,aiConfigured,aiOk,pass:guardPass,blockedBy:[!engineGate?'ENGINE_GATE':null,!council.ready?'ANALYST_COUNCIL':null,!councilAgrees?'COUNCIL_DISAGREEMENT':null,!dataQualityOk?'DATA_QUALITY':null,!aiOk?'AI_CONFIRMATION':null].filter(Boolean)}};
+  const out={...a, timeframeSignals, analystCouncil:council, truthMetrics, confidenceMeaning:'Setup/evidence confidence only — never a win-rate claim.', guard:{engineGate,councilReady:council.ready,councilAgrees,dataQualityOk,aiConfigured,aiOk,pass:guardPass,blockedBy:[!engineGate?'ENGINE_GATE':null,!council.ready?'ANALYST_COUNCIL':null,!councilAgrees?'COUNCIL_DISAGREEMENT':null,!dataQualityOk?'DATA_QUALITY':null,!aiOk?'AI_CONFIRMATION':null].filter(Boolean)}};
 
   if (['BUY','SELL'].includes(out.signal) && !guardPass) {
     out.signal='WAIT'; out.phase='WAIT'; out.status='WAIT — TRUTH GUARD BLOCKED ENTRY'; out.actionable='NO TRADE';
@@ -138,4 +214,4 @@ function applyTruthGuard(a) {
   return out;
 }
 
-module.exports={buildAnalystCouncil,applyTruthGuard,verifiedMetricsFromAnalysis};
+module.exports={buildAnalystCouncil,applyTruthGuard,verifiedMetricsFromAnalysis,buildTimeframeSignals};
