@@ -89,7 +89,6 @@ void SendSnapshot(){
       ulong elapsed=GetTickCount64()-started;
       if(code>=200&&code<300){
          g_fail_count=0;g_last_ok_ms=(uint)GetTickCount64();SaveSequence();
-         int d1=ArraySize(StringToCharArray(BuildBars(PERIOD_D1,InpBarsD1)));
          Print("V-TRADE Bridge v1.803 OK | seq=",g_sequence," | MTF=M5,M15,H1,H4,D1 READY | D1 requested=",InpBarsD1," | ms=",elapsed);
          return;
       }
