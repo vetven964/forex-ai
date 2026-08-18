@@ -44,7 +44,6 @@ for(const member of loadPersistentMemberAccounts()) if(!USER_ACCOUNTS.some(u=>u.
 
   s=s.replace("const passwordHash=crypto.scryptSync(password,salt,64).toString('hex')+':'+salt;","const passwordHash=salt+':'+crypto.scryptSync(password,salt,64).toString('hex');");
 
-  // Correct registration route is installed before server-launcher can inject the older route.
   if(!s.includes('VTRADE_REGISTER_FLOW_V2')){
     const register=`/* VTRADE_REGISTER_FLOW_V2 */
 app.post('/api/auth/register',rateLimit({windowMs:15*60_000,max:8,standardHeaders:true,legacyHeaders:true}),async(req,res)=>{
@@ -81,8 +80,9 @@ app.post('/api/auth/register',rateLimit({windowMs:15*60_000,max:8,standardHeader
 
   if(!s.includes('VTRADE_PRIVATE_API_GATES_V1')){
     const gate=`/* VTRADE_PRIVATE_API_GATES_V1 */
-app.use('/api/analysis/xauusd',requireAuth);
-app.use('/api/telegram',requireAuth);
+function requirePlanFeature(feature){return (req,res,next)=>{if(req.vtradeUser?.role==='admin')return next();const p=vtradePlanPermissions(req.vtradeUser?.plan);if(p.includes('*')||p.includes(feature))return next();return res.status(403).json({success:false,error:'Package upgrade required',feature,plan:req.vtradeUser?.plan||'FREE'});};}
+app.use('/api/analysis/xauusd',requireAuth,requirePlanFeature('terminal'));
+app.use('/api/telegram',requireAuth,requirePlanFeature('telegram:own'));
 `;
     s=s.replace("app.get('/api/analysis/xauusd',async(req,res)=>{",gate+"\napp.get('/api/analysis/xauusd',async(req,res)=>{");
   }
