@@ -1,0 +1,1 @@
+V TRADE AI logic hotfix trigger. The workflow applies the verified MTF/candle mapping patch once and then commits the actual changes to main.
