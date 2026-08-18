@@ -80,8 +80,15 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   console.log('[V-TRADE LAUNCHER] production MTF bias + strict ICT authorization active');
   console.log('[V-TRADE LAUNCHER] transparent analyst council + truth guard active');
   console.log('[V-TRADE LAUNCHER] NEW MEMBER registration + Telegram event active');
-  return mod._compile(source, filename);
+  mod._compile(source, filename);
 };
+
+try {
+  if (fs.existsSync(FRONTEND_FILE)) {
+    const before=fs.readFileSync(FRONTEND_FILE,'utf8'); const after=patchFrontend(before);
+    if(after!==before){fs.writeFileSync(FRONTEND_FILE,after,'utf8');console.log('[V-TRADE LAUNCHER] critical frontend data/i18n fixes applied');}
+  }
+} catch(e){console.warn('[V-TRADE LAUNCHER] frontend patch skipped:',e.message);}
 
 try {
   if (fs.existsSync(ADMIN_FRONTEND_HOTFIX)) {
@@ -94,7 +101,5 @@ try {
   console.error('[V-TRADE LAUNCHER] account/admin UI patch failed:',e.message);
 }
 
-// IMPORTANT: keep the existing launcher path. The hook wraps the already-patched
-// server loader so Telegram/auth/ICT/Truth-Guard behavior remains unchanged.
 require('./pre-market-launcher-hook.js');
 require('./server.js');
