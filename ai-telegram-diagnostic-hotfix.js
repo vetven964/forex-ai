@@ -1,5 +1,6 @@
 // V-TRADE AI — AI/Telegram diagnostic + runtime safety hotfix
-// Purpose: expose the real upstream error instead of collapsing it to WAIT.
+// Purpose: expose the real upstream error without bypassing the existing
+// Candle-Open Pre-Market MTF / timeout / production startup chain.
 // Secrets are never printed.
 const fs = require('fs');
 const path = require('path');
@@ -81,7 +82,9 @@ try {
     console.log('[V-TRADE DIAGNOSTIC] server.js diagnostic marker installed');
   }
   console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled');
-  require('./server-launcher.js');
+  // IMPORTANT: keep the existing Pre-Market MTF startup chain.
+  // server-strength-hotfix -> server-timeout-hotfix -> server.js
+  require('./server-strength-hotfix.js');
 } catch (err) {
   console.error('[V-TRADE DIAGNOSTIC] startup failed:', redact(err?.stack || err?.message || err));
   process.exitCode = 1;
