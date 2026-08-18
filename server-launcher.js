@@ -12,40 +12,59 @@ function patchExecutionLogic(source) {
   if (!/\bconst\s+executionLocationOk\s*=/.test(source) && /\bexecutionLocationOk\b/.test(source)) {
     const firstUse = source.search(/\bexecutionLocationOk\b/);
     if (firstUse >= 0) {
-      const declaration = `const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;\n  `;
+      const declaration = `const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;
+  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';
+  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;
+  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);
+  const executionLocationOk=pdOk||limitZoneReady;
+  `;
       source = source.slice(0, firstUse) + declaration + source.slice(firstUse);
     }
   }
   const gatePattern = /(const\s+biasOk=[\s\S]*?structureAgreement=mssOk\|\|bosOk;)/;
   if (gatePattern.test(source) && !/\bconst\s+executionLocationOk\s*=/.test(source)) {
-    source = source.replace(gatePattern, `$1\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`);
+    source = source.replace(gatePattern, `$1
+  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;
+  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';
+  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;
+  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);
+  const executionLocationOk=pdOk||limitZoneReady;`);
   }
   source = source.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}", "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
   source = source.replace("const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);", "const setupReady=candlesFresh&&biasOk&&structureAgreement&&sweepOk&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&displacementOk&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);");
   source = source.replace("if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');", "if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
   source = source.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
   source = source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
-  // Horizon opportunities are context only. The canonical M5 ICT gate is the sole
-  // authorization path so Telegram/Web/MT5 cannot promote a looser opportunity.
   source = source.replace("const selectedOpportunity = safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null;", "const selectedOpportunity = setupReady ? (safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null) : null;");
   source = source.replace(/\s*if \(selectedOpportunity && !setupReady && !newsBlocked\) \{[\s\S]*?\n  \}\n  if \(newsBlocked\)/, "\n  if (newsBlocked)");
   if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) {
-    source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true;`);
+    source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1
+  const tradeAuthorized=setupReady===true;`);
   }
-  source = source.replace(/(setupReady\s*:\s*setupReady\s*,?)/, `$1\n    tradeAuthorized,`);
+  source = source.replace(/(setupReady\s*:\s*setupReady\s*,?)/, `$1
+    tradeAuthorized,`);
   return source;
 }
 
 function patchMtfBias(source) {
-  // Structure can legitimately be RANGE while EMA/MACD still provide a directional
-  // bias. Use a deterministic hierarchy for MTF display/alignment:
-  // structure > EMA trend > RSI/MACD momentum. This avoids false 0/3 alignment
-  // without inventing an execution signal.
   const needle = "return {\n    structure:s,trend";
   if (source.includes(needle)) {
     const replacement = "const structureBias=(s?.bias==='BULLISH'||s?.bias==='BEARISH')?s.bias:null;\n  const trendBias=(trend==='BULLISH'||trend==='BEARISH')?trend:null;\n  const momentumBias=(m?.histogram>0)?'BULLISH':(m?.histogram<0)?'BEARISH':null;\n  const resolvedBias=structureBias||trendBias||momentumBias||'NEUTRAL';\n  const directionScore=Math.max(0,Math.min(100,Math.round(50 + (resolvedBias==='BULLISH'?12:resolvedBias==='BEARISH'?-12:0) + (trendBias===resolvedBias?(resolvedBias==='BULLISH'?10:-10):0) + (momentumBias===resolvedBias?(resolvedBias==='BULLISH'?8:-8):0) + (r!=null ? (resolvedBias==='BULLISH'?(r>=50?6:-3):resolvedBias==='BEARISH'?(r<=50?-6:3):0) : 0) + (dx?.value>=18 ? (resolvedBias==='BULLISH'?4:resolvedBias==='BEARISH'?-4:0) : 0))));\n  return {\n    structure:{...s,bias:resolvedBias,rawBias:s?.bias||null,score:directionScore},trend,resolvedBias,directionScore";
     source = source.replace(needle, replacement);
   }
+  return source;
+}
+
+function patchTruthGuard(source) {
+  if (!source.includes("require('./analysis-truth')")) {
+    source = "const { applyTruthGuard } = require('./analysis-truth');\n" + source;
+  }
+  const marker = 'async function buildXauAnalysis() {';
+  if (source.includes(marker) && !source.includes('async function buildXauAnalysisCore() {')) {
+    source = source.replace(marker, `async function buildXauAnalysisCore() {`);
+    source = source.replace(`async function buildXauAnalysisCore() {`, `async function buildXauAnalysis() {\n  const base = await buildXauAnalysisCore();\n  return applyTruthGuard(base);\n}\n\nasync function buildXauAnalysisCore() {`);
+  }
+  source = source.replace("const APP_VERSION = '7.3.1-FEED-STABLE';", "const APP_VERSION = '7.4.0-TRUTH-COUNCIL';");
   return source;
 }
 
@@ -89,8 +108,9 @@ function patchWaitCard(source) {
     "      '🎯 TP1: *' + n(tp1) + '*',",
     "      '🎯 TP2: *' + n(tp2) + '*',",
     "      '🎯 TP3: *' + n(tp3) + '*','',",
-    "      '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
-    "      '🔐 *ORDER AUTHORIZED — ICT EXECUTION GATES PASSED*',",
+    "      '🧠 Council: *' + (a?.analystCouncil?.consensus || 'NEUTRAL') + ' ' + (a?.analystCouncil?.consensusVotes || '0/0') + '* | Confidence: *' + (a?.analystCouncil?.confidence ?? '—') + '/100*',",
+    "      '🔎 Verified Win Rate: *' + (a?.truthMetrics?.verifiedWinRate == null ? 'N/A' : a.truthMetrics.verifiedWinRate + '%') + '* | Sample: *' + (a?.truthMetrics?.verifiedSampleSize ?? 0) + '*',",
+    "      '🔐 *ORDER AUTHORIZED — TRUTH GUARD PASSED*',",
     "      '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'].join('\\n');",
     "  }",
     "  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';",
@@ -103,12 +123,14 @@ function patchWaitCard(source) {
     "    '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
     "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*','',",
     "    '🔎 *ICT ENTRY GATES*', gateLine,'',",
+    "    '🧠 Analyst Council: *' + (a?.analystCouncil?.consensus || 'NEUTRAL') + ' ' + (a?.analystCouncil?.consensusVotes || '0/0') + '* | Confidence: *' + (a?.analystCouncil?.confidence ?? '—') + '/100*',",
+    "    '📊 Verified Win Rate: *' + (a?.truthMetrics?.verifiedWinRate == null ? 'N/A' : a.truthMetrics.verifiedWinRate + '%') + '* | Sample: *' + (a?.truthMetrics?.verifiedSampleSize ?? 0) + '*',",
     "    '🎯 Execution Zone: *' + entryZone + '*',",
-    "    '🟢 Entry: *WAIT — gate confirmation required*',",
+    "    '🟢 Entry: *WAIT — truth guard confirmation required*',",
     "    '🛑 Stop Loss (SL): *WAIT*','🎯 TP1: *WAIT*','🎯 TP2: *WAIT*','🎯 TP3: *WAIT*','',",
     "    '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
     "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*','',",
-    "    '🔒 No order until all required ICT execution gates pass.',",
+    "    '🔒 No order until engine gates + analyst council + risk/data checks pass.',",
     "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'].join('\\n');",
     "}", ""
   ].join('\n');
@@ -131,9 +153,11 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   let source = fs.readFileSync(filename, 'utf8');
   source = patchExecutionLogic(source);
   source = patchMtfBias(source);
+  source = patchTruthGuard(source);
   source = patchWaitCard(source);
   console.log('[V-TRADE LAUNCHER] production MTF bias + strict ICT authorization active');
-  console.log('[V-TRADE LAUNCHER] production WAIT/AUTHORIZED-card logic active');
+  console.log('[V-TRADE LAUNCHER] transparent analyst council + truth guard active');
+  console.log('[V-TRADE LAUNCHER] verified win-rate remains N/A until real closed outcomes exist');
   mod._compile(source, filename);
 };
 
