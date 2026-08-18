@@ -1,133 +1,17 @@
 // V-TRADE AI — in-terminal account/session UI hotfix
-// Adds a top-right account menu for both Admin and Member users.
-// Logout clears the authenticated browser session and returns to login.
-const fs = require('fs');
-const path = require('path');
-
-const FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
-const MARKER = 'VTRADE_ACCOUNT_SESSION_MENU_V2';
-
-function patch(source) {
-  if (!fs.existsSync(FILE) || source.includes(MARKER)) return source;
-
-  const css = `
-/* ${MARKER} */
-.account-menu{position:relative;margin-left:8px;z-index:80}
-.account-trigger{display:flex;align-items:center;gap:9px;min-height:44px;padding:6px 10px;border:1px solid #263650;border-radius:12px;background:#09111e;color:#fff;cursor:pointer}
-.account-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#5120ff,#aa72ff);font-weight:900;font-size:13px}
-.account-meta{display:grid;text-align:left;line-height:1.1}.account-meta b{font-size:11px}.account-meta small{font-size:9px;color:#8493ab;margin-top:3px}.account-chevron{color:#8493ab;font-size:12px}
-.account-dropdown{position:absolute;right:0;top:52px;width:250px;padding:9px;border:1px solid #263650;border-radius:15px;background:#07101cf8;box-shadow:0 25px 70px #000b;backdrop-filter:blur(18px);display:none}
-.account-dropdown.open{display:block;animation:accountDrop .16s ease}@keyframes accountDrop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
-.account-head{padding:9px 10px 12px;border-bottom:1px solid #1d2c44;margin-bottom:6px}.account-head b{display:block}.account-head small{display:block;color:#8493ab;margin-top:4px}
-.account-item{display:flex;align-items:center;gap:9px;width:100%;min-height:40px;padding:9px 10px;border:1px solid transparent;border-radius:9px;background:transparent;color:#c8d2e1;text-align:left;cursor:pointer}
-.account-item:hover{background:#17102e;border-color:#6840cf;color:#fff}.account-item.admin{color:#9fdcff}.account-item.logout{color:#ff8c98;border-top:1px solid #1d2c44;margin-top:5px;padding-top:12px}.account-item.logout:hover{background:#2b0c13;border-color:#7c2532}
-.account-role{display:inline-flex;margin-top:6px;padding:3px 7px;border-radius:99px;font-size:8px;font-weight:900;color:#22e58a;background:#062d20;border:1px solid #147850}.account-role.admin{color:#caa9ff;background:#1b1038;border-color:#6940c9}
-.account-mobile-name{display:none}
-@media(max-width:900px){.account-meta{display:none}.account-trigger{padding:6px}.account-dropdown{position:fixed;right:10px;top:62px;width:min(280px,calc(100vw - 20px))}}
-@media(max-width:520px){.account-menu{margin-left:0}.account-trigger{min-width:44px;justify-content:center}}
-`;
-
-  const menu = `
-  <div class="account-menu" id="vtradeAccountMenu">
-    <button class="account-trigger" id="vtradeAccountTrigger" type="button" aria-haspopup="true" aria-expanded="false">
-      <span class="account-avatar" id="vtradeAccountAvatar">V</span>
-      <span class="account-meta"><b id="vtradeAccountName">Account</b><small id="vtradeAccountEmail">Signed in</small></span>
-      <span class="account-chevron">⌄</span>
-    </button>
-    <div class="account-dropdown" id="vtradeAccountDropdown" role="menu">
-      <div class="account-head"><b id="vtradeMenuName">Account</b><small id="vtradeMenuEmail">—</small><span class="account-role" id="vtradeMenuRole">MEMBER</span></div>
-      <button class="account-item" type="button" data-account-action="profile">◉ <span>Profile</span></button>
-      <button class="account-item" type="button" data-account-action="settings">⚙ <span>Account Settings</span></button>
-      <button class="account-item" type="button" data-account-action="password">🔒 <span>Change Password</span></button>
-      <button class="account-item admin" id="vtradeAdminItem" type="button" data-account-action="admin" style="display:none">♛ <span>Admin Dashboard</span></button>
-      <button class="account-item logout" type="button" data-account-action="logout">↪ <span>Logout</span></button>
-    </div>
-  </div>`;
-
-  const script = `
-<script>
-(function(){
-  const VTRADE_ACCOUNT_SESSION_MENU_V2=true;
-  const API=String(localStorage.getItem('vtrade_api')||'https://forexai-6xw6.onrender.com').replace(/\\/$/,'');
-  const TOKEN_KEY='vtrade_auth_token';
-  const getToken=()=>sessionStorage.getItem(TOKEN_KEY)||sessionStorage.getItem('vtrade_auth')||'';
-  const clearLocal=()=>{sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem('vtrade_auth');sessionStorage.removeItem('vtrade_user');};
-  const goLogin=()=>{clearLocal();location.href='login.html';};
-  const esc=v=>String(v==null?'':v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-  const byId=id=>document.getElementById(id);
-  let user={};
-  try{user=JSON.parse(sessionStorage.getItem('vtrade_user')||'{}')||{};}catch(_){user={};}
-  function applyUser(u){
-    user=u||user||{};
-    const name=String(user.name||user.email||'Account');
-    const email=String(user.email||'Signed in');
-    const role=String(user.role||'member').toLowerCase();
-    const admin=role==='admin';
-    const initial=(name.trim()[0]||'V').toUpperCase();
-    byId('vtradeAccountAvatar').textContent=initial;
-    byId('vtradeAccountName').textContent=name;
-    byId('vtradeAccountEmail').textContent=email;
-    byId('vtradeMenuName').textContent=name;
-    byId('vtradeMenuEmail').textContent=email;
-    const badge=byId('vtradeMenuRole'); badge.textContent=admin?'ADMINISTRATOR':'MEMBER'; badge.classList.toggle('admin',admin);
-    byId('vtradeAdminItem').style.display=admin?'flex':'none';
-    sessionStorage.setItem('vtrade_user',JSON.stringify(user));
-  }
-  async function verifySession(){
-    const t=getToken(); if(!t) return goLogin();
-    try{
-      const r=await fetch(API+'/api/auth/session',{headers:{'x-vtrade-auth':t},credentials:'include',cache:'no-store'});
-      const d=await r.json().catch(()=>({}));
-      if(!r.ok) return goLogin();
-      if(d.user) applyUser(d.user); else applyUser(user);
-    }catch(_){
-      // Keep the terminal usable during a temporary backend blip; API calls still enforce auth.
-      applyUser(user);
-    }
-  }
-  async function logout(){
-    const t=getToken();
-    try{
-      // If a server logout endpoint exists, invalidate the server session too.
-      await fetch(API+'/api/auth/logout',{method:'POST',headers:{'Content-Type':'application/json','x-vtrade-auth':t},credentials:'include',cache:'no-store'});
-    }catch(_){/* local logout remains authoritative for the browser */}
-    goLogin();
-  }
-  function closeMenu(){const d=byId('vtradeAccountDropdown');const b=byId('vtradeAccountTrigger');if(d)d.classList.remove('open');if(b)b.setAttribute('aria-expanded','false');}
-  const trigger=byId('vtradeAccountTrigger');
-  trigger.addEventListener('click',e=>{e.stopPropagation();const d=byId('vtradeAccountDropdown');const open=d.classList.toggle('open');trigger.setAttribute('aria-expanded',String(open));});
-  document.addEventListener('click',e=>{if(!e.target.closest('#vtradeAccountMenu'))closeMenu();});
-  document.querySelectorAll('[data-account-action]').forEach(btn=>btn.addEventListener('click',()=>{
-    const action=btn.getAttribute('data-account-action');
-    closeMenu();
-    if(action==='logout') return logout();
-    if(action==='profile') return document.querySelector('[data-target="profile"]')?.click();
-    if(action==='settings') return document.querySelector('[data-target="settings"]')?.click();
-    if(action==='admin') return document.querySelector('[data-target="admin"]')?.click();
-    if(action==='password') return document.querySelector('[data-target="settings"]')?.click();
-  }));
-  // Add a visible profile/logout entry to the sidebar as well, without replacing existing trading navigation.
-  const nav=document.getElementById('nav');
-  if(nav && !document.getElementById('vtradeSidebarAccount')){
-    const box=document.createElement('div'); box.id='vtradeSidebarAccount'; box.style.cssText='display:grid;gap:6px;margin-top:4px;padding-top:6px;border-top:1px solid #1d2c44';
-    box.innerHTML='<button class="nav button account-btn" type="button" style="display:flex;align-items:center;gap:10px;border:1px solid transparent;background:transparent;color:#9aa9bf;text-align:left;padding:12px 13px;min-height:46px;border-radius:12px" data-side-account="profile"><span class="nav-icon">◉</span><span>Profile</span></button><button class="nav button logout-danger" type="button" style="display:flex;align-items:center;gap:10px;border:1px solid #7c2532;background:#2b0c13;color:#ff8c98;text-align:left;padding:12px 13px;min-height:46px;border-radius:12px" data-side-account="logout"><span class="nav-icon">↪</span><span>Logout</span></button>';
-    nav.appendChild(box);
-    box.querySelector('[data-side-account="profile"]').addEventListener('click',()=>document.querySelector('[data-account-action="profile"]')?.click());
-    box.querySelector('[data-side-account="logout"]').addEventListener('click',logout);
-  }
-  verifySession();
-})();
-</script>`;
-
-  source=source.replace('</style>',css+'\\n</style>');
-  source=source.replace('<div class="tfs">','<div class="tfs">');
-  source=source.replace('</header>',menu+'\\n</header>');
-  return source;
+const fs=require('fs');const path=require('path');
+const FILE=path.resolve(__dirname,'premium-dashboard-live.html');
+const MARKER='VTRADE_ACCOUNT_SESSION_MENU_V3';
+function patch(source){
+ if(!fs.existsSync(FILE)||source.includes(MARKER))return source;
+ const css=`/* ${MARKER} */
+.account-menu{position:relative;margin-left:8px;z-index:80}.account-trigger{display:flex;align-items:center;gap:9px;min-height:44px;padding:6px 10px;border:1px solid #263650;border-radius:12px;background:#09111e;color:#fff;cursor:pointer}.account-avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#5120ff,#aa72ff);font-weight:900}.account-meta{display:grid;text-align:left;line-height:1.1}.account-meta b{font-size:11px}.account-meta small{font-size:9px;color:#8493ab;margin-top:3px}.account-dropdown{position:absolute;right:0;top:52px;width:260px;padding:9px;border:1px solid #263650;border-radius:15px;background:#07101cf8;box-shadow:0 25px 70px #000b;backdrop-filter:blur(18px);display:none}.account-dropdown.open{display:block}.account-head{padding:9px 10px 12px;border-bottom:1px solid #1d2c44;margin-bottom:6px}.account-head small{display:block;color:#8493ab;margin-top:4px}.account-role{display:inline-flex;margin-top:6px;padding:3px 7px;border-radius:99px;font-size:8px;font-weight:900;color:#22e58a;background:#062d20;border:1px solid #147850}.account-role.admin{color:#caa9ff;background:#1b1038;border-color:#6940c9}.account-item{display:flex;align-items:center;gap:9px;width:100%;min-height:40px;padding:9px 10px;border:1px solid transparent;border-radius:9px;background:transparent;color:#c8d2e1;text-align:left;cursor:pointer}.account-item:hover{background:#17102e;border-color:#6840cf;color:#fff}.account-item.admin{color:#9fdcff}.account-item.logout{color:#ff8c98;border-top:1px solid #1d2c44;margin-top:5px}.account-item.logout:hover{background:#2b0c13;border-color:#7c2532}.account-panel{margin-top:12px}.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.profile-item{padding:13px;border:1px solid #1d2c44;border-radius:12px;background:#080f1b}.profile-item small{display:block;color:#8493ab;font-size:10px;margin-bottom:5px}.profile-item b{font-size:13px;word-break:break-word}.account-danger{border-color:#7c2532!important;background:#2b0c13!important;color:#ffb2bf!important}.admin-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.admin-stat{padding:14px;border:1px solid #1d2c44;border-radius:13px;background:#080f1b}.admin-stat small{display:block;color:#8493ab;font-size:10px;text-transform:uppercase}.admin-stat b{display:block;font-size:20px;margin-top:6px}.admin-table-wrap{margin-top:12px;overflow:auto;border:1px solid #1d2c44;border-radius:13px}.admin-table{width:100%;border-collapse:collapse;min-width:620px}.admin-table th,.admin-table td{padding:10px 12px;border-bottom:1px solid #17263b;text-align:left;font-size:11px}.admin-table th{color:#8493ab;font-size:10px;text-transform:uppercase;background:#080f1b}.status-pill{display:inline-block;padding:4px 7px;border-radius:99px;font-size:9px;font-weight:900}.status-pill.ok{color:#22e58a;background:#062d20;border:1px solid #147850}.status-pill.off{color:#ff8c98;background:#2b0c13;border:1px solid #7c2532}@media(max-width:900px){.account-meta{display:none}.account-dropdown{position:fixed;right:10px;top:62px;width:min(280px,calc(100vw - 20px))}.profile-grid,.admin-summary{grid-template-columns:1fr 1fr}}@media(max-width:520px){.profile-grid,.admin-summary{grid-template-columns:1fr}}`;
+ const menu=`<div class="account-menu" id="vtradeAccountMenu"><button class="account-trigger" id="vtradeAccountTrigger" type="button"><span class="account-avatar" id="vtradeAccountAvatar">V</span><span class="account-meta"><b id="vtradeAccountName">Account</b><small id="vtradeAccountEmail">Signed in</small></span><span>⌄</span></button><div class="account-dropdown" id="vtradeAccountDropdown"><div class="account-head"><b id="vtradeMenuName">Account</b><small id="vtradeMenuEmail">—</small><span class="account-role" id="vtradeMenuRole">MEMBER</span></div><button class="account-item" data-account-action="profile">◉ Profile</button><button class="account-item" data-account-action="settings">⚙ Account Settings</button><button class="account-item" data-account-action="password">🔒 Change Password</button><button class="account-item admin" id="vtradeAdminItem" data-account-action="admin" style="display:none">♛ Admin Dashboard</button><button class="account-item logout" data-account-action="logout">↪ Logout</button></div></div>`;
+ const panels=`<section class="section account-panel" id="accountProfilePanel" style="display:none"><div class="card"><div class="section-title"><h2>◉ User Profile</h2><span id="profileRole">SESSION PROTECTED</span></div><div class="profile-grid"><div class="profile-item"><small>Name</small><b id="profileName">—</b></div><div class="profile-item"><small>Email</small><b id="profileEmail">—</b></div><div class="profile-item"><small>Role</small><b id="profileRoleValue">—</b></div><div class="profile-item"><small>Plan</small><b id="profilePlan">—</b></div><div class="profile-item"><small>2FA</small><b id="profile2fa">—</b></div><div class="profile-item"><small>Session</small><b class="green">ACTIVE</b></div></div><div class="notice" style="margin-top:12px">Private terminal access is controlled by the authenticated server session and role.</div><button class="btn account-danger" id="profileLogout" style="margin-top:12px">↪ Logout</button></div></section><section class="section account-panel" id="accountAdminPanel" style="display:none"><div class="card"><div class="section-title"><h2>♛ Admin Dashboard</h2><span id="adminStatus">ADMIN ONLY</span></div><div class="notice success">Administrator session verified. Server-side RBAC is active.</div><div class="admin-summary"><div class="admin-stat"><small>Role</small><b id="adminRole">ADMIN</b></div><div class="admin-stat"><small>Members</small><b id="adminUsers">—</b></div><div class="admin-stat"><small>Session</small><b class="green">ACTIVE</b></div><div class="admin-stat"><small>Security</small><b class="green">RBAC</b></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Plan</th><th>Status</th></tr></thead><tbody id="adminUserRows"><tr><td colspan="5">Loading…</td></tr></tbody></table></div></div></section>`;
+ const script=`<script>(function(){const API='https://forexai-6xw6.onrender.com',K='vtrade_auth_token';const id=x=>document.getElementById(x);const token=()=>sessionStorage.getItem(K)||sessionStorage.getItem('vtrade_auth')||'';const clear=()=>{sessionStorage.removeItem(K);sessionStorage.removeItem('vtrade_auth');sessionStorage.removeItem('vtrade_user');};const login=()=>{clear();location.href='login.html'};let u={};try{u=JSON.parse(sessionStorage.getItem('vtrade_user')||'{}')||{}}catch(_){};function set(u0){u=u0||u;const name=u.name||u.email||'Account',email=u.email||'Signed in',role=String(u.role||'member').toLowerCase(),admin=role==='admin';id('vtradeAccountAvatar').textContent=String(name).trim()[0]||'V';id('vtradeAccountName').textContent=name;id('vtradeAccountEmail').textContent=email;id('vtradeMenuName').textContent=name;id('vtradeMenuEmail').textContent=email;id('vtradeMenuRole').textContent=admin?'ADMINISTRATOR':'MEMBER';id('vtradeMenuRole').classList.toggle('admin',admin);id('vtradeAdminItem').style.display=admin?'flex':'none';id('profileName').textContent=name;id('profileEmail').textContent=email;id('profileRoleValue').textContent=role.toUpperCase();id('profilePlan').textContent=u.plan||'—';id('profile2fa').textContent=u.twoFactorEnabled?'ENABLED':'READY';sessionStorage.setItem('vtrade_user',JSON.stringify(u));}async function verify(){const t=token();if(!t)return login();try{const r=await fetch(API+'/api/auth/session',{headers:{'x-vtrade-auth':t},credentials:'include',cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)return login();set(d.user||u)}catch(_){set(u)}}async function logout(){try{await fetch(API+'/api/auth/logout',{method:'POST',headers:{'Content-Type':'application/json','x-vtrade-auth':token()},credentials:'include'})}catch(_){}login()}const trigger=id('vtradeAccountTrigger'),drop=id('vtradeAccountDropdown');trigger.onclick=e=>{e.stopPropagation();drop.classList.toggle('open')};document.addEventListener('click',()=>drop.classList.remove('open'));document.querySelectorAll('[data-account-action]').forEach(b=>b.onclick=e=>{e.stopPropagation();const a=b.dataset.accountAction;drop.classList.remove('open');if(a==='logout')return logout();if(a==='profile'){id('accountProfilePanel').style.display='block';id('accountAdminPanel').style.display='none';id('accountProfilePanel').scrollIntoView({behavior:'smooth',block:'start'});}if(a==='admin'&&String(u.role).toLowerCase()==='admin'){id('accountAdminPanel').style.display='block';id('accountProfilePanel').style.display='none';loadAdmin();id('accountAdminPanel').scrollIntoView({behavior:'smooth',block:'start'});}if(a==='settings'||a==='password'){document.querySelector('[data-target="settings"]')?.click()}});id('profileLogout').onclick=logout;async function loadAdmin(){try{const r=await fetch(API+'/api/admin/users',{headers:{'x-vtrade-auth':token()},credentials:'include',cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)return;const list=Array.isArray(d.users)?d.users:[];id('adminUsers').textContent=list.length;id('adminUserRows').innerHTML=list.map(x=>'<tr><td>'+String(x.name||'').replace(/[<>]/g,'')+'</td><td>'+String(x.email||'').replace(/[<>]/g,'')+'</td><td>'+String(x.role||'').replace(/[<>]/g,'')+'</td><td>'+String(x.plan||'').replace(/[<>]/g,'')+'</td><td><span class="status-pill '+(x.enabled===false?'off':'ok')+'">'+(x.enabled===false?'DISABLED':'ACTIVE')+'</span></td></tr>').join('')||'<tr><td colspan="5">No members found.</td></tr>'}catch(_){id('adminStatus').textContent='ADMIN API UNAVAILABLE'}}verify()})();</script>`;
+ source=source.replace('</style>',css+'\n</style>');
+ source=source.replace('</header>',menu+'\n</header>');
+ source=source.replace('</main>',panels+'\n</main>');
+ return source;
 }
-
-try{
-  const before=fs.readFileSync(FILE,'utf8');
-  const after=patch(before);
-  if(after!==before){fs.writeFileSync(FILE,after,'utf8');console.log('[V-TRADE ACCOUNT FLOW] User Profile + Session + Logout menu added');}
-  else console.log('[V-TRADE ACCOUNT FLOW] session menu already applied');
-}catch(e){console.error('[V-TRADE ACCOUNT FLOW] patch failed:',e.message);process.exitCode=1;}
+try{const before=fs.readFileSync(FILE,'utf8'),after=patch(before);if(after!==before){fs.writeFileSync(FILE,after,'utf8');console.log('[V-TRADE ACCOUNT FLOW] User Profile + Admin Dashboard + Session Logout added')}else console.log('[V-TRADE ACCOUNT FLOW] account session flow already applied')}catch(e){console.error('[V-TRADE ACCOUNT FLOW] patch failed:',e.message);process.exitCode=1}
