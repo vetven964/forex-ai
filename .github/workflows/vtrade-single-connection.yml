@@ -1,0 +1,51 @@
+name: V TRADE AI — Single Connection
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  inject-connection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Attach one backend connection to every HTML page
+        shell: python
+        run: |
+          from pathlib import Path
+
+          marker = '<script src="vtrade-connection.js"></script>'
+          changed = []
+
+          for path in Path('.').glob('*.html'):
+              text = path.read_text(encoding='utf-8')
+              if marker in text:
+                  continue
+              if '</head>' not in text.lower():
+                  continue
+
+              idx = text.lower().rfind('</head>')
+              text = text[:idx] + '  ' + marker + '\n' + text[idx:]
+              path.write_text(text, encoding='utf-8')
+              changed.append(str(path))
+
+          print('Injected:', ', '.join(changed) if changed else 'none')
+
+      - name: Commit connection wiring
+        shell: bash
+        run: |
+          git config user.name "V TRADE AI Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add '*.html' vtrade-connection.js
+          if git diff --cached --quiet; then
+            echo "No connection changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: use one backend connection across all web pages"
+          git push
