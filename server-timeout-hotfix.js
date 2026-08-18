@@ -11,6 +11,14 @@ function patchActiveEngine(source) {
   let out = source;
   let hits = 0;
 
+  // package-access-hotfix injects a persistent member route that uses fs.
+  // server.js historically did not import fs, so make the dependency explicit
+  // in the in-memory production source before any injected route is evaluated.
+  if (!/^const\s+fs\s*=\s*require\(['"]fs['"]\);/m.test(out)) {
+    out = "const fs = require('fs');\n" + out;
+    hits++;
+  }
+
   const oldTimeout = "const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));";
   const newTimeout = "const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(15000, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 15000));";
   if (out.includes(oldTimeout)) { out = out.replace(oldTimeout, newTimeout); hits++; }
