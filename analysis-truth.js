@@ -157,6 +157,10 @@ function applyTruthGuard(a) {
     out.decision = {...(out.decision || {}), state:'WAIT', passed:false, reason:`Truth guard blocked: ${out.guard.blockedBy.join(', ') || 'additional confirmation required'}`};
     out.score = {...(out.score || {}), blockedReasons:[...(out.score?.blockedReasons || []), ...out.guard.blockedBy.map(x => `Truth guard: ${x}`)]};
     out.tradeAuthorized = false;
+    out.aiReasoning = {...(out.aiReasoning || {}), summary:`WAIT — Truth guard blocked entry: ${out.guard.blockedBy.join(', ') || 'additional confirmation required'}`};
+    if (out.zoneRadar) out.zoneRadar = {...out.zoneRadar, entryTiming:'WAIT — truth guard confirmation required'};
+    if (out.referenceZone) out.referenceZone = {...out.referenceZone, entryTiming:'WAIT — truth guard confirmation required'};
+    out.entryTiming = 'WAIT — truth guard confirmation required';
   } else if (out.signal === 'BUY' || out.signal === 'SELL') {
     out.confirmations = {...(out.confirmations || {}), truthGuardPassed:true};
     out.tradeAuthorized = true;
