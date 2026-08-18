@@ -1,6 +1,4 @@
-/* V TRADE AI — Single Backend Connection Layer
- * All browser pages use one Render API origin and one auth/session transport.
- */
+/* V TRADE AI — Single Backend Connection Layer */
 (() => {
   if (window.VTRADE_CONNECTION) return;
 
@@ -8,29 +6,29 @@
   const AUTH_KEY = 'vtrade_auth_token';
   const LEGACY_AUTH_KEY = 'vtrade_auth';
 
-  const normalize = (value) => {
-    if (!value) return value;
-    try {
-      const u = new URL(String(value), location.href);
-      if (u.origin === BACKEND) return u.toString();
-      return u.toString();
-    } catch {
-      return value;
-    }
-  };
-
   const authToken = () =>
     sessionStorage.getItem(AUTH_KEY) ||
     sessionStorage.getItem(LEGACY_AUTH_KEY) ||
     localStorage.getItem(AUTH_KEY) ||
-    localStorage.getItem(LEGACY_AUTH_KEY) ||
-    '';
+    localStorage.getItem(LEGACY_AUTH_KEY) || '';
 
-  const headers = (input) => {
+  const backendRequest = (input) => {
+    try {
+      const url = typeof input === 'string' ? input : input?.url || '';
+      if (url.startsWith('/api/')) return true;
+      return new URL(url, location.href).origin === BACKEND;
+    } catch {
+      return false;
+    }
+  };
+
+  const headers = (input, isBackend = true) => {
     const h = new Headers(input || {});
-    const token = authToken();
-    if (token) h.set('x-vtrade-auth', token);
-    h.set('x-vtrade-client', 'web-single-connection');
+    if (isBackend) {
+      const token = authToken();
+      if (token) h.set('x-vtrade-auth', token);
+      h.set('x-vtrade-client', 'web-single-connection');
+    }
     return h;
   };
 
@@ -40,24 +38,25 @@
     let url = '';
     try { url = typeof input === 'string' ? input : input?.url || ''; } catch {}
 
-    // Keep every API call on the single official backend origin.
-    if (url && url.startsWith('/api/')) target = BACKEND + url;
-    else if (url && url.startsWith(BACKEND)) target = url;
+    const relativeApi = url.startsWith('/api/');
+    const isBackend = relativeApi || backendRequest(input);
+    if (relativeApi) target = BACKEND + url;
 
+    const requestHeaders = headers(init.headers, isBackend);
     const options = {
       ...init,
-      credentials: init.credentials || 'include',
-      cache: init.cache || 'no-store',
-      headers: headers(init.headers)
+      credentials: isBackend ? (init.credentials || 'include') : init.credentials,
+      cache: isBackend ? (init.cache || 'no-store') : init.cache,
+      headers: requestHeaders
     };
 
     if (target instanceof Request) {
-      target = new Request(normalize(target.url), { ...target, headers: options.headers });
+      target = new Request(target, { headers: requestHeaders });
       delete options.headers;
     }
 
     return originalFetch(target, options).then((response) => {
-      if (response.status === 401) {
+      if (isBackend && response.status === 401) {
         window.dispatchEvent(new CustomEvent('vtrade:session-expired'));
       }
       return response;
@@ -66,12 +65,11 @@
 
   window.fetch = vfetch;
 
-  // Same-origin relative API calls are rewritten to the same backend.
   window.VTRADE_CONNECTION = Object.freeze({
     backend: BACKEND,
     api: (path = '') => `${BACKEND}${String(path).startsWith('/') ? path : `/${path}`}`,
     token: authToken,
-    headers,
+    headers: (input) => headers(input, true),
     fetch: vfetch,
     clearSession: () => {
       sessionStorage.removeItem(AUTH_KEY);
@@ -90,7 +88,6 @@
     }
   });
 
-  // Compatibility aliases for existing pages. New code should use VTRADE_CONNECTION.
   window.VTRADE_API = BACKEND;
   window.VTRADE_BACKEND = BACKEND;
 })();
