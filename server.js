@@ -11,6 +11,9 @@ const crypto = require('crypto');
 const storage = require('./storage');
 
 const app = express();
+// V TRADE AI — Pre-Market + 60m Macro/Truth Social engine
+try { require('./pre-market-news-engine')(app); } catch (e) { console.error('[PRE-MARKET] install failed:', e.message); }
+
 const PORT = Number(process.env.PORT || 10000);
 const HOST = '0.0.0.0';
 
