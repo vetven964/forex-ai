@@ -6,16 +6,29 @@ const SERVER_FILE=path.resolve(__dirname,'server.js');
 const previousReadFileSync=fs.readFileSync.bind(fs);
 
 function patchPreAiStrength(source){
- if(!source||source.includes('VTRADE_CANDLE_OPEN_MTF_V2'))return source;
+ if(!source||source.includes('VTRADE_CANDLE_OPEN_MTF_V3'))return source;
  const marker='const app = express();';
  if(!source.includes(marker))return source;
  const injected=String.raw`
-/* VTRADE_CANDLE_OPEN_MTF_V2 */
+/* VTRADE_CANDLE_OPEN_MTF_V3 */
 (function installCandleOpenMtf(app){
  const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
  const n=v=>Number.isFinite(Number(v))?Number(v):null;
  const frames=['M5','M15','H1','H4','D1'];
  const weights={M5:1,M15:2,H1:3,H4:4,D1:5};
+ // This hotfix is injected immediately after express() is created, before the
+ // main server CORS middleware. Therefore pre-market responses must explicitly
+ // answer CORS/preflight here; otherwise GitHub Pages browsers report "Failed to fetch".
+ function preMarketCors(req,res){
+  const origin=String(req.get('origin')||'');
+  if(origin==='https://vetven964.github.io' || origin==='https://www.vetven964.github.io'){
+   res.setHeader('Access-Control-Allow-Origin',origin);
+   res.setHeader('Access-Control-Allow-Credentials','true');
+  }
+  res.setHeader('Access-Control-Allow-Methods','GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type,x-vtrade-auth,x-vtrade-key,x-vtrade-session,x-vtrade-request');
+  res.setHeader('Vary','Origin');
+ }
  function bars(a,tf){const t=a?.timeframes||a?.mtf||a?.multiTimeframe||{};const x=t[tf]??t[tf.toLowerCase()]??a?.[tf]??a?.[tf.toLowerCase()];if(Array.isArray(x))return x;if(Array.isArray(x?.bars))return x.bars;if(Array.isArray(x?.candles))return x.candles;return []}
  function c(x){return {t:n(x?.t??x?.time),o:n(x?.o??x?.open),h:n(x?.h??x?.high),l:n(x?.l??x?.low),c:n(x?.c??x?.close)}}
  function frame(a,tf,price){
@@ -50,9 +63,12 @@ function patchPreAiStrength(source){
   return {success:true,symbol:'XAUUSD',price,buyStrengthPct:buy,sellStrengthPct:sell,buyPct:buy,sellPct:sell,bias:buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL',preAiConfidence:confidence,confidenceMeaning:'Directional evidence strength from MT5 candle-open MTF processing; not win probability.',timeframes:rows,mtf:{weights,ready,required:5,buyPct:buy,sellPct:sell},data:{feedReady,dataQuality:q},workflow:{stage:'PRE_MARKET_CANDLE_OPEN',sequence:['M5','M15','H1','H4','D1','MTF_WEIGHT','ICT_CONFIRMATION','AI_CONFIRMATION'],aiRole:'CONFIRMATION_ONLY',entryAuthorization:false},calculatedAt:new Date().toISOString()};
  }
  async function getCore(req){const token=String(req.get('x-vtrade-auth')||'');const port=Number(process.env.PORT||10000);return fetch('http://127.0.0.1:'+port+'/api/analysis/xauusd',{headers:token?{'x-vtrade-auth':token}:{},signal:AbortSignal.timeout(12000)})}
- app.get('/api/pre-market/candle-open',async(req,res)=>{try{const r=await getCore(req);const raw=await r.json().catch(()=>({success:false,error:'Invalid analysis response'}));if(!r.ok||raw?.success===false)return res.status(r.status||502).json({success:false,error:raw?.error||'MT5 analysis unavailable'});return res.json(calculate(raw))}catch(e){return res.status(502).json({success:false,error:String(e?.message||e)})}});
- app.get('/api/pre-market/xauusd',async(req,res)=>{try{const r=await getCore(req);const raw=await r.json().catch(()=>({success:false,error:'Invalid analysis response'}));if(!r.ok||raw?.success===false)return res.status(r.status||502).json({success:false,error:raw?.error||'MT5 analysis unavailable'});return res.json(calculate(raw))}catch(e){return res.status(502).json({success:false,error:String(e?.message||e)})}});
- console.log('[V-TRADE PRE-MARKET] Candle-Open MTF engine ACTIVE | M5>M15>H1>H4>D1 | AI=CONFIRMATION_ONLY');
+ async function handle(req,res){preMarketCors(req,res);if(req.method==='OPTIONS')return res.status(204).end();try{const r=await getCore(req);const raw=await r.json().catch(()=>({success:false,error:'Invalid analysis response'}));if(!r.ok||raw?.success===false)return res.status(r.status||502).json({success:false,error:raw?.error||'MT5 analysis unavailable'});return res.json(calculate(raw))}catch(e){return res.status(502).json({success:false,error:String(e?.message||e)})}}
+ app.options('/api/pre-market/candle-open',handle);
+ app.options('/api/pre-market/xauusd',handle);
+ app.get('/api/pre-market/candle-open',handle);
+ app.get('/api/pre-market/xauusd',handle);
+ console.log('[V-TRADE PRE-MARKET] Candle-Open MTF engine ACTIVE | M5>M15>H1>H4>D1 | AI=CONFIRMATION_ONLY | CORS=READY');
 })(app);
 `;
  return source.replace(marker,marker+'\n'+injected);
