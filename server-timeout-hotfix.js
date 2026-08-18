@@ -45,18 +45,18 @@ function patchActiveEngine(source) {
   out = out.replace("higherBiases:[tfs.H1?.structure?.bias,tfs.H4?.structure?.bias]","higherBiases:[tfs.H1?.resolvedBias,tfs.H4?.resolvedBias]");
   out = out.replace("higherBiases:[tfs.H4?.structure?.bias,tfs.D1?.structure?.bias]","higherBiases:[tfs.H4?.resolvedBias,tfs.D1?.resolvedBias]");
 
-  const marker="  let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];";
-  // Keep the execution-location guard function-scoped and hoisted so later
-  // diagnostic/confirmation rewrites cannot trigger a const temporal-dead-zone.
-  const zoneLogic="  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  var executionLocationOk=zonePdOk||limitZoneReady;\n";
-  if (out.includes(marker) && !out.includes('var executionLocationOk=')) { out = out.replace(marker, zoneLogic + marker); hits++; }
+  // Execution-zone declarations are owned by server-launcher.js only.
+  // Keeping a single injection point prevents duplicate const declarations
+  // when multiple legacy hotfix wrappers transform server.js in sequence.
+  const oldZoneLogic="  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  var executionLocationOk=zonePdOk||limitZoneReady;\n";
+  if (out.includes(oldZoneLogic)) { out = out.replace(oldZoneLogic, ''); hits++; }
+
   const oldSetup="const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);";
   const newSetup="const setupReady=candlesFresh&&biasOk&&structureAgreement&&sweepOk&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&displacementOk&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);";
   if (out.includes(oldSetup)) { out = out.replace(oldSetup,newSetup); hits++; }
   out = out.replace("if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');","if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
   out = out.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);","if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
   out = out.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}","{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
-  // Safe now because executionLocationOk is var-hoisted in this analysis scope.
   out = out.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/,'$1executionLocationOk');
 
   const band="const directionBand=directionScore>=80?'BULLISH':directionScore>=60?'BULLISH_BIAS':directionScore>=40?'NEUTRAL':directionScore>=20?'BEARISH_BIAS':'BEARISH';";
