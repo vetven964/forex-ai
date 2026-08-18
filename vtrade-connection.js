@@ -85,8 +85,7 @@
   window.VTRADE_API = BACKEND;
   window.VTRADE_BACKEND = BACKEND;
 
-  // Guard the legacy private terminal. Direct access without a valid token
-  // must go to Connection Center instead of showing a misleading Guest state.
+  // Private terminal requires an authenticated session.
   const currentFile = () => String(location.pathname.split('/').pop() || '').toLowerCase();
   if (currentFile() === 'premium-dashboard-live.html' && !authToken()) {
     location.replace('connection.html?required=login');
@@ -120,12 +119,16 @@
     `; document.head.appendChild(css);
 
     const layer=document.createElement('div'); layer.id='vtradeAccountLayer'; layer.className='vtrade-account';
-    layer.innerHTML=`<button class="vtrade-account-btn" type="button" aria-expanded="false" aria-label="Account menu"><span class="vtrade-avatar" id="vtradeAvatar">V</span><span class="vtrade-account-name"><span id="vtradeAccountName">Account</span><span class="vtrade-account-role" id="vtradeAccountRole">Session</span></span><span class="vtrade-chevron">⌄</span></button><div class="vtrade-menu" id="vtradeAccountMenu"><div class="vtrade-menu-head"><b id="vtradeMenuName">Account</b><small id="vtradeMenuEmail">Authenticated session</small></div><a href="index.html">⌂ Home</a><a href="connection.html">◉ Connection Center</a><a id="vtradeAdminLink" class="hidden" href="admin-dashboard.html">♛ Admin Command Center</a><button class="logout" id="vtradeLogout" type="button">↪ Sign out</button></div>`;
+    // Authenticated account workflow:
+    // User Dashboard -> live Terminal workspace.
+    // Admin Dashboard -> protected admin center.
+    // Home and Connection Center are intentionally NOT shown here.
+    layer.innerHTML=`<button class="vtrade-account-btn" type="button" aria-expanded="false" aria-label="Account menu"><span class="vtrade-avatar" id="vtradeAvatar">V</span><span class="vtrade-account-name"><span id="vtradeAccountName">Account</span><span class="vtrade-account-role" id="vtradeAccountRole">Session</span></span><span class="vtrade-chevron">⌄</span></button><div class="vtrade-menu" id="vtradeAccountMenu"><div class="vtrade-menu-head"><b id="vtradeMenuName">Account</b><small id="vtradeMenuEmail">Authenticated session</small></div><a href="premium-dashboard-live.html?v=20260818-single-connection">▣ User Dashboard</a><a id="vtradeAdminLink" class="hidden" href="admin-dashboard.html">♛ Admin Dashboard</a><button class="logout" id="vtradeLogout" type="button">↪ Sign out</button></div>`;
     top.appendChild(layer);
     const btn=layer.querySelector('.vtrade-account-btn'),menu=layer.querySelector('#vtradeAccountMenu');
     btn.addEventListener('click',e=>{e.stopPropagation();const open=menu.classList.toggle('show');btn.setAttribute('aria-expanded',open?'true':'false')});
     document.addEventListener('click',()=>menu.classList.remove('show'));
-    const applyUser=(user)=>{const name=String(user?.name||user?.email||'Account'),role=String(user?.role||'user').toLowerCase(),email=String(user?.email||'Authenticated session');const initials=name.trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';layer.querySelector('#vtradeAvatar').textContent=initials;layer.querySelector('#vtradeAccountName').textContent=name;layer.querySelector('#vtradeAccountRole').textContent=role==='admin'?'Administrator':'Member';layer.querySelector('#vtradeMenuName').textContent=name;layer.querySelector('#vtradeMenuEmail').textContent=email;if(role==='admin')layer.querySelector('#vtradeAdminLink').classList.remove('hidden')};
+    const applyUser=(user)=>{const name=String(user?.name||user?.email||'Account'),role=String(user?.role||'user').toLowerCase(),email=String(user?.email||'Authenticated session');const initials=name.trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'V';layer.querySelector('#vtradeAvatar').textContent=initials;layer.querySelector('#vtradeAccountName').textContent=name;layer.querySelector('#vtradeAccountRole').textContent=role==='admin'?'Administrator':'Member';layer.querySelector('#vtradeMenuName').textContent=name;layer.querySelector('#vtradeMenuEmail').textContent=email;layer.querySelector('#vtradeAdminLink').classList.toggle('hidden',role!=='admin')};
     try{applyUser(JSON.parse(sessionStorage.getItem('vtrade_user')||'{}'))}catch{}
     (async()=>{const token=authToken();if(!token){applyUser({name:'Guest',role:'guest'});return}try{const r=await vfetch(BACKEND+'/api/auth/session',{credentials:'include'});const d=await r.json().catch(()=>({}));if(r.ok&&d.user){sessionStorage.setItem('vtrade_user',JSON.stringify(d.user));applyUser(d.user)}}catch{}})();
     layer.querySelector('#vtradeLogout').addEventListener('click',async()=>{const logout=layer.querySelector('#vtradeLogout');logout.disabled=true;logout.textContent='↪ Signing out…';try{await vfetch(BACKEND+'/api/auth/logout',{method:'POST',credentials:'include'})}catch{}window.VTRADE_CONNECTION.clearSession();location.href='index.html?logged_out=1'});
