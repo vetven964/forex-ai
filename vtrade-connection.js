@@ -5,7 +5,6 @@
   const BACKEND = 'https://forexai-6xw6.onrender.com';
   const AUTH_KEY = 'vtrade_auth_token';
   const LEGACY_AUTH_KEY = 'vtrade_auth';
-  const CLIENT = 'web-single-connection-v2';
 
   const authToken = () =>
     sessionStorage.getItem(AUTH_KEY) ||
@@ -28,7 +27,8 @@
     if (isBackend) {
       const token = authToken();
       if (token) h.set('x-vtrade-auth', token);
-      h.set('x-vtrade-client', CLIENT);
+      // Do not add a custom client header here. The login/health pages are served
+      // from GitHub Pages and a custom header forces an unnecessary CORS preflight.
     }
     return h;
   };
@@ -48,8 +48,6 @@
     const tokenPresent = !!authToken();
     const options = {
       ...init,
-      // Login/health do not need a browser cookie. Avoid credentialed CORS until a
-      // token exists; authenticated requests may still use the x-vtrade-auth header.
       credentials: isBackend && tokenPresent ? (init.credentials || 'include') : (isBackend ? 'omit' : init.credentials),
       cache: isBackend ? 'no-store' : init.cache,
       headers: requestHeaders,
@@ -95,7 +93,7 @@
     },
     status: async () => {
       try {
-        let r = await vfetch(BACKEND + '/api/health', { credentials: 'omit' });
+        const r = await vfetch(BACKEND + '/api/health', { credentials: 'omit' });
         if (!r.ok) return { ok: false, status: r.status, backend: BACKEND };
         return { ok: true, status: r.status, backend: BACKEND };
       } catch (error) {
