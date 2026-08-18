@@ -59,8 +59,7 @@ function patchRegistration(source) {
   if (source.includes("app.post('/api/auth/register'")) return source;
   const marker = "app.use((err,req,res,next)=>{";
   if (!source.includes(marker)) return source;
-  const route = `\n// NEW MEMBER REGISTRATION — server-side only, never return password/hash.\napp.post('/api/auth/register', async (req,res)=>{\n  try {\n    const body=req.body||{};\n    const name=String(body.name||'').trim().replace(/[<>]/g,'').slice(0,80);\n    const email=String(body.email||'').trim().toLowerCase();\n    const password=String(body.password||'');\n    const plan=['FREE','PRO','PREMIUM'].includes(String(body.plan||'').toUpperCase())?String(body.plan).toUpperCase():'FREE';\n    if(name.length<2) return res.status(400).json({success:false,error:'Name is required'});\n    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({success:false,error:'Valid email is required'});\n    if(password.length<8) return res.status(400).json({success:false,error:'Password must be at least 8 characters'});\n    const file=path.resolve(__dirname,'data','vtrade-members.json');\n    fs.mkdirSync(path.dirname(file),{recursive:true});\n    let members=[]; try { members=JSON.parse(fs.readFileSync(file,'utf8')); if(!Array.isArray(members))members=[]; } catch(_) {}\n    if(members.some(x=>String(x.email).toLowerCase()===email)) return res.status(409).json({success:false,error:'Email is already registered'});\n    const salt=crypto.randomBytes(16).toString('hex');\n    const passwordHash=crypto.scryptSync(password,salt,64).toString('hex')+':'+salt;\n    const user={id:crypto.randomUUID(),name,email,plan,status:'ACTIVE',createdAt:new Date().toISOString(),passwordHash};\n    members.push(user); fs.writeFileSync(file,JSON.stringify(members,null,2),'utf8');\n    const safe={id:user.id,name:user.name,email:user.email,plan:user.plan,status:user.status,createdAt:user.createdAt};\n    console.log('[AUTH] NEW MEMBER REGISTERED',safe.email,'plan='+safe.plan);\n    if(typeof bot!=='undefined' && bot && typeof TELEGRAM_CHAT_ID!=='undefined' && TELEGRAM_CHAT_ID){\n      bot.sendMessage(TELEGRAM_CHAT_ID,['🆕 *V TRADE AI — NEW MEMBER*','',` +
-        `'👤 Name: *'+safe.name+'*','📧 Email: *'+safe.email+'*','📦 Plan: *'+safe.plan+'*','🟢 Status: *ACTIVE*','🕒 Created: *'+safe.createdAt+'*'].join('\\n'),{parse_mode:'Markdown'}).catch(e=>console.error('[TELEGRAM NEW MEMBER]',e.message));\n    }\n    res.status(201).json({success:true,user:safe});\n  } catch(e) { console.error('[AUTH] registration failed:',e.message); res.status(500).json({success:false,error:'Registration temporarily unavailable'}); }\n});\n\n`;
+  const route = `\n// NEW MEMBER REGISTRATION — server-side only, never return password/hash.\napp.post('/api/auth/register', async (req,res)=>{\n  try {\n    const body=req.body||{};\n    const name=String(body.name||'').trim().replace(/[<>]/g,'').slice(0,80);\n    const email=String(body.email||'').trim().toLowerCase();\n    const password=String(body.password||'');\n    const plan=['FREE','PRO','PREMIUM'].includes(String(body.plan||'').toUpperCase())?String(body.plan).toUpperCase():'FREE';\n    if(name.length<2) return res.status(400).json({success:false,error:'Name is required'});\n    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({success:false,error:'Valid email is required'});\n    if(password.length<8) return res.status(400).json({success:false,error:'Password must be at least 8 characters'});\n    const file=path.resolve(__dirname,'data','vtrade-members.json');\n    fs.mkdirSync(path.dirname(file),{recursive:true});\n    let members=[]; try { members=JSON.parse(fs.readFileSync(file,'utf8')); if(!Array.isArray(members))members=[]; } catch(_) {}\n    if(members.some(x=>String(x.email).toLowerCase()===email)) return res.status(409).json({success:false,error:'Email is already registered'});\n    const salt=crypto.randomBytes(16).toString('hex');\n    const passwordHash=crypto.scryptSync(password,salt,64).toString('hex')+':'+salt;\n    const user={id:crypto.randomUUID(),name,email,plan,status:'ACTIVE',createdAt:new Date().toISOString(),passwordHash};\n    members.push(user); fs.writeFileSync(file,JSON.stringify(members,null,2),'utf8');\n    const safe={id:user.id,name:user.name,email:user.email,plan:user.plan,status:user.status,createdAt:user.createdAt};\n    console.log('[AUTH] NEW MEMBER REGISTERED',safe.email,'plan='+safe.plan);\n    if(typeof bot!=='undefined' && bot && typeof TELEGRAM_CHAT_ID!=='undefined' && TELEGRAM_CHAT_ID){\n      bot.sendMessage(TELEGRAM_CHAT_ID,['🆕 *V TRADE AI — NEW MEMBER*','',\n        '👤 Name: *'+safe.name+'*','📧 Email: *'+safe.email+'*','📦 Plan: *'+safe.plan+'*','🟢 Status: *ACTIVE*','🕒 Created: *'+safe.createdAt+'*'].join('\\n'),{parse_mode:'Markdown'}).catch(e=>console.error('[TELEGRAM NEW MEMBER]',e.message));\n    }\n    res.status(201).json({success:true,user:safe});\n  } catch(e) { console.error('[AUTH] registration failed:',e.message); res.status(500).json({success:false,error:'Registration temporarily unavailable'}); }\n});\n\n`;
   return source.replace(marker,route+marker);
 }
 
@@ -81,18 +80,9 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   console.log('[V-TRADE LAUNCHER] production MTF bias + strict ICT authorization active');
   console.log('[V-TRADE LAUNCHER] transparent analyst council + truth guard active');
   console.log('[V-TRADE LAUNCHER] NEW MEMBER registration + Telegram event active');
-  mod._compile(source, filename);
+  return mod._compile(source, filename);
 };
 
-try {
-  if (fs.existsSync(FRONTEND_FILE)) {
-    const before=fs.readFileSync(FRONTEND_FILE,'utf8'); const after=patchFrontend(before);
-    if(after!==before){fs.writeFileSync(FRONTEND_FILE,after,'utf8');console.log('[V-TRADE LAUNCHER] critical frontend data/i18n fixes applied');}
-  }
-} catch(e){console.warn('[V-TRADE LAUNCHER] frontend patch skipped:',e.message);}
-
-// IMPORTANT: run the account/admin UI patch before the server is loaded.
-// This was previously committed but not wired into the production startup path.
 try {
   if (fs.existsSync(ADMIN_FRONTEND_HOTFIX)) {
     require(ADMIN_FRONTEND_HOTFIX);
@@ -104,4 +94,7 @@ try {
   console.error('[V-TRADE LAUNCHER] account/admin UI patch failed:',e.message);
 }
 
+// IMPORTANT: keep the existing launcher path. The hook wraps the already-patched
+// server loader so Telegram/auth/ICT/Truth-Guard behavior remains unchanged.
+require('./pre-market-launcher-hook.js');
 require('./server.js');
