@@ -1,12 +1,14 @@
-// V-TRADE AI — Logic + UI consistency hotfix V1
+// V-TRADE AI — Logic + UI consistency hotfix V2
 // 1) Align Pre-Market ICT gate display with the deterministic engine.
 // 2) Stop pre-AI confidence from reaching 100/100 from raw candle distance alone.
-// 3) Make the dashboard's WAIT / BEARISH presentation stable on desktop + phone.
+// 3) Distinguish candle-open momentum from structural MTF bias.
+// 4) Make the dashboard's WAIT / BEARISH presentation stable on desktop + phone.
 const fs=require('fs');
 const path=require('path');
 const PRE=path.resolve(__dirname,'pre-market-launcher-hook.js');
+const TERM=path.resolve(__dirname,'terminal-pre-market.js');
 const DASH=path.resolve(__dirname,'premium-dashboard-live.html');
-const MARK='VTRADE_LOGIC_UI_CONSISTENCY_V2';
+const MARK='VTRADE_LOGIC_UI_CONSISTENCY_V3';
 
 function patch(file,fn){
   if(!fs.existsSync(file)) return;
@@ -23,10 +25,19 @@ patch(PRE,s=>{
   return s.replace(old,neu);
 });
 
+patch(TERM,s=>{
+  if(s.includes(MARK)) return s;
+  let out=s.replace('<span>Pre-AI confidence</span>','<span>Candle-open confidence</span>');
+  out=out.replace('<div class="vpm-row"><span>MTF Bias</span><b class="${b===\'BULLISH\'?\'vpm-buy\':b===\'BEARISH\'?\'vpm-sell\':\'vpm-neutral\'}">${esc(b)}</b></div><div class="vpm-row"><span>Candle-open confidence</span><b>${num(d.preAiConfidence)==null?\'—\':d.preAiConfidence+\'/100\'}</b></div>', '<div class="vpm-row"><span>Candle-open Bias</span><b class="${b===\'BULLISH\'?\'vpm-buy\':b===\'BEARISH\'?\'vpm-sell\':\'vpm-neutral\'}">${esc(b)}</b></div><div class="vpm-row"><span>Core Structure</span><b class="${d.coreStructure?.bias===\'BULLISH\'?\'vpm-buy\':d.coreStructure?.bias===\'BEARISH\'?\'vpm-sell\':\'vpm-neutral\'}">${esc(d.coreStructure?.bias||\'—\')} · ${d.coreStructure?.bull??0}/${(d.coreStructure?.bull??0)+(d.coreStructure?.bear??0)||0}</b></div><div class="vpm-row"><span>Candle-open confidence</span><b>${num(d.preAiConfidence)==null?\'—\':d.preAiConfidence+\'/100\'}</b></div>');
+  if(out===s) throw new Error('terminal pre-market label anchor not found');
+  return out.replace('Candle-Open MTF processing · M5 → M15 → H1 → H4 → D1 · AI confirmation after processing · Telegram independent','Candle-Open momentum · Structure core H4/H1/M15 · AI confirmation after processing · Telegram independent')
+    .replace('BUY/SELL percentages are directional evidence strength from MT5 candle-open MTF processing, not guaranteed win probabilities.','BUY/SELL percentages are candle-open directional evidence, not structural bias or guaranteed win probabilities. Core structure is shown separately from candle-open momentum.');
+});
+
 patch(DASH,s=>{
   if(s.includes(MARK)) return s;
   const css=`\n<style id="${MARK}">\n/* ${MARK} */\n.signal-state{white-space:nowrap;overflow-wrap:normal;word-break:normal;}\n@media(max-width:900px){.signal-state{font-size:28px!important;white-space:nowrap!important;line-height:1.05!important;}.signal{gap:10px!important;}.signal>div{min-width:0!important;}}\n@media(max-width:520px){.signal-state{font-size:25px!important;}.top .pair{min-width:0!important;}.top .pair>div{min-width:0!important;}.top .pair .price{font-size:26px!important;}.tfs{padding-right:3px!important;}.tfs button{flex:0 0 auto!important;}.backend{font-size:8px!important;}}\n</style>\n`;
   return s.replace('</head>',css+'</head>');
 });
 
-console.log('[VTRADE LOGIC/UI] consistency hotfix V2 installed');
+console.log('[VTRADE LOGIC/UI] consistency hotfix V3 installed');
