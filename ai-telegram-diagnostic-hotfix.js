@@ -8,6 +8,7 @@ const path = require('path');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const LAUNCHER_FILE = path.resolve(__dirname, 'server-launcher.js');
 const MARKER = '// V-TRADE AI AI/TELEGRAM DIAGNOSTIC HOTFIX INSTALLED';
+const TELEGRAM_FORMAT_MARKER = '// V-TRADE AI TELEGRAM WAIT FORMAT HOTFIX INSTALLED';
 
 function redact(value) {
   return String(value || '')
@@ -33,6 +34,86 @@ function patchLauncherSafety() {
     }
   } catch (e) {
     console.warn('[V-TRADE SAFETY] launcher guard patch skipped:', e.message);
+  }
+}
+
+function patchTelegramWaitFormat() {
+  try {
+    let source = fs.readFileSync(SERVER_FILE, 'utf8');
+    if (source.includes(TELEGRAM_FORMAT_MARKER)) {
+      console.log('[V-TRADE STYLE] Telegram WAIT format already active');
+      return;
+    }
+
+    const start = source.indexOf('function telegramWaitText(a) {');
+    const end = source.indexOf('\nfunction telegramText(a) {', start);
+    if (start < 0 || end < 0) {
+      console.warn('[V-TRADE STYLE] telegramWaitText function not found; leaving format unchanged');
+      return;
+    }
+
+    const replacement = `${TELEGRAM_FORMAT_MARKER}\nfunction telegramWaitText(a) {
+  const score = Number(a?.directionScore ?? a?.aiScore ?? 0);
+  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
+  const blocked = Array.isArray(a?.score?.blockedReasons)
+    ? a.score.blockedReasons.slice(0, 6)
+    : [];
+  const gates = Array.isArray(blocked) ? blocked : [];
+  const gateLine = (label, ok) => `${label}: ${ok ? '✅ CONFIRMED' : '❌ NOT CONFIRMED'}`;
+  const hasGate = (keywords) => gates.some(x => keywords.some(k => String(x).toLowerCase().includes(k)));
+
+  const liquidity = hasGate(['liquidity sweep', 'sweep']);
+  const displacement = hasGate(['displacement', 'directional displacement']);
+  const momentum = hasGate(['momentum']);
+  const execution = hasGate(['execution direction', 'execution']);
+
+  const status = String(a?.status || 'WAIT — NO ENTRY').replace(/^WAIT\s*[—-]?\s*/i, '');
+  const aiDecision = a?.aiConfirmation?.decision || 'NOT RUN';
+  const aiConfidence = a?.aiConfirmation?.confidence ?? '—';
+  const aiAgreement = a?.aiConfirmation?.agreement || '—';
+
+  return `🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\\n\\n` +
+    `📊 Asset: *XAU/USD (Gold)*\\n` +
+    `💰 Price: *${formatPrice(a?.livePrice ?? a?.bid)}*\\n\\n` +
+    `🟡 *ACTION: WAIT — ${bias === 'BULLISH' ? 'BUY BIAS' : bias === 'BEARISH' ? 'SELL BIAS' : 'NO BIAS'}*\\n` +
+    `📈 Bias: *${bias}*\\n` +
+    `⚡ Direction Score: *${score}/100*\\n` +
+    `🧠 Confidence: *${Number(a?.confidence ?? 0)}/100*\\n\\n` +
+    `🔎 *ICT ENTRY GATES*\\n` +
+    `• ${gateLine('Liquidity Sweep', liquidity)}\\n` +
+    `• ${gateLine('Displacement', displacement)}\\n` +
+    `• ${gateLine('Momentum', momentum)}\\n` +
+    `• ${gateLine('Execution Direction', execution)}\\n\\n` +
+    `🧠 *ANALYST COUNCIL*\\n` +
+    `• Consensus: *${bias} ${a?.analystCouncil?.bullishCount ?? a?.analystCouncil?.count ?? '—'}/3*\\n` +
+    `• Confidence: *${score}/100*\\n` +
+    `• Verified Win Rate: *${a?.analystCouncil?.verifiedWinRate ?? 'N/A'}*\\n` +
+    `• Sample: *${a?.analystCouncil?.sample ?? 0}*\\n\\n` +
+    `🎯 *EXECUTION*\\n` +
+    `• Zone: *WAITING FOR CONFIRMATION*\\n` +
+    `• Entry: *WAIT*\\n` +
+    `• Stop Loss: *WAIT*\\n` +
+    `• TP1: *WAIT*\\n` +
+    `• TP2: *WAIT*\\n` +
+    `• TP3: *WAIT*\\n\\n` +
+    `🤖 *AI CONFIRM*\\n` +
+    `• Decision: *${aiDecision}*\\n` +
+    `• Confidence: *${aiConfidence}/100*\\n` +
+    `• Agreement: *${aiAgreement}*\\n\\n` +
+    `🟡 *STATUS*\\n` +
+    `*WAIT — NO ORDER AUTHORIZED*\\n\\n` +
+    `🔐 *TRUTH GUARD*\\n` +
+    `No order until entry gates + analyst council + risk/data checks pass.\\n\\n` +
+    `🏦 Broker: *VT Markets MT5*\\n` +
+    `⏱ Quote age: *${a?.priceAgeSec ?? '—'}s*`;
+}
+`;
+
+    source = source.slice(0, start) + replacement + source.slice(end);
+    fs.writeFileSync(SERVER_FILE, source, 'utf8');
+    console.log('[V-TRADE STYLE] Telegram WAIT format patched — logic unchanged');
+  } catch (e) {
+    console.warn('[V-TRADE STYLE] Telegram WAIT format patch skipped:', e.message);
   }
 }
 
@@ -114,6 +195,7 @@ try {
     fs.writeFileSync(SERVER_FILE, source, 'utf8');
     console.log('[V-TRADE DIAGNOSTIC] server.js diagnostic marker installed');
   }
+  patchTelegramWaitFormat();
   console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled');
   console.log(`[V-TRADE DIAGNOSTIC] OpenAI hard guard=${String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true' ? 'OFF' : 'ON'}`);
   // IMPORTANT: keep the existing Pre-Market MTF startup chain.
