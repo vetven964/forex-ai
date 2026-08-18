@@ -4,7 +4,7 @@ const path = require('path');
 const ROOT = __dirname;
 const DASHBOARD = path.join(ROOT, 'premium-dashboard-live.html');
 const TELEGRAM = path.join(ROOT, 'ai-telegram-diagnostic-hotfix.js');
-const MARK = 'VTRADE_PHONE_AND_TELEGRAM_TRUTH_FIX_V1';
+const MARK = 'VTRADE_PHONE_AND_TELEGRAM_TRUTH_FIX_V2';
 
 function patchFile(file, transform) {
   let source = fs.readFileSync(file, 'utf8');
@@ -16,7 +16,7 @@ patchFile(DASHBOARD, source => {
   if (source.includes(MARK)) return source;
   const css = `
 <style id="${MARK}">
-/* ${MARK}: UI-only mobile layer */
+/* ${MARK}: UI-only responsive layer */
 html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
 body{font-family:'Kantumruy Pro','Noto Sans Khmer','Segoe UI',Arial,sans-serif;}
 img,svg,canvas,video{max-width:100%;}
@@ -76,7 +76,38 @@ img,svg,canvas,video{max-width:100%;}
 patchFile(TELEGRAM, source => {
   if (source.includes(MARK)) return source;
   const old = "  const bias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();\n  const score = firstFinite(a?.directionScore, a?.score?.directionScore, a?.score, a?.aiScore) ?? 0;";
-  const neu = "  // ${MARK}: authoritative core-MTF direction for Telegram\n  const coreTfs = ['H4','H1','M15'];\n  const coreRows = coreTfs.map(tf => a?.timeframes?.[tf] || a?.mtf?.[tf] || null).filter(Boolean);\n  const coreBiases = coreRows.map(x => String(x?.structure?.bias || x?.resolvedBias || x?.trend || x?.bias || '').toUpperCase());\n  const coreBull = coreBiases.filter(x => x === 'BULLISH' || x === 'BUY').length;\n  const coreBear = coreBiases.filter(x => x === 'BEARISH' || x === 'SELL').length;\n  const coreBias = coreBull >= 2 ? 'BULLISH' : coreBear >= 2 ? 'BEARISH' : 'NEUTRAL';\n  const fallbackBias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();\n  const bias = coreBias !== 'NEUTRAL' ? coreBias : fallbackBias;\n  const coreScoreRows = coreRows.map(x => firstFinite(x?.directionScore, x?.score, x?.structure?.score)).filter(Number.isFinite);\n  const rawCoreScore = coreScoreRows.length ? coreScoreRows.reduce((s,x) => s + x, 0) / coreScoreRows.length : null;\n  const score = rawCoreScore !== null ? Math.round(bias === 'BEARISH' ? 100 - rawCoreScore : rawCoreScore) : (firstFinite(a?.directionScore, a?.score?.directionScore, a?.score, a?.aiScore) ?? 0);";
+  const neu = `  // ${MARK}: authoritative core-MTF direction for Telegram
+  const coreTfs = ['H4','H1','M15'];
+  const coreRows = coreTfs.map(tf => (
+    a?.timeframes?.[tf] || a?.mtf?.timeframes?.[tf] || a?.mtf?.[tf] ||
+    a?.multiTimeframe?.[tf] || a?.multiTimeframe?.[tf.toLowerCase()] || a?.[tf] || a?.[tf.toLowerCase()] || null
+  )).filter(Boolean);
+  const biasOf = x => String(
+    x?.structure?.bias || x?.structureBias || x?.resolvedBias || x?.trend ||
+    x?.directionBand || x?.direction || x?.bias || ''
+  ).toUpperCase();
+  const coreBiases = coreRows.map(biasOf);
+  const coreBull = coreBiases.filter(x => x.includes('BULL') || x === 'BUY').length;
+  const coreBear = coreBiases.filter(x => x.includes('BEAR') || x === 'SELL').length;
+  const coreBias = coreBull >= 2 ? 'BULLISH' : coreBear >= 2 ? 'BEARISH' : 'NEUTRAL';
+  const fallbackBias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();
+  const bias = coreBias !== 'NEUTRAL' ? coreBias : fallbackBias;
+  const evidence = coreRows.map(x => {
+    const bp = firstFinite(x?.buyPct, x?.buyStrengthPct, x?.buyScore);
+    const sp = firstFinite(x?.sellPct, x?.sellStrengthPct, x?.sellScore);
+    return {bp,sp};
+  }).filter(x => x.bp !== null || x.sp !== null);
+  let score = 50;
+  if (evidence.length) {
+    const vals = evidence.map(x => bias === 'BEARISH' ? (x.sp ?? (100-(x.bp ?? 50))) : (x.bp ?? (100-(x.sp ?? 50))));
+    score = Math.round(vals.reduce((s,x) => s + Math.max(0,Math.min(100,x)),0) / vals.length);
+  } else {
+    score = firstFinite(a?.directionScore, a?.score?.directionScore, a?.score, a?.aiScore) ?? 50;
+  }
+  // WAIT is an evidence state, never a 90–100 certainty claim.
+  if (!isConfirmed) score = Math.min(85, score);
+  else score = Math.min(95, score);
+  const mtfAgreement = coreRows.length ? (coreBull >= 2 ? coreBull : coreBear >= 2 ? coreBear : Math.max(coreBull,coreBear)) : 0;`;
   if (!source.includes(old)) throw new Error('Telegram bias anchor not found; refusing unsafe patch');
   return source.replace(old, neu);
 });
