@@ -1,18 +1,55 @@
 // V-TRADE AI — startup logic hotfix
 // Runs before server-launcher so the production source receives deterministic
-// data-integrity and account-registration fixes without changing the broker/MT5 contract.
+// data-integrity, account-registration, MTF, Telegram and Truth-Guard fixes.
 const fs = require('fs');
 const path = require('path');
 
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
+const TRUTH_FILE = path.resolve(__dirname, 'analysis-truth.js');
 const LOGIN_FILE = path.resolve(__dirname, 'login.html');
 const REGISTER_FILE = path.resolve(__dirname, 'register.html');
 
 function normalizeTimestampMs(value) {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return NaN;
-  // MT5 payloads may arrive as Unix seconds or Unix milliseconds.
   return n < 1e12 ? n * 1000 : n;
+}
+
+function patchTruth(source) {
+  // Core MTF direction is H4/H1/M15 only. M5 is execution context, never a
+  // replacement for the higher-timeframe core alignment gate.
+  source = source.replace(
+    "const frames = ['M1', 'M5', 'M15', 'H1', 'H4'];",
+    "const frames = ['H4', 'H1', 'M15'];"
+  );
+  source = source.replace(
+    "const weights = { M1:1, M5:2, M15:3, H1:4, H4:5 };",
+    "const weights = { H4:3, H1:2, M15:1 };"
+  );
+
+  // Structure is authoritative for timeframe direction. MACD/RSI may explain
+  // momentum, but must never manufacture BUY/SELL when structure is neutral.
+  source = source.replace(
+    "const score = Number.isFinite(rawScore) ? clamp(rawScore) : 50;\n    let side = structureBias;\n    if (side === 'NEUTRAL' && macdBias !== 'NEUTRAL') side = macdBias;\n    if (side === 'NEUTRAL' && Number.isFinite(rsi)) side = rsi > 50 ? 'BULLISH' : rsi < 50 ? 'BEARISH' : 'NEUTRAL';",
+    "const score = structureBias === 'NEUTRAL' ? 50 : (Number.isFinite(rawScore) ? clamp(rawScore) : 50);\n    const side = structureBias;"
+  );
+
+  // M5 is the execution timeframe; M1 is not an entry gate.
+  source = source.replace(
+    "const executionFrame = dominantSide === 'BUY' || dominantSide === 'SELL'\n    ? (signals.M1?.signal === dominantSide ? 'M1' : signals.M5?.signal === dominantSide ? 'M5' : signals.M15?.signal === dominantSide ? 'M15' : 'M15')\n    : null;",
+    "const executionFrame = dominantSide === 'BUY' || dominantSide === 'SELL'\n    ? (sideOf(t.M5?.structure?.bias) === (dominantSide === 'BUY' ? 'BULLISH' : 'BEARISH') ? 'M5' : 'M15')\n    : null;"
+  );
+
+  // WAIT must never expose an executable entry/SL/TP as if an order were ready.
+  // Keep the calculated watch zone separately for analysis/radar UI.
+  const waitMarker = "  } else {\n    out.tradeAuthorized=false;";
+  if (!source.includes("out.watchZone=out.entryZone")) {
+    source = source.replace(
+      waitMarker,
+      "  } else {\n    if (out.signal === 'WAIT') {\n      out.watchZone = out.entryZone || out.candidateZone || null;\n      out.entry = null; out.stopLoss = null; out.takeProfit = [];\n      out.entryZone = null; out.entryMode = 'WATCH'; out.executionTimeframe = '—';\n      out.tradeAuthorized = false;\n      out.actionable = 'NO TRADE';\n    }\n    out.tradeAuthorized=false;"
+    );
+  }
+  return source;
 }
 
 function patchServer(source) {
@@ -143,13 +180,11 @@ async function restoreRegisteredUsers() {
   source = source.replace("order: ['H4','H1','M15','M5','M1'],", "order: ['H4','H1','M15','M5'],", 1);
   source = source.replace("M1: 'entry trigger'", "M5: 'entry execution trigger'", 1);
 
-  // Telegram policy: do not send WAIT/BUY-BIAS messages as "signals".
-  // The scanner may continue evaluating every minute, but Telegram only emits
-  // an actionable BUY/SELL after the full deterministic gates + Truth Guard pass.
-  // This prevents the repeated WAIT spam seen while MTF/ICT/ADX data is incomplete.
+  // Telegram policy: WAIT is dashboard-only by default. Telegram trade alerts
+  // require the confirmed BUY/SELL path and full gates.
   if (!source.includes('TELEGRAM_WAIT_ALERTS_ENABLED')) {
     const marker = "const TELEGRAM_SESSION_TTL_MS = Math.max(5 * 60 * 1000, Number(process.env.TELEGRAM_SESSION_TTL_MS || 24 * 60 * 60 * 1000));";
-    const inject = `${marker}\n// Telegram signal policy: WAIT is dashboard-only by default; never promote WAIT as a trade signal.\nconst TELEGRAM_WAIT_ALERTS_ENABLED = String(process.env.TELEGRAM_WAIT_ALERTS_ENABLED || 'false').toLowerCase() === 'true';`;
+    const inject = `${marker}\nconst TELEGRAM_WAIT_ALERTS_ENABLED = String(process.env.TELEGRAM_WAIT_ALERTS_ENABLED || 'false').toLowerCase() === 'true';`;
     if (source.includes(marker)) source = source.replace(marker, inject, 1);
   }
   source = source.replace(
@@ -175,6 +210,17 @@ try {
     console.log('[V-TRADE HOTFIX] production server integrity/auth/MTF/Telegram patch applied');
   } else {
     console.log('[V-TRADE HOTFIX] no server source changes required');
+  }
+
+  if (fs.existsSync(TRUTH_FILE)) {
+    const truth = fs.readFileSync(TRUTH_FILE, 'utf8');
+    const patchedTruth = patchTruth(truth);
+    if (patchedTruth !== truth) {
+      fs.writeFileSync(TRUTH_FILE, patchedTruth, 'utf8');
+      console.log('[V-TRADE HOTFIX] Truth Guard core-MTF/WAIT presentation patch applied');
+    } else {
+      console.log('[V-TRADE HOTFIX] Truth Guard already up to date');
+    }
   }
 
   if (fs.existsSync(LOGIN_FILE)) {
