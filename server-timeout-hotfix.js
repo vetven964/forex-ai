@@ -11,12 +11,10 @@ function patchActiveEngine(source) {
   let out = source;
   let hits = 0;
 
-  // 1) The OpenAI confirmation can take longer than the old 7s API watchdog.
   const oldTimeout = "const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(1500, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 7000));";
   const newTimeout = "const ANALYSIS_REQUEST_TIMEOUT_MS = Math.max(15000, Number(process.env.ANALYSIS_REQUEST_TIMEOUT_MS || 15000));";
   if (out.includes(oldTimeout)) { out = out.replace(oldTimeout, newTimeout); hits++; }
 
-  // 2) Never send a second response after a timeout/error middleware already sent one.
   const oldSuccess = "res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
   const newSuccess = "if (!res.headersSent) res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
   if (out.includes(oldSuccess)) { out = out.replace(oldSuccess, newSuccess); hits++; }
@@ -24,9 +22,6 @@ function patchActiveEngine(source) {
   const newError = "if (!res.headersSent) res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});";
   if (out.includes(oldError)) { out = out.replace(oldError, newError); hits++; }
 
-  // 3) Resolve every timeframe with a 2/3 council: ICT structure + EMA + MACD.
-  // The old launcher expected a different analyzeTF return shape, so its patch
-  // was not firing. This targets the current production shape directly.
   const oldTrend = "  const trend=e20&&e50 ? (e20>e50?'BULLISH':e20<e50?'BEARISH':'NEUTRAL') : 'UNKNOWN';";
   const consensusCode = "  const structureBias=(s?.bias==='BULLISH'||s?.bias==='BEARISH')?s.bias:null;\n  const trendBias=(trend==='BULLISH'||trend==='BEARISH')?trend:null;\n  const momentumBias=m?.histogram>0?'BULLISH':m?.histogram<0?'BEARISH':null;\n  const bullVotes=[structureBias,trendBias,momentumBias].filter(x=>x==='BULLISH').length;\n  const bearVotes=[structureBias,trendBias,momentumBias].filter(x=>x==='BEARISH').length;\n  const resolvedBias=bullVotes>=2&&bullVotes>bearVotes?'BULLISH':bearVotes>=2&&bearVotes>bullVotes?'BEARISH':'NEUTRAL';\n  const resolvedScore=Math.max(0,Math.min(100,Math.round(50 + (resolvedBias==='BULLISH'?12:resolvedBias==='BEARISH'?-12:0) + (trendBias===resolvedBias?(resolvedBias==='BULLISH'?10:-10):0) + (momentumBias===resolvedBias?(resolvedBias==='BULLISH'?8:-8):0))));";
   if (out.includes(oldTrend) && !out.includes('const bullVotes=')) { out = out.replace(oldTrend, oldTrend + "\n" + consensusCode); hits++; }
@@ -35,7 +30,6 @@ function patchActiveEngine(source) {
   const newReturn = "  return {\n    structure:{...s,bias:resolvedBias,rawBias:s?.bias||null,score:resolvedScore,components:{structure:structureBias,trend:trendBias,momentum:momentumBias,bullVotes,bearVotes}},sweep,atr:a,ema20:e20,ema50:e50,trend,resolvedBias,directionScore:resolvedScore,";
   if (out.includes(oldReturn)) { out = out.replace(oldReturn, newReturn); hits++; }
 
-  // 4) Dashboard MTF council and horizon analysis use the same resolved bias.
   const coreOld = "const coreBiases = CORE_MTF_TFS.map(tf => tfs[tf]?.structure?.bias || 'UNAVAILABLE');";
   const coreNew = "const coreBiases = CORE_MTF_TFS.map(tf => tfs[tf]?.resolvedBias || tfs[tf]?.structure?.bias || 'UNAVAILABLE');";
   if (out.includes(coreOld)) { out = out.replace(coreOld, coreNew); hits++; }
@@ -46,7 +40,6 @@ function patchActiveEngine(source) {
   out = out.replace("higherBiases:[tfs.H1?.structure?.bias,tfs.H4?.structure?.bias]","higherBiases:[tfs.H1?.resolvedBias,tfs.H4?.resolvedBias]");
   out = out.replace("higherBiases:[tfs.H4?.structure?.bias,tfs.D1?.structure?.bias]","higherBiases:[tfs.H4?.resolvedBias,tfs.D1?.resolvedBias]");
 
-  // 5) Valid LIMIT-zone execution logic, but keep every other safety gate strict.
   const marker="  let signal='WAIT',status='WAIT — CONFIRMATION PENDING',entry=null,sl=null,tp=[],trigger=''; const reasons=[];";
   const zoneLogic="  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;\n";
   if (out.includes(marker) && !out.includes('const zoneMid=Number.isFinite(Number(candidateZone?.low))')) { out = out.replace(marker, zoneLogic + marker); hits++; }
@@ -58,7 +51,6 @@ function patchActiveEngine(source) {
   out = out.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}","{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
   out = out.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/,'$1executionLocationOk');
 
-  // 6) Neutral side must not inherit an extreme directional score.
   const band="const directionBand=directionScore>=80?'BULLISH':directionScore>=60?'BULLISH_BIAS':directionScore>=40?'NEUTRAL':directionScore>=20?'BEARISH_BIAS':'BEARISH';";
   if (out.includes(band) && !out.includes("if(side==='NEUTRAL') directionScore=50;")) { out=out.replace(band,"if(side==='NEUTRAL') directionScore=50;\n  "+band); hits++; }
 
@@ -75,4 +67,5 @@ fs.readFileSync=function(file,...args){
   return patchActiveEngine(source);
 };
 
+require('./package-access-hotfix.js');
 require('./server-launcher.js');
