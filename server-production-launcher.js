@@ -8,6 +8,39 @@ const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const originalLoader = Module._extensions['.js'];
 
+function patchCors(source) {
+  const marker = "const app = express();";
+  if (!source.includes(marker) || source.includes('[V-TRADE CORS]')) return source;
+  const corsPatch = `
+// [V-TRADE CORS] GitHub Pages / Render browser access — credentials-safe allowlist.
+// Keep this middleware before routes so /api/* responses always expose the API to the dashboard.
+const VTRADE_ALLOWED_ORIGINS = new Set([
+  'https://vetven964.github.io',
+  'https://www.vetven964.github.io',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
+]);
+app.use((req,res,next)=>{
+  const origin = String(req.headers.origin || '');
+  const configured = String(process.env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean);
+  const allowed = VTRADE_ALLOWED_ORIGINS.has(origin) || configured.includes(origin);
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-VTRADE-AUTH, X-MT5-API-KEY');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type, X-V-TRADE-Version');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+console.log('[V-TRADE CORS] GitHub Pages origin allowlist active');`;
+  return source.replace(marker, marker + corsPatch);
+}
+
 function patchMtfAndContext(source) {
   const oldTrend = "  const trend=e20&&e50 ? (e20>e50?'BULLISH':e20<e50?'BEARISH':'NEUTRAL') : 'UNKNOWN';";
   const newTrend = oldTrend + "\n  const structureBias=(s?.bias==='BULLISH'||s?.bias==='BEARISH')?s.bias:null;\n  const trendBias=(trend==='BULLISH'||trend==='BEARISH')?trend:null;\n  const momentumBias=m?.histogram>0?'BULLISH':m?.histogram<0?'BEARISH':null;\n  const resolvedBias=structureBias||trendBias||momentumBias||'NEUTRAL';\n  const directionScore=Math.max(0,Math.min(100,Math.round(50+(resolvedBias==='BULLISH'?12:resolvedBias==='BEARISH'?-12:0)+(trendBias===resolvedBias?(resolvedBias==='BULLISH'?10:-10):0)+(momentumBias===resolvedBias?(resolvedBias==='BULLISH'?8:-8):0)+(r!=null?(resolvedBias==='BULLISH'?(r>=50?6:-3):resolvedBias==='BEARISH'?(r<=50?-6:3):0):0)+(dx?.value>=18?(resolvedBias==='BULLISH'?4:resolvedBias==='BEARISH'?-4:0):0))));";
@@ -34,14 +67,9 @@ function patchMtfAndContext(source) {
 }
 
 function patchMt5StartupReadiness(source) {
-  // Keep the HTTP server alive for the MT5 bridge, but make analysis fail-closed
-  // as a normal WAIT state until QUOTE + M5/M15/H1/H4 are fresh and available.
   const old = "    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;\n    throw new Error(detail);";
   const replacement = "    const detail = `VT Markets MT5 feed not ready: missing=${readinessMissing.join(',')} ageSec=${age===null?'null':age} maxAgeMs=${MT5_MAX_AGE_MS}`;\n    return {feedReady:false,signal:'WAIT',status:'WAIT',bias:'NEUTRAL',directionBand:'NEUTRAL',directionScore:0,confidence:0,setupReady:false,tradeAuthorized:false,entry:null,stopLoss:null,tp1:null,tp2:null,tp3:null,confirmations:{allGatesPassed:false,feedReady:false},score:{blockedReasons:[detail],confidence:0},mt5:{ready:false,missing:readinessMissing,ageSec,maxAgeMs:MT5_MAX_AGE_MS}};";
   if (source.includes(old)) source=source.replace(old,replacement);
-
-  // A feed-gated WAIT must not invoke the AI confirmation layer or Telegram
-  // alert path. The next normal request after MT5 READY performs the full scan.
   const oldAi = "    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;\n    res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
   const newAi = "    if(a?.feedReady===false){ return res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:null}); }\n    const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;\n    res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});";
   if (source.includes(oldAi)) source=source.replace(oldAi,newAi);
@@ -57,6 +85,7 @@ function patchFrontend(source) {
 Module._extensions['.js']=function vtradeServerLoader(mod,filename){
   if(path.resolve(filename)!==SERVER_FILE) return originalLoader(mod,filename);
   let source=fs.readFileSync(filename,'utf8');
+  source=patchCors(source);
   source=patchMt5StartupReadiness(source);
   source=patchMtfAndContext(source);
   console.log('[V-TRADE LAUNCHER] MT5 startup readiness gate active');
