@@ -5,6 +5,7 @@
   const BACKEND = 'https://forexai-6xw6.onrender.com';
   const AUTH_KEY = 'vtrade_auth_token';
   const LEGACY_AUTH_KEY = 'vtrade_auth';
+  const CLIENT = 'web-single-connection-v2';
 
   const authToken = () =>
     sessionStorage.getItem(AUTH_KEY) ||
@@ -27,13 +28,14 @@
     if (isBackend) {
       const token = authToken();
       if (token) h.set('x-vtrade-auth', token);
-      h.set('x-vtrade-client', 'web-single-connection');
+      h.set('x-vtrade-client', CLIENT);
     }
     return h;
   };
 
   const originalFetch = window.fetch.bind(window);
-  const vfetch = (input, init = {}) => {
+
+  const vfetch = async (input, init = {}) => {
     let target = input;
     let url = '';
     try { url = typeof input === 'string' ? input : input?.url || ''; } catch {}
@@ -43,11 +45,15 @@
     if (relativeApi) target = BACKEND + url;
 
     const requestHeaders = headers(init.headers, isBackend);
+    const tokenPresent = !!authToken();
     const options = {
       ...init,
-      credentials: isBackend ? (init.credentials || 'include') : init.credentials,
-      cache: isBackend ? (init.cache || 'no-store') : init.cache,
-      headers: requestHeaders
+      // Login/health do not need a browser cookie. Avoid credentialed CORS until a
+      // token exists; authenticated requests may still use the x-vtrade-auth header.
+      credentials: isBackend && tokenPresent ? (init.credentials || 'include') : (isBackend ? 'omit' : init.credentials),
+      cache: isBackend ? 'no-store' : init.cache,
+      headers: requestHeaders,
+      mode: isBackend ? 'cors' : (init.mode || undefined)
     };
 
     if (target instanceof Request) {
@@ -55,12 +61,21 @@
       delete options.headers;
     }
 
-    return originalFetch(target, options).then((response) => {
+    try {
+      const response = await originalFetch(target, options);
       if (isBackend && response.status === 401) {
         window.dispatchEvent(new CustomEvent('vtrade:session-expired'));
       }
       return response;
-    });
+    } catch (error) {
+      if (isBackend) {
+        const e = new Error(`Backend connection failed: ${String(error?.message || error)}`);
+        e.cause = error;
+        e.backend = BACKEND;
+        throw e;
+      }
+      throw error;
+    }
   };
 
   window.fetch = vfetch;
@@ -80,10 +95,11 @@
     },
     status: async () => {
       try {
-        const r = await vfetch(BACKEND + '/api/health');
-        return { ok: r.ok, status: r.status };
+        let r = await vfetch(BACKEND + '/api/health', { credentials: 'omit' });
+        if (!r.ok) return { ok: false, status: r.status, backend: BACKEND };
+        return { ok: true, status: r.status, backend: BACKEND };
       } catch (error) {
-        return { ok: false, status: 0, error: String(error?.message || error) };
+        return { ok: false, status: 0, backend: BACKEND, error: String(error?.message || error) };
       }
     }
   });
