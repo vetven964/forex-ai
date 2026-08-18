@@ -1,3 +1,4 @@
+const fs = require('fs');
 // V-TRADE AI — FULL MTF SIGNAL DISPLAY (M1/M5/M15/H1)
 require('dotenv').config();
 const express = require('express');
