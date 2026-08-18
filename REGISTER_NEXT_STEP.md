@@ -1,0 +1,1 @@
+Registration UI has been added. The next production integration must connect `/api/auth/register` to the existing server-side auth/storage layer and emit a sanitized NEW_MEMBER Telegram event after persistence. Do not store or return plaintext passwords.
