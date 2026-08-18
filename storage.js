@@ -112,7 +112,6 @@ async function cleanup() {
   }
 }
 
-
 async function loadAuthCredentials() {
   if (mode === 'postgres' && pool) {
     try {
@@ -148,4 +147,4 @@ async function saveAuthCredential(userId, passwordHash) {
   return {persistent:true,mode:'local'};
 }
 
-module.exports = { initStorage, saveQuote, saveAnalysis, getStatus, getHistory, cleanup, loadAuthCredentials, saveAuthCredential };
+module.exports = { initStorage, saveEvent, saveQuote, saveAnalysis, getStatus, getHistory, cleanup, loadAuthCredentials, saveAuthCredential };
