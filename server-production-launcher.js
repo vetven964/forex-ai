@@ -1,5 +1,4 @@
 // V-TRADE AI production launcher — deterministic logic fixes
-// Keeps server.js as the source of truth and applies only safe runtime patches.
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
@@ -13,14 +12,9 @@ function patchCors(source) {
   if (!source.includes(marker) || source.includes('[V-TRADE CORS]')) return source;
   const corsPatch = `
 // [V-TRADE CORS] GitHub Pages / Render browser access — credentials-safe allowlist.
-// Keep this middleware before routes so /api/* responses always expose the API to the dashboard.
 const VTRADE_ALLOWED_ORIGINS = new Set([
-  'https://vetven964.github.io',
-  'https://www.vetven964.github.io',
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:5173'
+  'https://vetven964.github.io','https://www.vetven964.github.io',
+  'http://localhost:3000','http://localhost:5173','http://127.0.0.1:3000','http://127.0.0.1:5173'
 ]);
 app.use((req,res,next)=>{
   const origin = String(req.headers.origin || '');
@@ -39,6 +33,21 @@ app.use((req,res,next)=>{
 });
 console.log('[V-TRADE CORS] GitHub Pages origin allowlist active');`;
   return source.replace(marker, marker + corsPatch);
+}
+
+function patchPublicPricing(source) {
+  // The public pricing page must not require authentication. Keep the private
+  // /api/pricing endpoint protected and add a read-only public endpoint for the website.
+  if (source.includes("app.get('/api/public/pricing'")) return source;
+  const marker = "app.get('/api/pricing', requireAuth, (req,res) => {";
+  if (!source.includes(marker)) return source;
+  const publicRoute = `app.get('/api/public/pricing', (req,res) => {
+  res.set('Cache-Control','no-store');
+  res.json({success:true, public:true, plans:pricingPlans.filter(p=>p.enabled!==false).map(p=>({id:p.id,name:p.name,price:p.price,period:p.period,enabled:true,features:Array.isArray(p.features)?p.features:[]}))});
+});
+
+`;
+  return source.replace(marker, publicRoute + marker);
 }
 
 function patchMtfAndContext(source) {
@@ -86,8 +95,10 @@ Module._extensions['.js']=function vtradeServerLoader(mod,filename){
   if(path.resolve(filename)!==SERVER_FILE) return originalLoader(mod,filename);
   let source=fs.readFileSync(filename,'utf8');
   source=patchCors(source);
+  source=patchPublicPricing(source);
   source=patchMt5StartupReadiness(source);
   source=patchMtfAndContext(source);
+  console.log('[V-TRADE LAUNCHER] public pricing endpoint active');
   console.log('[V-TRADE LAUNCHER] MT5 startup readiness gate active');
   console.log('[V-TRADE LAUNCHER] resolved MTF bias + neutral P/D logic active');
   console.log('[V-TRADE LAUNCHER] strict ICT execution gates active');
