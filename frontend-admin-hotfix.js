@@ -43,6 +43,36 @@ for(const member of loadPersistentMemberAccounts()) if(!USER_ACCOUNTS.some(u=>u.
   }
 
   s=s.replace("const passwordHash=crypto.scryptSync(password,salt,64).toString('hex')+':'+salt;","const passwordHash=salt+':'+crypto.scryptSync(password,salt,64).toString('hex');");
+
+  // Correct registration route is installed before server-launcher can inject the older route.
+  if(!s.includes('VTRADE_REGISTER_FLOW_V2')){
+    const register=`/* VTRADE_REGISTER_FLOW_V2 */
+app.post('/api/auth/register',rateLimit({windowMs:15*60_000,max:8,standardHeaders:true,legacyHeaders:true}),async(req,res)=>{
+  try{
+    const body=req.body||{}, name=String(body.name||'').trim().replace(/[<>]/g,'').slice(0,80), email=String(body.email||'').trim().toLowerCase(), password=String(body.password||'');
+    const planMap={FREE:'FREE',TRIAL:'FREE',BASIC:'BASIC',STANDARD:'STANDARD',PRO:'PRO',PREMIUM:'PREMIUM','VIP-PRO':'VIP-PRO'};
+    const plan=planMap[String(body.plan||'FREE').trim().toUpperCase()]||'FREE';
+    if(name.length<2)return res.status(400).json({success:false,error:'Name is required'});
+    if(!/^\S+@\S+\.\S+$/.test(email))return res.status(400).json({success:false,error:'Valid email is required'});
+    if(password.length<8)return res.status(400).json({success:false,error:'Password must be at least 8 characters'});
+    if(ADMIN_EMAIL&&email===ADMIN_EMAIL)return res.status(409).json({success:false,error:'This email is reserved'});
+    const file=path.resolve(__dirname,'data','vtrade-members.json'); fs.mkdirSync(path.dirname(file),{recursive:true});
+    let members=[]; try{members=JSON.parse(fs.readFileSync(file,'utf8'));if(!Array.isArray(members))members=[];}catch(_){}
+    if(members.some(x=>String(x.email||'').toLowerCase()===email))return res.status(409).json({success:false,error:'Email is already registered'});
+    const salt=crypto.randomBytes(16).toString('hex'), passwordHash=salt+':'+crypto.scryptSync(password,salt,64).toString('hex');
+    const user={id:crypto.randomUUID(),name,email,plan,status:'ACTIVE',createdAt:new Date().toISOString(),passwordHash}; members.push(user);
+    const tmp=file+'.tmp'; fs.writeFileSync(tmp,JSON.stringify(members,null,2),'utf8'); fs.renameSync(tmp,file);
+    const safe={id:user.id,name:user.name,email:user.email,plan:user.plan,status:user.status,createdAt:user.createdAt};
+    console.log('[AUTH] NEW MEMBER REGISTERED',safe.email,'plan='+safe.plan);
+    if(typeof bot!=='undefined'&&bot&&TELEGRAM_CHAT_ID)bot.sendMessage(TELEGRAM_CHAT_ID,['🆕 *V TRADE AI — NEW MEMBER*','','👤 Name: *'+safe.name+'*','📧 Email: *'+safe.email+'*','📦 Plan: *'+safe.plan+'*','🟢 Status: *ACTIVE*'].join('\\n'),{parse_mode:'Markdown'}).catch(()=>{});
+    res.status(201).json({success:true,user:safe});
+  }catch(e){console.error('[AUTH] registration failed:',e.message);res.status(500).json({success:false,error:'Registration temporarily unavailable'});}
+});
+`;
+    const marker="app.use((err,req,res,next)=>{";
+    if(s.includes(marker))s=s.replace(marker,register+'\n'+marker);
+  }
+
   s=s.replace("permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own']","permissions:found.role==='admin'?['*']:vtradePlanPermissions(found.plan)");
 
   const timeoutOld="app.use('/api/', (req,res,next)=>{ const timer=setTimeout(()=>{ if(!res.headersSent) res.status(504).json({success:false,error:'API request timed out'}); }, ANALYSIS_REQUEST_TIMEOUT_MS); res.on('finish',()=>clearTimeout(timer)); res.on('close',()=>clearTimeout(timer)); next(); });";
