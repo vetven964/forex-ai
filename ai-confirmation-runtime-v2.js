@@ -12,7 +12,6 @@ function install() {
   let s = fs.readFileSync(SERVER, 'utf8');
   let changed = false;
 
-  // Never attempt the paid provider on Render.
   const oldEnabled = "const OPENAI_ENABLED = String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true';";
   const newEnabled = "const OPENAI_ENABLED = false;";
   if (s.includes(oldEnabled)) { s = s.replace(oldEnabled, newEnabled); changed = true; }
@@ -25,8 +24,7 @@ function install() {
   const end = s.indexOf('\nasync function buildXauAnalysis()', start);
   if (start >= 0 && end > start) {
     const localFn = `async function openAIConfirmXauAnalysis(a) {
-  // Free deterministic confirmation: the existing server-side ICT engine is authoritative.
-  // This function intentionally keeps the old API name so the frontend needs no rewrite.
+  // Free deterministic confirmation: existing server-side ICT engine is authoritative.
   const c = a?.confirmations || {};
   const signal = ['BUY','SELL'].includes(a?.signal) ? a.signal : 'WAIT';
   const allGates = c.allGatesPassed === true;
@@ -56,27 +54,12 @@ function install() {
   if (!c.mss && !c.bos) riskFlags.push('MSS/BOS not confirmed');
   if (!c.liquiditySweep && !c.bos) riskFlags.push('Liquidity/structure trigger not confirmed');
   return {
-    enabled: true,
-    configured: true,
-    provider: 'LOCAL_DETERMINISTIC',
-    model: 'local-ict-v1',
-    status: 'local',
-    decision,
-    confidence,
-    agreement,
-    reasons,
-    missingConfirmations: missing,
-    riskFlags,
+    enabled: true, configured: true, provider: 'LOCAL_DETERMINISTIC', model: 'local-ict-v1', status: 'local',
+    decision, confidence, agreement, reasons, missingConfirmations: missing, riskFlags,
     summary: decision !== 'WAIT'
       ? 'Free local ICT confirmation passed. No external AI API was used.'
       : 'Free local ICT confirmation is waiting for the mandatory execution gates.',
-    gate: {
-      engineSignal: signal,
-      engineConfidence: Number(a?.confidence ?? a?.setupScore ?? 0),
-      enginePassed: allGates,
-      aiEligible: allGates && decision !== 'WAIT',
-      finalSignal: decision
-    },
+    gate: { engineSignal: signal, engineConfidence: Number(a?.confidence ?? a?.setupScore ?? 0), enginePassed: allGates, aiEligible: allGates && decision !== 'WAIT', finalSignal: decision },
     localEvidence: { passed, missing }
   };
 }`;
@@ -85,7 +68,7 @@ function install() {
   }
 
   if (!s.includes(MARK)) {
-    s = `// ${MARK} installed by runtime hotfix\\n` + s;
+    s = '// ' + MARK + ' installed by runtime hotfix' + String.fromCharCode(10) + s;
     changed = true;
   }
 
