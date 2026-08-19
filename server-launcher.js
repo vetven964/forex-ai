@@ -6,8 +6,6 @@ const path = require('path');
 const crypto = require('crypto');
 
 // IMPORTANT: Render may use `node server-launcher.js` directly instead of npm start.
-// Therefore the AI confirmation runtime must be loaded here, before server.js is compiled.
-// This makes the AI diagnostics/Structured Outputs patch effective on the actual Render path.
 try {
   require('./ai-confirmation-runtime-v2.js');
   console.log('[V-TRADE LAUNCHER] AI Confirmation Runtime V3 loaded before server.js');
@@ -16,11 +14,7 @@ try {
   throw e;
 }
 
-// IMPORTANT: inject the Pre-Market route into the SAME source string that this launcher compiles.
-// The older pre-market hook used Module._extensions, but this launcher replaces that loader below.
-// Direct source injection removes the startup-order 404 permanently.
 const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
-
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const ADMIN_FRONTEND_HOTFIX = path.resolve(__dirname, 'frontend-admin-hotfix.js');
@@ -62,13 +56,45 @@ function patchTruthGuard(source) {
   return source;
 }
 
+// Telegram is intentionally presentation-only here. All scoring, ICT gates,
+// AI confirmation and authorization stay inside the analysis engine.
+// The user-facing alert is kept short: BUY/SELL + Zone + Entry + SL + TP1-TP3.
 function patchWaitCard(source) {
   const marker = 'function telegramWaitText(a) {';
   if (!source.includes(marker)) return source;
   const start = source.indexOf(marker);
   const end = source.indexOf('\nfunction ', start + marker.length);
   if (end < 0) return source;
-  const fn = `function telegramWaitText(a) {\n  const price=Number(a?.price ?? a?.livePrice ?? a?.bid);\n  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();\n  const directionScore=Number(a?.directionScore ?? a?.aiScore ?? 0);\n  const confidence=Number(a?.confidence ?? a?.score?.confidence ?? 0);\n  const blocked=Array.isArray(a?.score?.blockedReasons)?a.score.blockedReasons.slice(0,8).map(String):[];\n  const ai=a?.aiConfirmation || a?.ai || null;\n  const aiDecision=String(ai?.decision || a?.aiDecision || 'WAIT').toUpperCase();\n  const aiConfidence=Number(ai?.confidence ?? a?.aiConfidence ?? 0);\n  const agreement=String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();\n  const broker=String(a?.broker || 'VT Markets MT5');\n  const quoteAge=Number.isFinite(Number(a?.quoteAge ?? a?.feedAgeSec ?? a?.priceAgeSec))?Number(a?.quoteAge ?? a?.feedAgeSec ?? a?.priceAgeSec):0;\n  const authorized=a?.tradeAuthorized===true;\n  const side=bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':'';\n  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';\n  const council=a?.analystCouncil||{}; const truth=a?.truthMetrics||{};\n  if(authorized && side){return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','','📊 Asset: *XAU/USD (Gold)*','💰 Price: *'+n(price)+'*','🚨 Action: *'+(side==='BUY'?'🟢 BUY — TRADE AUTHORIZED':'🔴 SELL — TRADE AUTHORIZED')+'*','📈 Bias: *'+bias+'*','📊 Direction Score: *'+(Number.isFinite(directionScore)?directionScore:0)+'/100*','🧠 Confidence: *'+(Number.isFinite(confidence)?confidence:0)+'/100*','','🎯 Entry: *'+n(a.entry)+'*','🛑 Stop Loss: *'+n(a.stopLoss)+'*','🎯 TP1: *'+n(a.takeProfit?.[0])+'*','🎯 TP2: *'+n(a.takeProfit?.[1])+'*','🎯 TP3: *'+n(a.takeProfit?.[2])+'*','','🧠 Council: *'+(council.consensus||'NEUTRAL')+' '+(council.consensusVotes||'0/0')+'* | Confidence: *'+(council.confidence??'—')+'/100*','🔎 Verified Win Rate: *'+(truth.verifiedWinRate==null?'N/A':truth.verifiedWinRate+'%')+'* | Sample: *'+(truth.verifiedSampleSize??0)+'*','🔐 *ORDER AUTHORIZED — TRUTH GUARD PASSED*','🏦 Broker: *'+broker+'* | Quote age: *'+quoteAge+'s*'].join('\\n');}\n  const action=bias==='BULLISH'?'🟡 WAIT — BUY BIAS':bias==='BEARISH'?'🟡 WAIT — SELL BIAS':'🟡 WAIT — NO ENTRY';\n  const gateLine=blocked.length?blocked.map(x=>'• '+x).join('\\n'):'• No confirmed entry gate';\n  return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','','📊 Asset: *XAU/USD (Gold)*','💰 Price: *'+n(price)+'*','⚡ Action: *'+action+'*','📈 Bias: *'+bias+'*','📊 Direction Score: *'+(Number.isFinite(directionScore)?directionScore:0)+'/100*','🧠 Confidence: *'+(Number.isFinite(confidence)?confidence:0)+'/100*','','🔎 *ICT ENTRY GATES*',gateLine,'','🧠 Analyst Council: *'+(council.consensus||'NEUTRAL')+' '+(council.consensusVotes||'0/0')+'* | Confidence: *'+(council.confidence??'—')+'/100*','📊 Verified Win Rate: *'+(truth.verifiedWinRate==null?'N/A':truth.verifiedWinRate+'%')+'* | Sample: *'+(truth.verifiedSampleSize??0)+'*','🎯 Execution Zone: *WAITING FOR CONFIRMATION*','🟢 Entry: *WAIT — truth guard confirmation required*','🛑 Stop Loss (SL): *WAIT*','🎯 TP1: *WAIT*','🎯 TP2: *WAIT*','🎯 TP3: *WAIT*','','🤖 AI Confirm: *'+aiDecision+'* | Confidence: *'+(Number.isFinite(aiConfidence)?aiConfidence:0)+'/100* | Agreement: *'+agreement+'*','⚡ Status: *WAIT — NO ORDER AUTHORIZED*','','🔒 No order until engine gates + analyst council + risk/data checks pass.','🏦 Broker: *'+broker+'* | Quote age: *'+quoteAge+'s*'].join('\\n');\n}`;
+  const fn = `function telegramWaitText(a) {
+  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';
+  const price=Number(a?.price ?? a?.livePrice ?? a?.bid ?? a?.ask);
+  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
+  const side=bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':'';
+  const zone=a?.entryZone || a?.candidateZone || a?.referenceZone || null;
+  const low=zone?.low, high=zone?.high;
+  const zoneText=Number.isFinite(Number(low))&&Number.isFinite(Number(high)) ? n(low)+' – '+n(high) : 'WAIT';
+  const tp=Array.isArray(a?.takeProfit)?a.takeProfit:[];
+  const action=a?.tradeAuthorized===true && (side==='BUY'||side==='SELL');
+  const title=action ? (side==='BUY'?'🟢 BUY':'🔴 SELL') : (side==='BUY'?'🟡 WAIT — BUY':'🟡 WAIT — SELL');
+  const entry=action ? n(a?.entry) : 'WAIT';
+  const sl=action ? n(a?.stopLoss) : 'WAIT';
+  const tp1=action ? n(tp[0]) : 'WAIT';
+  const tp2=action ? n(tp[1]) : 'WAIT';
+  const tp3=action ? n(tp[2]) : 'WAIT';
+  return ['🤖 *V TRADE AI — XAUUSD*','',
+    '*'+title+'*',
+    '💰 Price: *'+n(price)+'*',
+    '📍 Zone: *'+zoneText+'*',
+    '🎯 Entry: *'+entry+'*',
+    '🛑 SL: *'+sl+'*',
+    '🎯 TP1: *'+tp1+'*',
+    '🎯 TP2: *'+tp2+'*',
+    '🎯 TP3: *'+tp3+'*',
+    '',
+    action ? '🔔 *AUTO ALERT — READY*' : '⏳ *WAIT — confirmation pending*'
+  ].join('\\n');
+}
+`;
   return source.slice(0,start)+fn+source.slice(end);
 }
 
@@ -95,7 +121,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   source = patchWaitCard(source);
   source = patchRegistration(source);
   source = PREMARKET_DIRECT_ROUTE.inject(source);
-  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + pre-market direct-route patches active');
+  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + simple-telegram + pre-market patches active');
   mod._compile(source, filename);
 };
 
