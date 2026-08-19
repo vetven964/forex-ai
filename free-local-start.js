@@ -4,5 +4,6 @@
 process.env.OPENAI_ENABLED = 'false';
 process.env.OPENAI_MODEL = 'local-ict-v1';
 process.env.OPENAI_API_KEY = '';
+require('./backend/cors-runtime');
 console.log('[V-TRADE FREE AI] Local ICT mode enforced | provider=LOCAL_DETERMINISTIC | billing=OFF');
 require('./server-launcher.js');
