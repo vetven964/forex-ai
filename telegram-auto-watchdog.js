@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V10 — strict process separation + deterministic global startup state
+// V11 — isolated confirmed-entry delivery + safe scanner startup
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V10_GLOBAL_STATE';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V11_ENTRY_ONLY';
 const READINESS = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
 try {
@@ -31,7 +31,6 @@ function patchServer() {
     changed = true;
   }
 
-  // Other scanner state uses global slots to prevent duplicate declarations.
   const stateDefs = [
     ['telegramAutoLastState', "''"],
     ['telegramAutoLastWaitSentAt', '0'],
@@ -66,6 +65,70 @@ try {
   if (source.includes(envNeedle) && !source.includes('const TELEGRAM_AUTO_TOKEN =')) {
     source = source.replace(envNeedle, envPatch);
     changed = true;
+  }
+
+  // Define the scanner's delivery function in one place. It is deliberately
+  // entry-only: WAIT, zone, news, bias and score never trigger Telegram.
+  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V1';
+  if (!source.includes(deliveryMarker)) {
+    const deliveryFn = `
+// ${deliveryMarker}
+async function maybeTelegramAlert(a, tg, sid) {
+  const signal = String(a?.signal || '').toUpperCase();
+  const status = String(a?.status || '').toUpperCase();
+  const confirmed = ['BUY','SELL'].includes(signal) &&
+    status.includes('ENTRY CONFIRMED') &&
+    a?.confirmations?.allGatesPassed === true &&
+    Number.isFinite(Number(a?.entry));
+  if (!confirmed) return false;
+
+  const botRef = telegramAutoBot || tg?.bot || null;
+  const chatRef = TELEGRAM_AUTO_CHAT_ID || tg?.chatId || '';
+  if (!botRef || !chatRef) {
+    console.warn('[TELEGRAM AUTO] confirmed entry ready but delivery is not configured');
+    return false;
+  }
+
+  const tf = String(a?.executionTimeframe || a?.timeframe || 'M5').toUpperCase();
+  const tfMin = tf === 'M5' ? 5 : tf === 'M15' ? 15 : tf === 'M30' ? 30 : tf === 'H1' ? 60 : tf === 'H4' ? 240 : tf === 'D1' ? 1440 : 5;
+  const zone = a?.zone ?? a?.executionZone ?? a?.entryZone ?? a?.entry;
+  const sl = a?.stopLoss ?? a?.sl ?? a?.stop_loss;
+  const tps = Array.isArray(a?.takeProfit) ? a.takeProfit.filter(Number.isFinite).map(Number) : [];
+  const tp1 = a?.tp1 ?? tps[0];
+  const tp2 = a?.tp2 ?? tps[1];
+  const tp3 = a?.tp3 ?? tps[2];
+  const confidence = Number(a?.confidence);
+  const fmt = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : 'WAIT';
+
+  const lines = [
+    '🤖 *V TRADE AI — XAUUSD*',
+    '',
+    signal === 'BUY' ? '🟢 *BUY*' : '🔴 *SELL*',
+    `⏱️ TF: *${tf}*`,
+    `📍 Zone: *${typeof zone === 'object' ? (zone.low ?? zone.from ?? '') + ' — ' + (zone.high ?? zone.to ?? '') : fmt(zone)}*`,
+    `🎯 Entry: *${fmt(a.entry)}*`,
+    `🛑 SL: *${fmt(sl)}*`,
+    `🎯 TP1: *${fmt(tp1)}*`
+  ];
+  if (tfMin >= 15) lines.push(`🎯 TP2: *${fmt(tp2)}*`);
+  if (tfMin >= 60) lines.push(`🎯 TP3: *${fmt(tp3)}*`);
+  if (Number.isFinite(confidence)) lines.push(`🧠 Confidence: *${Math.max(0, Math.min(100, confidence)).toFixed(0)}/100*`);
+
+  await botRef.sendMessage(chatRef, lines.join('\\n'), { parse_mode: 'Markdown' });
+  console.log(`[TELEGRAM AUTO] ENTRY sent | signal=${signal} | tf=${tf} | chat=${String(chatRef).slice(-4)}`);
+  return true;
+}
+`;
+    source = deliveryFn + source;
+    changed = true;
+  }
+
+  // Analysis endpoint must never be responsible for Telegram delivery.
+  const analysisAlertCall = /\n\s*maybeTelegramAlert\(a, tg, sid\)\.catch\(e=>console\.error\('Telegram alert:',e\.message\)\);/;
+  if (analysisAlertCall.test(source)) {
+    source = source.replace(analysisAlertCall, '\n    console.log(\'[V-TRADE TELEGRAM] analysis route is delivery-independent | no alert sent\');');
+    changed = true;
+    console.log('[V-TRADE SAFETY] removed Telegram delivery from /api/analysis/xauusd');
   }
 
   const zonePattern = /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/;
