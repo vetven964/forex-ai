@@ -50,3 +50,39 @@
   function boot(){if(!/premium-dashboard-live\.html$/i.test(location.pathname))return;shell();setTimeout(()=>{loadPM();loadNews();},400);setInterval(loadNews,60000);document.addEventListener('click',e=>{const b=e.target.closest('.tfs button');if(!b)return;const tf=String(b.textContent||'').trim().toUpperCase();if(TFS.includes(tf)){state.tf=tf;const pm=document.querySelector(`[data-pm-tf="${tf}"]`);if(pm){document.querySelectorAll('[data-pm-tf]').forEach(x=>x.classList.toggle('active',x===pm));}setTimeout(loadPM,80);}});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
+
+/* V TRADE AI — Mobile Header Fix v20260819 */
+(() => {
+  const install = () => {
+    if (document.getElementById('vtradeMobileHeaderFixCss')) return;
+    const s = document.createElement('style');
+    s.id = 'vtradeMobileHeaderFixCss';
+    s.textContent = `
+      @media (max-width:900px){
+        .top{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:6px!important;width:100%!important;min-height:62px!important;height:62px!important;padding:8px!important;overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;scroll-snap-type:x proximity!important}
+        .top::-webkit-scrollbar{display:none!important}
+        .top > *{flex:0 0 auto!important;min-width:0!important}
+        .mobile{display:grid!important;flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;margin:0!important;grid-row:auto!important}
+        .pair{display:flex!important;flex:0 0 auto!important;width:auto!important;max-width:96px!important;gap:5px!important}
+        .pair > div{min-width:0!important}.pair .sub{display:none!important}.pair b{font-size:14px!important;line-height:1!important}.star{font-size:18px!important}
+        .price{flex:0 0 auto!important;font-size:25px!important;line-height:1!important;white-space:nowrap!important}
+        .live{flex:0 0 auto!important;font-size:9px!important;white-space:nowrap!important}
+        .backend{flex:0 0 auto!important;max-width:108px!important;padding:5px 7px!important;font-size:8px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+        .tfs{display:flex!important;flex:0 0 auto!important;width:auto!important;margin:0!important;gap:4px!important;overflow:visible!important;padding:0!important}
+        .tfs button{flex:0 0 46px!important;width:46px!important;min-width:46px!important;min-height:42px!important;height:42px!important;padding:8px 7px!important}
+        .lang-row{display:flex!important;flex:0 0 auto!important;width:auto!important;margin:0!important;gap:4px!important}
+        .lang-btn{flex:0 0 46px!important;width:46px!important;min-width:46px!important;min-height:42px!important;height:42px!important;padding:8px 7px!important}
+        #vtradeAccountLayer{display:none!important}
+      }
+      @media(max-width:390px){
+        .top{gap:5px!important;padding-left:7px!important;padding-right:7px!important}
+        .mobile{flex-basis:42px!important;width:42px!important;min-width:42px!important;height:42px!important;min-height:42px!important}
+        .pair{max-width:88px!important}.pair b{font-size:13px!important}.star{font-size:16px!important}.price{font-size:23px!important}
+        .backend{max-width:96px!important;font-size:7.5px!important}.tfs button,.lang-btn{flex-basis:44px!important;width:44px!important;min-width:44px!important}
+      }
+    `;
+    document.head.appendChild(s);
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install);
+  else install();
+})();
