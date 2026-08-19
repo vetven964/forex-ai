@@ -1,0 +1,74 @@
+name: PC Terminal Logic Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pc-premium-terminal.html'
+      - '.github/workflows/pc-terminal-logic-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch PC terminal logic
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('pc-premium-terminal.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Never repeat the patch.
+          if '<!-- PC-TERMINAL-LOGIC-FIX-V2 -->' in s:
+              raise SystemExit(0)
+
+          # The MTF engine returns buyPct/sellPct plus a direction-neutral score.
+          # The UI must display directional strength (max side), not BUY percentage
+          # as the score for a bearish timeframe.
+          old = "const r=rows(pm);$('radar').innerHTML=TFS.map(x=>{const d=r[x]||{},b=String(d.bias||d.direction||'WAIT').toUpperCase(),s=pct(field(d,['buyPct','buyStrengthPct','buyScore','buyerPower'])),c=candleStats(d),open=n(d.open??c?.open),cur=n(d.currentPrice??d.price??c?.close),score=s==='—'?'—':s;"
+          new = "const r=rows(pm);$('radar').innerHTML=TFS.map(x=>{const d=r[x]||{},b=String(d.bias||d.direction||'WAIT').toUpperCase(),bp=pct(field(d,['buyPct','buyStrengthPct','buyScore','buyerPower'])),sp=pct(field(d,['sellPct','sellStrengthPct','sellScore','sellerPower'])),s=b.includes('BEAR')?sp:bp,c=candleStats(d),open=n(d.open??c?.open),cur=n(d.currentPrice??d.price??c?.close),score=s==='—'?'—':s;"
+          if old not in s:
+              raise SystemExit('radar target not found')
+          s = s.replace(old, new, 1)
+          s = s.replace("BUY ${s}% · SELL ${pct(field(d,['sellPct','sellStrengthPct','sellScore','sellerPower']))}%", "BUY ${bp}% · SELL ${sp}%", 1)
+
+          # Add an automatic AI confirmation trigger after all five MTF frames are ready.
+          marker = '</script>\n</body>'
+          inject = r'''<!-- PC-TERMINAL-LOGIC-FIX-V2 -->
+<script>
+(() => {
+  let requested = false;
+  let lastPrice = '';
+  const tick = () => {
+    const ready = [...document.querySelectorAll('.card b')].some(x => x.textContent.trim() === 'ALL 5 READY');
+    const ai = document.getElementById('statAI');
+    const price = document.getElementById('price')?.textContent || '';
+    if (!ready) { requested = false; return; }
+    if (price !== lastPrice) { lastPrice = price; requested = false; }
+    if (!requested && ai && ai.textContent.trim() === 'WAIT') {
+      requested = true;
+      document.getElementById('analyzeTop')?.click();
+    }
+  };
+  setInterval(tick, 3000);
+})();
+</script>
+</body>'''
+          if marker not in s:
+              raise SystemExit('script marker not found')
+          s = s.replace(marker, inject, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pc-premium-terminal.html
+          git diff --cached --quiet || git commit -m 'fix: PC terminal direction score and auto AI'
+          git push
