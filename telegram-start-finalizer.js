@@ -6,8 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const serverFile = path.join(__dirname, 'server.js');
-const OLD = 'telegramAutoLastReadinessLog';
-const GLOBAL = 'globalThis.__vtradeTelegramAutoLastReadinessLog';
+const GLOBAL = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
 function finalizeTelegramState() {
   if (!fs.existsSync(serverFile)) throw new Error('server.js not found');
@@ -16,7 +15,7 @@ function finalizeTelegramState() {
 
   // Use a global runtime slot instead of a fragile lexical variable. This avoids
   // startup-order/loader-scope failures when launcher patches server.js in memory.
-  source = source.replace(/\\btelegramAutoLastReadinessLog\\b/g, GLOBAL);
+  source = source.replace(/\btelegramAutoLastReadinessLog\b/g, GLOBAL);
   if (!source.includes(`globalThis.__vtradeTelegramAutoReadinessLog = ''`)) {
     source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V1\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n${source}`;
   }
