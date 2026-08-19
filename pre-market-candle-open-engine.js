@@ -66,7 +66,29 @@ module.exports = function installPreMarketCandleOpenEngine(app){
     sell+=(cs.bear-50)*0.45+(ss.direction==='BEARISH'?ss.score-50:ss.direction==='BULLISH'?-(ss.score-50):0)*0.55;
     if(rr!=null){if(rr>50)buy+=Math.min(10,(rr-50)*.25);if(rr<50)sell+=Math.min(10,(50-rr)*.25);}
     const total=Math.max(1,buy+sell); buy=buy/total*100; sell=sell/total*100;
-    return {tf,ready:true,candleTime:last.t,open:last.o,high:last.h,low:last.l,close:last.c,currentVsOpen:last.c-last.o,direction:buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL',buyPct:round1(buy),sellPct:round1(100-buy),score:Math.round(Math.max(buy,100-buy)),candle:cs,structure:ss,rsi:rr==null?null:Math.round(rr*10)/10,atr:aa==null?null:Math.round(aa*100)/100};
+    return {tf,ready:true,candleTime:last.t,open:last.o,high:last.h,low:last.l,close:last.c,currentPrice:last.c,currentVsOpen:last.c-last.o,direction:buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL',buyPct:round1(buy),sellPct:round1(100-buy),score:Math.round(Math.max(buy,100-buy)),candle:cs,structure:ss,rsi:rr==null?null:Math.round(rr*10)/10,atr:aa==null?null:Math.round(aa*100)/100};
+  }
+
+  function buildGates(a){
+    const c=a?.confirmations||{};
+    const ict=a?.ict||{};
+    const zone=a?.zoneRadar||{};
+    const ref=a?.referenceZone||{};
+    const confirmed=v=>v===true || v===1 || String(v).toLowerCase()==='true' || String(v).toUpperCase()==='PASS';
+    const directional=v=>side(v)!=='NEUTRAL';
+    return {
+      liquiditySweep: confirmed(c.sweepOk)||confirmed(c.liquiditySweepOk)||confirmed(ict.liquiditySweep?.confirmed),
+      mss: confirmed(c.mssOk)||confirmed(c.structureAgreement)||directional(ict.mss),
+      bos: confirmed(c.bosOk)||directional(ict.bos),
+      displacement: confirmed(c.displacementOk)||confirmed(ict.displacement?.confirmed),
+      fvg: confirmed(c.fvgOk)||confirmed(ict.fvg?.confirmed)||directional(ict.fvg?.type),
+      orderBlock: confirmed(c.orderBlockOk)||confirmed(c.obOk)||confirmed(ict.orderBlock?.confirmed)||directional(ict.orderBlock?.type),
+      premiumDiscountOk: confirmed(c.premiumDiscountOk)||confirmed(c.locationOk)||confirmed(zone.executionZoneOk)||confirmed(ref.executionZoneOk),
+      executionZone: confirmed(c.executionZoneOk)||confirmed(c.locationOk)||confirmed(zone.executionZoneOk)||confirmed(ref.executionZoneOk),
+      technicalMomentumOk: confirmed(c.technicalMomentumOk)||confirmed(c.momentumOk),
+      spreadOk: confirmed(c.spreadOk),
+      allGatesPassed: confirmed(c.allGatesPassed)
+    };
   }
 
   function calculate(raw){
@@ -81,13 +103,23 @@ module.exports = function installPreMarketCandleOpenEngine(app){
     const buy=weightTotal?weightedBuy/weightTotal*100:50;
     const sell=100-buy;
     const bias=buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL';
-    const active=rows[bias==='BULLISH'?'H4':'H4'];
+    const active=rows.H4;
     const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price);
-    const ref=active?.atr||5;
-    const zoneWidth=Math.max(ref*.35,.5);
-    const buyZone=bias==='BULLISH'&&currentPrice!=null?[currentPrice-zoneWidth,currentPrice];
-    const sellZone=bias==='BEARISH'&&currentPrice!=null?[currentPrice,currentPrice+zoneWidth];
-    return {symbol:'XAUUSD',price:currentPrice,frames:rows,available,weights:WEIGHTS,buyStrengthPct:round1(buy),sellStrengthPct:round1(sell),buyScore:round1(buy),sellScore:round1(sell),bias,zone:{buyZone,sellZone,reference:'Candle-Open MTF reference zone; not an execution authorization'},workflow:{stage:'PRE_MARKET_CANDLE_OPEN',orderAuthorization:false,aiRole:'AFTER_PRE_AI'},generatedAt:new Date().toISOString()};
+    const refAtr=active?.atr||5;
+    const zoneWidth=Math.max(refAtr*.35,.5);
+    const buyZone=bias==='BULLISH'&&currentPrice!=null?[currentPrice-zoneWidth,currentPrice]:null;
+    const sellZone=bias==='BEARISH'&&currentPrice!=null?[currentPrice,currentPrice+zoneWidth]:null;
+    const gates=buildGates(a);
+    const confidence=round1(50+Math.abs(buy-sell)/2);
+    return {
+      symbol:'XAUUSD',price:currentPrice,frames:rows,timeframes:rows,available,complete:available===TFS.length,weights:WEIGHTS,
+      buyStrengthPct:round1(buy),sellStrengthPct:round1(sell),buyScore:round1(buy),sellScore:round1(sell),bias,
+      preAiConfidence:confidence,confidence,
+      gates,confirmations:a.confirmations||{},ict:a.ict||{},
+      zone:{buyZone,sellZone,reference:'Candle-Open MTF reference zone; not an execution authorization'},
+      workflow:{stage:'PRE_MARKET_CANDLE_OPEN',orderAuthorization:false,aiRole:'AFTER_PRE_AI'},
+      generatedAt:new Date().toISOString()
+    };
   }
 
   async function getAnalysis(req){
