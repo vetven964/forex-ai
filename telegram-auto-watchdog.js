@@ -1,10 +1,22 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V3 + isolated Telegram Auto-Alert bot routing
+// V4 + isolated Telegram Auto-Alert bot routing + separated Pre-Market processing
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V4_SEPARATED_BOT';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V5_SEPARATED_PREMARKET';
+
+// PROCESS SEPARATION:
+// Pre-Market Zone Analysis is analysis-only and is installed before server.js loads.
+// Telegram Auto Scanner/Delivery is an independent alert channel.
+// Neither path authorizes orders; server-side Truth Guard remains authoritative.
+try {
+  require('./pre-market-launcher-hook.js');
+  console.log('[V-TRADE PROCESS SEPARATION] Pre-Market Zone Analysis hook loaded | Telegram=INDEPENDENT');
+} catch (e) {
+  console.error('[V-TRADE PROCESS SEPARATION] Pre-Market hook load failed:', e.stack || e.message);
+  throw e;
+}
 
 function patchServer() {
   if (!fs.existsSync(serverFile)) throw new Error('server.js not found');
@@ -47,10 +59,7 @@ try {
     }
   }
 
-  // Older builds used the main bot in a second auto-alert path. Route those sends to the isolated bot.
-  const autoSendPattern = /telegramAutoAlert[A-Za-z0-9_]*\s*\([^)]*\)[\s\S]*?bot\.sendMessage\(/;
-  // Do not perform broad regex rewrites here: the guarded replacements above are intentionally narrow.
-
+  // Do not perform broad regex rewrites: the guarded replacements above are intentionally narrow.
   const oldTrigger = /\n\/\/ Trigger one scan shortly after startup;[\s\S]*?\n\}, 3000\);\n?/;
   if (oldTrigger.test(source)) {
     source = source.replace(oldTrigger, '\n');
@@ -63,7 +72,7 @@ try {
   }
 
   if (changed) fs.writeFileSync(serverFile, source, 'utf8');
-  console.log(`[V-TRADE TELEGRAM WATCHDOG] active | scanner=${String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase()==='true'} | mainBot=${process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID ? 'configured' : 'not-configured'} | autoBot=${process.env.TELEGRAM_AUTO_TOKEN && process.env.TELEGRAM_AUTO_CHAT_ID ? 'configured' : 'fallback-main'} | first-scan=interval`);
+  console.log(`[V-TRADE TELEGRAM WATCHDOG] active | scanner=${String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase()==='true'} | mainBot=${process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID ? 'configured' : 'not-configured'} | autoBot=${process.env.TELEGRAM_AUTO_TOKEN && process.env.TELEGRAM_AUTO_CHAT_ID ? 'configured' : 'fallback-main'} | first-scan=interval | PreMarket=SEPARATE`);
 }
 
 patchServer();
