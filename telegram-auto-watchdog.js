@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V7 — strict process separation + guaranteed startup loading
+// V8 — strict process separation + deterministic startup state
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V7_STRICT_STARTUP';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V8_STARTUP_STATE';
 
 // PRE-MARKET IS ANALYSIS ONLY.
 // It may read broker/MT5 analysis, but it must never create/send Telegram messages.
@@ -20,6 +20,19 @@ function patchServer() {
   if (!fs.existsSync(serverFile)) throw new Error('server.js not found');
   let source = fs.readFileSync(serverFile, 'utf8');
   let changed = false;
+
+  // Deterministic scanner state: define it before ANY Telegram scanner function can run.
+  // This is intentionally inserted near the top of server.js, not conditionally near a legacy marker.
+  const startupState = `// ${marker}\n// Telegram auto scanner state is initialized before all routes/timers.\nlet telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';\nlet telegramAutoLastWaitSentAt = 0;\nlet telegramAutoScanCount = 0;\n`;
+  const stateDecl = /(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=/.test(source);
+  if (!stateDecl) {
+    source = startupState + source;
+    changed = true;
+    console.log('[V-TRADE SAFETY] deterministic Telegram scanner state inserted at server startup');
+  } else {
+    // If an older patch already declared the state, do not create duplicate const/let declarations.
+    console.log('[V-TRADE SAFETY] Telegram scanner state already present');
+  }
 
   // Main Telegram bot remains responsible for commands/admin/user flows.
   // Auto-alert delivery is STRICTLY isolated and does not fall back to the main bot.
@@ -41,8 +54,7 @@ try {
     changed = true;
   }
 
-  // Telegram AUTO is ENTRY-ONLY. These flags must be hard-disabled in the runtime,
-  // regardless of Render env values, so WAIT/zone/news states never become alerts.
+  // Telegram AUTO is ENTRY-ONLY. WAIT/zone/news states remain internal.
   const zonePattern = /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/;
   if (zonePattern.test(source)) {
     source = source.replace(zonePattern, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY: no pre-entry zone alerts");
@@ -67,7 +79,6 @@ try {
     ["  telegramAutoAlertRunning = true;\n  try {\n    const r=telegramAutoReadinessSnapshot();", "  telegramAutoAlertRunning = true;\n  const telegramDeliveryReady = !!telegramAutoBot && !!TELEGRAM_AUTO_CHAT_ID;\n  try {\n    const r=telegramAutoReadinessSnapshot();\n    if (!telegramDeliveryReady) console.warn('[TELEGRAM AUTO] delivery disabled | scanner remains active | configure TELEGRAM_AUTO_TOKEN + TELEGRAM_AUTO_CHAT_ID');"],
     ["    const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };", "    const tg = telegramDeliveryReady ? { bot:telegramAutoBot, chatId:TELEGRAM_AUTO_CHAT_ID, botUsername:'AUTO_ALERT', session:false } : null;"],
     ["    const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO', session: false };", "    const tg = telegramDeliveryReady ? { bot:telegramAutoBot, chatId:TELEGRAM_AUTO_CHAT_ID, botUsername:'AUTO_ALERT', session:false } : null;"],
-    ["let telegramAutoLastWaitSentAt = 0;", "let telegramAutoLastWaitSentAt = 0;\nlet telegramAutoScanCount = 0;"],
     ["    const a = await buildXauAnalysis();", "    telegramAutoScanCount += 1;\n    console.log(`[TELEGRAM AUTO] Scan start | count=${telegramAutoScanCount} | delivery=${telegramDeliveryReady?'READY':'NOT_CONFIGURED'}`);\n\n    const a = await buildXauAnalysis();"],
     ["  await tg.bot.sendMessage(tg.chatId, waitText);", "  if (tg) {\n    await tg.bot.sendMessage(tg.chatId, waitText);\n  } else {\n    console.log('[TELEGRAM AUTO] WAIT alert not sent | isolated delivery not configured');\n  }"]
   ];
@@ -79,24 +90,7 @@ try {
     }
   }
 
-  // Legacy entry-only patches sometimes removed this declaration together with an old WAIT block.
-  if (!/\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=/.test(source)) {
-    const anchor = /\blet\s+telegramAutoLastState\s*=\s*'';/;
-    if (anchor.test(source)) {
-      source = source.replace(anchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';" );
-      changed = true;
-      console.log('[V-TRADE SAFETY] watchdog restored telegramAutoLastReadinessLog');
-    } else {
-      const runAnchor = /\basync function runTelegramAutoAlertScan\(\)\s*\{/;
-      if (runAnchor.test(source)) {
-        source = source.replace(runAnchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';\n\nasync function runTelegramAutoAlertScan() {");
-        changed = true;
-        console.log('[V-TRADE SAFETY] watchdog inserted Telegram scanner state');
-      }
-    }
-  }
-
-  // Remove eager startup scan. Scanner uses the normal interval after MT5 readiness.
+  // Never allow an eager scan to run before MT5 readiness has been established.
   const oldTrigger = /\n\/\/ Trigger one scan shortly after startup;[\s\S]*?\n\}, 3000\);\n?/;
   if (oldTrigger.test(source)) {
     source = source.replace(oldTrigger, '\n');
