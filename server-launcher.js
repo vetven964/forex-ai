@@ -16,6 +16,11 @@ try {
   throw e;
 }
 
+// IMPORTANT: inject the Pre-Market route into the SAME source string that this launcher compiles.
+// The older pre-market hook used Module._extensions, but this launcher replaces that loader below.
+// Direct source injection removes the startup-order 404 permanently.
+const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
+
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const ADMIN_FRONTEND_HOTFIX = path.resolve(__dirname, 'frontend-admin-hotfix.js');
@@ -89,7 +94,8 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   source = patchTruthGuard(source);
   source = patchWaitCard(source);
   source = patchRegistration(source);
-  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard patches active');
+  source = PREMARKET_DIRECT_ROUTE.inject(source);
+  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + pre-market direct-route patches active');
   mod._compile(source, filename);
 };
 
