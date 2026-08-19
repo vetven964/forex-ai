@@ -1,0 +1,64 @@
+name: V-TRADE Telegram Entry-Only Guard
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-telegram-entry-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Remove automatic WAIT Telegram broadcasts
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('server.js')
+          s = p.read_text(encoding='utf-8')
+
+          # The scanner must keep analyzing/logging WAIT states, but Telegram
+          # must remain silent until a complete executable BUY/SELL exists.
+          pattern = re.compile(
+              r"\n\s*// Auto mode also sends a state-change WAIT update[\s\S]*?\n\s*// State logging is also stable: score/status/price changes alone do not count as a new state\."
+          )
+          replacement = "\n\n    // Telegram AUTO is entry-only. WAIT/bias/watch states are logged locally\n    // but are never broadcast. maybeTelegramAlert() remains responsible for\n    // confirmed BUY/SELL alerts only.\n\n    // State logging is also stable: score/status/price changes alone do not count as a new state."
+
+          new, n = pattern.subn(replacement, s, count=1)
+          if n != 1:
+              raise SystemExit('WAIT broadcast block not found; refusing to modify server.js')
+
+          p.write_text(new, encoding='utf-8')
+          print('Removed automatic WAIT Telegram broadcast block.')
+
+      - name: Verify entry-only guard
+        shell: bash
+        run: |
+          grep -n "Telegram AUTO is entry-only" server.js
+          if grep -n "WAIT alert sent" server.js; then
+            echo "ERROR: WAIT Telegram sender still present"
+            exit 1
+          fi
+          echo "OK: WAIT Telegram broadcast path removed."
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server.js
+          if git diff --cached --quiet; then
+            echo "No server.js changes needed."
+            exit 0
+          fi
+          git commit -m "fix: suppress telegram wait alerts [skip ci]"
+          git push
