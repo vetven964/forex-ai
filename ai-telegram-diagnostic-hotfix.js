@@ -1,11 +1,15 @@
-// V-TRADE AI — Telegram ENTRY-ONLY alert hotfix
-// Auto Telegram stays silent until a fully confirmed BUY/SELL opportunity exists.
-// Internal ICT/MTF/AI scoring remains server-side; Telegram gets only the trade plan.
+// V-TRADE AI — Telegram ENTRY-ONLY + isolated backend bootstrap
+// Telegram sends only confirmed BUY/SELL entry plans.
+// Backend CORS is isolated in backend/cors-runtime.js.
+'use strict';
+
+require('./backend/cors-runtime');
+
 const fs = require('fs');
 const path = require('path');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const LAUNCHER_FILE = path.resolve(__dirname, 'server-launcher.js');
-const MARKER = '// V-TRADE AI TELEGRAM ENTRY-ONLY HOTFIX V2';
+const MARKER = '// V-TRADE AI TELEGRAM ENTRY-ONLY HOTFIX V3';
 
 function redact(value) {
   return String(value || '')
@@ -33,27 +37,21 @@ function patchTelegramEntryOnly() {
   try {
     let source = fs.readFileSync(SERVER_FILE, 'utf8');
 
-    // Never send a pre-entry zone notification.
     source = source.replace(
       /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/,
       "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY: no pre-entry zone alerts"
     );
 
-    // Remove the automatic WAIT-alert block. The engine can still calculate/log WAIT internally.
+    // Delete automatic WAIT/state-change Telegram sends. WAIT remains internal only.
     const waitStart = source.indexOf('// Auto mode also sends a state-change WAIT update');
     const waitEnd = source.indexOf('// State logging is also stable:', waitStart);
     if (waitStart >= 0 && waitEnd > waitStart) {
       source = source.slice(0, waitStart) + source.slice(waitEnd);
     }
 
-    // Make the Telegram formatter self-contained and simple.
     const telegramStart = source.indexOf('function telegramText(a) {');
     if (telegramStart >= 0) {
-      const candidates = [
-        '\nfunction telegramButtons(',
-        '\nfunction sendTelegram',
-        '\nfunction maybeTelegramAlert('
-      ];
+      const candidates = ['\nfunction telegramButtons(', '\nfunction sendTelegram', '\nfunction maybeTelegramAlert('];
       let telegramEnd = -1;
       for (const marker of candidates) {
         const idx = source.indexOf(marker, telegramStart);
@@ -67,7 +65,7 @@ function patchTelegramEntryOnly() {
   const confirmed = ['BUY','SELL'].includes(signal)
     && String(a?.status || '').includes('ENTRY CONFIRMED')
     && Number.isFinite(Number(a?.entry))
-    && (o?.state === 'CONFIRMED' || a?.confirmations?.allGatesPassed === true);
+    && (o?.state === 'CONFIRMED' || a?.confirmations?.allGatesPassed === true || a?.tradeAuthorized === true);
   if (!confirmed) return '';
 
   const n = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '—';
@@ -82,7 +80,7 @@ function patchTelegramEntryOnly() {
   const lines = [
     '🤖 *V TRADE AI — XAUUSD*',
     '',
-    (signal === 'BUY' ? '🟢 *BUY — ENTRY CONFIRMED*' : '🔴 *SELL — ENTRY CONFIRMED*'),
+    signal === 'BUY' ? '🟢 *BUY — ENTRY CONFIRMED*' : '🔴 *SELL — ENTRY CONFIRMED*',
     '🧠 Confidence: *' + confidence + '/100*',
     '⏱ TF: *' + (tf || '—') + '*',
     '',
@@ -98,10 +96,9 @@ function patchTelegramEntryOnly() {
       }
     }
 
-    // Keep a marker so the patch is auditable and idempotent.
     if (!source.includes(MARKER)) source = MARKER + '\n' + source;
     fs.writeFileSync(SERVER_FILE, source, 'utf8');
-    console.log('[V-TRADE TELEGRAM] ENTRY-ONLY mode patched | WAIT/ZONE auto alerts disabled');
+    console.log('[V-TRADE TELEGRAM] ENTRY-ONLY mode active | WAIT/ZONE auto alerts disabled');
     console.log('[V-TRADE TELEGRAM] Telegram message = confirmed BUY/SELL only');
   } catch (e) {
     console.error('[V-TRADE TELEGRAM] ENTRY-ONLY patch failed:', redact(e?.stack || e?.message || e));
@@ -123,14 +120,8 @@ function installRuntimeDiagnostics() {
         }
         console.log(`[TELEGRAM SEND] chat=${chatId || 'MISSING'} chars=${text.length}`);
         return Promise.resolve(original.apply(this, args))
-          .then(v => {
-            console.log(`[TELEGRAM SEND OK] chat=${chatId || 'MISSING'}`);
-            return v;
-          })
-          .catch(err => {
-            console.error(`[TELEGRAM SEND ERROR] ${redact(err?.message || err)}`);
-            throw err;
-          });
+          .then(v => { console.log(`[TELEGRAM SEND OK] chat=${chatId || 'MISSING'}`); return v; })
+          .catch(err => { console.error(`[TELEGRAM SEND ERROR] ${redact(err?.message || err)}`); throw err; });
       };
       TelegramBot.prototype.__vtradeDiagnosticSendMessage = true;
     }
