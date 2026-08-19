@@ -1,10 +1,10 @@
 {
   "name": "v-trade-ai-advanced",
-  "version": "7.5.5",
+  "version": "7.5.6",
   "description": "V Trade AI XAUUSD MTF ICT + MT5 feed + Telegram alerts + optional local auto-trade",
   "main": "server.js",
   "scripts": {
-    "start": "node telegram-auto-watchdog.js"
+    "start": "node telegram-start-finalizer.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
