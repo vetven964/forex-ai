@@ -7,9 +7,6 @@ const path = require('path');
 const SERVER = path.join(__dirname, 'server.js');
 const MARK = 'VTRADE_LOCAL_CONFIRM_RUNTIME_V5';
 
-// CRITICAL: server.js reads these values at module load time.
-// Force the runtime state before server.js is compiled, even when Render has
-// an old OPENAI_ENABLED=true environment value configured.
 process.env.OPENAI_ENABLED = 'false';
 process.env.OPENAI_MODEL = 'local-ict-v1';
 
@@ -27,7 +24,6 @@ function install() {
   let s = fs.readFileSync(SERVER, 'utf8');
   let changed = false;
 
-  // Make the source itself safe too; this protects direct server.js startup paths.
   let r = replaceOnce(
     s,
     "const OPENAI_ENABLED = String(process.env.OPENAI_ENABLED || 'false').toLowerCase() === 'true';",
@@ -42,7 +38,6 @@ function install() {
   );
   s = r.source; changed ||= r.changed;
 
-  // If an older hotfix changed the exact source text, use a declaration-level guard.
   const enabledPattern = /const OPENAI_ENABLED\s*=\s*[^;]+;/;
   if (enabledPattern.test(s)) {
     const next = s.replace(enabledPattern, 'const OPENAI_ENABLED = false;');
@@ -120,6 +115,36 @@ function install() {
 `;
     s = s.slice(0, start) + localFn + s.slice(end);
     changed = true;
+  }
+
+  // Simple Telegram presentation layer: keep all scoring/ICT/risk calculations
+  // internal, but show only the trade information the user actually needs.
+  const tgStart = s.indexOf('function telegramText(a) {');
+  const tgEnd = tgStart >= 0 ? s.indexOf('\nfunction ', tgStart + 1) : -1;
+  if (tgStart >= 0 && tgEnd > tgStart) {
+    const simpleTelegram = `function telegramText(a) {
+  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';
+  const side=String(a?.signal||a?.side||'WAIT').toUpperCase();
+  const action=side==='BUY'?'🟢 BUY':side==='SELL'?'🔴 SELL':'🟡 WAIT';
+  const z=a?.entryZone||a?.candidateZone||a?.referenceZone||{};
+  const zone=Number.isFinite(Number(z?.low))&&Number.isFinite(Number(z?.high))?n(z.low)+' – '+n(z.high):'WAIT';
+  const entry=['BUY','SELL'].includes(side)?n(a?.entry):'WAIT';
+  const sl=['BUY','SELL'].includes(side)?n(a?.stopLoss):'WAIT';
+  const tp=Array.isArray(a?.takeProfit)?a.takeProfit:[];
+  return ['🤖 *V TRADE AI — XAUUSD*','',
+    '*'+action+'*',
+    '📍 Zone: *'+zone+'*',
+    '🎯 Entry: *'+entry+'*',
+    '🛑 SL: *'+sl+'*',
+    '🎯 TP1: *'+n(tp[0])+'*',
+    '🎯 TP2: *'+n(tp[1])+'*',
+    '🎯 TP3: *'+n(tp[2])+'*'
+  ].join('\\n');
+}
+`;
+    s = s.slice(0, tgStart) + simpleTelegram + s.slice(tgEnd);
+    changed = true;
+    console.log('[V-TRADE TELEGRAM] Simple BUY/SELL alert formatter installed');
   }
 
   if (!s.includes(MARK)) {
