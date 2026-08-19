@@ -23,7 +23,8 @@ jobs:
           changed = []
           markers = [
               '<script src="vtrade-connection.js"></script>',
-              '<script src="terminal-pre-market.js"></script>'
+              '<script src="terminal-pre-market.js"></script>',
+              '<script src="vtrade-rbac-guard.js"></script>'
           ]
 
           for path in Path('.').glob('*.html'):
@@ -50,10 +51,10 @@ jobs:
         run: |
           git config user.name "V TRADE AI Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add '*.html' vtrade-connection.js terminal-pre-market.js
+          git add '*.html' vtrade-connection.js terminal-pre-market.js vtrade-rbac-guard.js
           if git diff --cached --quiet; then
             echo "No wiring changes to commit."
             exit 0
           fi
-          git commit -m "feat: wire terminal pre-market engine"
+          git commit -m "feat: wire connection, pre-market and RBAC guards"
           git push
