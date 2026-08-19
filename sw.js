@@ -1,12 +1,12 @@
-const CACHE = 'vtrade-shell-v1';
+const CACHE = 'vtrade-shell-v2';
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/offline.html',
-  '/manifest.webmanifest',
-  '/icons/vtrade-192.svg',
-  '/icons/vtrade-512.svg',
-  '/pwa.js'
+  './',
+  './index.html',
+  './offline.html',
+  './manifest.webmanifest',
+  './icons/vtrade-192.svg',
+  './icons/vtrade-512.svg',
+  './pwa.js'
 ];
 
 self.addEventListener('install', event => {
@@ -25,7 +25,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
 
   // Never cache live market/API traffic. XAUUSD quotes, candles and AI confirmation must stay fresh.
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
+  if (url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
   if (req.method !== 'GET') return;
 
   // HTML navigations: network first, then cached page, then offline fallback.
@@ -37,7 +37,7 @@ self.addEventListener('fetch', event => {
         return response;
       }).catch(async () => {
         const cached = await caches.match(req);
-        return cached || caches.match('/index.html') || caches.match('/offline.html');
+        return cached || caches.match('./index.html') || caches.match('./offline.html');
       })
     );
     return;
