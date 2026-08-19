@@ -58,6 +58,24 @@ try {
     }
   }
 
+  // Legacy entry-only patches sometimes removed this declaration together with an old WAIT block.
+  // Keep it outside the block so the scanner can always log readiness safely.
+  if (!/\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=/.test(source)) {
+    const anchor = /\blet\s+telegramAutoLastState\s*=\s*'';/;
+    if (anchor.test(source)) {
+      source = source.replace(anchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';" );
+      changed = true;
+      console.log('[V-TRADE SAFETY] watchdog restored telegramAutoLastReadinessLog');
+    } else {
+      const runAnchor = /\basync function runTelegramAutoAlertScan\(\)\s*\{/;
+      if (runAnchor.test(source)) {
+        source = source.replace(runAnchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';\n\nasync function runTelegramAutoAlertScan() {");
+        changed = true;
+        console.log('[V-TRADE SAFETY] watchdog inserted Telegram scanner state');
+      }
+    }
+  }
+
   // Remove eager startup scan. Scanner uses the normal 60-second interval after MT5 readiness.
   const oldTrigger = /\n\/\/ Trigger one scan shortly after startup;[\s\S]*?\n\}, 3000\);\n?/;
   if (oldTrigger.test(source)) {
