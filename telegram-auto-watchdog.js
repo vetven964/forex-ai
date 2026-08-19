@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V6 — strict process separation: Telegram delivery != Pre-Market analysis
+// V7 — strict process separation + guaranteed startup loading
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V6_STRICT_SEPARATION';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V7_STRICT_STARTUP';
 
 // PRE-MARKET IS ANALYSIS ONLY.
 // It may read broker/MT5 analysis, but it must never create/send Telegram messages.
@@ -41,6 +41,27 @@ try {
     changed = true;
   }
 
+  // Telegram AUTO is ENTRY-ONLY. These flags must be hard-disabled in the runtime,
+  // regardless of Render env values, so WAIT/zone/news states never become alerts.
+  const zonePattern = /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/;
+  if (zonePattern.test(source)) {
+    source = source.replace(zonePattern, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY: no pre-entry zone alerts");
+    changed = true;
+  }
+  const newsPattern = /const TELEGRAM_NEWS_ALERTS = String\(process\.env\.TELEGRAM_NEWS_ALERTS \|\| 'true'\)\.toLowerCase\(\) === 'true';/;
+  if (newsPattern.test(source)) {
+    source = source.replace(newsPattern, "const TELEGRAM_NEWS_ALERTS = false; // ENTRY-ONLY: no news alerts");
+    changed = true;
+  }
+
+  // Remove legacy automatic WAIT/state-change broadcasts. WAIT stays internal to the engine.
+  const waitStart = source.indexOf('// Auto mode also sends a state-change WAIT update');
+  const waitEnd = source.indexOf('// State logging is also stable:', waitStart);
+  if (waitStart >= 0 && waitEnd > waitStart) {
+    source = source.slice(0, waitStart) + source.slice(waitEnd);
+    changed = true;
+  }
+
   const replacements = [
     ["if (!TELEGRAM_AUTO_ALERT_ENABLED || !bot || !TELEGRAM_CHAT_ID || telegramAutoAlertRunning) return;", "if (!TELEGRAM_AUTO_ALERT_ENABLED || telegramAutoAlertRunning) return;"],
     ["  telegramAutoAlertRunning = true;\n  try {\n    const r=telegramAutoReadinessSnapshot();", "  telegramAutoAlertRunning = true;\n  const telegramDeliveryReady = !!telegramAutoBot && !!TELEGRAM_AUTO_CHAT_ID;\n  try {\n    const r=telegramAutoReadinessSnapshot();\n    if (!telegramDeliveryReady) console.warn('[TELEGRAM AUTO] delivery disabled | scanner remains active | configure TELEGRAM_AUTO_TOKEN + TELEGRAM_AUTO_CHAT_ID');"],
@@ -59,7 +80,6 @@ try {
   }
 
   // Legacy entry-only patches sometimes removed this declaration together with an old WAIT block.
-  // Keep it outside the block so the scanner can always log readiness safely.
   if (!/\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=/.test(source)) {
     const anchor = /\blet\s+telegramAutoLastState\s*=\s*'';/;
     if (anchor.test(source)) {
@@ -76,7 +96,7 @@ try {
     }
   }
 
-  // Remove eager startup scan. Scanner uses the normal 60-second interval after MT5 readiness.
+  // Remove eager startup scan. Scanner uses the normal interval after MT5 readiness.
   const oldTrigger = /\n\/\/ Trigger one scan shortly after startup;[\s\S]*?\n\}, 3000\);\n?/;
   if (oldTrigger.test(source)) {
     source = source.replace(oldTrigger, '\n');
@@ -93,4 +113,9 @@ try {
 }
 
 patchServer();
-require('./server-launcher.js');
+
+// When called from server-launcher.js this module is an initializer only.
+// Standalone execution keeps the historical launcher behavior.
+if (process.env.VTRADE_WATCHDOG_NO_LAUNCHER !== '1') {
+  require('./server-launcher.js');
+}
