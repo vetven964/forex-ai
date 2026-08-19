@@ -4,6 +4,18 @@ const fs = require('fs');
 const Module = require('module');
 const path = require('path');
 const crypto = require('crypto');
+
+// IMPORTANT: Render may use `node server-launcher.js` directly instead of npm start.
+// Therefore the AI confirmation runtime must be loaded here, before server.js is compiled.
+// This makes the AI diagnostics/Structured Outputs patch effective on the actual Render path.
+try {
+  require('./ai-confirmation-runtime-v2.js');
+  console.log('[V-TRADE LAUNCHER] AI Confirmation Runtime V3 loaded before server.js');
+} catch (e) {
+  console.error('[V-TRADE LAUNCHER] AI Confirmation Runtime V3 load failed:', e.stack || e.message);
+  throw e;
+}
+
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const ADMIN_FRONTEND_HOTFIX = path.resolve(__dirname, 'frontend-admin-hotfix.js');
@@ -77,29 +89,23 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   source = patchTruthGuard(source);
   source = patchWaitCard(source);
   source = patchRegistration(source);
-  console.log('[V-TRADE LAUNCHER] production MTF bias + strict ICT authorization active');
-  console.log('[V-TRADE LAUNCHER] transparent analyst council + truth guard active');
-  console.log('[V-TRADE LAUNCHER] NEW MEMBER registration + Telegram event active');
+  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard patches active');
   mod._compile(source, filename);
 };
 
 try {
   if (fs.existsSync(FRONTEND_FILE)) {
-    const before=fs.readFileSync(FRONTEND_FILE,'utf8'); const after=patchFrontend(before);
-    if(after!==before){fs.writeFileSync(FRONTEND_FILE,after,'utf8');console.log('[V-TRADE LAUNCHER] critical frontend data/i18n fixes applied');}
+    const before = fs.readFileSync(FRONTEND_FILE, 'utf8');
+    const after = patchFrontend(before);
+    if (after !== before) {
+      fs.writeFileSync(FRONTEND_FILE, after, 'utf8');
+      console.log('[V-TRADE LAUNCHER] Khmer frontend font compatibility applied');
+    }
   }
-} catch(e){console.warn('[V-TRADE LAUNCHER] frontend patch skipped:',e.message);}
+} catch (e) { console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message); }
 
-try {
-  if (fs.existsSync(ADMIN_FRONTEND_HOTFIX)) {
-    require(ADMIN_FRONTEND_HOTFIX);
-    console.log('[V-TRADE LAUNCHER] account/admin UI flow active');
-  } else {
-    console.warn('[V-TRADE LAUNCHER] frontend-admin-hotfix.js not found');
-  }
-} catch(e) {
-  console.error('[V-TRADE LAUNCHER] account/admin UI patch failed:',e.message);
+if (fs.existsSync(ADMIN_FRONTEND_HOTFIX)) {
+  try { require(ADMIN_FRONTEND_HOTFIX); } catch (e) { console.warn('[V-TRADE LAUNCHER] admin frontend hotfix skipped:', e.message); }
 }
 
-require('./pre-market-launcher-hook.js');
 require('./server.js');
