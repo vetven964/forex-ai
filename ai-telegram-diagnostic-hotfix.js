@@ -28,10 +28,7 @@ function patchLauncherSafety() {
 }
 
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
-function price(v) {
-  const n = num(v);
-  return n === null ? '—' : n.toFixed(2);
-}
+function price(v) { const n = num(v); return n === null ? '—' : n.toFixed(2); }
 function zoneText(z) {
   if (!z) return '—';
   if (typeof z === 'number') return price(z);
@@ -50,7 +47,6 @@ function sideFrom(a) {
 function confirmed(a) {
   return (a?.tradeAuthorized === true || a?.authorized === true || a?.actionable === 'TRADE') && (sideFrom(a) === 'BUY' || sideFrom(a) === 'SELL');
 }
-
 function premiumSignalText(a) {
   const side = sideFrom(a);
   const isConfirmed = confirmed(a);
@@ -81,10 +77,7 @@ function premiumSignalText(a) {
   const displacement = gate(['displacement']) || a?.displacementConfirmed === true;
   const momentum = gate(['momentum']) || a?.momentumConfirmed === true;
   const execution = gate(['execution direction','execution']) || a?.executionDirectionConfirmed === true;
-  const action = isConfirmed
-    ? `${side === 'BUY' ? '🟢 BUY' : '🔴 SELL'} — ${side === 'BUY' ? 'LONG' : 'SHORT'}${mode ? ` · ${mode.toUpperCase()}` : ''}`
-    : `🟡 WAIT — ${bias === 'BULLISH' ? 'BUY BIAS' : bias === 'BEARISH' ? 'SELL BIAS' : 'NO BIAS'}`;
-
+  const action = isConfirmed ? `${side === 'BUY' ? '🟢 BUY' : '🔴 SELL'} — ${side === 'BUY' ? 'LONG' : 'SHORT'}${mode ? ` · ${mode.toUpperCase()}` : ''}` : `🟡 WAIT — ${bias === 'BULLISH' ? 'BUY BIAS' : bias === 'BEARISH' ? 'SELL BIAS' : 'NO BIAS'}`;
   if (!isConfirmed) {
     return '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n' +
       `📊 Asset: *XAU/USD (Gold)*\n💰 Price: *${price(live)}*\n⚡ Action: *${action}*\n📈 Bias: *${bias}*\n📊 Direction Score: *${score}/100*\n🧠 Confidence: *${confidence}/100*\n\n` +
@@ -96,21 +89,17 @@ function premiumSignalText(a) {
       '🧠 *ANALYST COUNCIL*\n' +
       `• Consensus: *${bias} ${councilCount}/3*\n• Confidence: *${score}/100*\n• Verified Win Rate: *${winRate}*\n• Sample: *${sample}*\n\n` +
       '🎯 *EXECUTION*\n• Zone: *WAITING FOR CONFIRMATION*\n• Entry: *WAIT*\n• Stop Loss: *WAIT*\n• TP1: *WAIT*\n• TP2: *WAIT*\n• TP3: *WAIT*\n\n' +
-      '🤖 *AI CONFIRM*\n' +
-      `• Decision: *${aiDecision}*\n• Confidence: *${aiConf}/100*\n• Agreement: *${aiAgreement}*\n\n` +
+      '🤖 *AI CONFIRM*\n' + `• Decision: *${aiDecision}*\n• Confidence: *${aiConf}/100*\n• Agreement: *${aiAgreement}*\n\n` +
       '🟡 *STATUS*\n*WAIT — NO ORDER AUTHORIZED*\n\n' +
       '🔐 *TRUTH GUARD*\nNo order until entry gates + analyst council + risk/data checks pass.\n\n' +
       `🏦 Broker: *VT Markets MT5*\n⏱ Quote age: *${quoteAge === null ? '—' : quoteAge + 's'}*`;
   }
-
   return '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\n\n' +
     `📊 Asset: *XAU/USD (Gold)*\n💰 Price: *${price(live)}*\n\n` +
     `⚡ *ACTION: ${side === 'BUY' ? '🟢 BUY — LONG' : '🔴 SELL — SHORT'}*${mode ? ` · ${mode.toUpperCase()}` : ''}\n` +
     `📈 Bias: *${bias}*\n📊 Direction Score: *${score}/100*\n🧠 Confidence: *${confidence}/100*\n\n` +
-    '🎯 *EXECUTION PLAN*\n' +
-    `• Entry Zone: *${zone}*\n• Entry: *${price(entry)}*\n• Stop Loss: *${price(sl)}*\n• Take Profit 1 (TP1): *${price(tp1)}*\n• Take Profit 2 (TP2): *${price(tp2)}*\n• Take Profit 3 (TP3): *${price(tp3)}*\n\n` +
-    '🔎 *SETUP*\n' +
-    `• Liquidity Sweep: *${liquidity ? '✅ CONFIRMED' : '—'}*\n• Displacement: *${displacement ? '✅ CONFIRMED' : '—'}*\n• Execution: *${execution ? '✅ AUTHORIZED' : '—'}*\n\n` +
+    '🎯 *EXECUTION PLAN*\n' + `• Entry Zone: *${zone}*\n• Entry: *${price(entry)}*\n• Stop Loss: *${price(sl)}*\n• Take Profit 1 (TP1): *${price(tp1)}*\n• Take Profit 2 (TP2): *${price(tp2)}*\n• Take Profit 3 (TP3): *${price(tp3)}*\n\n` +
+    '🔎 *SETUP*\n' + `• Liquidity Sweep: *${liquidity ? '✅ CONFIRMED' : '—'}*\n• Displacement: *${displacement ? '✅ CONFIRMED' : '—'}*\n• Execution: *${execution ? '✅ AUTHORIZED' : '—'}*\n\n` +
     `🧠 Analysis: *Real-time ${mode || 'ICT'} + Liquidity Sweep*\n` +
     '🟢 *STATUS: ENTRY CONFIRMED — ORDER AUTHORIZED*\n\n' +
     '🔐 *TRUTH GUARD PASSED*\nAll required execution and risk checks passed.\n\n' +
@@ -131,13 +120,34 @@ function patchTelegramFormat() {
     if (start<0 || end<0) { console.warn('[V-TRADE STYLE] Telegram formatter function not found; logic untouched'); return; }
     const replacement = `// V-TRADE AI TELEGRAM PREMIUM FORMAT HOTFIX INSTALLED\nfunction telegramText(a) {\n  return premiumSignalText(a);\n}\n`;
     source = source.slice(0,start) + replacement + source.slice(end);
-    // If the original wait formatter exists, route it through the same state-safe renderer.
-    const ws=source.indexOf('function telegramWaitText(a) {');
-    const we=ws>=0?source.indexOf('\nfunction telegramText(a) {',ws):-1;
-    if(ws>=0&&we>ws){ source=source.slice(0,ws) + 'function telegramWaitText(a) { return premiumSignalText(a); }\n' + source.slice(we); }
     fs.writeFileSync(SERVER_FILE, source, 'utf8');
     console.log('[V-TRADE STYLE] Telegram premium BUY/SELL/WAIT format patched — logic unchanged');
   } catch(e) { console.warn('[V-TRADE STYLE] Telegram format patch skipped:',e.message); }
+}
+
+function ensureTelegramWaitFormatter() {
+  try {
+    let source = fs.readFileSync(SERVER_FILE, 'utf8');
+    if (/function\s+telegramWaitText\s*\(/.test(source)) {
+      console.log('[V-TRADE TELEGRAM] WAIT formatter exists');
+      return;
+    }
+    const marker = '// V-TRADE TELEGRAM WAIT FALLBACK HOTFIX V1';
+    const needle = 'function telegramText(a) {';
+    const idx = source.indexOf(needle);
+    if (idx < 0) throw new Error('telegramText() not found');
+    const fallback = `${marker}\nfunction telegramWaitText(a) {\n  try { if (typeof telegramText === 'function') return telegramText(a); } catch (_) {}\n  const p = Number(a?.livePrice ?? a?.price ?? a?.bid ?? a?.ask);\n  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();\n  const score = Number(a?.directionScore ?? a?.score?.directionScore ?? a?.score ?? 0);\n  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);\n  const priceText = Number.isFinite(p) ? p.toFixed(2) : '—';\n  return '🤖 *V TRADE AI — ADVANCED ICT SIGNAL*\\n\\n' + ` +
+      '`📊 Asset: *XAU/USD (Gold)*\\n💰 Price: *${priceText}*\\n⚡ Action: *🟡 WAIT — ${bias === \'BULLISH\' ? \'BUY BIAS\' : bias === \'BEARISH\' ? \'SELL BIAS\' : \'NO BIAS\'}*\\n📈 Bias: *${bias}*\\n📊 Direction Score: *${score}/100*\\n🧠 Confidence: *${confidence}/100*\\n\\n` +\n' +
+      "    '🟡 *STATUS*\\n*WAIT — NO ORDER AUTHORIZED*\\n\\n' +\n" +
+      "    '🔐 *TRUTH GUARD*\\nEntry gates + risk/data checks must pass before BUY/SELL authorization.';\n" +
+      "}\n\n";
+    source = source.slice(0, idx) + fallback + source.slice(idx);
+    fs.writeFileSync(SERVER_FILE, source, 'utf8');
+    console.log('[V-TRADE TELEGRAM] WAIT formatter fallback installed');
+  } catch (e) {
+    console.error('[V-TRADE TELEGRAM] WAIT fallback failed:', e.message);
+    process.exitCode = 1;
+  }
 }
 
 function installRuntimeDiagnostics() {
@@ -161,6 +171,7 @@ try {
   let source=fs.readFileSync(SERVER_FILE,'utf8');
   if(!source.includes(MARKER)){source=`${MARKER}\n${source}`;fs.writeFileSync(SERVER_FILE,source,'utf8');console.log('[V-TRADE DIAGNOSTIC] server.js diagnostic marker installed');}
   patchTelegramFormat();
+  ensureTelegramWaitFormatter();
   console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled');
   console.log(`[V-TRADE DIAGNOSTIC] OpenAI hard guard=${String(process.env.OPENAI_ENABLED||'false').toLowerCase()==='true'?'OFF':'ON'}`);
   require('./server-strength-hotfix.js');
