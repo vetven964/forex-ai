@@ -20,9 +20,18 @@
     const t = token();
     if (!t) return login();
     try {
+      // The token is sent explicitly in x-vtrade-auth. Do not depend on the
+      // cross-origin HttpOnly cookie here; this keeps GitHub Pages -> Render
+      // session verification deterministic even when third-party cookies are blocked.
       const r = await fetch(BACKEND + '/api/auth/session', {
-        credentials: 'include', cache: 'no-store',
-        headers: { 'x-vtrade-auth': t }
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+          'x-vtrade-auth': t
+        }
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.user) return login();
@@ -38,7 +47,8 @@
       window.dispatchEvent(new CustomEvent('vtrade:rbac-ready', {
         detail: { user: d.user, role, language }
       }));
-    } catch (_) {
+    } catch (error) {
+      console.error('[V-TRADE RBAC] session verification failed:', error);
       login();
     }
   }
