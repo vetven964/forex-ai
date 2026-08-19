@@ -19,8 +19,10 @@
     const isBackend = relativeApi || backendRequest(input);
     if (relativeApi) target = BACKEND + url;
     const requestHeaders = headers(init.headers, isBackend);
-    const tokenPresent = !!authToken();
-    const options = { ...init, credentials: isBackend && tokenPresent ? (init.credentials || 'include') : (isBackend ? 'omit' : init.credentials), cache: isBackend ? 'no-store' : init.cache, headers: requestHeaders, mode: isBackend ? 'cors' : (init.mode || undefined) };
+    // Authentication is carried explicitly by x-vtrade-auth. Do not rely on
+    // cross-site cookies from GitHub Pages to Render; this avoids browser
+    // third-party-cookie/CORS credential failures after login.
+    const options = { ...init, credentials: isBackend ? 'omit' : init.credentials, cache: isBackend ? 'no-store' : init.cache, headers: requestHeaders, mode: isBackend ? 'cors' : (init.mode || undefined) };
     if (target instanceof Request) { target = new Request(target, { headers: requestHeaders }); delete options.headers; }
     try {
       const response = await originalFetch(target, options);
@@ -79,8 +81,8 @@
     try { applyUser(JSON.parse(sessionStorage.getItem('vtrade_user') || '{}')); } catch { applyMenuLang(); }
     window.addEventListener('storage', applyMenuLang);
     document.addEventListener('vtrade:language-changed', applyMenuLang);
-    (async () => { const token = authToken(); if (!token) { applyUser({name:'Guest',role:'guest'}); return; } try { const r = await vfetch(BACKEND + '/api/auth/session', {credentials:'include'}); const d = await r.json().catch(() => ({})); if (r.ok && d.user) { sessionStorage.setItem('vtrade_user', JSON.stringify(d.user)); applyUser(d.user); } } catch {} })();
-    layer.querySelector('#vtradeLogout').addEventListener('click', async () => { const logout = layer.querySelector('#vtradeLogout'); logout.disabled = true; try { await vfetch(BACKEND + '/api/auth/logout', {method:'POST',credentials:'include'}); } catch {} window.VTRADE_CONNECTION.clearSession(); location.href = 'index.html?logged_out=1'; });
+    (async () => { const token = authToken(); if (!token) { applyUser({name:'Guest',role:'guest'}); return; } try { const r = await vfetch(BACKEND + '/api/auth/session', {credentials:'omit'}); const d = await r.json().catch(() => ({})); if (r.ok && d.user) { sessionStorage.setItem('vtrade_user', JSON.stringify(d.user)); applyUser(d.user); } } catch {} })();
+    layer.querySelector('#vtradeLogout').addEventListener('click', async () => { const logout = layer.querySelector('#vtradeLogout'); logout.disabled = true; try { await vfetch(BACKEND + '/api/auth/logout', {method:'POST',credentials:'omit'}); } catch {} window.VTRADE_CONNECTION.clearSession(); location.href = 'index.html?logged_out=1'; });
   }
 
   function installResponsiveLayer() {
