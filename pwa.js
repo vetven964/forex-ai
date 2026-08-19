@@ -2,7 +2,7 @@
   if (!('serviceWorker' in navigator)) return;
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', {scope: '/'})
+    navigator.serviceWorker.register('./sw.js', {scope: './'})
       .then(reg => {
         console.info('[V-TRADE PWA] service worker ready', reg.scope);
         reg.update().catch(() => {});
