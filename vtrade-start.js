@@ -6,12 +6,17 @@ const DASHBOARD = path.join(ROOT, 'premium-dashboard-live.html');
 const TELEGRAM = path.join(ROOT, 'ai-telegram-diagnostic-hotfix.js');
 const MARK = 'VTRADE_PHONE_AND_TELEGRAM_TRUTH_FIX_V2';
 const AI_BUTTON = 'vtrade-ai-button-hotfix.js';
+const AI_SAFE = path.join(ROOT, 'pre-market-ai-safe-hotfix.js');
 
 function patchFile(file, transform) {
   let source = fs.readFileSync(file, 'utf8');
   const next = transform(source);
   if (next !== source) fs.writeFileSync(file, next, 'utf8');
 }
+
+// Apply the pre-market AI safety patch before the runtime/diagnostic layers.
+// AI is confirmation-only and provider errors must never become trade signals.
+if (fs.existsSync(AI_SAFE)) require(AI_SAFE);
 
 patchFile(DASHBOARD, source => {
   if (source.includes(MARK)) return source;
@@ -26,7 +31,7 @@ img,svg,canvas,video{max-width:100%;}
   .main{min-width:0!important;width:100%!important;}
   .top{width:100%!important;min-width:0!important;padding:8px 9px!important;gap:7px!important;}
   .pair{min-width:0!important;}.price{font-size:clamp(23px,7vw,30px)!important;}
-  .tfs{min-width:0!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;padding-bottom:2px;}
+  .tfs{min-width:0!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;padding-bottom:2px!important;}
   .tfs button,.lang-btn{min-width:44px!important;min-height:40px!important;padding:8px 10px!important;flex:0 0 auto!important;}
   .wrap{width:100%!important;max-width:100%!important;padding:9px!important;}.toolbar{min-width:0!important;}.api{min-width:0!important;width:100%!important;}
   .card{min-width:0!important;overflow:hidden!important;}.news-item,.gate,.level,.kv{min-width:0!important;}
