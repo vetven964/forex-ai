@@ -76,7 +76,7 @@ patchFile(TELEGRAM, source => {
   const old = "  const bias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();\n  const score = firstFinite(a?.directionScore, a?.score?.directionScore, a?.score, a?.aiScore) ?? 0;";
   const neu = `  // ${MARK}: authoritative core-MTF direction for Telegram
   const coreTfs = ['H4','H1','M15'];
-  const coreRows = coreTfs.map(tf => (a?.timeframes?.[tf] || a?.mtf?.timeframes?.[tf] || a?.mtf?.[tf] || a?.multiTimeframe?.[tf] || a?.multiTimeFrame?.[tf.toLowerCase()] || a?.[tf] || a?.[tf.toLowerCase()] || null)).filter(Boolean);
+  const coreRows = coreTfs.map(tf => (a?.timeframes?.[tf] || a?.mtf?.timeframes?.[tf] || a?.mtf?.[tf] || a?.multiTimeframe?.[tf] || a?.multiTimeframe?.[tf.toLowerCase()] || a?.[tf] || a?.[tf.toLowerCase()] || null)).filter(Boolean);
   const biasOf = x => String(x?.structure?.bias || x?.structureBias || x?.resolvedBias || x?.trend || x?.directionBand || x?.direction || x?.bias || '').toUpperCase();
   const coreBiases = coreRows.map(biasOf);
   const coreBull = coreBiases.filter(x => x.includes('BULL') || x === 'BUY').length;
