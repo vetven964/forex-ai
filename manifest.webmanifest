@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "V TRADE AI — ICT Smart Terminal",
+  "short_name": "V TRADE AI",
+  "description": "V TRADE AI XAUUSD ICT Smart Terminal with live MT5 feed, MTF analysis, AI confirmation and Telegram alerts.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/index.html?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#04070d",
+  "theme_color": "#050912",
+  "categories": ["finance", "business", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {"src":"/icons/vtrade-192.svg","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},
+    {"src":"/icons/vtrade-512.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Open Terminal","short_name":"Terminal","url":"/connection.html","icons":[{"src":"/icons/vtrade-192.svg","sizes":"192x192","type":"image/svg+xml"}]},
+    {"name":"Sign In","short_name":"Sign In","url":"/login.html","icons":[{"src":"/icons/vtrade-192.svg","sizes":"192x192","type":"image/svg+xml"}]}
+  ]
+}
