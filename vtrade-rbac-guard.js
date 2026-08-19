@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC guard */
+/* V TRADE AI — Server-authoritative RBAC + persistent session/language guard */
 (() => {
   if (window.__VTRADE_RBAC_GUARD__) return;
   window.__VTRADE_RBAC_GUARD__ = true;
@@ -14,7 +14,6 @@
     localStorage.getItem('vtrade_auth_token') || localStorage.getItem('vtrade_auth') || '';
 
   const login = () => location.replace('connection.html?required=login');
-  const admin = () => location.replace('admin-dashboard.html?v=20260819-rbac');
   const user = () => location.replace('premium-dashboard-live.html?v=20260819-rbac');
 
   async function verify() {
@@ -23,25 +22,28 @@
     try {
       const r = await fetch(BACKEND + '/api/auth/session', {
         credentials: 'include', cache: 'no-store',
-        headers: {'x-vtrade-auth': t}
+        headers: { 'x-vtrade-auth': t }
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.user) return login();
 
       const role = String(d.user.role || 'user').toLowerCase();
+      const language = localStorage.getItem('vtrade_lang') === 'km' ? 'km' : 'en';
       sessionStorage.setItem('vtrade_user', JSON.stringify(d.user));
-      localStorage.setItem('vtrade_lang', localStorage.getItem('vtrade_lang') === 'km' ? 'km' : 'en');
+      localStorage.setItem('vtrade_lang', language);
+      document.documentElement.lang = language;
+      document.documentElement.dataset.role = role;
 
       if (isAdminPage && role !== 'admin' && role !== 'administrator') return user();
-      if (isUserPage && (role === 'admin' || role === 'administrator')) {
-        // Admins may use the user terminal from an explicit link; do not force redirect.
-      }
-      window.dispatchEvent(new CustomEvent('vtrade:rbac-ready', {detail: {user: d.user}}));
+      window.dispatchEvent(new CustomEvent('vtrade:rbac-ready', {
+        detail: { user: d.user, role, language }
+      }));
     } catch (_) {
       login();
     }
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', verify, {once:true});
-  else verify();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', verify, { once: true });
+  } else verify();
 })();
