@@ -18,8 +18,19 @@ function installDashboardUI(){
   console.log('[V-TRADE START] Pre-Market Intelligence V2 + Post-Open AI UI installed');
 }
 installDashboardUI();
-// Install AI confirmation diagnostics/timeout guard before server.js is loaded.
-try { require('./ai-confirmation-runtime-v2.js'); } catch (e) { console.error('[V-TRADE AI] runtime hotfix failed:', e.message); }
+
+// AI Confirmation Runtime V3 MUST load before server.js. Do not swallow a
+// startup error: running with the old AI path would hide the provider failure
+// and make the dashboard show the legacy WAIT/0/100/NEUTRAL fallback.
+try {
+  require('./ai-confirmation-runtime-v2.js');
+  console.log('[V-TRADE START] AI Confirmation Runtime V3 bootstrapped');
+} catch (e) {
+  console.error('[V-TRADE AI] FATAL: AI Confirmation Runtime V3 failed:', e.stack || e.message);
+  process.exitCode=1;
+  throw e;
+}
+
 require('./pre-market-structure-hook.js');
 require('./predeploy-consistency-hotfix.js');
 require('./vtrade-start.js');
