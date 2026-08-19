@@ -1,12 +1,12 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V9 — strict process separation + safe deterministic startup state
+// V10 — strict process separation + deterministic global startup state
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V9_STARTUP_STATE';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V10_GLOBAL_STATE';
+const READINESS = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
-// PRE-MARKET IS ANALYSIS ONLY.
 try {
   require('./pre-market-launcher-hook.js');
   console.log('[V-TRADE PROCESS SEPARATION] Pre-Market Zone Analysis hook loaded | Telegram=INDEPENDENT | mode=ANALYSIS_ONLY');
@@ -20,28 +20,40 @@ function patchServer() {
   let source = fs.readFileSync(serverFile, 'utf8');
   let changed = false;
 
-  // Define each scanner state variable only when it does not already exist.
-  // This prevents both "not defined" and duplicate let/const declarations.
+  // Never depend on a lexical variable affected by launcher patch order.
+  if (/\btelegramAutoLastReadinessLog\b/.test(source)) {
+    source = source.replace(/\btelegramAutoLastReadinessLog\b/g, READINESS);
+    changed = true;
+    console.log('[V-TRADE SAFETY] Telegram readiness state normalized to global runtime slot');
+  }
+  if (!source.includes("globalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '')")) {
+    source = `// ${marker}\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n${source}`;
+    changed = true;
+  }
+
+  // Other scanner state uses global slots to prevent duplicate declarations.
   const stateDefs = [
-    ['telegramAutoLastReadinessLog', "''"],
     ['telegramAutoLastState', "''"],
     ['telegramAutoLastWaitSentAt', '0'],
     ['telegramAutoScanCount', '0']
   ];
-  const missingDefs = stateDefs.filter(([name]) => !new RegExp('\\b(?:let|const|var)\\s+' + name + '\\s*=').test(source));
-  if (missingDefs.length) {
-    const block = `// ${marker}\n// Telegram auto scanner state is initialized before routes/timers.\n${missingDefs.map(([name, value]) => `let ${name} = ${value};`).join('\n')}\n`;
-    source = block + source;
-    changed = true;
-    console.log('[V-TRADE SAFETY] scanner state restored | missing=' + missingDefs.map(x => x[0]).join(','));
+  for (const [name, value] of stateDefs) {
+    const globalName = `globalThis.__vtrade_${name}`;
+    if (!source.includes(globalName)) {
+      source = `${globalName} = ${globalName} ?? ${value};\n` + source;
+      changed = true;
+      console.log('[V-TRADE SAFETY] scanner state restored | missing=' + name);
+    }
+    const lexical = new RegExp('\\b(?:let|const|var)\\s+' + name + '\\s*=');
+    if (lexical.test(source)) {
+      source = source.replace(new RegExp('\\b(?:let|const|var)\\s+' + name + '\\s*=\\s*[^;]+;\\n?', ''), '');
+      changed = true;
+    }
+    source = source.replace(new RegExp('(?<![.$])\\b' + name + '\\b', 'g'), globalName);
   }
 
-  // Main Telegram bot remains responsible for commands/admin/user flows.
-  // Auto-alert delivery is strictly isolated from the main bot.
   const envNeedle = "const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';";
   const envPatch = `const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
-// STRICTLY SEPARATE Telegram Auto-Alert bot/channel.
-// Missing auto credentials disable delivery only; scanner remains alive.
 const TELEGRAM_AUTO_TOKEN = process.env.TELEGRAM_AUTO_TOKEN || '';
 const TELEGRAM_AUTO_CHAT_ID = process.env.TELEGRAM_AUTO_CHAT_ID || '';
 let telegramAutoBot = null;
@@ -56,7 +68,6 @@ try {
     changed = true;
   }
 
-  // ENTRY-ONLY: WAIT/zone/news remain internal and never become Telegram alerts.
   const zonePattern = /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/;
   if (zonePattern.test(source)) {
     source = source.replace(zonePattern, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY");
@@ -68,7 +79,6 @@ try {
     changed = true;
   }
 
-  // Remove legacy automatic WAIT/state-change broadcasts.
   const waitStart = source.indexOf('// Auto mode also sends a state-change WAIT update');
   const waitEnd = source.indexOf('// State logging is also stable:', waitStart);
   if (waitStart >= 0 && waitEnd > waitStart) {
@@ -81,10 +91,8 @@ try {
     ["  telegramAutoAlertRunning = true;\n  try {\n    const r=telegramAutoReadinessSnapshot();", "  telegramAutoAlertRunning = true;\n  const telegramDeliveryReady = !!telegramAutoBot && !!TELEGRAM_AUTO_CHAT_ID;\n  try {\n    const r=telegramAutoReadinessSnapshot();\n    if (!telegramDeliveryReady) console.warn('[TELEGRAM AUTO] delivery disabled | scanner active | configure TELEGRAM_AUTO_TOKEN + TELEGRAM_AUTO_CHAT_ID');"],
     ["    const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO' , session: false };", "    const tg = telegramDeliveryReady ? { bot:telegramAutoBot, chatId:TELEGRAM_AUTO_CHAT_ID, botUsername:'AUTO_ALERT', session:false } : null;"],
     ["    const tg = { bot, chatId: TELEGRAM_CHAT_ID, botUsername: 'ENV_AUTO', session: false };", "    const tg = telegramDeliveryReady ? { bot:telegramAutoBot, chatId:TELEGRAM_AUTO_CHAT_ID, botUsername:'AUTO_ALERT', session:false } : null;"],
-    ["    const a = await buildXauAnalysis();", "    telegramAutoScanCount += 1;\n    console.log(`[TELEGRAM AUTO] Scan start | count=${telegramAutoScanCount} | delivery=${telegramDeliveryReady?'READY':'NOT_CONFIGURED'}`);\n\n    const a = await buildXauAnalysis();"],
-    ["  await tg.bot.sendMessage(tg.chatId, waitText);", "  if (tg) {\n    await tg.bot.sendMessage(tg.chatId, waitText);\n  } else {\n    console.log('[TELEGRAM AUTO] WAIT alert not sent | isolated delivery not configured');\n  }"]
+    ["    const a = await buildXauAnalysis();", "    globalThis.__vtrade_telegramAutoScanCount += 1;\n    console.log(`[TELEGRAM AUTO] Scan start | count=${globalThis.__vtrade_telegramAutoScanCount} | delivery=${telegramDeliveryReady?'READY':'NOT_CONFIGURED'}`);\n\n    const a = await buildXauAnalysis();"]
   ];
-
   for (const [from, to] of replacements) {
     if (source.includes(from) && !source.includes(to)) {
       source = source.replace(from, to);
@@ -92,7 +100,6 @@ try {
     }
   }
 
-  // No eager scan: normal interval starts after MT5 readiness checks.
   const oldTrigger = /\n\/\/ Trigger one scan shortly after startup;[\s\S]*?\n\}, 3000\);\n?/;
   if (oldTrigger.test(source)) {
     source = source.replace(oldTrigger, '\n');
@@ -103,7 +110,6 @@ try {
     source = `// ${marker}\n${source}`;
     changed = true;
   }
-
   if (changed) fs.writeFileSync(serverFile, source, 'utf8');
   console.log(`[V-TRADE TELEGRAM WATCHDOG] active | scanner=${String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase()==='true'} | mainBot=${process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID ? 'configured' : 'not-configured'} | autoBot=${process.env.TELEGRAM_AUTO_TOKEN && process.env.TELEGRAM_AUTO_CHAT_ID ? 'configured' : 'NOT_CONFIGURED'} | first-scan=interval | PreMarket=SEPARATE`);
 }
