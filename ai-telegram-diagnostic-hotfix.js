@@ -106,6 +106,48 @@ function patchTelegramEntryOnly() {
   }
 }
 
+function patchTelegramRuntimeSafety() {
+  try {
+    let source = fs.readFileSync(SERVER_FILE, 'utf8');
+    let changed = false;
+
+    // The analysis endpoint already sends its JSON response. Never call an undefined
+    // Telegram helper afterwards and then try to send a second 503 response.
+    const badCall = /\n\s*maybeTelegramAlert\(a, tg, sid\)\.catch\(e=>console\.error\('Telegram alert:',e\.message\)\);/;
+    if (badCall.test(source)) {
+      source = source.replace(badCall, "\n    // ENTRY-ONLY: analysis requests never broadcast Telegram alerts.\n    // Telegram auto scanner is the single delivery path for confirmed BUY/SELL entries.\n");
+      changed = true;
+      console.log('[V-TRADE SAFETY] removed post-response Telegram alert call from /api/analysis/xauusd');
+    }
+
+    // Keep scanner diagnostics defined even if an older watchdog patch removed the declaration.
+    if (!/\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=/.test(source)) {
+      const anchor = /\blet\s+telegramAutoLastState\s*=\s*'';/;
+      if (anchor.test(source)) {
+        source = source.replace(anchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';" );
+        changed = true;
+        console.log('[V-TRADE SAFETY] restored Telegram readiness state variable');
+      }
+    }
+
+    // Ensure the scanner state variables exist after any legacy entry-only patch.
+    if (!/\blet\s+telegramAutoLastState\s*=/.test(source)) {
+      const anchor = /\basync function runTelegramAutoAlertScan\(\)\s*\{/;
+      if (anchor.test(source)) {
+        source = source.replace(anchor, "let telegramAutoLastReadinessLog = '';\nlet telegramAutoLastState = '';\n\nasync function runTelegramAutoAlertScan() {");
+        changed = true;
+        console.log('[V-TRADE SAFETY] restored Telegram scanner state variables');
+      }
+    }
+
+    if (changed) fs.writeFileSync(SERVER_FILE, source, 'utf8');
+    console.log('[V-TRADE SAFETY] Telegram runtime guards active');
+  } catch (e) {
+    console.error('[V-TRADE SAFETY] Telegram runtime guard failed:', redact(e?.stack || e?.message || e));
+    process.exitCode = 1;
+  }
+}
+
 function installRuntimeDiagnostics() {
   try {
     const TelegramBot = require('node-telegram-bot-api');
@@ -134,6 +176,7 @@ try {
   patchLauncherSafety();
   installRuntimeDiagnostics();
   patchTelegramEntryOnly();
+  patchTelegramRuntimeSafety();
   console.log('[V-TRADE DIAGNOSTIC] Telegram ENTRY-ONLY diagnostics enabled');
 } catch (err) {
   console.error('[V-TRADE DIAGNOSTIC] startup failed:', redact(err?.stack || err?.message || err));
