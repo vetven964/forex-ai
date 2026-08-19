@@ -17,6 +17,9 @@ function installRuntimeDiagnostics(){try{const TelegramBot=require('node-telegra
 
 try { patchLauncherSafety(); installRuntimeDiagnostics(); let source=fs.readFileSync(SERVER_FILE,'utf8'); if(!source.includes(MARKER)){source=`${MARKER}\n${source}`;fs.writeFileSync(SERVER_FILE,source,'utf8');console.log('[V-TRADE DIAGNOSTIC] server.js diagnostic marker installed');} patchTelegramFormat(); ensureTelegramWaitFormatter(); console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled'); console.log(`[V-TRADE DIAGNOSTIC] OpenAI hard guard=${String(process.env.OPENAI_ENABLED||'false').toLowerCase()==='true'?'OFF':'ON'}`); } catch(err) { console.error('[V-TRADE DIAGNOSTIC] startup failed:',redact(err?.stack||err?.message||err)); process.exitCode=1; }
 
+// Load D1 diagnostics before the canonical watchdog starts.
+try { require('./mtf-d1-diagnostic-hotfix.js'); } catch (e) { console.error('[V-TRADE MTF] D1 diagnostic loader failed:', e.stack || e.message); process.exitCode=1; }
+
 // IMPORTANT: this file is also the active Render start command on the existing service.
 // Launch the canonical watchdog only AFTER diagnostics/formatters have patched server.js.
 try { require('./telegram-auto-watchdog.js'); } catch (e) { console.error('[V-TRADE START] telegram watchdog launch failed:', e.stack || e.message); process.exitCode=1; }
