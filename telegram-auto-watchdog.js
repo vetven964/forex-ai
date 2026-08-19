@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V13 — startup-safe global delivery guard + literal-safe patching
+// V-TRADE V14 — startup-safe global delivery guard + literal-safe patching
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V13_LITERAL_SAFE';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V14_SAFE';
 const READINESS = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
 try {
@@ -20,7 +20,6 @@ function patchServer() {
   let source = fs.readFileSync(serverFile, 'utf8');
   let changed = false;
 
-  // 1) Readiness state: always use one global slot.
   if (source.indexOf('telegramAutoLastReadinessLog') >= 0) {
     source = source.split('telegramAutoLastReadinessLog').join(READINESS);
     changed = true;
@@ -31,7 +30,6 @@ function patchServer() {
     changed = true;
   }
 
-  // 2) Scanner state: no duplicate let/const declarations across launcher patches.
   const stateDefs = [
     ['telegramAutoLastState', "''"],
     ['telegramAutoLastWaitSentAt', '0'],
@@ -51,11 +49,11 @@ function patchServer() {
       source = source.replace(decl, '');
       changed = true;
     }
-    const ref = new RegExp('\\b' + name + '\\b', 'g');
+    // Only replace bare references; never touch the globalName we just created.
+    const ref = new RegExp('(?<![A-Za-z0-9_.$])' + name + '\\b', 'g');
     source = source.replace(ref, globalName);
   }
 
-  // 3) Dedicated Telegram Auto Bot credentials.
   const envNeedle = "const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';";
   const envPatch = `const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const TELEGRAM_AUTO_TOKEN = process.env.TELEGRAM_AUTO_TOKEN || '';
@@ -72,8 +70,7 @@ try {
     changed = true;
   }
 
-  // 4) One global delivery function. It does not depend on server.js lexical scope.
-  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V3';
+  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V4';
   if (source.indexOf(deliveryMarker) < 0) {
     const deliveryFn = `
 // ${deliveryMarker}
@@ -118,26 +115,25 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     changed = true;
   }
 
-  // 5) Scanner calls use the explicit global function. This avoids ReferenceError.
-  const call1 = 'maybeTelegramAlert(a, tg, sid).catch(e=>console.error(\'Telegram alert:\',e.message));';
-  if (source.indexOf(call1) >= 0) {
-    source = source.split(call1).join('globalThis.maybeTelegramAlert(a, tg).catch(e=>console.error(\'Telegram alert:\',e.message));');
-    changed = true;
+  const calls = [
+    'maybeTelegramAlert(a, tg, sid).catch(e=>console.error(\'Telegram alert:\',e.message));',
+    'maybeTelegramAlert(a,tg,sid).catch(e=>console.error(\'Telegram alert:\',e.message));'
+  ];
+  for (const call of calls) {
+    if (source.indexOf(call) >= 0) {
+      source = source.split(call).join('globalThis.maybeTelegramAlert(a, tg).catch(e=>console.error(\'Telegram alert:\',e.message));');
+      changed = true;
+    }
   }
-  const call2 = 'maybeTelegramAlert(a,tg,sid).catch(e=>console.error(\'Telegram alert:\',e.message));';
-  if (source.indexOf(call2) >= 0) {
-    source = source.split(call2).join('globalThis.maybeTelegramAlert(a, tg).catch(e=>console.error(\'Telegram alert:\',e.message));');
+
+  const analysisCall = 'globalThis.maybeTelegramAlert(a, tg).catch(e=>console.error(\'Telegram alert:\',e.message));';
+  // Only remove the call inside /api/analysis/xauusd, not the scanner call.
+  const analysisNeedle = "storage.saveAnalysis(a).catch(()=>{});\n    " + analysisCall;
+  if (source.indexOf(analysisNeedle) >= 0) {
+    source = source.split(analysisNeedle).join("storage.saveAnalysis(a).catch(()=>{});\n    console.log('[V-TRADE TELEGRAM] analysis route is delivery-independent | no alert sent');");
     changed = true;
   }
 
-  // 6) Analysis API must never send Telegram as a side effect.
-  const oldAnalysis = 'globalThis.maybeTelegramAlert(a, tg, sid).catch(e=>console.error(\'Telegram alert:\',e.message));';
-  if (source.indexOf(oldAnalysis) >= 0) {
-    source = source.split(oldAnalysis).join("console.log('[V-TRADE TELEGRAM] analysis route is delivery-independent | no alert sent');");
-    changed = true;
-  }
-
-  // 7) Disable zone/news auto alerts.
   const zoneLine = "const ZONE_ALERT_ENABLED = String(process.env.ZONE_ALERT_ENABLED || 'true').toLowerCase() === 'true';";
   if (source.indexOf(zoneLine) >= 0) {
     source = source.replace(zoneLine, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY");
