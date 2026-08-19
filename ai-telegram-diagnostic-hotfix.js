@@ -41,6 +41,10 @@ function patchTelegramEntryOnly() {
       /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/,
       "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY: no pre-entry zone alerts"
     );
+    source = source.replace(
+      /const TELEGRAM_NEWS_ALERTS = String\(process\.env\.TELEGRAM_NEWS_ALERTS \|\| 'true'\)\.toLowerCase\(\) === 'true';/,
+      "const TELEGRAM_NEWS_ALERTS = false; // ENTRY-ONLY: no news alerts"
+    );
 
     // Delete automatic WAIT/state-change Telegram sends. WAIT remains internal only.
     const waitStart = source.indexOf('// Auto mode also sends a state-change WAIT update');
@@ -98,7 +102,7 @@ function patchTelegramEntryOnly() {
 
     if (!source.includes(MARKER)) source = MARKER + '\n' + source;
     fs.writeFileSync(SERVER_FILE, source, 'utf8');
-    console.log('[V-TRADE TELEGRAM] ENTRY-ONLY mode active | WAIT/ZONE auto alerts disabled');
+    console.log('[V-TRADE TELEGRAM] ENTRY-ONLY mode active | WAIT/ZONE/NEWS auto alerts disabled');
     console.log('[V-TRADE TELEGRAM] Telegram message = confirmed BUY/SELL only');
   } catch (e) {
     console.error('[V-TRADE TELEGRAM] ENTRY-ONLY patch failed:', redact(e?.stack || e?.message || e));
