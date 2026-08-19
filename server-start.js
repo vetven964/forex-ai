@@ -1,6 +1,5 @@
 // V-TRADE AI canonical Render startup entrypoint.
-// Keep the existing production launcher as the implementation so all
-// current runtime hotfixes/patches remain active while Render uses one
-// explicit startup command.
+// Keep the existing runtime hotfixes and install the Telegram scanner watchdog
+// before the production launcher compiles server.js.
 require('./server-runtime-hotfix.js');
-require('./server-launcher.js');
+require('./telegram-auto-watchdog.js');
