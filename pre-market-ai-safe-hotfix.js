@@ -1,15 +1,11 @@
-// V-TRADE AI — Pre-Market AI Safe/Truth Hotfix V1
-// Purpose:
-// 1) Never let AI provider errors become a fake WAIT confidence=0 trading signal.
-// 2) AI is optional confirmation only; engine/ICT/risk gates remain authoritative.
-// 3) When OPENAI_ENABLED is not true, expose AI as DISABLED instead of ERROR.
-// 4) When AI fails, expose UNAVAILABLE without blocking the deterministic engine.
+// V-TRADE AI — Pre-Market AI Safe/Truth Hotfix V2
+// AI is optional confirmation only. Provider failure is UNAVAILABLE, never confidence=0.
 const fs = require('fs');
 const path = require('path');
 
 const PRE = path.resolve(__dirname, 'pre-market-launcher-hook.js');
 const TERM = path.resolve(__dirname, 'terminal-pre-market.js');
-const MARK = 'VTRADE_PREMARKET_AI_SAFE_V1';
+const MARK = 'VTRADE_PREMARKET_AI_SAFE_V2';
 
 function patchFile(file, transform) {
   if (!fs.existsSync(file)) return;
@@ -20,7 +16,6 @@ function patchFile(file, transform) {
 
 patchFile(PRE, source => {
   if (source.includes(MARK)) return source;
-
   const start = source.indexOf(' async function aiHandler(req,res){');
   const route = source.indexOf(" app.options('/api/pre-market/candle-open',handler);");
   if (start < 0 || route < 0 || route <= start) {
@@ -58,20 +53,25 @@ patchFile(PRE, source => {
 
 patchFile(TERM, source => {
   if (source.includes(MARK)) return source;
-  // Render AI state distinctly: disabled/unavailable is not a 0-confidence signal.
+
+  // Render AI state truthfully: disabled/unavailable/error is not a 0-confidence signal.
   source = source.replace(
     "<div class=\"vpm-row\"><span>Confidence</span><b>${pct(state.ai.confidence)}/100</b></div>",
-    "<div class=\"vpm-row\"><span>Confidence</span><b>${state.ai?.confidence==null?'N/A':pct(state.ai.confidence)+'/100'}</b></div>"
+    "<div class=\"vpm-row\"><span>Confidence</span><b>${(['unavailable','error','timeout','disabled','blocked'].includes(String(state.ai?.status||'').toLowerCase())||state.ai?.confidence==null)?'N/A':pct(state.ai.confidence)+'/100'}</b></div>"
   );
   source = source.replace(
     "<div class=\"vpm-row\"><span>Agreement</span><b>${esc(state.ai.agreement||'NEUTRAL')}</b></div>",
-    "<div class=\"vpm-row\"><span>Agreement</span><b>${esc(state.ai.agreement||'N/A')}</b></div>"
+    "<div class=\"vpm-row\"><span>Agreement</span><b>${esc(state.ai.agreement||(['unavailable','error','timeout','disabled','blocked'].includes(String(state.ai?.status||'').toLowerCase())?'N/A':'NEUTRAL'))}</b></div>"
   );
   source = source.replace(
     "<div class=\"vpm-row\"><span>Decision</span><b>${esc(state.ai.decision||'WAIT')}</b></div>",
-    "<div class=\"vpm-row\"><span>Decision</span><b>${esc(state.ai.decision||'UNAVAILABLE')}</b></div>"
+    "<div class=\"vpm-row\"><span>Decision</span><b>${esc(state.ai.decision||(['unavailable','error','timeout'].includes(String(state.ai?.status||'').toLowerCase())?'UNAVAILABLE':'WAIT'))}</b></div>"
+  );
+  source = source.replace(
+    "${esc((state.ai.reasons||state.ai.key_drivers||[]).join(' · ') || state.ai.summary || 'No AI confirmation details.')}",
+    "${esc((state.ai.reasons||state.ai.key_drivers||[]).join(' · ') || state.ai.summary || state.ai.error || (state.ai.status==='disabled'?'AI confirmation is disabled; deterministic ICT engine remains authoritative.':'AI confirmation unavailable; no trade is promoted by AI.'))}"
   );
   return source.replace('AI confirmation loaded after complete M5 → M15 → H1 → H4 → D1 processing.', 'AI confirmation state loaded after complete M5 → M15 → H1 → H4 → D1 processing. AI is optional and never authorizes an order.');
 });
 
-console.log('[V-TRADE AI SAFE] optional AI confirmation + non-blocking error handling active');
+console.log('[V-TRADE AI SAFE V2] optional AI confirmation + truthful non-blocking error handling active');
