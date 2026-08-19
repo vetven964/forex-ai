@@ -1,25 +1,164 @@
-// V-TRADE AI — AI/Telegram diagnostic + premium signal-format hotfix
-// Logic-safe presentation layer: does not authorize trades, change gates, or alter MT5 data.
+// V-TRADE AI — Telegram ENTRY-ONLY alert hotfix
+// Auto Telegram stays silent until a fully confirmed BUY/SELL opportunity exists.
+// Internal ICT/MTF/AI scoring remains server-side; Telegram gets only the trade plan.
 const fs = require('fs');
 const path = require('path');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const LAUNCHER_FILE = path.resolve(__dirname, 'server-launcher.js');
-const MARKER = '// V-TRADE AI AI/TELEGRAM DIAGNOSTIC HOTFIX INSTALLED';
-const FORMAT_MARKER = '// V-TRADE AI TELEGRAM PREMIUM FORMAT HOTFIX INSTALLED';
+const MARKER = '// V-TRADE AI TELEGRAM ENTRY-ONLY HOTFIX V2';
 
-function redact(value) { return String(value || '').replace(/(bot\d+:[A-Za-z0-9_-]+)/g, 'BOT_TOKEN_REDACTED').replace(/(sk-[A-Za-z0-9_-]+)/g, 'OPENAI_KEY_REDACTED').replace(/([?&](?:key|token)=)[^&]+/gi, '$1REDACTED'); }
-function patchLauncherSafety() { try { let source=fs.readFileSync(LAUNCHER_FILE,'utf8'); const oldGuard="if (gatePattern.test(source) && !/\\bconst\\s+executionLocationOk\\s*=/.test(source)) {"; const newGuard="if (gatePattern.test(source) && !/\\b(?:const|let|var)\\s+(?:executionLocationOk|zoneMid|limitZoneReady)\\s*=/.test(source)) {"; if(source.includes(oldGuard)){source=source.replace(oldGuard,newGuard);fs.writeFileSync(LAUNCHER_FILE,source,'utf8');console.log('[V-TRADE SAFETY] launcher duplicate-zone guard patched');}}catch(e){console.warn('[V-TRADE SAFETY] launcher guard skipped:',e.message);} }
-function num(v){const n=Number(v);return Number.isFinite(n)?n:null;} function price(v){const n=num(v);return n===null?'—':n.toFixed(2);} function firstFinite(...values){for(const v of values){const n=num(v);if(n!==null)return n;}return null;}
-function premiumSignalText(a){ const live=firstFinite(a?.livePrice,a?.price,a?.bid,a?.ask); const side=String(a?.side||a?.action||'').toUpperCase(); const bias=String(a?.bias||a?.directionBand||(side==='BUY'?'BULLISH':side==='SELL'?'BEARISH':'NEUTRAL')).toUpperCase(); const score=firstFinite(a?.directionScore,a?.score?.directionScore,a?.score,a?.aiScore)??0; const confidence=firstFinite(a?.confidence,a?.score?.confidence)??0; const isConfirmed=a?.tradeAuthorized===true&&['BUY','SELL'].includes(side); const action=isConfirmed?`${side==='BUY'?'🟢 BUY':'🔴 SELL'} — ${side==='BUY'?'LONG':'SHORT'}`:`🟡 WAIT — ${bias==='BULLISH'?'BUY BIAS':bias==='BEARISH'?'SELL BIAS':'NO BIAS'}`; if(!isConfirmed)return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','','📊 Asset: *XAU/USD (Gold)*','💰 Price: *'+price(live)+'*','⚡ Action: *'+action+'*','📈 Bias: *'+bias+'*','📊 Direction Score: *'+score+'/100*','🧠 Confidence: *'+confidence+'/100*','','🔎 *ICT ENTRY GATES*','• Trade Authorization: *❌ NOT AUTHORIZED*','','🟡 *STATUS*','*WAIT — NO ORDER AUTHORIZED*','','🔐 *TRUTH GUARD*','No order until entry gates + analyst council + risk/data checks pass.'].join('\n'); return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','','📊 Asset: *XAU/USD (Gold)*','💰 Price: *'+price(live)+'*','','⚡ *ACTION: '+action+'*','📈 Bias: *'+bias+'*','📊 Direction Score: *'+score+'/100*','🧠 Confidence: *'+confidence+'/100*','','🟢 *STATUS: ENTRY CONFIRMED — ORDER AUTHORIZED*'].join('\n'); }
-function patchTelegramFormat(){try{let source=fs.readFileSync(SERVER_FILE,'utf8');if(source.includes(FORMAT_MARKER)){console.log('[V-TRADE STYLE] Telegram premium format already active');return;}const candidates=[['function telegramWaitText(a) {','\nfunction telegramText(a) {'],['function telegramText(a) {','\nfunction telegramButtons('],['function telegramText(a) {','\nfunction sendTelegram']];let start=-1,end=-1;for(const [s,e] of candidates){const x=source.indexOf(s);const y=x>=0?source.indexOf(e,x):-1;if(x>=0&&y>x){start=x;end=y;break;}}if(start<0||end<0){console.warn('[V-TRADE STYLE] Telegram formatter function not found; logic untouched');return;}const replacement=`${FORMAT_MARKER}\nfunction telegramText(a) { return premiumSignalText(a); }\n`;source=source.slice(0,start)+replacement+source.slice(end);fs.writeFileSync(SERVER_FILE,source,'utf8');console.log('[V-TRADE STYLE] Telegram premium BUY/SELL/WAIT format patched — logic unchanged');}catch(e){console.warn('[V-TRADE STYLE] Telegram format patch skipped:',e.message);}}
-function ensureTelegramWaitFormatter(){try{let source=fs.readFileSync(SERVER_FILE,'utf8');if(/function\s+telegramWaitText\s*\(/.test(source)){console.log('[V-TRADE TELEGRAM] WAIT formatter exists');return;}const needle='function telegramText(a) {';const idx=source.indexOf(needle);if(idx<0)throw new Error('telegramText() not found');const fallback=`// V-TRADE TELEGRAM WAIT FALLBACK HOTFIX V2\nfunction telegramWaitText(a) { try { return telegramText(a); } catch (_) { return '🤖 *V TRADE AI*\\n\\n🟡 *WAIT — NO ORDER AUTHORIZED*'; } }\n\n`;source=source.slice(0,idx)+fallback+source.slice(idx);fs.writeFileSync(SERVER_FILE,source,'utf8');console.log('[V-TRADE TELEGRAM] WAIT formatter fallback installed');}catch(e){console.error('[V-TRADE TELEGRAM] WAIT fallback failed:',e.message);process.exitCode=1;}}
-function installRuntimeDiagnostics(){try{const TelegramBot=require('node-telegram-bot-api');if(!TelegramBot.prototype.__vtradeDiagnosticSendMessage){const original=TelegramBot.prototype.sendMessage;TelegramBot.prototype.sendMessage=function(...args){const chatId=String(args[0]||'');const text=String(args[1]||'');console.log(`[TELEGRAM SEND] chat=${chatId||'MISSING'} chars=${text.length}`);return Promise.resolve(original.apply(this,args)).then(v=>{console.log(`[TELEGRAM SEND OK] chat=${chatId||'MISSING'}`);return v;}).catch(err=>{console.error(`[TELEGRAM SEND ERROR] ${redact(err?.message||err)}`);throw err;});};TelegramBot.prototype.__vtradeDiagnosticSendMessage=true;}}catch(e){console.warn('[TELEGRAM DIAGNOSTIC] install skipped:',e.message);}}
+function redact(value) {
+  return String(value || '')
+    .replace(/(bot\d+:[A-Za-z0-9_-]+)/g, 'BOT_TOKEN_REDACTED')
+    .replace(/(sk-[A-Za-z0-9_-]+)/g, 'OPENAI_KEY_REDACTED')
+    .replace(/([?&](?:key|token)=)[^&]+/gi, '$1REDACTED');
+}
 
-try { patchLauncherSafety(); installRuntimeDiagnostics(); let source=fs.readFileSync(SERVER_FILE,'utf8'); if(!source.includes(MARKER)){source=`${MARKER}\n${source}`;fs.writeFileSync(SERVER_FILE,source,'utf8');console.log('[V-TRADE DIAGNOSTIC] server.js diagnostic marker installed');} patchTelegramFormat(); ensureTelegramWaitFormatter(); console.log('[V-TRADE DIAGNOSTIC] AI + Telegram diagnostics enabled'); console.log(`[V-TRADE DIAGNOSTIC] OpenAI hard guard=${String(process.env.OPENAI_ENABLED||'false').toLowerCase()==='true'?'OFF':'ON'}`); } catch(err) { console.error('[V-TRADE DIAGNOSTIC] startup failed:',redact(err?.stack||err?.message||err)); process.exitCode=1; }
+function patchLauncherSafety() {
+  try {
+    let source = fs.readFileSync(LAUNCHER_FILE, 'utf8');
+    const oldGuard = "if (gatePattern.test(source) && !/\\bconst\\s+executionLocationOk\\s*=/.test(source)) {";
+    const newGuard = "if (gatePattern.test(source) && !/\\b(?:const|let|var)\\s+(?:executionLocationOk|zoneMid|limitZoneReady)\\s*=/.test(source)) {";
+    if (source.includes(oldGuard)) {
+      source = source.replace(oldGuard, newGuard);
+      fs.writeFileSync(LAUNCHER_FILE, source, 'utf8');
+      console.log('[V-TRADE SAFETY] launcher duplicate-zone guard patched');
+    }
+  } catch (e) {
+    console.warn('[V-TRADE SAFETY] launcher guard skipped:', e.message);
+  }
+}
 
-// Load D1 diagnostics before the canonical watchdog starts.
-try { require('./mtf-d1-diagnostic-hotfix.js'); } catch (e) { console.error('[V-TRADE MTF] D1 diagnostic loader failed:', e.stack || e.message); process.exitCode=1; }
+function patchTelegramEntryOnly() {
+  try {
+    let source = fs.readFileSync(SERVER_FILE, 'utf8');
 
-// IMPORTANT: this file is also the active Render start command on the existing service.
-// Launch the canonical watchdog only AFTER diagnostics/formatters have patched server.js.
-try { require('./telegram-auto-watchdog.js'); } catch (e) { console.error('[V-TRADE START] telegram watchdog launch failed:', e.stack || e.message); process.exitCode=1; }
+    // Never send a pre-entry zone notification.
+    source = source.replace(
+      /const ZONE_ALERT_ENABLED = String\(process\.env\.ZONE_ALERT_ENABLED \|\| 'true'\)\.toLowerCase\(\) === 'true';/,
+      "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY: no pre-entry zone alerts"
+    );
+
+    // Remove the automatic WAIT-alert block. The engine can still calculate/log WAIT internally.
+    const waitStart = source.indexOf('// Auto mode also sends a state-change WAIT update');
+    const waitEnd = source.indexOf('// State logging is also stable:', waitStart);
+    if (waitStart >= 0 && waitEnd > waitStart) {
+      source = source.slice(0, waitStart) + source.slice(waitEnd);
+    }
+
+    // Make the Telegram formatter self-contained and simple.
+    const telegramStart = source.indexOf('function telegramText(a) {');
+    if (telegramStart >= 0) {
+      const candidates = [
+        '\nfunction telegramButtons(',
+        '\nfunction sendTelegram',
+        '\nfunction maybeTelegramAlert('
+      ];
+      let telegramEnd = -1;
+      for (const marker of candidates) {
+        const idx = source.indexOf(marker, telegramStart);
+        if (idx >= 0 && (telegramEnd < 0 || idx < telegramEnd)) telegramEnd = idx;
+      }
+      if (telegramEnd > telegramStart) {
+        const formatter = `function telegramText(a) {
+  const o = a?.bestOpportunity || {};
+  const signal = String(a?.signal || '').toUpperCase();
+  const tf = String(a?.executionTimeframe || a?.timeframe || a?.selectedTF || o?.timeframe || '').toUpperCase();
+  const confirmed = ['BUY','SELL'].includes(signal)
+    && String(a?.status || '').includes('ENTRY CONFIRMED')
+    && Number.isFinite(Number(a?.entry))
+    && (o?.state === 'CONFIRMED' || a?.confirmations?.allGatesPassed === true);
+  if (!confirmed) return '';
+
+  const n = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '—';
+  const zone = a?.entryZone || o?.entryZone || a?.candidateZone || {};
+  const low = Number(zone?.low), high = Number(zone?.high);
+  const zoneText = Number.isFinite(low) && Number.isFinite(high) ? n(low) + ' — ' + n(high) : n(a?.entry ?? o?.entry);
+  const tp = Array.isArray(a?.takeProfit) ? a.takeProfit : (Array.isArray(o?.takeProfit) ? o.takeProfit : []);
+  const minutes = tf === 'M5' ? 5 : tf === 'M15' ? 15 : tf === 'M30' ? 30 : tf === 'H1' ? 60 : tf === 'H4' ? 240 : 5;
+  const count = minutes <= 5 ? 1 : minutes < 60 ? 2 : 3;
+  const confidenceRaw = Number(a?.confidence ?? o?.confidence);
+  const confidence = Number.isFinite(confidenceRaw) ? Math.max(0, Math.min(100, Math.round(confidenceRaw))) : 0;
+  const lines = [
+    '🤖 *V TRADE AI — XAUUSD*',
+    '',
+    (signal === 'BUY' ? '🟢 *BUY — ENTRY CONFIRMED*' : '🔴 *SELL — ENTRY CONFIRMED*'),
+    '🧠 Confidence: *' + confidence + '/100*',
+    '⏱ TF: *' + (tf || '—') + '*',
+    '',
+    '📍 Zone: *' + zoneText + '*',
+    '🎯 Entry: *' + n(a?.entry ?? o?.entry) + '*',
+    '🛑 SL: *' + n(a?.stopLoss ?? o?.stopLoss) + '*'
+  ];
+  for (let i = 0; i < count; i++) lines.push('🎯 TP' + (i + 1) + ': *' + n(tp[i]) + '*');
+  return lines.join('\\n');
+}
+`;
+        source = source.slice(0, telegramStart) + formatter + source.slice(telegramEnd);
+      }
+    }
+
+    // Keep a marker so the patch is auditable and idempotent.
+    if (!source.includes(MARKER)) source = MARKER + '\n' + source;
+    fs.writeFileSync(SERVER_FILE, source, 'utf8');
+    console.log('[V-TRADE TELEGRAM] ENTRY-ONLY mode patched | WAIT/ZONE auto alerts disabled');
+    console.log('[V-TRADE TELEGRAM] Telegram message = confirmed BUY/SELL only');
+  } catch (e) {
+    console.error('[V-TRADE TELEGRAM] ENTRY-ONLY patch failed:', redact(e?.stack || e?.message || e));
+    process.exitCode = 1;
+  }
+}
+
+function installRuntimeDiagnostics() {
+  try {
+    const TelegramBot = require('node-telegram-bot-api');
+    if (!TelegramBot.prototype.__vtradeDiagnosticSendMessage) {
+      const original = TelegramBot.prototype.sendMessage;
+      TelegramBot.prototype.sendMessage = function (...args) {
+        const chatId = String(args[0] || '');
+        const text = String(args[1] || '');
+        if (!text.trim()) {
+          console.log(`[TELEGRAM SUPPRESS] chat=${chatId || 'MISSING'} reason=empty-entry-message`);
+          return Promise.resolve({ suppressed: true });
+        }
+        console.log(`[TELEGRAM SEND] chat=${chatId || 'MISSING'} chars=${text.length}`);
+        return Promise.resolve(original.apply(this, args))
+          .then(v => {
+            console.log(`[TELEGRAM SEND OK] chat=${chatId || 'MISSING'}`);
+            return v;
+          })
+          .catch(err => {
+            console.error(`[TELEGRAM SEND ERROR] ${redact(err?.message || err)}`);
+            throw err;
+          });
+      };
+      TelegramBot.prototype.__vtradeDiagnosticSendMessage = true;
+    }
+  } catch (e) {
+    console.warn('[TELEGRAM DIAGNOSTIC] install skipped:', e.message);
+  }
+}
+
+try {
+  patchLauncherSafety();
+  installRuntimeDiagnostics();
+  patchTelegramEntryOnly();
+  console.log('[V-TRADE DIAGNOSTIC] Telegram ENTRY-ONLY diagnostics enabled');
+} catch (err) {
+  console.error('[V-TRADE DIAGNOSTIC] startup failed:', redact(err?.stack || err?.message || err));
+  process.exitCode = 1;
+}
+
+try {
+  require('./mtf-d1-diagnostic-hotfix.js');
+} catch (e) {
+  console.error('[V-TRADE MTF] D1 diagnostic loader failed:', e.stack || e.message);
+  process.exitCode = 1;
+}
+
+try {
+  require('./telegram-auto-watchdog.js');
+} catch (e) {
+  console.error('[V-TRADE START] telegram watchdog launch failed:', e.stack || e.message);
+  process.exitCode = 1;
+}
