@@ -1,4 +1,4 @@
-const CACHE = 'vtrade-shell-v2';
+const CACHE = 'vtrade-shell-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -24,9 +24,16 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Never cache live market/API traffic. XAUUSD quotes, candles and AI confirmation must stay fresh.
   if (url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
   if (req.method !== 'GET') return;
+
+  // Never serve an old cached auth/RBAC/connection script. These scripts control
+  // mobile role routing and session state, so they must always be revalidated.
+  const liveScripts = /\/(vtrade-rbac-guard|vtrade-connection|terminal-pre-market)\.js$/i.test(url.pathname);
+  if (liveScripts) {
+    event.respondWith(fetch(new Request(req, {cache:'no-store'})).catch(() => caches.match(req)));
+    return;
+  }
 
   // HTML navigations: network first, then cached page, then offline fallback.
   if (req.mode === 'navigate') {
@@ -43,7 +50,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static assets: stale-while-revalidate for speed without freezing live API data.
+  // Other static assets: stale-while-revalidate.
   event.respondWith(
     caches.match(req).then(cached => {
       const refresh = fetch(req).then(response => {
