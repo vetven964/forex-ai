@@ -7,29 +7,37 @@ const path = require('path');
 
 const serverFile = path.join(__dirname, 'server.js');
 const GLOBAL = 'globalThis.__vtradeTelegramAutoReadinessLog';
+const MARKER = 'VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V3';
 
 function finalizeTelegramState() {
   if (!fs.existsSync(serverFile)) throw new Error('server.js not found');
   let source = fs.readFileSync(serverFile, 'utf8');
   const before = source;
 
-  // IMPORTANT: convert the declaration before replacing references.
-  // Blindly replacing the identifier first turns:
-  //   let telegramAutoLastReadinessLog = '';
-  // into invalid JavaScript:
+  // Repair the exact invalid form created by older finalizers:
   //   let globalThis.__vtradeTelegramAutoReadinessLog = '';
-  // Keep the readiness value on globalThis so the launcher/watchdog can share it.
+  // `globalThis.foo` is an assignment target, not a valid variable declaration.
   source = source.replace(
-    /\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=\s*[^;]*;/,
-    `${GLOBAL} = String(${GLOBAL} || '');`
+    /\b(?:let|const|var)\s+globalThis\.__vtradeTelegramAutoReadinessLog\s*=\s*([^;]*);/g,
+    `${GLOBAL} = $1;`
   );
 
+  // Convert any remaining legacy local declaration into a global assignment.
+  source = source.replace(
+    /\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=\s*([^;]*);/g,
+    `${GLOBAL} = $1;`
+  );
+
+  // Replace only remaining references to the old local identifier.
   source = source.replace(/\btelegramAutoLastReadinessLog\b/g, GLOBAL);
 
+  // Ensure the global slot is initialized exactly once at source level.
   if (!source.includes(`${GLOBAL} =`)) {
-    source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2\n${GLOBAL} = String(${GLOBAL} || '');\n${source}`;
-  } else if (!source.includes('VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2')) {
-    source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2\n${source}`;
+    source = `${GLOBAL} = String(${GLOBAL} || '');\n${source}`;
+  }
+
+  if (!source.includes(MARKER)) {
+    source = `// ${MARKER}\n${source}`;
   }
 
   if (source !== before) {
