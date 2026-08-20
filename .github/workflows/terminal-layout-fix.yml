@@ -1,0 +1,102 @@
+name: V TRADE AI Terminal Layout Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'TERMINAL_LAYOUT_FIX_TRIGGER'
+      - '.github/workflows/terminal-layout-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch premium terminal mobile layout
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('premium-dashboard-live.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'VTRADE-TERMINAL-LAYOUT-FIX-V1'
+          if marker in s:
+              raise SystemExit(0)
+
+          css = r'''
+/* VTRADE-TERMINAL-LAYOUT-FIX-V1 */
+@media(max-width:900px){
+  html,body{overflow-x:hidden!important;width:100%!important;max-width:100%!important}
+  .top.vtrade-clean-header{display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;grid-template-rows:48px!important;align-items:center!important;gap:7px!important;min-height:64px!important;height:64px!important;padding:8px 10px!important;overflow:hidden!important;white-space:nowrap!important}
+  .top.vtrade-clean-header .mobile{display:grid!important;grid-column:1!important;grid-row:1!important;width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;margin:0!important}
+  .top.vtrade-clean-header .pair{grid-column:2!important;grid-row:1!important;min-width:0!important;width:100%!important;display:flex!important;align-items:center!important;gap:5px!important;overflow:hidden!important}
+  .top.vtrade-clean-header .pair>div{min-width:0!important;overflow:hidden!important;line-height:1.05!important}
+  .top.vtrade-clean-header .pair b{font-size:12px!important;display:block!important;white-space:nowrap!important}
+  .top.vtrade-clean-header .pair .sub{font-size:8px!important;display:block!important;white-space:nowrap!important}
+  .top.vtrade-clean-header .pair .star{font-size:15px!important;flex:0 0 auto!important}
+  .top.vtrade-clean-header .price{font-size:21px!important;line-height:1!important;white-space:nowrap!important;flex:0 0 auto!important}
+  .top.vtrade-clean-header .live{font-size:8px!important;white-space:nowrap!important}
+  .top.vtrade-clean-header .backend{grid-column:3!important;grid-row:1!important;justify-self:end!important;font-size:7px!important;padding:5px 6px!important;max-width:74px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .top.vtrade-clean-header .tfs,.top.vtrade-clean-header .lang-row{display:none!important}
+  .side .vtrade-account{order:98!important;margin-top:auto!important;margin-bottom:10px!important;width:100%!important;max-width:none!important;flex:0 0 auto!important}
+  .side .side-foot{order:99!important;margin-top:0!important}
+  .vtrade-account-side{display:flex!important;align-items:center!important;gap:10px!important;padding:10px 11px!important;border:1px solid #263650!important;border-radius:13px!important;background:#09111e!important;color:#fff!important;min-height:48px!important;box-sizing:border-box!important}
+}
+@media(max-width:380px){
+  .top.vtrade-clean-header{grid-template-columns:38px minmax(0,1fr) auto!important;padding:7px 8px!important;height:58px!important;min-height:58px!important}
+  .top.vtrade-clean-header .mobile{width:38px!important;min-width:38px!important;height:38px!important}
+  .top.vtrade-clean-header .price{font-size:19px!important}
+  .top.vtrade-clean-header .pair .sub{display:none!important}
+  .top.vtrade-clean-header .backend{display:none!important}
+}
+@media(min-width:901px){
+  .side .vtrade-account{margin-top:auto!important;margin-bottom:10px!important}
+  .side .side-foot{margin-top:0!important}
+}
+'''
+          pos = s.find('</style>')
+          if pos < 0:
+              raise SystemExit('style closing tag not found')
+          s = s[:pos] + css + '\n' + s[pos:]
+
+          js = r'''
+<script>
+/* VTRADE-TERMINAL-LAYOUT-RUNTIME-V1 */
+(function(){
+  function apply(){
+    const top=document.querySelector('.top');
+    if(top) top.classList.add('vtrade-clean-header');
+    const side=document.querySelector('.side');
+    const account=document.querySelector('.vtrade-account');
+    if(side && account && !side.contains(account)){
+      account.classList.add('vtrade-account-side');
+      const foot=side.querySelector('.side-foot');
+      side.insertBefore(account,foot||null);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply,{once:true}); else apply();
+  new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('resize',apply,{passive:true});
+})();
+</script>
+'''
+          end = s.rfind('</body>')
+          if end < 0:
+              raise SystemExit('body closing tag not found')
+          s = s[:end] + js + s[end:]
+          p.write_text(s,encoding='utf-8')
+
+      - name: Remove trigger and commit
+        run: |
+          rm -f TERMINAL_LAYOUT_FIX_TRIGGER
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add premium-dashboard-live.html TERMINAL_LAYOUT_FIX_TRIGGER
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: clean mobile terminal header and sidebar account'
+          git push
