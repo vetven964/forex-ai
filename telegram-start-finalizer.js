@@ -13,9 +13,23 @@ function finalizeTelegramState() {
   let source = fs.readFileSync(serverFile, 'utf8');
   const before = source;
 
+  // IMPORTANT: convert the declaration before replacing references.
+  // Blindly replacing the identifier first turns:
+  //   let telegramAutoLastReadinessLog = '';
+  // into invalid JavaScript:
+  //   let globalThis.__vtradeTelegramAutoReadinessLog = '';
+  // Keep the readiness value on globalThis so the launcher/watchdog can share it.
+  source = source.replace(
+    /\b(?:let|const|var)\s+telegramAutoLastReadinessLog\s*=\s*[^;]*;/,
+    `${GLOBAL} = String(${GLOBAL} || '');`
+  );
+
   source = source.replace(/\btelegramAutoLastReadinessLog\b/g, GLOBAL);
-  if (!source.includes(`globalThis.__vtradeTelegramAutoReadinessLog = ''`)) {
-    source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V1\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n${source}`;
+
+  if (!source.includes(`${GLOBAL} =`)) {
+    source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2\n${GLOBAL} = String(${GLOBAL} || '');\n${source}`;
+  } else if (!source.includes('VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2')) {
+    source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V2\n${source}`;
   }
 
   if (source !== before) {
