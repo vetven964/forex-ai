@@ -1,11 +1,16 @@
-// V-TRADE AI — Pre-Market AI Safe/Truth Hotfix V2
-// AI is optional confirmation only. Provider failure is UNAVAILABLE, never confidence=0.
+// V-TRADE AI — Pre-Market AI Safe/Truth Hotfix V3
+// Compatibility-safe patch: never crash the production launcher when the
+// legacy aiHandler anchor is absent. The current selected-TF AI route is
+// installed separately and remains authoritative for /api/pre-market/ai.
+// AI is confirmation-only. Provider failure is UNAVAILABLE, never confidence=0.
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 
 const PRE = path.resolve(__dirname, 'pre-market-launcher-hook.js');
 const TERM = path.resolve(__dirname, 'terminal-pre-market.js');
-const MARK = 'VTRADE_PREMARKET_AI_SAFE_V2';
+const MARK = 'VTRADE_PREMARKET_AI_SAFE_V3';
 
 function patchFile(file, transform) {
   if (!fs.existsSync(file)) return;
@@ -14,12 +19,19 @@ function patchFile(file, transform) {
   if (next !== source) fs.writeFileSync(file, next, 'utf8');
 }
 
+// The previous V2 patch expected an old `aiHandler` block inside
+// pre-market-launcher-hook.js. The current launcher hook exposes the generic
+// candle-open `handler` instead, so V2 threw during require() and killed the
+// Telegram watchdog. Never make a missing optional patch anchor fatal.
 patchFile(PRE, source => {
   if (source.includes(MARK)) return source;
-  const start = source.indexOf(' async function aiHandler(req,res){');
+
+  const legacyStart = source.indexOf(' async function aiHandler(req,res){');
   const route = source.indexOf(" app.options('/api/pre-market/candle-open',handler);");
-  if (start < 0 || route < 0 || route <= start) {
-    throw new Error('pre-market AI handler anchor not found; refusing unsafe patch');
+
+  if (legacyStart < 0 || route < 0 || route <= legacyStart) {
+    console.warn('[V-TRADE AI SAFE V3] legacy aiHandler anchor absent; skipping legacy PRE patch safely. Selected-TF AI route remains independent.');
+    return source + `\n/* ${MARK}: legacy aiHandler patch intentionally skipped; no runtime mutation required. */\n`;
   }
 
   const handler = `\n async function aiHandler(req,res){
@@ -28,7 +40,6 @@ patchFile(PRE, source => {
    const raw=await fetchAnalysis(req), pm=calculate(raw);
    if(!pm.complete)return res.status(409).json({success:false,error:'Pre-Market MTF incomplete; D1 is required before AI confirmation',preMarket:pm,ai:{status:'blocked',decision:'WAIT',confidence:null,agreement:'N/A'}});
 
-   // ${MARK}: AI never authorizes a trade and provider failure is not a trading signal.
    const aiEnabled=String(process.env.OPENAI_ENABLED||'false').toLowerCase()==='true';
    if(!aiEnabled){
     return res.json({success:true,preMarket:pm,engine:null,ai:{status:'disabled',decision:'DISABLED',confidence:null,agreement:'N/A',configured:false,enabled:false,reasons:['OPENAI_ENABLED is not true; deterministic ICT engine remains authoritative.']}});
@@ -48,13 +59,14 @@ patchFile(PRE, source => {
   }
  }
 `;
-  return source.slice(0, start) + handler + source.slice(route);
+  return source.slice(0, legacyStart) + handler + source.slice(route);
 });
 
+// Render AI state truthfully. This patch is independent of the server route
+// implementation and therefore remains safe when the backend route changes.
 patchFile(TERM, source => {
   if (source.includes(MARK)) return source;
 
-  // Render AI state truthfully: disabled/unavailable/error is not a 0-confidence signal.
   source = source.replace(
     "<div class=\"vpm-row\"><span>Confidence</span><b>${pct(state.ai.confidence)}/100</b></div>",
     "<div class=\"vpm-row\"><span>Confidence</span><b>${(['unavailable','error','timeout','disabled','blocked'].includes(String(state.ai?.status||'').toLowerCase())||state.ai?.confidence==null)?'N/A':pct(state.ai.confidence)+'/100'}</b></div>"
@@ -71,7 +83,10 @@ patchFile(TERM, source => {
     "${esc((state.ai.reasons||state.ai.key_drivers||[]).join(' · ') || state.ai.summary || 'No AI confirmation details.')}",
     "${esc((state.ai.reasons||state.ai.key_drivers||[]).join(' · ') || state.ai.summary || state.ai.error || (state.ai.status==='disabled'?'AI confirmation is disabled; deterministic ICT engine remains authoritative.':'AI confirmation unavailable; no trade is promoted by AI.'))}"
   );
-  return source.replace('AI confirmation loaded after complete M5 → M15 → H1 → H4 → D1 processing.', 'AI confirmation state loaded after complete M5 → M15 → H1 → H4 → D1 processing. AI is optional and never authorizes an order.');
+  return source.replace(
+    'AI confirmation loaded after complete M5 → M15 → H1 → H4 → D1 processing.',
+    'AI confirmation state loaded after complete M5 → M15 → H1 → H4 → D1 processing. AI is optional and never authorizes an order.'
+  ) + `\n/* ${MARK} */\n`;
 });
 
-console.log('[V-TRADE AI SAFE V2] optional AI confirmation + truthful non-blocking error handling active');
+console.log('[V-TRADE AI SAFE V3] compatibility-safe optional AI confirmation hotfix active');
