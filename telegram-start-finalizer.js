@@ -13,8 +13,6 @@ function finalizeTelegramState() {
   let source = fs.readFileSync(serverFile, 'utf8');
   const before = source;
 
-  // Use a global runtime slot instead of a fragile lexical variable. This avoids
-  // startup-order/loader-scope failures when launcher patches server.js in memory.
   source = source.replace(/\btelegramAutoLastReadinessLog\b/g, GLOBAL);
   if (!source.includes(`globalThis.__vtradeTelegramAutoReadinessLog = ''`)) {
     source = `// VTRADE_TELEGRAM_GLOBAL_STATE_FINALIZER_V1\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n${source}`;
@@ -29,4 +27,13 @@ function finalizeTelegramState() {
 }
 
 finalizeTelegramState();
+
+try {
+  require('./logic-v4-bridge').install();
+  console.log('[V-TRADE LOGIC V4] startup bridge installed');
+} catch (e) {
+  console.error('[V-TRADE LOGIC V4] startup bridge failed:', e.stack || e.message);
+  throw e;
+}
+
 require('./telegram-auto-watchdog.js');
