@@ -1,7 +1,7 @@
-/* V-TRADE AI — Pre-Market route boot hotfix V1
- * Fixes the production 404 by ensuring the Candle-Open MTF engine is
- * installed on the SAME Express app before server.js is required.
- * Also exposes compatibility aliases used by older dashboard builds.
+/* V-TRADE AI — Pre-Market route boot hotfix V2
+ * FIX: install the direct MT5-feed Pre-Market route BEFORE legacy aliases.
+ * The authoritative brokerFeed.timeframes populated by the MT5 bridge is used
+ * for M5/M15/H1/H4; D1 remains optional/diagnostic.
  * Analysis only: no Telegram delivery and no order authorization.
  */
 'use strict';
@@ -11,26 +11,36 @@ const path = require('path');
 
 const ROOT = __dirname;
 const SERVER = path.join(ROOT, 'server.js');
-const MARKER = 'VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V1';
+const MARKER = 'VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V2';
 
 if (fs.existsSync(SERVER)) {
   let source = fs.readFileSync(SERVER, 'utf8');
+
+  // IMPORTANT: V4 must be injected before the legacy V1 routes are registered.
+  // Express uses first-match routing, so installing V4 after V1 would leave the
+  // dashboard on the old /api/pre-market/candle-open implementation.
+  try {
+    const direct = require('./pre-market-direct-route-hotfix.js');
+    source = direct.inject(source);
+    console.log('[V-TRADE PRE-MARKET] DIRECT MT5-FEED V4 injected before legacy routes');
+  } catch (e) {
+    console.error('[V-TRADE PRE-MARKET] DIRECT V4 injection failed:', e.stack || e.message);
+    throw e;
+  }
+
   if (!source.includes(MARKER)) {
     const anchor = "const app = express();";
     const patch = `
 /* ${MARKER} */
-// Install the Candle-Open MTF route before server.js continues registering
-// the rest of its API. This route consumes the canonical /api/analysis/xauusd
-// MT5-backed candles and returns M5/M15/H1/H4/D1 Pre-Market data.
+// Legacy compatibility layer. The V4 direct route above is authoritative.
+// These aliases are retained only for older dashboard builds.
 try {
   require('./pre-market-candle-open-engine')(app);
-  console.log('[V-TRADE PRE-MARKET] CANDLE-OPEN ROUTE BOOTSTRAPPED | /api/pre-market/candle-open');
+  console.log('[V-TRADE PRE-MARKET] LEGACY CANDLE-OPEN COMPAT ENGINE LOADED');
 } catch (e) {
-  console.error('[V-TRADE PRE-MARKET] CANDLE-OPEN BOOT ERROR:', e.stack || e.message);
+  console.error('[V-TRADE PRE-MARKET] LEGACY CANDLE-OPEN COMPAT ERROR:', e.stack || e.message);
 }
 
-// Compatibility aliases for dashboard versions that still request the older
-// Pre-Market paths. They delegate to the canonical Candle-Open route.
 for (const alias of ['/api/pre-market/xauusd', '/api/pre-market/intelligence']) {
   app.get(alias, async (req, res) => {
     try {
@@ -55,7 +65,9 @@ for (const alias of ['/api/pre-market/xauusd', '/api/pre-market/intelligence']) 
     }
     source = source.replace(anchor, anchor + patch);
     fs.writeFileSync(SERVER, source, 'utf8');
-    console.log('[V-TRADE PRE-MARKET] ROUTE BOOT HOTFIX V1 APPLIED');
+    console.log('[V-TRADE PRE-MARKET] ROUTE BOOT HOTFIX V2 APPLIED');
+  } else {
+    fs.writeFileSync(SERVER, source, 'utf8');
   }
 }
 
