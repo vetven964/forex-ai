@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self';connect-src 'self' https://forexai-6xw6.onrender.com;style-src 'self' 'unsafe-inline';script-src 'self' 'unsafe-inline';img-src 'self' data: https:;frame-ancestors 'none';base-uri 'self';form-action 'self'">
 <title>V TRADE AI — Secure Sign In</title>
 <style>
@@ -25,11 +28,18 @@
 </main>
 <script>
 const API='https://forexai-6xw6.onrender.com';
+const ROUTE_VERSION='20260820-route-v2';
 const $=id=>document.getElementById(id); let role='user',challenge='';
 function setRole(r){role=r;$('userMode').classList.toggle('active',r==='user');$('adminMode').classList.toggle('active',r==='admin');$('submit').textContent=r==='admin'?'👑 Sign in as Admin':'🔐 Sign in as User';}
 function say(text,ok=false){$('msg').textContent=text;$('msg').style.color=ok?'#22e58a':'#ff5968';}
 async function api(path,options={}){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(API+path,{...options,mode:'cors',credentials:'omit',cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json',...(options.headers||{})}});const text=await response.text();let data={};try{data=text?JSON.parse(text):{};}catch{data={error:text||`HTTP ${response.status}`};}if(!response.ok)throw new Error(data.error||`Request failed (${response.status})`);return data;}catch(error){if(error?.name==='AbortError')throw new Error('Render backend timeout.');if(String(error?.message||'').toLowerCase().includes('failed to fetch'))throw new Error('Render backend connection failed.');throw error;}finally{clearTimeout(timer);}}
-function save(data){if(!data?.token)throw new Error('Authentication token was not returned.');const token=String(data.token),user=data.user||{};localStorage.setItem('vtrade_auth_token',token);localStorage.setItem('vtrade_auth',token);localStorage.setItem('vtrade_user',JSON.stringify(user));sessionStorage.setItem('vtrade_auth_token',token);sessionStorage.setItem('vtrade_auth',token);sessionStorage.setItem('vtrade_user',JSON.stringify(user));const r=String(user.role||data.role||'user').toLowerCase();location.replace(r==='admin'||r==='administrator'?'../admin-dashboard.html?v=20260819-auth':'../premium-dashboard-live.html?v=20260819-auth');}
+function routeByRole(user){
+  // ONE routing rule for PC + phone. Never use screen width/device to choose a dashboard.
+  const r=String(user?.role||'user').trim().toLowerCase();
+  if(r==='admin'||r==='administrator') return '../admin-dashboard.html?v='+ROUTE_VERSION;
+  return '../premium-dashboard-live.html?v='+ROUTE_VERSION;
+}
+function save(data){if(!data?.token)throw new Error('Authentication token was not returned.');const token=String(data.token),user=data.user||{};const r=String(user.role||data.role||'user').trim().toLowerCase();localStorage.setItem('vtrade_auth_token',token);localStorage.setItem('vtrade_auth',token);localStorage.setItem('vtrade_user',JSON.stringify(user));sessionStorage.setItem('vtrade_auth_token',token);sessionStorage.setItem('vtrade_auth',token);sessionStorage.setItem('vtrade_user',JSON.stringify(user));console.log('[V-TRADE ROUTE] role='+r+' route='+routeByRole(user));location.replace(routeByRole(user));}
 async function login(e){e.preventDefault();$('submit').disabled=true;say('Signing in…',true);try{const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:$('email').value.trim(),password:$('password').value})});if(data.requires2FA){challenge=data.challenge;$('form').hidden=true;$('twofa').hidden=false;say('2FA code required.',true);return;}const r=String(data.user?.role||data.role||'user').toLowerCase();if(role==='admin'&&!['admin','administrator'].includes(r))throw new Error('This account is not an administrator.');if(role==='user'&&['admin','administrator'].includes(r))throw new Error('Admin account detected. Please choose Admin.');save(data);}catch(error){say(error.message||'Login failed.');}finally{$('submit').disabled=false;}}
 $('userMode').onclick=()=>setRole('user');$('adminMode').onclick=()=>setRole('admin');$('form').onsubmit=login;
 $('verify').onclick=async()=>{try{const data=await api('/api/auth/2fa/verify',{method:'POST',body:JSON.stringify({challenge,code:$('code').value.trim()})});save(data);}catch(error){say(error.message||'2FA verification failed.');}};
