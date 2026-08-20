@@ -107,8 +107,10 @@ module.exports = function installPreMarketCandleOpenEngine(app){
     const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price);
     const refAtr=active?.atr||5;
     const zoneWidth=Math.max(refAtr*.35,.5);
-    const buyZone=bias==='BULLISH'&&currentPrice!=null?[currentPrice-zoneWidth,currentPrice]:null;
-    const sellZone=bias==='BEARISH'&&currentPrice!=null?[currentPrice,currentPrice+zoneWidth]:null;
+    // Zone map is intentionally two-sided: pre-market identifies BOTH possible entry areas.
+    // Direction strength is evidence, not permission to hide the opposite zone.
+    const buyZone=currentPrice!=null?[currentPrice-zoneWidth,currentPrice-zoneWidth*.20]:null;
+    const sellZone=currentPrice!=null?[currentPrice+zoneWidth*.20,currentPrice+zoneWidth]:null;
     const gates=buildGates(a);
     const confidence=round1(50+Math.abs(buy-sell)/2);
     return {
