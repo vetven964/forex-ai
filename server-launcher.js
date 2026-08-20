@@ -24,6 +24,7 @@ try {
   throw e;
 }
 
+const PREMARKET_AI_ROUTE = require('./pre-market-ai-route-hotfix.js');
 const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
 const MOBILE_FIRST_WORKFLOW = require('./mobile-first-workflow-v1.js');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
@@ -99,6 +100,7 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   source = patchTruthGuard(source);
   source = patchWaitCard(source);
   source = patchRegistration(source);
+  source = PREMARKET_AI_ROUTE.inject(source);
   source = PREMARKET_DIRECT_ROUTE.inject(source);
   source = MOBILE_FIRST_WORKFLOW.patchServer(source);
   console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + simple-telegram + pre-market + mobile-first patches active');
