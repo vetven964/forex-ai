@@ -1,0 +1,41 @@
+name: Activate Selected TF AI Route
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-launcher:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch server launcher
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('server-launcher.js')
+          s = p.read_text(encoding='utf-8')
+          req = "const PREMARKET_AI_ROUTE = require('./pre-market-ai-route-hotfix.js');"
+          if req not in s:
+              anchor = "const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');"
+              if anchor not in s:
+                  raise SystemExit('launcher anchor not found')
+              s = s.replace(anchor, req + "\n" + anchor, 1)
+          call = "source = PREMARKET_AI_ROUTE.inject(source);"
+          if call not in s:
+              anchor = "source = PREMARKET_DIRECT_ROUTE.inject(source);"
+              if anchor not in s:
+                  raise SystemExit('inject anchor not found')
+              s = s.replace(anchor, call + "\n  " + anchor, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit launcher activation
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add server-launcher.js
+          git diff --cached --quiet || git commit -m 'fix: activate selected timeframe AI route'
+          git push
