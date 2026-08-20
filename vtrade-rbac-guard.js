@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + persistent session/language guard */
+/* V TRADE AI — Server-authoritative RBAC + responsive Admin navigation */
 (() => {
   if (window.__VTRADE_RBAC_GUARD__) return;
   window.__VTRADE_RBAC_GUARD__ = true;
@@ -9,237 +9,6 @@
   const isUserPage = file === 'premium-dashboard-live.html';
   if (!isAdminPage && !isUserPage) return;
 
-  /*
-   * Mobile Admin UX
-   * - Desktop keeps the existing header actions.
-   * - Phone uses a clean right-side drawer instead of wrapping the actions
-   *   over the dashboard header.
-   * - Existing links/buttons are reused, so auth and navigation logic stay intact.
-   */
-  function installAdminMobileMenu() {
-    if (!isAdminPage || document.getElementById('vt-admin-mobile-menu')) return;
-
-    const install = () => {
-      const top = document.querySelector('.top');
-      const brand = top?.querySelector('.brand');
-      const actions = top?.querySelector('.actions');
-      if (!top || !brand || !actions) return false;
-
-      const style = document.createElement('style');
-      style.id = 'vt-admin-mobile-menu-style';
-      style.textContent = `
-        @media (min-width:701px){
-          #vt-admin-menu-btn,#vt-admin-menu-backdrop{display:none!important}
-        }
-        @media (max-width:700px){
-          body.vt-admin-menu-open{overflow:hidden!important}
-          .top.vt-admin-mobile-top{
-            flex-direction:row!important;
-            align-items:center!important;
-            min-height:64px!important;
-            padding:10px 11px!important;
-            gap:8px!important;
-            position:sticky!important;
-            top:7px!important;
-            z-index:120!important;
-          }
-          .top.vt-admin-mobile-top .brand{
-            min-width:0!important;
-            flex:1 1 auto!important;
-          }
-          .top.vt-admin-mobile-top .brand h1{
-            font-size:14px!important;
-            line-height:1.2!important;
-            white-space:nowrap!important;
-            overflow:hidden!important;
-            text-overflow:ellipsis!important;
-          }
-          .top.vt-admin-mobile-top .brand small{
-            display:block!important;
-            white-space:nowrap!important;
-            overflow:hidden!important;
-            text-overflow:ellipsis!important;
-            max-width:190px!important;
-          }
-          #vt-admin-menu-btn{
-            display:grid!important;
-            place-items:center!important;
-            flex:0 0 44px!important;
-            width:44px!important;
-            height:44px!important;
-            padding:0!important;
-            border:1px solid var(--line,#233552)!important;
-            border-radius:13px!important;
-            background:#0b1423!important;
-            color:#fff!important;
-            font-size:23px!important;
-            line-height:1!important;
-            box-shadow:0 8px 24px #0005!important;
-          }
-          #vt-admin-menu-btn.vt-open{
-            background:#5421cf!important;
-            border-color:#8050ff!important;
-          }
-          #vt-admin-mobile-menu{
-            position:fixed!important;
-            top:0!important;
-            right:0!important;
-            bottom:0!important;
-            width:min(84vw,330px)!important;
-            padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom))!important;
-            display:flex!important;
-            flex-direction:column!important;
-            gap:10px!important;
-            background:linear-gradient(160deg,#0b1423 0%,#070c15 100%)!important;
-            border-left:1px solid #2a3e60!important;
-            box-shadow:-24px 0 70px #000b!important;
-            transform:translateX(105%)!important;
-            transition:transform .22s ease!important;
-            z-index:140!important;
-            overflow-y:auto!important;
-            -webkit-overflow-scrolling:touch!important;
-          }
-          #vt-admin-mobile-menu.vt-open{transform:translateX(0)!important}
-          #vt-admin-mobile-menu .vt-menu-title{
-            display:flex!important;
-            align-items:center!important;
-            justify-content:space-between!important;
-            gap:10px!important;
-            padding:4px 4px 10px!important;
-            color:#f5f8ff!important;
-            font-weight:900!important;
-            font-size:17px!important;
-            border-bottom:1px solid #17253a!important;
-          }
-          #vt-admin-mobile-menu .vt-menu-sub{
-            color:#8d9bb0!important;
-            font-size:10px!important;
-            font-weight:500!important;
-          }
-          #vt-admin-mobile-menu .actions-item{
-            width:100%!important;
-            min-height:48px!important;
-            display:flex!important;
-            align-items:center!important;
-            justify-content:flex-start!important;
-            gap:10px!important;
-            flex:0 0 auto!important;
-            padding:12px 13px!important;
-            border-radius:12px!important;
-            text-decoration:none!important;
-            font-weight:750!important;
-            border:1px solid #233552!important;
-            background:#09111e!important;
-            color:#fff!important;
-            box-sizing:border-box!important;
-          }
-          #vt-admin-mobile-menu .actions-item.primary{background:#5421cf!important;border-color:#8050ff!important}
-          #vt-admin-mobile-menu .actions-item.danger{background:#2b0c13!important;border-color:#7c2532!important;color:#ff9aa5!important}
-          #vt-admin-mobile-menu .actions-item.lang{justify-content:center!important}
-          #vt-admin-mobile-menu .vt-menu-close{
-            width:40px!important;
-            height:40px!important;
-            padding:0!important;
-            border-radius:11px!important;
-            border:1px solid #233552!important;
-            background:#0b1423!important;
-            color:#fff!important;
-            font-size:20px!important;
-          }
-          #vt-admin-menu-backdrop{
-            position:fixed!important;
-            inset:0!important;
-            background:rgba(0,0,0,.58)!important;
-            backdrop-filter:blur(3px)!important;
-            -webkit-backdrop-filter:blur(3px)!important;
-            opacity:0!important;
-            pointer-events:none!important;
-            transition:opacity .18s ease!important;
-            z-index:130!important;
-          }
-          #vt-admin-menu-backdrop.vt-open{opacity:1!important;pointer-events:auto!important}
-          .top.vt-admin-mobile-top>.actions{display:none!important}
-        }
-      `;
-      document.head.appendChild(style);
-
-      const menuBtn = document.createElement('button');
-      menuBtn.id = 'vt-admin-menu-btn';
-      menuBtn.type = 'button';
-      menuBtn.setAttribute('aria-label', 'Open admin menu');
-      menuBtn.setAttribute('aria-expanded', 'false');
-      menuBtn.textContent = '☰';
-
-      const backdrop = document.createElement('div');
-      backdrop.id = 'vt-admin-menu-backdrop';
-      backdrop.setAttribute('aria-hidden', 'true');
-
-      const drawer = document.createElement('aside');
-      drawer.id = 'vt-admin-mobile-menu';
-      drawer.setAttribute('aria-label', 'Admin menu');
-
-      const title = document.createElement('div');
-      title.className = 'vt-menu-title';
-      title.innerHTML = '<div>V TRADE AI<div class="vt-menu-sub">Admin controls</div></div>';
-      const close = document.createElement('button');
-      close.type = 'button';
-      close.className = 'vt-menu-close';
-      close.setAttribute('aria-label', 'Close admin menu');
-      close.textContent = '×';
-      title.appendChild(close);
-      drawer.appendChild(title);
-
-      [...actions.children].forEach((node) => {
-        const clone = node.cloneNode(true);
-        clone.classList.add('actions-item');
-        drawer.appendChild(clone);
-      });
-
-      document.body.appendChild(backdrop);
-      document.body.appendChild(drawer);
-      top.classList.add('vt-admin-mobile-top');
-      top.insertBefore(menuBtn, top.querySelector('.actions'));
-
-      const setOpen = (open) => {
-        menuBtn.classList.toggle('vt-open', open);
-        drawer.classList.toggle('vt-open', open);
-        backdrop.classList.toggle('vt-open', open);
-        document.body.classList.toggle('vt-admin-menu-open', open);
-        menuBtn.textContent = open ? '×' : '☰';
-        menuBtn.setAttribute('aria-expanded', String(open));
-        menuBtn.setAttribute('aria-label', open ? 'Close admin menu' : 'Open admin menu');
-      };
-
-      menuBtn.addEventListener('click', () => setOpen(!drawer.classList.contains('vt-open')));
-      close.addEventListener('click', () => setOpen(false));
-      backdrop.addEventListener('click', () => setOpen(false));
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') setOpen(false);
-      });
-      drawer.addEventListener('click', (event) => {
-        const item = event.target.closest('.actions-item');
-        if (!item) return;
-        setOpen(false);
-      });
-
-      return true;
-    };
-
-    if (!install()) {
-      const observer = new MutationObserver(() => {
-        if (install()) observer.disconnect();
-      });
-      observer.observe(document.documentElement, { childList:true, subtree:true });
-      setTimeout(() => observer.disconnect(), 10000);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', installAdminMobileMenu, { once: true });
-  } else {
-    installAdminMobileMenu();
-  }
-
   const token = () => window.VTRADE_CONNECTION?.token?.() ||
     sessionStorage.getItem('vtrade_auth_token') || sessionStorage.getItem('vtrade_auth') ||
     localStorage.getItem('vtrade_auth_token') || localStorage.getItem('vtrade_auth') || '';
@@ -247,44 +16,79 @@
   const login = () => location.replace('connection.html?required=login');
   const user = () => location.replace('premium-dashboard-live.html?v=20260819-rbac');
 
+  function installAdminNavigation() {
+    if (!isAdminPage || document.getElementById('vtradeAdminSidebar')) return;
+
+    const style = document.createElement('style');
+    style.id = 'vtradeAdminNavStyle';
+    style.textContent = `
+      body.vtrade-admin-nav{padding-left:268px}
+      body.vtrade-admin-nav .shell{max-width:1600px;margin:0 auto}
+      #vtradeAdminSidebar{position:fixed;left:12px;top:12px;bottom:12px;width:238px;z-index:1000;display:flex;flex-direction:column;padding:16px 12px;border:1px solid #233552;border-radius:18px;background:linear-gradient(180deg,#0a1322f7,#060b14f7);box-shadow:0 20px 60px #0009;backdrop-filter:blur(18px)}
+      .vta-brand{display:flex;align-items:center;gap:10px;padding:4px 6px 16px;border-bottom:1px solid #17253a;margin-bottom:10px}
+      .vta-logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:22px;font-weight:950;background:linear-gradient(135deg,#5120ff,#aa72ff);box-shadow:0 0 26px #693cff55}
+      .vta-name{font-weight:900;font-size:14px}.vta-sub{display:block;color:#8d9bb0;font-size:10px;margin-top:3px}
+      .vta-nav{display:grid;gap:5px;overflow:auto}.vta-nav a{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 11px;border:1px solid transparent;border-radius:11px;color:#b8c4d6;text-decoration:none;font-weight:700;font-size:12px}.vta-nav a:hover{background:#101b2d;border-color:#233552;color:#fff}.vta-nav a.active{background:#24104f;border-color:#7041ee;color:#fff;box-shadow:inset 3px 0 #8c63ff}.vta-icon{width:20px;text-align:center;font-size:15px}.vta-bottom{margin-top:auto;padding-top:10px;border-top:1px solid #17253a}.vta-live{display:flex;align-items:center;gap:8px;padding:10px 8px;color:#22e58a;font-size:10px;font-weight:800}.vta-dot{width:7px;height:7px;border-radius:50%;background:#22e58a;box-shadow:0 0 10px #22e58a}
+      #vtradeAdminMenuBtn{display:none;border:1px solid #233552;background:#0b1423;color:#fff;border-radius:11px;width:46px;height:42px;font-size:21px;cursor:pointer}
+      #vtradeAdminDrawer{display:none}
+      body.vtrade-admin-nav .top>.actions{display:none}
+      @media(max-width:700px){body.vtrade-admin-nav{padding:7px}body.vtrade-admin-nav .shell{width:100%;margin:0}.top{flex-direction:row!important;align-items:center!important}.brand{min-width:0;flex:1}.brand h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.logo{width:40px;height:40px}.top #vtradeAdminMenuBtn{display:block;flex:0 0 auto}.top>.actions{display:none!important}
+        #vtradeAdminSidebar{display:none}.vta-overlay{position:fixed;inset:0;background:#0008;z-index:1090;opacity:0;pointer-events:none;transition:.18s}.vta-overlay.open{opacity:1;pointer-events:auto}
+        #vtradeAdminDrawer{position:fixed;top:0;right:0;bottom:0;width:min(84vw,330px);z-index:1100;display:flex;flex-direction:column;padding:18px 14px;background:#07101df9;border-left:1px solid #233552;box-shadow:-18px 0 55px #000b;transform:translateX(105%);transition:transform .2s ease;backdrop-filter:blur(18px)}
+        #vtradeAdminDrawer.open{transform:translateX(0)}.vtd-head{display:flex;align-items:center;justify-content:space-between;padding:4px 5px 14px;border-bottom:1px solid #17253a}.vtd-title{font-weight:900}.vtd-close{border:1px solid #233552;background:#0b1423;color:#fff;border-radius:10px;width:40px;height:38px;font-size:20px}.vtd-nav{display:grid;gap:6px;margin-top:12px;overflow:auto}.vtd-nav a{display:flex;align-items:center;gap:11px;min-height:46px;padding:0 12px;border:1px solid #17253a;border-radius:11px;background:#09111e;color:#dbe4f3;text-decoration:none;font-weight:700}.vtd-nav a:active{background:#24104f;border-color:#7041ee}.vtd-live{margin-top:auto;padding:12px;color:#22e58a;border-top:1px solid #17253a;font-size:11px;font-weight:800}
+      }
+    `;
+    document.head.appendChild(style);
+
+    const nav = [
+      ['⌂','Admin Home','admin-dashboard.html'],
+      ['▣','Live Terminal','premium-dashboard-live.html'],
+      ['◈','Account Terminal','account-terminal.html'],
+      ['♟','Profile','profile.html']
+    ];
+    const links = nav.map(([i,t,h]) => `<a href="${h}" class="${h === 'admin-dashboard.html' ? 'active' : ''}"><span class="vta-icon">${i}</span><span>${t}</span></a>`).join('');
+    const html = `<aside id="vtradeAdminSidebar" aria-label="Admin navigation"><div class="vta-brand"><div class="vta-logo">V</div><div><div class="vta-name">V TRADE AI</div><span class="vta-sub">Admin Control Center</span></div></div><nav class="vta-nav">${links}</nav><div class="vta-bottom"><div class="vta-live"><span class="vta-dot"></span> MT5 BACKEND LIVE</div></div></aside><div id="vtradeAdminOverlay" class="vta-overlay"></div><aside id="vtradeAdminDrawer" aria-label="Mobile admin navigation"><div class="vtd-head"><div><div class="vtd-title">V TRADE AI</div><span class="vta-sub">Admin Control Center</span></div><button id="vtradeAdminClose" class="vtd-close" type="button" aria-label="Close menu">×</button></div><nav class="vtd-nav">${links}<a href="javascript:void(0)" id="vtradeAdminRefresh"><span>↻</span><span>Refresh</span></a><a href="javascript:void(0)" id="vtradeAdminLogout"><span>⇥</span><span>Sign out</span></a></nav><div class="vtd-live">● MT5 BACKEND LIVE</div></aside>`;
+    document.body.insertAdjacentHTML('afterbegin', html);
+
+    const top = document.querySelector('.top');
+    if (top) top.insertAdjacentHTML('beforeend', '<button id="vtradeAdminMenuBtn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>');
+    const drawer = document.getElementById('vtradeAdminDrawer');
+    const overlay = document.getElementById('vtradeAdminOverlay');
+    const open = () => { drawer.classList.add('open'); overlay.classList.add('open'); document.getElementById('vtradeAdminMenuBtn')?.setAttribute('aria-expanded','true'); };
+    const close = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); document.getElementById('vtradeAdminMenuBtn')?.setAttribute('aria-expanded','false'); };
+    document.getElementById('vtradeAdminMenuBtn')?.addEventListener('click', open);
+    document.getElementById('vtradeAdminClose')?.addEventListener('click', close);
+    overlay.addEventListener('click', close);
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') close(); });
+    document.getElementById('vtradeAdminRefresh')?.addEventListener('click', () => { close(); document.getElementById('refresh')?.click(); });
+    document.getElementById('vtradeAdminLogout')?.addEventListener('click', () => { close(); document.getElementById('logout')?.click(); });
+  }
+
   async function verify() {
     const t = token();
     if (!t) return login();
     try {
-      // The token is sent explicitly in x-vtrade-auth. Do not depend on the
-      // cross-origin HttpOnly cookie here; this keeps GitHub Pages -> Render
-      // session verification deterministic even when third-party cookies are blocked.
       const r = await fetch(BACKEND + '/api/auth/session', {
-        method: 'GET',
-        mode: 'cors',
-        credentials: 'omit',
-        cache: 'no-store',
-        headers: {
-          'Accept': 'application/json',
-          'x-vtrade-auth': t
-        }
+        method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store',
+        headers: { 'Accept': 'application/json', 'x-vtrade-auth': t }
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.user) return login();
-
       const role = String(d.user.role || 'user').toLowerCase();
       const language = localStorage.getItem('vtrade_lang') === 'km' ? 'km' : 'en';
       sessionStorage.setItem('vtrade_user', JSON.stringify(d.user));
       localStorage.setItem('vtrade_lang', language);
       document.documentElement.lang = language;
       document.documentElement.dataset.role = role;
-
       if (isAdminPage && role !== 'admin' && role !== 'administrator') return user();
-      window.dispatchEvent(new CustomEvent('vtrade:rbac-ready', {
-        detail: { user: d.user, role, language }
-      }));
+      if (isAdminPage) installAdminNavigation();
+      window.dispatchEvent(new CustomEvent('vtrade:rbac-ready', { detail: { user: d.user, role, language } }));
     } catch (error) {
       console.error('[V-TRADE RBAC] session verification failed:', error);
       login();
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', verify, { once: true });
-  } else verify();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', verify, { once: true });
+  else verify();
 })();
