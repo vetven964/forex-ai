@@ -8,6 +8,38 @@ const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const originalLoader = Module._extensions['.js'];
 
+function patchCors(source) {
+  const marker = "const app = express();";
+  if (!source.includes(marker) || source.includes('[V-TRADE CORS]')) return source;
+  const corsPatch = `
+// [V-TRADE CORS] GitHub Pages / Render browser access — credentials-safe allowlist.
+const VTRADE_ALLOWED_ORIGINS = new Set([
+  'https://vetven964.github.io',
+  'https://www.vetven964.github.io',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173'
+]);
+app.use((req,res,next)=>{
+  const origin = String(req.headers.origin || '');
+  const configured = String(process.env.ALLOWED_ORIGINS || '').split(',').map(x=>x.trim()).filter(Boolean);
+  const allowed = VTRADE_ALLOWED_ORIGINS.has(origin) || configured.includes(origin);
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-VTRADE-AUTH, X-MT5-API-KEY');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type, X-V-TRADE-Version');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+console.log('[V-TRADE CORS] GitHub Pages origin allowlist active');`;
+  return source.replace(marker, marker + corsPatch);
+}
+
 function patchExecutionLogic(source) {
   if (!/\bconst\s+executionLocationOk\s*=/.test(source) && /\bexecutionLocationOk\b/.test(source)) {
     const firstUse = source.search(/\bexecutionLocationOk\b/);
@@ -112,8 +144,10 @@ function patchFrontend(source) {
 Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
   let source = fs.readFileSync(filename, 'utf8');
+  source = patchCors(source);
   source = patchExecutionLogic(source);
   source = patchWaitCard(source);
+  console.log('[V-TRADE LAUNCHER] production CORS policy active');
   console.log('[V-TRADE LAUNCHER] production ICT execution policy active');
   console.log('[V-TRADE LAUNCHER] production WAIT/AUTHORIZED-card logic active');
   mod._compile(source, filename);
@@ -131,7 +165,6 @@ try {
 } catch (e) {
   console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message);
 }
-
 
 // VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V1
 // Render uses node server-launcher.js, so the Pre-Market Candle-Open
