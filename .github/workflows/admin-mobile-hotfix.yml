@@ -1,0 +1,95 @@
+name: Admin mobile hotfix
+
+on:
+  push:
+    paths:
+      - 'ADMIN_MOBILE_FIX_TRIGGER'
+      - '.github/workflows/admin-mobile-hotfix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply mobile admin layout
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('admin-dashboard.html')
+          if not p.exists():
+              raise SystemExit('admin-dashboard.html not found')
+          s = p.read_text(encoding='utf-8')
+          css = r'''
+/* VTRADE-ADMIN-MOBILE-V1 */
+@media(max-width:700px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+  body{padding:8px 8px calc(78px + env(safe-area-inset-bottom))!important}
+  .shell{width:100%;max-width:100%;margin:0!important}
+  .top{position:sticky!important;top:6px!important;z-index:50!important;display:grid!important;grid-template-columns:44px minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;align-items:center!important;gap:7px!important;padding:8px!important;min-height:62px!important;border-radius:16px!important;overflow:visible!important}
+  .brand{grid-column:1/3!important;grid-row:1!important;min-width:0!important;gap:8px!important;overflow:hidden!important}
+  .logo{width:42px!important;height:42px!important;min-width:42px!important;border-radius:13px!important;font-size:21px!important}
+  .brand>div:last-child{min-width:0!important;overflow:hidden!important}
+  .brand h1{font-size:14px!important;line-height:1.15!important;margin:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .brand small{display:block!important;font-size:9px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;margin-top:2px!important}
+  .actions{grid-column:3!important;grid-row:1!important;width:auto!important;display:flex!important;flex-wrap:nowrap!important;gap:5px!important;justify-content:flex-end!important;max-width:44vw!important;overflow:hidden!important}
+  .actions .btn{flex:0 0 auto!important;min-height:40px!important;padding:8px 10px!important;font-size:11px!important}
+  .actions .primary,.actions .lang{display:none!important}
+  .actions .btn[href]{display:none!important}
+  .actions #refresh,.actions #logout{display:block!important}
+  .message{grid-column:1/-1!important;grid-row:2!important;min-height:16px!important;margin:2px 2px 0!important;font-size:10px!important}
+  #app{width:100%!important;max-width:100%!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin-top:9px!important}
+  .card{min-width:0!important;width:100%!important;padding:12px!important;border-radius:15px!important;overflow:hidden!important}
+  .num{font-size:22px!important}
+  .layout{grid-template-columns:1fr!important;gap:9px!important;margin-top:9px!important}
+  .market{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  .market-box{min-width:0!important;padding:9px!important;overflow:hidden!important}
+  .market-price{font-size:19px!important;white-space:nowrap!important}
+  .signal{font-size:20px!important;white-space:nowrap!important}
+  .section-title{min-width:0!important;flex-wrap:wrap!important}
+  .section-title h2{font-size:14px!important}
+  .toolbar{grid-template-columns:minmax(0,1fr) 96px!important;gap:6px!important}
+  .toolbar .btn{grid-column:1/-1!important}
+  .table-wrap{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  .table{min-width:620px!important}
+  .plans{width:100%!important}
+  .plan{grid-template-columns:minmax(0,1fr)!important;gap:6px!important}
+  .plan input{width:100%!important;min-width:0!important}
+  .footer{padding-bottom:8px!important}
+}
+@media(max-width:380px){
+  .top{grid-template-columns:42px minmax(0,1fr) auto!important;padding:7px!important}
+  .logo{width:40px!important;height:40px!important;min-width:40px!important}
+  .brand h1{font-size:13px!important}
+  .brand small{font-size:8px!important}
+  .actions{max-width:36vw!important}
+  .actions #refresh{font-size:0!important;width:40px!important;padding:0!important}
+  .actions #refresh::before{content:'↻';font-size:18px!important}
+  .actions #logout{font-size:0!important;width:40px!important;padding:0!important}
+  .actions #logout::before{content:'↪';font-size:18px!important}
+  .market{grid-template-columns:1fr!important}
+}
+'''
+          marker='VTRADE-ADMIN-MOBILE-V1'
+          if marker not in s:
+              pos=s.find('</style>')
+              if pos < 0:
+                  raise SystemExit('style closing tag not found')
+              s=s[:pos]+css+'\n'+s[pos:]
+              p.write_text(s,encoding='utf-8')
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          rm -f ADMIN_MOBILE_FIX_TRIGGER
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin-dashboard.html ADMIN_MOBILE_FIX_TRIGGER .github/workflows/admin-mobile-hotfix.yml
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: mobile admin dashboard header overlap'
+          git push
