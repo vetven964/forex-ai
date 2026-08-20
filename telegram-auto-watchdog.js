@@ -20,13 +20,25 @@ function patchServer() {
   let source = fs.readFileSync(serverFile, 'utf8');
   let changed = false;
 
+  // Repair malformed declarations produced by older readiness patches BEFORE
+  // replacing legacy references. Never allow `let globalThis.foo = ...`.
+  const malformedGlobalDecl = new RegExp('\\b(?:let|const|var)\\s+' + READINESS.replace('.', '\\.') + '\\s*=\\s*([^;]*);', 'g');
+  if (malformedGlobalDecl.test(source)) {
+    source = source.replace(malformedGlobalDecl, READINESS + ' = $1;');
+    changed = true;
+    console.log('[V-TRADE SAFETY] repaired malformed Telegram global declaration');
+  }
+
   if (source.indexOf('telegramAutoLastReadinessLog') >= 0) {
+    // Replace the identifier, then explicitly remove any declaration keyword
+    // that could have been attached to it by a legacy patch.
     source = source.split('telegramAutoLastReadinessLog').join(READINESS);
+    source = source.replace(new RegExp('\\b(?:let|const|var)\\s+' + READINESS.replace('.', '\\.') + '\\s*=', 'g'), READINESS + ' =');
     changed = true;
     console.log('[V-TRADE SAFETY] Telegram readiness state normalized to global runtime slot');
   }
-  if (source.indexOf("globalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '')") < 0) {
-    source = "// VTRADE_TELEGRAM_AUTO_WATCHDOG_V16_SAFE\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n" + source;
+  if (source.indexOf(READINESS + " = String(" + READINESS + " || '')") < 0) {
+    source = "// VTRADE_TELEGRAM_AUTO_WATCHDOG_V16_SAFE\n" + READINESS + " = String(" + READINESS + " || '');\n" + source;
     changed = true;
   }
 
@@ -82,7 +94,6 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     Number.isFinite(Number(a.entry));
   if (!confirmed) return false;
 
-  // FINAL EXECUTION SAFETY GATE: never send a trade whose geometry or target spacing is invalid.
   const tf = String(a.executionTimeframe || a.timeframe || '').trim().toUpperCase();
   const entry = Number(a.entry);
   const sl = Number(a.stopLoss != null ? a.stopLoss : (a.sl != null ? a.sl : a.stop_loss));
@@ -93,39 +104,21 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
   const risk = Math.abs(entry - sl);
   const finiteTargets = Number.isFinite(entry) && Number.isFinite(sl) && Number.isFinite(tp1) && Number.isFinite(tp2) && Number.isFinite(tp3) && risk > 0;
   const geometryValid = tf !== '' && tf !== '—' && tf !== '-' && finiteTargets &&
-    (signal === 'BUY'
-      ? (sl < entry && entry < tp1 && tp1 < tp2 && tp2 < tp3)
-      : (sl > entry && entry > tp1 && tp1 > tp2 && tp2 > tp3));
+    (signal === 'BUY' ? (sl < entry && entry < tp1 && tp1 < tp2 && tp2 < tp3) : (sl > entry && entry > tp1 && tp1 > tp2 && tp2 > tp3));
   const targetSpacingValid = finiteTargets &&
-    (signal === 'BUY'
-      ? (tp1 >= entry + risk && tp2 >= entry + risk * 1.5 && tp3 >= entry + risk * 2)
-      : (tp1 <= entry - risk && tp2 <= entry - risk * 1.5 && tp3 <= entry - risk * 2));
+    (signal === 'BUY' ? (tp1 >= entry + risk && tp2 >= entry + risk * 1.5 && tp3 >= entry + risk * 2) : (tp1 <= entry - risk && tp2 <= entry - risk * 1.5 && tp3 <= entry - risk * 2));
   const rr = risk > 0 ? Math.abs(tp1 - entry) / risk : 0;
   if (!geometryValid || !targetSpacingValid || !Number.isFinite(rr) || rr < 1.3) {
-    console.warn('[TELEGRAM AUTO] BLOCKED invalid execution geometry/spacing | signal=' + signal +
-      ' | tf=' + (tf || 'MISSING') + ' | entry=' + entry + ' | sl=' + sl +
-      ' | tp1=' + tp1 + ' | tp2=' + tp2 + ' | tp3=' + tp3 +
-      ' | rr=' + rr.toFixed(2));
+    console.warn('[TELEGRAM AUTO] BLOCKED invalid execution geometry/spacing | signal=' + signal + ' | tf=' + (tf || 'MISSING') + ' | entry=' + entry + ' | sl=' + sl + ' | tp1=' + tp1 + ' | tp2=' + tp2 + ' | tp3=' + tp3 + ' | rr=' + rr.toFixed(2));
     return false;
   }
-
   if (!tg || !tg.bot || !tg.chatId) {
     console.warn('[TELEGRAM AUTO] confirmed valid entry ready but delivery is not configured');
     return false;
   }
   const confidence = Number(a.confidence);
   const fmt = function(v) { return Number.isFinite(Number(v)) ? Number(v).toFixed(2) : 'WAIT'; };
-  const lines = [
-    '🤖 *V TRADE AI — XAUUSD*',
-    '',
-    signal === 'BUY' ? '🟢 *BUY*' : '🔴 *SELL*',
-    '⏱️ TF: *' + tf + '*',
-    '🎯 Entry: *' + fmt(entry) + '*',
-    '🛑 SL: *' + fmt(sl) + '*',
-    '🎯 TP1: *' + fmt(tp1) + '*',
-    '🎯 TP2: *' + fmt(tp2) + '*',
-    '🎯 TP3: *' + fmt(tp3) + '*'
-  ];
+  const lines = ['🤖 *V TRADE AI — XAUUSD*','',signal === 'BUY' ? '🟢 *BUY*' : '🔴 *SELL*','⏱️ TF: *' + tf + '*','🎯 Entry: *' + fmt(entry) + '*','🛑 SL: *' + fmt(sl) + '*','🎯 TP1: *' + fmt(tp1) + '*','🎯 TP2: *' + fmt(tp2) + '*','🎯 TP3: *' + fmt(tp3) + '*'];
   if (Number.isFinite(confidence)) lines.push('🧠 Confidence: *' + Math.max(0, Math.min(100, confidence)).toFixed(0) + '/100*');
   await tg.bot.sendMessage(tg.chatId, lines.join('\\n'), { parse_mode: 'Markdown' });
   console.log('[TELEGRAM AUTO] VALID ENTRY sent | signal=' + signal + ' | tf=' + tf + ' | rr=' + rr.toFixed(2) + ' | chat=' + String(tg.chatId).slice(-4));
@@ -155,27 +148,14 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
   }
 
   const zoneLine = "const ZONE_ALERT_ENABLED = String(process.env.ZONE_ALERT_ENABLED || 'true').toLowerCase() === 'true';";
-  if (source.indexOf(zoneLine) >= 0) {
-    source = source.replace(zoneLine, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY");
-    changed = true;
-  }
+  if (source.indexOf(zoneLine) >= 0) { source = source.replace(zoneLine, "const ZONE_ALERT_ENABLED = false; // ENTRY-ONLY"); changed = true; }
   const newsLine = "const TELEGRAM_NEWS_ALERTS = String(process.env.TELEGRAM_NEWS_ALERTS || 'true').toLowerCase() === 'true';";
-  if (source.indexOf(newsLine) >= 0) {
-    source = source.replace(newsLine, "const TELEGRAM_NEWS_ALERTS = false; // ENTRY-ONLY");
-    changed = true;
-  }
+  if (source.indexOf(newsLine) >= 0) { source = source.replace(newsLine, "const TELEGRAM_NEWS_ALERTS = false; // ENTRY-ONLY"); changed = true; }
 
-  if (source.indexOf(marker) < 0) {
-    source = '// ' + marker + '\n' + source;
-    changed = true;
-  }
+  if (source.indexOf(marker) < 0) { source = '// ' + marker + '\n' + source; changed = true; }
   if (changed) fs.writeFileSync(serverFile, source, 'utf8');
 
-  console.log('[V-TRADE TELEGRAM WATCHDOG] active | scanner=' +
-    (String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase() === 'true') +
-    ' | mainBot=' + (process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID ? 'configured' : 'not-configured') +
-    ' | autoBot=' + (process.env.TELEGRAM_AUTO_TOKEN && process.env.TELEGRAM_AUTO_CHAT_ID ? 'configured' : 'NOT_CONFIGURED') +
-    ' | first-scan=interval | PreMarket=SEPARATE');
+  console.log('[V-TRADE TELEGRAM WATCHDOG] active | scanner=' + (String(process.env.TELEGRAM_AUTO_ALERT_ENABLED || 'true').toLowerCase() === 'true') + ' | mainBot=' + (process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHAT_ID ? 'configured' : 'not-configured') + ' | autoBot=' + (process.env.TELEGRAM_AUTO_TOKEN && process.env.TELEGRAM_AUTO_CHAT_ID ? 'configured' : 'NOT_CONFIGURED') + ' | first-scan=interval | PreMarket=SEPARATE');
 }
 
 patchServer();
