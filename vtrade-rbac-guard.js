@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V5 */
+/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V6 */
 (() => {
   if (window.__VTRADE_RBAC_GUARD__) return;
   window.__VTRADE_RBAC_GUARD__ = true;
@@ -8,21 +8,18 @@
   if(!isAdminPage&&!isUserPage)return;
   const token=()=>window.VTRADE_CONNECTION?.token?.()||localStorage.getItem('vtrade_auth_token')||localStorage.getItem('vtrade_auth')||sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||'';
   const login=(reason='login')=>location.replace(`connection.html?required=login&reason=${encodeURIComponent(reason)}`);
-  const admin=()=>location.replace('admin-dashboard.html?v=20260820-mobile-rbac-v5');
-  const user=()=>location.replace('premium-dashboard-live.html?v=20260820-mobile-rbac-v5');
+  const admin=()=>location.replace('admin-dashboard.html?v=20260820-mobile-rbac-v6');
+  const user=()=>location.replace('premium-dashboard-live.html?v=20260820-mobile-rbac-v6');
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const isAdminRole=role=>['admin','administrator'].includes(String(role||'').trim().toLowerCase());
   const isMobileDevice=()=>{try{return window.matchMedia('(max-width:900px)').matches||/iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent)}catch{return /iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent)}};
-  const explicitAdminTerminal=()=>{try{return new URLSearchParams(location.search).get('from')==='admin-terminal'}catch{return false}};
+  const adminTerminalIntent=()=>{try{const q=new URLSearchParams(location.search);if(q.get('from')==='admin-terminal'||q.get('from')==='admin')return true;return /\/admin-dashboard\.html(?:[?#]|$)/i.test(document.referrer||'')}catch{return false}};
   async function verifySession(){
     const t=token();if(!t)return{ok:false,reason:'missing-token'};let lastError=null;
-    for(let attempt=1;attempt<=4;attempt++)try{
-      const r=await fetch(BACKEND+'/api/auth/session',{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{Accept:'application/json','x-vtrade-auth':t}});
-      const d=await r.json().catch(()=>({}));
-      if(r.ok&&d.user)return{ok:true,user:d.user};
-      lastError=new Error(r.status===401?'Unauthorized':`Session HTTP ${r.status}`);
-    }catch(e){lastError=e}
-    finally{if(attempt<4)await sleep(250*attempt)}
+    for(let attempt=1;attempt<=4;attempt++){
+      try{const r=await fetch(BACKEND+'/api/auth/session',{method:'GET',mode:'cors',credentials:'omit',cache:'no-store',headers:{Accept:'application/json','x-vtrade-auth':t}});const d=await r.json().catch(()=>({}));if(r.ok&&d.user)return{ok:true,user:d.user};lastError=new Error(r.status===401?'Unauthorized':`Session HTTP ${r.status}`)}catch(e){lastError=e}
+      if(attempt<4)await sleep(250*attempt);
+    }
     return{ok:false,reason:lastError?.message||'session-failed'};
   }
   function persistUser(u){if(!u)return;const raw=JSON.stringify(u);try{localStorage.setItem('vtrade_user',raw)}catch{}try{sessionStorage.setItem('vtrade_user',raw)}catch{}}
@@ -33,7 +30,7 @@
 `;
     document.head.appendChild(style);
     const ui=document.createElement('div');ui.id='vtradeAdminMobileUI';
-    ui.innerHTML=`<a class="vta-active" href="admin-dashboard.html"><span>⌂</span><span>Home</span></a><a href="premium-dashboard-live.html?from=admin-terminal&v=20260820-mobile-terminal"><span>▣</span><span>Terminal</span></a><a href="premium-dashboard-live.html?from=admin-terminal#signals"><span>◈</span><span>Signals</span></a><a href="premium-dashboard-live.html?from=admin-terminal#ai"><span>✦</span><span>AI</span></a><button id="vtaMore"><span>☰</span><span>More</span></button>`;
+    ui.innerHTML=`<a class="vta-active" href="admin-dashboard.html">⌂<span>Home</span></a><a href="premium-dashboard-live.html?from=admin-terminal&v=20260820-mobile-terminal">▣<span>Terminal</span></a><a href="premium-dashboard-live.html?from=admin-terminal#signals">◈<span>Signals</span></a><a href="premium-dashboard-live.html?from=admin-terminal#ai">✦<span>AI</span></a><button id="vtaMore">☰<span>More</span></button>`;
     document.body.appendChild(ui);
     const overlay=document.createElement('div');overlay.className='vta-overlay';document.body.appendChild(overlay);
     const drawer=document.createElement('aside');drawer.className='vta-drawer';drawer.innerHTML=`<div class="vta-drawer-head"><div><div class="vta-drawer-title">V TRADE AI</div><small style="color:#8d9bb0">Admin Control Center</small></div><button class="vta-close">×</button></div><nav class="vta-links"><a class="active" href="admin-dashboard.html">⌂ &nbsp; Admin Home</a><a href="premium-dashboard-live.html?from=admin-terminal&v=20260820-mobile-terminal">▣ &nbsp; Live Terminal</a><a href="profile.html">♟ &nbsp; Profile</a><a href="login.html">↪ &nbsp; Sign in</a><button id="vtaRefresh">↻ &nbsp; Refresh</button><button id="vtaLogout">⇥ &nbsp; Sign out</button></nav><div class="vta-live">● MT5 BACKEND LIVE</div></aside>`;document.body.appendChild(drawer);
@@ -42,16 +39,14 @@
     const top=document.querySelector('.top');if(top){const b=document.createElement('button');b.className='vta-menu-btn';b.textContent='☰';b.setAttribute('aria-label','Open menu');b.onclick=open;top.appendChild(b)}
   }
   async function verify(){
-    const result=await verifySession();if(!result.ok){console.warn('[V-TRADE RBAC V5] session verification failed:',result.reason);return login(result.reason)}
+    const result=await verifySession();if(!result.ok)return login(result.reason);
     const u=result.user,role=String(u?.role||'user').trim().toLowerCase();persistUser(u);const language=localStorage.getItem('vtrade_lang')==='km'?'km':'en';document.documentElement.lang=language;document.documentElement.dataset.role=role;
     if(isMobileDevice()){
-      // Admin normally stays on Admin Dashboard after direct URL/refresh.
-      // An explicit Admin -> Live Terminal click is allowed with from=admin-terminal.
-      if(isUserPage&&isAdminRole(role)&&!explicitAdminTerminal())return admin();
+      if(isUserPage&&isAdminRole(role)&&!adminTerminalIntent())return admin();
       if(isAdminPage&&!isAdminRole(role))return user();
     }
     if(isAdminPage)installAdminMobileUI();
-    window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,language,mobile:isMobileDevice(),adminTerminal:explicitAdminTerminal()}}));
+    window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,language,mobile:isMobileDevice(),adminTerminal:adminTerminalIntent()}}));
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
 })();
