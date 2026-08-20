@@ -25,6 +25,7 @@ try {
 }
 
 const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
+const MOBILE_FIRST_WORKFLOW = require('./mobile-first-workflow-v1.js');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
 const ADMIN_FRONTEND_HOTFIX = path.resolve(__dirname, 'frontend-admin-hotfix.js');
@@ -72,36 +73,7 @@ function patchWaitCard(source) {
   const start = source.indexOf(marker);
   const end = source.indexOf('\nfunction ', start + marker.length);
   if (end < 0) return source;
-  const fn = `function telegramWaitText(a) {
-  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';
-  const price=Number(a?.price ?? a?.livePrice ?? a?.bid ?? a?.ask);
-  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();
-  const side=bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':'';
-  const zone=a?.entryZone || a?.candidateZone || a?.referenceZone || null;
-  const low=zone?.low, high=zone?.high;
-  const zoneText=Number.isFinite(Number(low))&&Number.isFinite(Number(high)) ? n(low)+' – '+n(high) : 'WAIT';
-  const tp=Array.isArray(a?.takeProfit)?a.takeProfit:[];
-  const action=a?.tradeAuthorized===true && (side==='BUY'||side==='SELL');
-  const title=action ? (side==='BUY'?'🟢 BUY':'🔴 SELL') : (side==='BUY'?'🟡 WAIT — BUY':'🟡 WAIT — SELL');
-  const entry=action ? n(a?.entry) : 'WAIT';
-  const sl=action ? n(a?.stopLoss) : 'WAIT';
-  const tp1=action ? n(tp[0]) : 'WAIT';
-  const tp2=action ? n(tp[1]) : 'WAIT';
-  const tp3=action ? n(tp[2]) : 'WAIT';
-  return ['🤖 *V TRADE AI — XAUUSD*','',
-    '*'+title+'*',
-    '💰 Price: *'+n(price)+'*',
-    '📍 Zone: *'+zoneText+'*',
-    '🎯 Entry: *'+entry+'*',
-    '🛑 SL: *'+sl+'*',
-    '🎯 TP1: *'+tp1+'*',
-    '🎯 TP2: *'+tp2+'*',
-    '🎯 TP3: *'+tp3+'*',
-    '',
-    action ? '🔔 *AUTO ALERT — READY*' : '⏳ *WAIT — confirmation pending*'
-  ].join('\\n');
-}
-`;
+  const fn = `function telegramWaitText(a) {\n  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';\n  const price=Number(a?.price ?? a?.livePrice ?? a?.bid ?? a?.ask);\n  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();\n  const side=bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':'';\n  const zone=a?.entryZone || a?.candidateZone || a?.referenceZone || null;\n  const low=zone?.low, high=zone?.high;\n  const zoneText=Number.isFinite(Number(low))&&Number.isFinite(Number(high)) ? n(low)+' – '+n(high) : 'WAIT';\n  const tp=Array.isArray(a?.takeProfit)?a.takeProfit:[];\n  const action=a?.tradeAuthorized===true && (side==='BUY'||side==='SELL');\n  const title=action ? (side==='BUY'?'🟢 BUY':'🔴 SELL') : (side==='BUY'?'🟡 WAIT — BUY':'🟡 WAIT — SELL');\n  const entry=action ? n(a?.entry) : 'WAIT';\n  const sl=action ? n(a?.stopLoss) : 'WAIT';\n  const tp1=action ? n(tp[0]) : 'WAIT';\n  const tp2=action ? n(tp[1]) : 'WAIT';\n  const tp3=action ? n(tp[2]) : 'WAIT';\n  return ['🤖 *V TRADE AI — XAUUSD*','',\n    '*'+title+'*',\n    '💰 Price: *'+n(price)+'*',\n    '📍 Zone: *'+zoneText+'*',\n    '🎯 Entry: *'+entry+'*',\n    '🛑 SL: *'+sl+'*',\n    '🎯 TP1: *'+tp1+'*',\n    '🎯 TP2: *'+tp2+'*',\n    '🎯 TP3: *'+tp3+'*',\n    '',\n    action ? '🔔 *AUTO ALERT — READY*' : '⏳ *WAIT — confirmation pending*'\n  ].join('\\n');\n}\n`;
   return source.slice(0,start)+fn+source.slice(end);
 }
 
@@ -128,17 +100,19 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   source = patchWaitCard(source);
   source = patchRegistration(source);
   source = PREMARKET_DIRECT_ROUTE.inject(source);
-  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + simple-telegram + pre-market patches active');
+  source = MOBILE_FIRST_WORKFLOW.patchServer(source);
+  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + simple-telegram + pre-market + mobile-first patches active');
   mod._compile(source, filename);
 };
 
 try {
   if (fs.existsSync(FRONTEND_FILE)) {
     const before = fs.readFileSync(FRONTEND_FILE, 'utf8');
-    const after = patchFrontend(before);
+    let after = patchFrontend(before);
+    if (MOBILE_FIRST_WORKFLOW.patchFrontendFile(FRONTEND_FILE)) after = fs.readFileSync(FRONTEND_FILE, 'utf8');
     if (after !== before) {
       fs.writeFileSync(FRONTEND_FILE, after, 'utf8');
-      console.log('[V-TRADE LAUNCHER] Khmer frontend font compatibility applied');
+      console.log('[V-TRADE LAUNCHER] Khmer + mobile-first frontend compatibility applied');
     }
   }
 } catch (e) { console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message); }
