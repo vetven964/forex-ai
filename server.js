@@ -1898,46 +1898,9 @@ async function runTelegramAutoAlertScan() {
     const dedupeKey=`env:${TELEGRAM_CHAT_ID}`;
     let sent = await maybeTelegramAlert(a, tg, dedupeKey);
 
-    // Auto mode also sends a state-change WAIT update when the engine has a
-    // strong directional bias but the deterministic entry gates are not ready.
-    // This proves the scanner/Telegram pipeline is alive without ever forcing
-    // a BUY/SELL entry. Entry alerts remain strict inside maybeTelegramAlert().
-    const waitScore=Number(a.directionScore ?? a.aiScore ?? 0);
-    const WAIT_MIN_SCORE=75;
-
-    // WAIT alerts are event/state based, NOT score/price based.
-    // A changing score or live price must never cause a Telegram message every scan.
-    // The key only changes when the directional state or entry-gate state changes.
-    const waitGateState = [
-      a.confirmations?.allGatesPassed===true ? 'PASS' : 'WAIT',
-      a.bias || 'NEUTRAL',
-      Array.isArray(a.score?.blockedReasons)
-        ? a.score.blockedReasons.map(x => String(x).split(' — ')[0].split(' — ')[0]).sort().join('|')
-        : ''
-    ].join(':');
-    const now = Date.now();
-const waitCooldownExpired =
-  (now - telegramAutoLastWaitSentAt) >= TELEGRAM_WAIT_ALERT_COOLDOWN_MS;
-
-if (
-  !sent &&
-  a.signal === 'WAIT' &&
-  waitScore >= WAIT_MIN_SCORE &&
-  waitGateState !== telegramAutoLastWaitKey &&
-  waitCooldownExpired
-) {
-  const waitText = telegramWaitText(a);
-
-  await tg.bot.sendMessage(tg.chatId, waitText);
-
-  sent = true;
-  telegramAutoLastWaitKey = waitGateState;
-  telegramAutoLastWaitSentAt = now;
-
-  console.log(
-    `[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore} | cooldown=${Math.round(TELEGRAM_WAIT_ALERT_COOLDOWN_MS / 60000)}m`
-  );
-}
+    // Telegram AUTO is entry-only. WAIT/bias/watch states are logged locally
+    // but are never broadcast. maybeTelegramAlert() remains responsible for
+    // confirmed BUY/SELL alerts only.
 
     // State logging is also stable: score/status/price changes alone do not count as a new state.
     const stateKey=`${a.signal}:${a.bias || 'NEUTRAL'}:${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`;
