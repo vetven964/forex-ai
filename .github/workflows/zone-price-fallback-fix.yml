@@ -1,0 +1,46 @@
+name: V TRADE AI Zone Price Fallback Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ZONE_PRICE_FALLBACK_FIX_TRIGGER'
+      - '.github/workflows/zone-price-fallback-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix zone price source
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('pre-market-candle-open-engine.js')
+          s = p.read_text(encoding='utf-8')
+          old = "    const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price);"
+          new = """    // Prefer live analysis price, then fall back to the latest ready MTF close.
+          // This guarantees both pre-market zones receive real prices when /analysis/xauusd
+          // exposes price through timeframe candles instead of a top-level quote field.
+          const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price??rows.M5?.currentPrice??rows.M15?.currentPrice??rows.H1?.currentPrice??rows.H4?.currentPrice??rows.D1?.currentPrice);"""
+          if old not in s:
+              raise SystemExit('zone price source marker not found')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          rm -f ZONE_PRICE_FALLBACK_FIX_TRIGGER
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pre-market-candle-open-engine.js ZONE_PRICE_FALLBACK_FIX_TRIGGER .github/workflows/zone-price-fallback-fix.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'fix: fallback to MTF close for pre-market zones'
+          git push
