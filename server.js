@@ -1,4 +1,3 @@
-const fs = require('fs');
 // V-TRADE AI — FULL MTF SIGNAL DISPLAY (M1/M5/M15/H1)
 require('dotenv').config();
 const express = require('express');
@@ -11,9 +10,6 @@ const crypto = require('crypto');
 const storage = require('./storage');
 
 const app = express();
-// V TRADE AI — Pre-Market + 60m Macro/Truth Social engine
-try { require('./pre-market-news-engine')(app); } catch (e) { console.error('[PRE-MARKET] install failed:', e.message); }
-
 const PORT = Number(process.env.PORT || 10000);
 const HOST = '0.0.0.0';
 
@@ -264,6 +260,24 @@ function requireRole(role) {
   };
 }
 
+function planEntitlements(plan) {
+  const p=String(plan||'').trim().toLowerCase();
+  if (p==='admin') return ['*'];
+  if (p.includes('premium')) return ['terminal','signals','ai','news','telegram','risk','history','profile:own'];
+  if (p.includes('vip') || p.includes('pro')) return ['terminal','signals','ai','news','telegram','risk','history','profile:own'];
+  if (p.includes('standard')) return ['terminal','signals','ai','news','risk','history','profile:own'];
+  if (p.includes('basic')) return ['terminal','signals','risk','history','profile:own'];
+  if (p.includes('trial') || p==='free' || !p) return ['terminal','signals','ai','profile:own'];
+  return ['profile:own'];
+}
+function requirePermission(permission) {
+  return (req,res,next) => {
+    const permissions=Array.isArray(req.vtradeUser?.permissions)?req.vtradeUser.permissions:[];
+    if (permissions.includes('*') || permissions.includes(permission)) return next();
+    return res.status(403).json({success:false,error:'This feature is not included in your current package'});
+  };
+}
+
 const pricingPlans = (() => {
   try {
     const parsed = JSON.parse(String(process.env.VTRADE_PRICING_JSON || ''));
@@ -413,7 +427,7 @@ app.post('/api/auth/login', rateLimit({ windowMs: 10 * 60_000, max: 20, standard
   if(!email||!password)return res.status(400).json({success:false,error:'Email and password are required'});
   let user=null, secret='';
   if(ADMIN_EMAIL&&email===ADMIN_EMAIL&&verifyAdminPassword(password)){user={id:'owner-admin',email:ADMIN_EMAIL,name:'VET VEN',role:'admin',plan:'Admin',permissions:['*'],twoFactorEnabled:!!ADMIN_TOTP_SECRET};secret=ADMIN_TOTP_SECRET;}
-  else {const found=USER_ACCOUNTS.find(u=>{if(!u.enabled||u.email!==email)return false;const override=authPasswordOverrides.get(u.id);return override?verifyPassword(password,override):verifyPassword(password,u.passwordHash);});if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:['terminal','pricing','telegram:own','profile:own'],twoFactorEnabled:!!userTotpSecret(found)};secret=userTotpSecret(found);}}
+  else {const found=USER_ACCOUNTS.find(u=>{if(!u.enabled||u.email!==email)return false;const override=authPasswordOverrides.get(u.id);return override?verifyPassword(password,override):verifyPassword(password,u.passwordHash);});if(found){user={id:found.id,email:found.email,name:found.name,role:found.role,plan:found.plan,permissions:found.role==='admin'?['*']:planEntitlements(found.plan),twoFactorEnabled:!!userTotpSecret(found)};secret=userTotpSecret(found);}}
   if(!user)return res.status(401).json({success:false,error:'Invalid credentials'});
   if(secret){const challenge=crypto.randomBytes(32).toString('hex');pending2FA.set(challenge,{user,secret,expiresAt:Date.now()+300000,attempts:0});return res.json({success:true,requires2FA:true,challenge,expiresAt:Date.now()+300000,user:{id:user.id,email:user.email,name:user.name,role:user.role,plan:user.plan}});}
   const token=createAuthSession(user); setAuthCookie(res, token); res.set('Cache-Control','no-store'); res.json({success:true,token,expiresAt:Date.now()+AUTH_SESSION_TTL_MS,user});
@@ -487,7 +501,7 @@ app.post('/api/auth/logout', requireAuth, (req,res) => {
   res.json({success:true});
 });
 
-app.get('/api/pricing', requireAuth, (req,res) => {
+app.get('/api/pricing', (req,res) => {
   res.set('Cache-Control','no-store');
   res.json({success:true, role:req.vtradeUser.role, currentPlan:req.vtradeUser.plan, plans:pricingPlans});
 });
@@ -508,10 +522,24 @@ app.post('/api/admin/broadcast', requireAuth, requireRole('admin'), telegramMuta
 app.get('/api/admin/session', requireAuth, requireRole('admin'), (req,res) => {
   res.set('Cache-Control','no-store');
   const sessions=[...authSessions.entries()].map(([token,s]) => ({
-    sessionId: token.slice(0,8)+'…', id:s.id, email:s.email, name:s.name, role:s.role, plan:s.plan,
+    sessionId: token.slice(0,16), id:s.id, email:s.email, name:s.name, role:s.role, plan:s.plan,
     createdAt:s.createdAt, lastSeenAt:s.lastSeenAt, expiresAt:s.expiresAt, active:Date.now()<s.expiresAt
   })).filter(s=>s.active);
   res.json({success:true,admin:req.vtradeUser,sessions,sessionCount:sessions.length,capabilities:['users:read','users:manage','pricing:manage','security:audit','telegram:admin','system:read']});
+});
+
+app.post('/api/admin/session/:sessionId/logout', requireAuth, requireRole('admin'), (req,res) => {
+  const prefix=String(req.params.sessionId||'').trim();
+  if(!/^[a-f0-9]{16}$/i.test(prefix)) return res.status(400).json({success:false,error:'Invalid session id'});
+  const matches=[...authSessions.keys()].filter(t=>t.startsWith(prefix));
+  if(matches.length!==1) return res.status(matches.length?409:404).json({success:false,error:matches.length?'Session id is ambiguous':'Session not found'});
+  const token=matches[0];
+  const session=authSessions.get(token);
+  if(session?.id==='owner-admin') return res.status(400).json({success:false,error:'The primary admin session cannot be remotely logged out here'});
+  authSessions.delete(token);
+  revokedAuthTokens.set(token, Number(session?.expiresAt || Date.now()+AUTH_SESSION_TTL_MS));
+  storage.saveEvent?.('admin_session_logout', null, {admin:req.vtradeUser.email, user:session?.email || session?.id}).catch(()=>{});
+  res.json({success:true});
 });
 
 app.get('/api/admin/users', requireAuth, requireRole('admin'), (req,res) => {
@@ -1009,28 +1037,9 @@ function analyzeTF(c) {
   const side=s?.bias==='BULLISH'||s?.bias==='BEARISH' ? s.bias : trend;
   const fvg=latestFreshFvg(c, Math.min(12, Math.max(6, c.length-3)));
   const ob=latestAlignedOrderBlock(c, side, Math.min(20, Math.max(6, c.length-3)));
-
-  // Direction score is a timeframe-local directional reading, not an entry
-  // authorization score.  The deterministic entry gate below remains strict.
-  let directionScore=50;
-  if(side==='BULLISH') directionScore+=18;
-  else if(side==='BEARISH') directionScore-=18;
-  if(trend===side) directionScore += side==='BULLISH'?10:-10;
-  if(r!=null){
-    if(side==='BULLISH' && r>=50) directionScore+=5;
-    if(side==='BEARISH' && r<=50) directionScore-=5;
-  }
-  const macdBias=m ? (m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL') : 'NEUTRAL';
-  if(macdBias===side) directionScore += side==='BULLISH'?5:-5;
-  if(dx && Number(dx.value)>=18) directionScore += side==='BULLISH'?5:-5;
-  if(sweep?.bias===side) directionScore += side==='BULLISH'?7:-7;
-  directionScore=Math.max(0,Math.min(100,Math.round(directionScore)));
-
   return {
-    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,
-    score:directionScore,directionScore,
-    rsi:r==null?null:Math.round(r*100)/100,
-    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:macdBias}:null,
+    structure:s,sweep,atr:a,ema20:e20,ema50:e50,trend,rsi:r==null?null:Math.round(r*100)/100,
+    macd:m?{line:m.line,signal:m.signal,histogram:m.histogram,bias:m.histogram>0?'BULLISH':m.histogram<0?'BEARISH':'NEUTRAL'}:null,
     adx:dx,volume:vb,last:c[c.length-1]?.c,fvg,orderBlock:ob
   };
 }
@@ -1313,16 +1322,6 @@ async function buildXauAnalysis() {
     Promise.resolve(analyzeTF(h1)),Promise.resolve(analyzeTF(h4)),Promise.resolve(d1.length>=30?analyzeTF(d1):null),Promise.resolve(w1.length>=20?analyzeTF(w1):null)
   ]);
   const feedMode='VT Markets MT5',tfs={M1:m1a,M5:m5a,M15:m15a,H1:h1a,H4:h4a,D1:d1a,W1:w1a},a=tfs.M5.atr||5;
-
-  // Preserve the broker-native closed candles in the analysis response so the
-  // dashboard chart can render the exact same data used by the ICT engine.
-  // Keep the payload compact and capped at the latest 300 bars per timeframe.
-  const closedByTf={M1:m1,M5:m5,M15:m15,H1:h1,H4:h4,D1:d1,W1:w1};
-  for(const [tf,analysis] of Object.entries(tfs)){
-    if(!analysis) continue;
-    const rows=Array.isArray(closedByTf[tf])?closedByTf[tf].slice(-300):[];
-    analysis.candles=rows.map(x=>({t:x.t,o:x.o,h:x.h,l:x.l,c:x.c,v:x.v||0}));
-  }
   const candleAgeSec=m5.length?Math.max(0,(Date.now()-m5[m5.length-1].t)/1000):Infinity,candlesFresh=candleAgeSec<=15*60;
   // Full MTF context is visible to the engine, while the execution gate remains
   // intentionally strict on H4/H1/M15. D1 and M5/M1 add context; they cannot
@@ -1896,9 +1895,46 @@ async function runTelegramAutoAlertScan() {
     const dedupeKey=`env:${TELEGRAM_CHAT_ID}`;
     let sent = await maybeTelegramAlert(a, tg, dedupeKey);
 
-    // Telegram AUTO is entry-only. WAIT/bias/watch states are logged locally
-    // but are never broadcast. maybeTelegramAlert() remains responsible for
-    // confirmed BUY/SELL alerts only.
+    // Auto mode also sends a state-change WAIT update when the engine has a
+    // strong directional bias but the deterministic entry gates are not ready.
+    // This proves the scanner/Telegram pipeline is alive without ever forcing
+    // a BUY/SELL entry. Entry alerts remain strict inside maybeTelegramAlert().
+    const waitScore=Number(a.directionScore ?? a.aiScore ?? 0);
+    const WAIT_MIN_SCORE=75;
+
+    // WAIT alerts are event/state based, NOT score/price based.
+    // A changing score or live price must never cause a Telegram message every scan.
+    // The key only changes when the directional state or entry-gate state changes.
+    const waitGateState = [
+      a.confirmations?.allGatesPassed===true ? 'PASS' : 'WAIT',
+      a.bias || 'NEUTRAL',
+      Array.isArray(a.score?.blockedReasons)
+        ? a.score.blockedReasons.map(x => String(x).split(' — ')[0].split(' — ')[0]).sort().join('|')
+        : ''
+    ].join(':');
+    const now = Date.now();
+const waitCooldownExpired =
+  (now - telegramAutoLastWaitSentAt) >= TELEGRAM_WAIT_ALERT_COOLDOWN_MS;
+
+if (
+  !sent &&
+  a.signal === 'WAIT' &&
+  waitScore >= WAIT_MIN_SCORE &&
+  waitGateState !== telegramAutoLastWaitKey &&
+  waitCooldownExpired
+) {
+  const waitText = telegramWaitText(a);
+
+  await tg.bot.sendMessage(tg.chatId, waitText);
+
+  sent = true;
+  telegramAutoLastWaitKey = waitGateState;
+  telegramAutoLastWaitSentAt = now;
+
+  console.log(
+    `[TELEGRAM AUTO] WAIT alert sent | bias=${a.bias} | score=${waitScore} | cooldown=${Math.round(TELEGRAM_WAIT_ALERT_COOLDOWN_MS / 60000)}m`
+  );
+}
 
     // State logging is also stable: score/status/price changes alone do not count as a new state.
     const stateKey=`${a.signal}:${a.bias || 'NEUTRAL'}:${a.confirmations?.allGatesPassed===true?'PASS':'WAIT'}`;
@@ -1984,7 +2020,6 @@ app.post('/api/v5/mt5/quote', (req,res) => {
 
     brokerFeed.quote={
       bid, ask, last,
-      digits:Number.isFinite(Number(q.digits)) ? Number(q.digits) : 2,
       spread:Number.isFinite(Number(q.spread)) ? Number(q.spread) : ask-bid,
       serverTime
     };
@@ -2066,7 +2101,7 @@ app.get('/api/v5/mt5/status',(_req,res)=>{
   });
 });
 
-app.get('/api/market/xauusd',async(_req,res)=>{
+app.get('/api/market/xauusd',requireAuth,requirePermission('terminal'),async(_req,res)=>{
   const p=brokerLivePrice();
   if (!p) return res.status(503).json({success:false,error:'VT Markets MT5 feed unavailable or stale'});
   res.json({
@@ -2095,15 +2130,15 @@ app.get('/api/v5/news/diagnostics', adminOnlyLimit, requireAdmin, async (_req,re
   });
 });
 
-app.get('/api/news/xauusd', async (_req,res)=>{
+app.get('/api/news/xauusd',requireAuth,requirePermission('news'), async (_req,res)=>{
   const news=await fetchXauNews();
   res.set('Cache-Control','no-store');
   res.json({success:true,...news});
 });
 
-app.get('/api/ai/status',(_req,res)=>res.json({success:true,enabled:OPENAI_ENABLED,configured:!!OPENAI_API_KEY,model:OPENAI_MODEL,minScore:OPENAI_MIN_SCORE,provider:'OpenAI Responses API'}));
+app.get('/api/ai/status',requireAuth,requirePermission('ai'),(_req,res)=>res.json({success:true,enabled:OPENAI_ENABLED,configured:!!OPENAI_API_KEY,model:OPENAI_MODEL,minScore:OPENAI_MIN_SCORE,provider:'OpenAI Responses API'}));
 
-app.get('/api/ai/analysis/xauusd',async(req,res)=>{
+app.get('/api/ai/analysis/xauusd',requireAuth,requirePermission('ai'),async(req,res)=>{
   try {
     const a=await buildXauAnalysis();
     const ai=await openAIConfirmXauAnalysis(a);
@@ -2243,29 +2278,30 @@ app.get('/api/v7/mt5/auto-config', (req, res) => {
   });
 });
 
-app.get('/api/analysis/xauusd',async(req,res)=>{
+app.get('/api/analysis/xauusd',requireAuth,requirePermission('terminal'),async(req,res)=>{
   try {
     if (req.get('x-vtrade-request') && !/^[a-zA-Z0-9._:-]{8,80}$/.test(req.get('x-vtrade-request'))) return res.status(400).json({success:false,error:'Invalid request id'});
     const a=await buildXauAnalysis();
     const tg = activeTelegramConfig(req);
     const sid = sessionIdFrom(req);
     const ai = OPENAI_ENABLED ? await openAIConfirmXauAnalysis(a) : null;
+    if (res.headersSent) return;
     res.json({success:true,...a,telegramConfigured:!!tg,aiConfirmation:ai});
     storage.saveAnalysis(a).catch(()=>{});
     maybeTelegramAlert(a, tg, sid).catch(e=>console.error('Telegram alert:',e.message));
   } catch(e) {
     console.error('ICT analysis:',e.message);
-    res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});
+    if (!res.headersSent) res.status(503).json({success:false,error:'ICT analysis temporarily unavailable'});
   }
 });
 
-app.get('/api/telegram/session',(req,res)=>{
+app.get('/api/telegram/session',requireAuth,requirePermission('telegram'),(req,res)=>{
   const sid = sessionIdFrom(req) || createSessionId();
   res.set('Cache-Control','no-store');
   res.json({success:true,sessionId:sid,connected:!!telegramSessions.get(sid)});
 });
 
-app.get('/api/telegram/status',async(req,res)=>{
+app.get('/api/telegram/status',requireAuth,requirePermission('telegram'),async(req,res)=>{
   const sid=sessionIdFrom(req);
   const tg=getSessionConfig(req);
   if (!tg) {
@@ -2274,7 +2310,7 @@ app.get('/api/telegram/status',async(req,res)=>{
   res.json({success:true,connected:true,mode:'user-session',botUsername:tg.botUsername,chatId:maskChatId(tg.chatId),connectedAt:tg.connectedAt});
 });
 
-app.post('/api/telegram/connect',telegramMutationLimit,async(req,res)=>{
+app.post('/api/telegram/connect',requireAuth,requirePermission('telegram'),telegramMutationLimit,async(req,res)=>{
   try {
     const token=String(req.body?.token||'').trim();
     const chatId=String(req.body?.chatId||'').trim();
@@ -2299,11 +2335,11 @@ app.post('/api/telegram/connect',telegramMutationLimit,async(req,res)=>{
     res.json({success:true,sessionId:sid,connected:true,botUsername:me.username||me.first_name||'Telegram Bot',chatId:maskChatId(chatId)});
   } catch(e) {
     console.error('Telegram connect:',e.message);
-    res.status(400).json({success:false,error:e.message||'Telegram connection failed'});
+    if (!res.headersSent) res.status(400).json({success:false,error:e.message||'Telegram connection failed'});
   }
 });
 
-app.post('/api/telegram/test',telegramMutationLimit,async(req,res)=>{
+app.post('/api/telegram/test',requireAuth,requirePermission('telegram'),telegramMutationLimit,async(req,res)=>{
   try {
     const tg=activeTelegramConfig(req);
     if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});
@@ -2315,7 +2351,7 @@ app.post('/api/telegram/test',telegramMutationLimit,async(req,res)=>{
   }
 });
 
-app.post('/api/telegram/disconnect',telegramMutationLimit,(req,res)=>{
+app.post('/api/telegram/disconnect',requireAuth,requirePermission('telegram'),telegramMutationLimit,(req,res)=>{
   const sid=sessionIdFrom(req);
   if(sid) {
     telegramSessions.delete(sid);
@@ -2325,7 +2361,7 @@ app.post('/api/telegram/disconnect',telegramMutationLimit,(req,res)=>{
   res.json({success:true,connected:false});
 });
 
-app.post('/api/v5/signal',telegramMutationLimit,async(req,res)=>{
+app.post('/api/v5/signal',requireAuth,requirePermission('signals'),telegramMutationLimit,async(req,res)=>{
   try {
     const tg = activeTelegramConfig(req);
     if(!tg) return res.status(400).json({success:false,error:'Telegram is not connected. Enter your Bot Token and Chat ID first.'});

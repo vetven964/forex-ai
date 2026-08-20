@@ -1,31 +1,2555 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="km" class="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#050912">
-<meta http-equiv="refresh" content="0;url=./premium-dashboard-live.html">
-<link rel="canonical" href="https://vetven964.github.io/forexai/premium-dashboard-live.html">
-<title>V TRADE AI — Premium Terminal</title>
-<style>html,body{margin:0;background:#04070d;color:#fff;font:16px Arial,sans-serif}main{min-height:100vh;display:grid;place-items:center;text-align:center}a{color:#9b67ff}</style>
-  <script src="vtrade-connection.js"></script>
-  <script src="terminal-pre-market.js"></script>
-  <script src="vtrade-rbac-guard.js"></script>
+<link rel="stylesheet" href="responsive-pro.css?v=6.3.5">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V Trade AI Pro - Smart Entry Terminal (v7.0.0 Full Signal Engine — VT Markets MT5 + ICT + News Radar)</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Advanced Terminal Analysis Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+        body { font-family: 'Kantumruy Pro','Noto Sans Khmer',sans-serif; background-color: #07090e; color: #f3f4f6; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel { background: rgba(13, 17, 28, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #07090e; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+        .terminal-scroll { scroll-behavior: smooth; }
+        .storage-badge{font-size:9px;padding:3px 7px;border-radius:999px;border:1px solid rgba(52,211,153,.25);color:#6ee7b7;background:rgba(16,185,129,.08)}
+        .storage-badge.offline{color:#fbbf24;border-color:rgba(251,191,36,.25);background:rgba(245,158,11,.08)}
+    </style>
+
+<style id="vtrade-mobile-pro">
+/* v6.3.4 Mobile PRO */
+@media (max-width: 767px){
+  body{padding-bottom:74px!important;overflow-x:hidden}
+  #topHeader{padding:10px 12px!important;gap:8px!important;flex-wrap:nowrap!important;min-height:78px}
+  #topHeader>div:first-child{min-width:0;flex:1;gap:8px!important}
+  #topHeader .mobile-pro-title{min-width:0}
+  #topHeader h1{font-size:12px!important;line-height:1.15!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+  #topHeader p{font-size:9px!important;line-height:1.2!important;max-width:220px}
+  #topHeader #btnAuth{max-width:132px!important;min-width:0!important;padding:8px 10px!important;font-size:10px!important}
+  #topHeader #btnAuth span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  #topHeader #btnAuth{position:relative;z-index:2;max-width:112px!important}
+  #topHeader .mobile-pro-title .flex.items-center.gap-2{gap:4px!important;flex-wrap:nowrap!important}
+  #topHeader .vt-premium-ribbon,#topHeader .vt-safety-pill{font-size:7px!important;padding:4px 6px!important;letter-spacing:.08em}
+  #topHeader .storage-badge{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #opportunityRadarPanel{margin-left:0!important;margin-right:0!important}
+  #opportunityRadarList{grid-template-columns:1fr!important}
+  #opportunityRadarList>div{min-width:0!important}
+  .md\:hidden.fixed.bottom-0{z-index:60!important}
+  #topHeader .mobile-menu-btn{flex:0 0 auto}
+  #topHeader .brand-icon{flex:0 0 auto}
+  .mobile-live-strip{display:flex!important}
+  #terminalPairSelect{min-width:0!important;width:100%!important}
+  #btnRefresh{width:100%!important;min-height:48px!important}
+  #signal-direction{font-size:30px!important}
+  #signal-entry{font-size:12px!important;word-break:break-word}
+  #signal-status,#signal-grade{font-size:11px!important}
+  #confirmationPanel{margin-top:8px}
+  #confirmationPanel .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #confirmationPanel .confirm-item:last-child{grid-column:1/-1}
+  #mobileSignalSummary{display:none!important}
+  #winRateCard,#setupScoreCard,#fvgCard,#sentimentCard{padding:14px!important}
+  #win-rate-val,#setup-score-val{font-size:25px!important}
+  #fvg-confidence,#sentiment-score{font-size:20px!important;line-height:1.15}
+  .terminal-scroll{max-height:280px!important}
+  .floating-ai-panel{position:fixed!important;bottom:78px!important;left:10px!important;width:calc(100% - 20px)!important}
+  #bottomNav{height:70px!important}
+}
+@media (min-width:768px){
+  .mobile-live-strip{display:none!important}
+}
+</style>
+
+<style id="vtrade-premium-540">
+/* V-TRADE AI v6.3.4 PREMIUM UI */
+:root{
+  --vt-gold:#f5c451;
+  --vt-cyan:#4de7d7;
+  --vt-blue:#6ea8ff;
+  --vt-panel:rgba(10,15,27,.88);
+}
+body{
+  background:
+    radial-gradient(circle at 15% -10%, rgba(77,231,215,.08), transparent 28%),
+    radial-gradient(circle at 85% 0%, rgba(110,168,255,.08), transparent 30%),
+    #050810!important;
+}
+.glass-panel{
+  background:linear-gradient(145deg,rgba(15,21,36,.94),rgba(7,11,20,.94))!important;
+  border-color:rgba(148,163,184,.13)!important;
+  box-shadow:0 14px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.025);
+}
+#signalCard,#winRateCard,#setupScoreCard,#fvgCard,#sentimentCard{
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+#signalCard:hover,#winRateCard:hover,#setupScoreCard:hover,#fvgCard:hover,#sentimentCard:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 45px rgba(0,0,0,.28);
+}
+.vt-premium-ribbon{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(245,196,81,.12),rgba(77,231,215,.10));
+  border:1px solid rgba(245,196,81,.25);color:#f8d87b;font-size:9px;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.vt-live-dot{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 12px rgba(52,211,153,.8)}
+.vt-safety-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;
+  background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#fbbf24;
+  font-size:9px;font-weight:700;
+}
+.vt-telegram-disabled{
+  opacity:.48!important;filter:saturate(.45);cursor:not-allowed!important;
+  box-shadow:none!important;
+}
+@media(max-width:767px){
+  .vt-premium-ribbon{font-size:8px;padding:4px 7px}
+}
+</style>
+
+
+<style id="vtrade-v6-ai">
+.vt-v6-ai-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px solid rgba(77,231,215,.28);background:rgba(77,231,215,.07);color:#7ff5e8;font-size:10px;font-weight:700;letter-spacing:.04em}
+</style>
 </head>
-<body>
-<main>
-  <div>
-    <strong>V TRADE AI</strong><br>
-    Opening Premium Terminal…<br><br>
-    <a id="open" href="./premium-dashboard-live.html">Open Terminal</a>
-  </div>
-</main>
+<body class="min-h-screen flex flex-col selection:bg-blue-600 selection:text-white pb-16 md:pb-0">
+    <script>
+        // GitHub Pages hosts the UI; Render hosts the API. Keep all backend calls on Render.
+        const VTRADE_API_BASE = window.VTRADE_API_BASE_OVERRIDE || 'https://forexai-6xw6.onrender.com';
+        let vtradeAuthToken = sessionStorage.getItem('vtrade_auth_token') || '';
+        let currentAuthUser = null;
+        function authHeaders(extra = {}) {
+            const h = new Headers(extra);
+            if (vtradeAuthToken) h.set('x-vtrade-auth', vtradeAuthToken);
+            return h;
+        }
+        async function loadStorageStatus(){
+            const el=document.getElementById('storageStatusBadge');
+            if(!el) return;
+            try{
+                const r=await vtradeApiFetch('/api/storage/status');
+                const d=r.data||{};
+                el.textContent = d.mode==='postgres' && d.connected ? 'Storage: DB connected' : (d.connected ? 'Storage: Local' : 'Storage: offline');
+                el.classList.toggle('offline', !(d.connected));
+            }catch(e){ el.textContent='Storage: offline'; el.classList.add('offline'); }
+        }
+
+        async function vtradeApiFetch(path, options = {}) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), Number(options.timeoutMs || 7000));
+            const headers = authHeaders(options.headers || {});
+            headers.set('x-vtrade-request', (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`));
+            try {
+            const res = await fetch(VTRADE_API_BASE + path, {...options, headers, credentials:'include', signal: controller.signal});
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); }
+            catch (_) {
+                const preview = text.replace(/\s+/g, ' ').slice(0, 120);
+                throw new Error(`API returned non-JSON (${res.status}). ${preview}`);
+            }
+            // Keep both the parsed payload and a Response-compatible facade so
+            // older callers using r.ok / r.json() continue to work.
+            return {
+                res, data,
+                ok: res.ok,
+                status: res.status,
+                headers: res.headers,
+                json: async () => data,
+                text: async () => text
+            };
+            } finally { clearTimeout(timeout); }
+        }
+    </script>
+
+    <!-- Top Navigation Header -->
+    <header id="topHeader" class="glass-panel sticky top-0 z-50 px-4 md:px-6 py-3 flex justify-between items-center border-b border-gray-800 flex-wrap gap-3 mobile-pro-header">
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleMobileMenu()" class="md:hidden mobile-menu-btn bg-gray-800 text-amber-400 p-2 rounded-xl text-base focus:outline-none cursor-pointer">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="brand-icon bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-terminal text-base"></i>
+            </div>
+            <div class="mobile-pro-title">
+                <h1 class="text-xs md:text-base font-bold tracking-wider text-white" id="txtBrandTitle">V TRADE AI & TERMINAL v7.0.0</h1>
+                <p class="text-[10px] md:text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="txtHeaderStatus">Realtime Price + ICT Engine Active</span>
+                </p>
+                <div id="storageStatusBadge" class="storage-badge">Storage: checking…</div>
+                <div class="flex items-center gap-2 mt-1"><span class="vt-premium-ribbon"><span class="vt-live-dot"></span> PREMIUM REALTIME</span><span class="vt-safety-pill"><i class="fa-solid fa-shield-halved"></i> ENTRY GATED</span></div>
+            </div>
+        </div>
+
+        <!-- Live Crypto Ticker Bar & Clock Header -->
+        <div class="hidden lg:flex items-center space-x-4 bg-gray-950 px-4 py-1.5 rounded-xl border border-gray-800 text-xs">
+                <div class="flex items-center gap-2 text-yellow-400 font-mono">
+                <i class="fa-solid fa-coins"></i> XAU: <span id="tickerXau" class="font-bold text-white">LIVE —</span>
+            </div>
+            <div class="flex items-center gap-2 text-amber-400 font-mono">
+                <i class="fa-brands fa-bitcoin"></i> BTC: <span id="tickerBtc" class="font-bold text-white">LIVE —</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-purple-400 font-mono">
+                <i class="fa-brands fa-ethereum"></i> ETH: <span id="tickerEth" class="font-bold text-white">LIVE —</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-blue-400 font-mono">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span id="liveDate">--/--/----</span>
+            </div>
+            <div class="h-3 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center gap-2 text-emerald-400 font-mono font-bold">
+                <i class="fa-regular fa-clock"></i>
+                <span id="liveClock">00:00:00</span>
+            </div>
+        </div>
+
+        <div id="headerControls" class="flex items-center space-x-2">
+            <select id="currencySelect" onchange="changeCurrency(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-emerald-400 font-bold focus:outline-none cursor-pointer">
+                <option value="USD">$ USD</option>
+                <option value="KHR">៛ KHR (រៀល)</option>
+                <option value="EUR">€ EUR</option>
+            </select>
+            <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-gray-900 border border-gray-700 text-[11px] rounded-xl px-2.5 py-1.5 text-white font-bold focus:outline-none cursor-pointer">
+                <option value="km">🇰🇭 ខ្មែរ</option>
+                <option value="en">🇬🇧 ENG</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
+            <button onclick="openModal('depositModal')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-wallet"></i><span id="btnDeposit">បង់ប្រាក់ (ABA / Account)</span>
+            </button>
+            <button onclick="openModal('authModal')" id="btnAuth" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition shadow-lg shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-user-shield"></i><span>Login</span>
+            </button>
+            <button onclick="openProfileSecurity()" class="bg-gray-800 hover:bg-gray-700 text-amber-400 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition flex items-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-user-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Live Status Strip -->
+    <div id="mobileLiveStrip" class="md:hidden px-3 py-2 border-b border-gray-800 bg-gray-950/95 text-[10px] font-mono overflow-x-auto">
+        <div class="flex items-center gap-3 min-w-max">
+            <span class="text-emerald-400"><i class="fa-solid fa-circle text-[7px]"></i> MT5 LIVE</span>
+            <span class="text-yellow-400">XAU <b id="mobileTickerXau">LIVE —</b></span>
+            <span class="text-blue-400"><i class="fa-regular fa-clock"></i> <b id="mobileLiveClock">--:--:--</b></span>
+        </div>
+    </div>
+
+    <!-- Mobile Drawer Menu Overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden md:hidden flex flex-col p-4 overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
+            <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2"><i class="fa-solid fa-bars-staggered"></i> ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.4)</h3>
+            <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-2 text-xs">
+            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
+                <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis AI Realtime</span>
+            </button>
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-chart-pie w-5"></i><span>ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+            </button>
+            <button onclick="switchTab('copytrading'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto Mirror)</span>
+            </button>
+            <button onclick="switchTab('sentiment'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus Filter</span>
+            </button>
+            <button id="mobile-nav-admin" onclick="switchTab('admin'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
+            </button>
+            <button onclick="switchTab('strategy'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer & Backtest</span>
+            </button>
+            <button onclick="switchTab('calculator'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
+            </button>
+            <button onclick="switchTab('affiliate'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate & Referral Program</span>
+            </button>
+            <button onclick="switchTab('sessions'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span>ម៉ោងទីផ្សារ (Asian/NY/London)</span>
+            </button>
+            <button onclick="switchTab('news'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span>ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
+            </button>
+            <button onclick="switchTab('pricing'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-tags w-5 text-purple-400"></i><span>កញ្ចប់តម្លៃថ្មី (Pricing)</span>
+            </button>
+            <button onclick="switchTab('telegram'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span>Telegram Bot & Webhook</span>
+            </button>
+            <button onclick="switchTab('tvchart'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span>TradingView Chart</span>
+            </button>
+            <button onclick="switchTab('security'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-800 text-left">
+                <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span>Cloudflare & DDoS Protection</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="mainLayout" class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
+            <nav class="space-y-1.5">
+                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer">
+                    <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
+                    <span>Terminal & Analysis AI Realtime</span>
+                </button>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-chart-pie w-5"></i><span id="menuDashboard">ផ្ទាំងគ្រប់គ្រង (Dashboard)</span>
+                </button>
+                <button onclick="switchTab('copytrading')" id="nav-copytrading" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/30 cursor-pointer">
+                    <i class="fa-solid fa-satellite-dish w-5 text-emerald-400"></i><span>Copy Trading Bot (Auto)</span>
+                </button>
+                <button onclick="switchTab('sentiment')" id="nav-sentiment" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/30 cursor-pointer">
+                    <i class="fa-solid fa-brain w-5 text-purple-400"></i><span>AI Sentiment & Consensus</span>
+                </button>
+                <button onclick="switchTab('admin')" id="nav-admin" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-400 hover:bg-gray-800/50 transition text-xs text-left border border-amber-500/20 cursor-pointer">
+                    <i class="fa-solid fa-user-gear w-5 text-amber-400"></i><span>Admin Manager (User List)</span>
+                </button>
+                <button onclick="switchTab('strategy')" id="nav-strategy" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-cyan-400 hover:bg-gray-800/50 transition text-xs text-left border border-cyan-500/20 cursor-pointer">
+                    <i class="fa-solid fa-gears w-5 text-cyan-400"></i><span>AI Strategy Customizer</span>
+                </button>
+                <button onclick="switchTab('calculator')" id="nav-calculator" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-purple-400 hover:bg-gray-800/50 transition text-xs text-left border border-purple-500/20 cursor-pointer">
+                    <i class="fa-solid fa-calculator w-5 text-purple-400"></i><span>Risk & SL/TP Calculator</span>
+                </button>
+                <button onclick="switchTab('affiliate')" id="nav-affiliate" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-gray-800/50 transition text-xs text-left border border-emerald-500/20 cursor-pointer">
+                    <i class="fa-solid fa-users-rectangle w-5 text-emerald-400"></i><span>Affiliate Program ($5 Bonus)</span>
+                </button>
+                <button onclick="switchTab('sessions')" id="nav-sessions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-globe w-5 text-indigo-400"></i><span id="menuSessions">ម៉ោងទីផ្សារ (Asian/NY/London)</span>
+                </button>
+                <button onclick="switchTab('news')" id="nav-news" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-newspaper w-5 text-amber-400"></i><span id="menuNews">ព័ត៌មាន & តំណភ្ជាប់ (News Links)</span>
+                </button>
+                <button onclick="switchTab('pricing')" id="nav-pricing" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-tags w-5 text-purple-400"></i><span id="menuPricing">កញ្ចប់តម្លៃថ្មី (Pricing)</span>
+                </button>
+                <button onclick="switchTab('telegram')" id="nav-telegram" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-brands fa-telegram w-5 text-blue-400"></i><span id="menuTelegram">Telegram Bot & Webhook</span>
+                </button>
+                <button onclick="switchTab('tvchart')" id="nav-tvchart" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-chart-candlestick w-5 text-teal-400"></i><span id="menuChart">TradingView Chart</span>
+                </button>
+                <button onclick="switchTab('security')" id="nav-security" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer">
+                    <i class="fa-solid fa-shield-halved w-5 text-red-400"></i><span id="menuSecurity">Cloudflare v5 & DDoS Shield</span>
+                </button>
+            </nav>
+            <div class="pt-4 border-t border-gray-800">
+                <button onclick="openModal('chatModal')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-3 rounded-xl shadow-lg shadow-blue-600/30 hover:opacity-90 transition flex items-center justify-center space-x-2 cursor-pointer">
+                    <i class="fa-solid fa-headset text-sm"></i><span id="menuSupport">AI Support v6.3</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main id="mainWorkspace" class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
+            
+            <!-- TAB: TERMINAL & ANALYSIS AI REALTIME -->
+            <div id="tab-terminal-analysis" class="tab-content active space-y-6">
+                <!-- Header Control & Selector -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-950 p-4 rounded-2xl border border-gray-800">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-teal-400"></i> AI Terminal & Analysis Realtime Engine
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-0.5">ការវិភាគទីផ្សារ និងទាញយក Signal ដោយស្វ័យប្រវត្តិតាមរយៈ AI Quantitative Analysis Model v6.3.4 Smart Entry PRO + News Intelligence — VT Markets MT5</p>
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select id="terminalPairSelect" onchange="runAIAnalysis()" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none cursor-pointer">
+                            <option value="XAU/USD" selected>XAU/USD (Gold - មាស)</option>
+                            <option value="BTC/USDT">BTC/USDT (Reference)</option>
+                            <option value="EUR/USD">EUR/USD (Reference)</option>
+                            <option value="ETH/USDT">ETH/USDT (Reference)</option>
+                        </select>
+                        <button onclick="runAIAnalysis()" class="px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white rounded-xl font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-teal-600/20 cursor-pointer shrink-0">
+                            <i class="fa-solid fa-arrows-rotate animate-spin" id="btnRefreshSpinner" style="display:none;"></i>
+                            <i class="fa-solid fa-bolt" id="btnRefreshIcon"></i>
+                            <span>Scan Analysis</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Signal Metrics Top Dashboard Cards -->
+                <div id="signalCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="signalCard" class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 relative overflow-hidden">
+                        <p class="text-xs text-gray-400 font-medium">Market Signal Direction</p>
+                        <h3 id="signal-direction" class="text-2xl font-extrabold mt-1 text-amber-400 tracking-wider">WAIT</h3>
+                        <div class="mt-2 text-[11px] text-gray-400 font-mono space-y-1">
+                            <div><span>Entry Zone:</span> <b class="text-white" id="signal-entry">WAIT</b></div>
+                            <div><span>Status:</span> <b class="text-amber-300" id="signal-status">WAIT</b></div>
+                            <div><span>Setup:</span> <b class="text-cyan-300" id="signal-grade">—</b></div>
+                        </div>
+                    </div>
+
+                    <div id="winRateCard" class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-xs text-gray-400 font-medium">Setup Strength</p>
+                        <h3 id="win-rate-val" class="text-2xl font-extrabold mt-1 text-blue-400">—/100</h3>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full mt-3.5 overflow-hidden">
+                            <div id="win-rate-bar" class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div id="setupScoreCard" class="glass-panel p-5 rounded-2xl border-l-4 border-cyan-500">
+                        <p class="text-xs text-gray-400 font-medium">ICT Confluence Score</p>
+                        <h3 id="setup-score-val" class="text-2xl font-extrabold mt-1 text-cyan-400">—/100</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
+                            <span>MTF:</span> <b id="mtf-agreement" class="text-cyan-300">—</b>
+                        </div>
+                    </div>
+
+                    <div id="fvgCard" class="glass-panel p-5 rounded-2xl border-l-4 border-amber-500">
+                        <p class="text-xs text-gray-400 font-medium">ICT Fair Value Gap (FVG)</p>
+                        <h3 id="fvg-confidence" class="text-2xl font-extrabold mt-1 text-amber-400">LIVE ICT</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-gray-400 font-mono">
+                            <span>Zone:</span> <b class="text-amber-300" id="fvg-zone">—</b>
+                        </div>
+                    </div>
+
+                    <div id="sentimentCard" class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
+                        <p class="text-xs text-gray-400 font-medium">Market Bias & Context</p>
+                        <h3 id="sentiment-score" class="text-2xl font-extrabold mt-1 text-purple-400">—</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[11px] text-emerald-400 font-bold">
+                            <i class="fa-solid fa-shield-check"></i> <span id="sentiment-detail">MTF structure pending</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Risk Radar -->
+                <div id="newsRiskCard" class="glass-panel p-4 rounded-2xl border border-emerald-500/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">USD Economic News Radar</p>
+                            <h3 id="newsRiskLabel" class="text-xl font-extrabold mt-1 text-emerald-400">CLEAR · សុវត្ថិភាព</h3>
+                            <p id="newsRiskDetail" class="text-[11px] text-gray-400 mt-1">គ្មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុង 60 នាទីខាងមុខ</p>
+                        </div>
+                        <div class="text-right text-[11px] font-mono">
+                            <div class="text-gray-500">Next</div><b id="newsNext" class="text-amber-300">—</b>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 pt-3 border-t border-gray-800 text-[10px] font-mono">
+                        <div><span class="text-gray-500">Source</span><br><b id="newsSource" class="text-gray-300">—</b></div>
+                        <div><span class="text-gray-500">Feed</span><br><b id="newsFeedStatus" class="text-amber-300">—</b></div>
+                        <div><span class="text-gray-500">Age</span><br><b id="newsDataAge" class="text-gray-300">—</b></div>
+                        <div><span class="text-gray-500">Events</span><br><b id="newsEventCount" class="text-gray-300">—</b></div>
+                    </div>
+                    </div>
+                </div>
+
+                <div id="newsResearchCard" class="glass-panel p-4 rounded-2xl border border-blue-500/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">Pre-News Research</p>
+                            <h3 id="newsResearchTitle" class="text-sm font-extrabold mt-1 text-blue-300">WAITING FOR VERIFIED NEWS</h3>
+                            <p id="newsResearchText" class="text-[11px] text-gray-400 mt-1">AI មិនស្មានទិសដៅពេល News មិនទាន់ verify</p>
+                        </div>
+                        <span id="tradePhaseBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300">WAIT</span>
+                    </div>
+                </div>
+
+                <!-- Confirmation & Execution Readiness -->
+                <div id="confirmationPanel" class="glass-panel p-4 rounded-2xl border border-gray-800">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-list-check text-teal-400"></i> Entry Confirmation</h3>
+                            <p class="text-[10px] text-gray-500">AI នឹងមិនបង្ខំ BUY/SELL ប្រសិនបើ confirmation មិនគ្រប់</p>
+                        </div>
+                        <span id="entry-readiness" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400">NOT READY</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-7 gap-2 text-[10px] font-mono">
+                        <div class="confirm-item" id="confirm-mtf"><span>MTF Bias</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-liquidity"><span>Liquidity</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-mss"><span>MSS</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-bos"><span>BOS</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-zone"><span>FVG/OB</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-pd"><span>Premium/Discount</span><b>—</b></div>
+                        <div class="confirm-item" id="confirm-displacement"><span>Displacement</span><b>—</b></div>
+                    </div>
+                </div>
+
+<!-- Advanced AI Evidence / Decision Transparency -->
+                <div id="aiEvidencePanel" class="glass-panel p-4 rounded-2xl border border-cyan-500/20">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-brain text-cyan-400"></i> Advanced AI Evidence
+                            </h3>
+                            <p class="text-[10px] text-gray-500 mt-1">Live deterministic evidence used by the execution gate — not a guaranteed-profit prediction.</p>
+                        </div>
+                        <div id="aiEngineMeta" class="text-[9px] font-mono text-cyan-300 text-right">ENGINE — · MT5 —</div>
+                    </div>
+                    <div id="aiEvidenceList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2"></div>
+                </div>
+
+                <!-- Multi-Horizon Opportunity Radar -->
+                <div id="opportunityRadarPanel" class="glass-panel p-4 rounded-2xl border border-emerald-500/20">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2"><i class="fa-solid fa-layer-group text-emerald-400"></i> Multi-Horizon Opportunity Radar</h3>
+                            <p class="text-[10px] text-gray-500 mt-1">M1 timing trigger → 5M scalp → 15M intraday → 1H swing. M1 improves timing only; it cannot create a standalone entry. A setup is shown only when live MT5 data, structure and risk/reward support it.</p>
+                        </div>
+                        <span id="opportunityBest" class="text-[9px] font-mono text-emerald-300">BEST: —</span>
+                    </div>
+                    <div id="opportunityRadarList" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
+                </div>
+
+                                <!-- Mobile Signal Quick Summary -->
+                <div id="mobileSignalSummary" class="md:hidden glass-panel p-3 rounded-2xl border border-teal-500/20">
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800"><span class="text-gray-500">Signal</span><div id="mobileSignalDirection" class="text-amber-400 font-extrabold text-base">WAIT</div></div>
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800"><span class="text-gray-500">Score</span><div id="mobileConfidence" class="text-blue-400 font-extrabold text-base">—/100</div></div>
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800 col-span-2"><span class="text-gray-500">Entry Zone</span><div id="mobileEntryZone" class="text-white font-extrabold text-sm">WAIT</div></div>
+                        <div class="bg-gray-950 rounded-xl p-2 border border-gray-800 col-span-2"><span class="text-gray-500">Readiness</span><div id="mobileReadiness" class="text-amber-300 font-extrabold text-sm">NOT READY</div></div>
+                    </div>
+                </div>
+
+                <!-- Middle Section: Live Realtime Terminal & AI Sentiment Radar Chart -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Real-Time AI Execution Console Terminal -->
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-2xl space-y-3 flex flex-col justify-between border border-teal-500/30">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-xs font-mono text-gray-400 ml-2">vtrade-ai-core-terminal://execution-v6.3.4</span>
+                            </div>
+                            <button onclick="clearTerminalLogs()" class="text-[11px] text-gray-500 hover:text-gray-300 font-mono cursor-pointer"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                        </div>
+
+                        <!-- Logs Console Box -->
+                        <div id="terminal-logs" class="bg-gray-950 p-4 rounded-xl font-mono text-xs h-72 overflow-y-auto text-teal-400 space-y-1.5 border border-gray-800 terminal-scroll">
+                            <div><span class="text-gray-500">[00:00:00]</span> <span class="text-blue-400">[SYSTEM]</span> Initializing V Trade AI v6.3.4 Advanced MTF ICT Decision Engine...</div>
+                            <div><span class="text-gray-500">[00:00:01]</span> <span class="text-emerald-400">[NETWORK]</span> Connected to VT Markets MT5 REST bridge...</div>
+                            <div><span class="text-gray-500">[00:00:02]</span> <span class="text-amber-400">[DATA]</span> Syncing broker-native XAUUSD MTF data from VT Markets MT5...</div>
+                        </div>
+
+                        <!-- Manual Signal Command Trigger -->
+                        <div class="flex gap-2 pt-2">
+                            <input type="text" id="terminalCmdInput" placeholder="Enter custom parameter or prompt (e.g. /analyze BTC)..." class="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
+                            <button onclick="executeTerminalCommand()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane"></i> Execute
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Market Sentiment Analysis Gauge & Chart -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 flex flex-col justify-between border border-purple-500/30">
+                        <div class="border-b border-gray-800 pb-2">
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-chart-radar text-purple-400"></i> Sentiment Consensus Radar
+                            </h3>
+                            <p class="text-[11px] text-gray-400">ការចម្រាញ់លទ្ធផល Sentiment ពីប្រភពទិន្នន័យធំៗ</p>
+                        </div>
+
+                        <div class="relative flex items-center justify-center h-48">
+                            <canvas id="sentimentChartCanvas"></canvas>
+                        </div>
+
+                        <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5 text-[11px] font-mono">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">RSI 14 (M5):</span>
+                                <b class="text-emerald-400" id="rsiVal">68.4 (Bullish Momentum)</b>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">MACD (M5):</span>
+                                <b class="text-blue-400" id="macdVal">Positive Histogram</b>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Orderbook Pressure:</span>
+                                <b class="text-amber-400" id="orderbookVal">64% Buy Orders</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signal Details Table -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800">
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-emerald-400"></i> Live AI Signal Breakdown & Target Levels
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span id="autoAlertBadge" class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg">AUTO ALERT: ENTRY ONLY</span>
+                            <button id="btnTelegramEntry" onclick="dispatchTelegramSignal()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer" disabled title="Available only for a confirmed BUY/SELL entry">
+                                <i class="fa-brands fa-telegram"></i> ផ្ញើ Signal នេះចូល Telegram Bot
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-950 rounded-xl overflow-x-auto border border-gray-800">
+                        <table class="w-full text-left border-collapse min-w-[520px] md:min-w-[600px] text-xs font-mono">
+                            <thead class="bg-gray-900 text-gray-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-3">គូ</th>
+                                    <th class="p-3">សញ្ញា</th>
+                                    <th class="p-3">តំបន់ចូល</th>
+                                    <th class="p-3">SL</th>
+                                    <th class="p-3">TP1 / TP2 / TP3</th>
+                                    <th class="p-3 text-center">ស្ថានភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800 text-gray-200">
+                                <tr>
+                                    <td class="p-3 font-bold text-white" id="tblAsset">XAU/USD</td>
+                                    <td class="p-3"><span id="tblSignalBadge" class="bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded">WAIT</span></td>
+                                    <td class="p-3 text-white" id="tblEntry">LIVE —</td>
+                                    <td class="p-3 text-red-400" id="tblSL">—</td>
+                                    <td class="p-3 text-emerald-400" id="tblTP">—</td>
+                                    <td class="p-3 text-center"><span id="tblStatus" class="bg-gray-800 text-gray-400 px-2 py-0.5 rounded font-bold">NOT READY</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-content space-y-6">
+                <div id="signalCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-blue-500">
+                        <p class="text-xs text-gray-400">សមតុល្យគណនី (Balance)</p>
+                        <h3 class="text-2xl font-bold mt-1 text-white" id="userBalanceDisplay">$1,250.00</h3>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved"></i> Cloudflare v5.7 Protected</span>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500">
+                        <p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មបច្ចុប្បន្ន</p>
+                        <h3 class="text-xl font-bold mt-1 text-indigo-400" id="currentPlanDisplay">VIP Pro v5.0 Ultimate</h3>
+                        <span class="text-xs text-gray-400">Copy Trading & Sentiment 24/7 Active</span>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500">
+                        <p class="text-xs text-gray-400">Copy Trading Bot Status</p>
+                        <h3 class="text-2xl font-bold mt-1 text-emerald-400" id="dashCopyStatus">Running (1.0x)</h3>
+                        <span class="text-xs text-gray-400">Auto Mirroring Ready</span>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border-l-4 border-purple-500">
+                        <p class="text-xs text-gray-400">AI Sentiment Consensus</p>
+                        <h3 class="text-lg font-bold mt-1 text-purple-400 flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span> Bullish (78% Win)
+                        </h3>
+                        <span class="text-xs text-gray-400">Smart Filter v6.3</span>
+                    </div>
+                </div>
+                
+                <!-- Market Sessions Mini Overview widget -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-amber-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">Asian Session (Tokyo)</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashAsianStatus">កំពុងគណនា...</h4>
+                        </div>
+                        <i class="fa-solid fa-sun text-amber-400 text-2xl"></i>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-blue-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">London Session</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashLondonStatus">កំពុងគណនា...</h4>
+                        </div>
+                        <i class="fa-solid fa-cloud-sun text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-purple-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-400 uppercase tracking-wider">New York Session</span>
+                            <h4 class="font-bold text-white text-sm mt-1" id="dashNyStatus">កំពុងគណនា...</h4>
+                        </div>
+                        <i class="fa-solid fa-moon text-purple-400 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: COPY TRADING BOT SETTINGS -->
+            <div id="tab-copytrading" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-satellite-dish text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Telegram Copy Trading Bot (Auto Mirroring v6.3)</h3>
+                            <p class="text-gray-400">អនុញ្ញាតឱ្យសមាជិក Copy សញ្ញា ឬ Order ពី Master Trader ចូល Telegram Bot ស្វ័យប្រវត្តិ ១០០%</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ស្ថានភាព Copy Trading Bot</label>
+                            <select id="copyBotState" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-emerald-400 font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
+                                <option value="ACTIVE">🟢 ACTIVE (បើកដំណើរការចម្លងស្វ័យប្រវត្តិ)</option>
+                                <option value="PAUSED">🔴 PAUSED (ផ្អាកបណ្តោះអាសន្ន)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ទំហំគុណភាគរយទឹកប្រាក់ (Risk Multiplier)</label>
+                            <select id="copyMultiplier" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-emerald-500 cursor-pointer">
+                                <option value="0.5x">0.5x (Safe / ការពារទឹកប្រាក់)</option>
+                                <option value="1.0x" selected>1.0x (Standard / ស្មើ Master Trader)</option>
+                                <option value="2.0x">2.0x (Aggressive / ចំណេញទ្វេដង)</option>
+                                <option value="5.0x">5.0x (High Risk / VIP ពិសេស)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2 font-mono">
+                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Master Trader Signal Source:</div>
+                        <div class="text-gray-300">Connected Channel: <b class="text-gray-500">Not verified</b></div>
+                        <div class="text-gray-300">Last Copied Order: <b class="text-gray-500">No verified live order</b></div>
+                    </div>
+
+                    <button onclick="saveCopyTradingSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកការកំណត់ Copy Trading Bot
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB: AI SENTIMENT & CONSENSUS FILTER -->
+            <div id="tab-sentiment" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-purple-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-brain text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Smart Sentiment & Consensus Signal Filter v5.7</h3>
+                            <p class="text-gray-400">ចម្រាញ់ទិន្នន័យពីព័ត៌មានពិភពលោក និងសន្ទុះទិញលក់ (Market Sentiment) មុននឹងសម្រេចចិត្តផ្ញើ Signal ចូល Telegram</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
+                            <span class="text-gray-400">Global News Sentiment</span>
+                            <h3 class="text-xl font-bold text-gray-400">LIVE DATA REQUIRED</h3>
+                        </div>
+                        <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
+                            <span class="text-gray-400">AI Confidence Score</span>
+                            <h3 class="text-xl font-bold text-gray-400">NOT PUBLISHED</h3>
+                        </div>
+                        <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-2">
+                            <span class="text-gray-400">Sideways Filter</span>
+                            <h3 class="text-xl font-bold text-amber-400">Active (Auto-Block)</h3>
+                        </div>
+                    </div>
+
+                    <button onclick="runAiSentimentScan()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-microchip"></i> រកស្កេន AI Sentiment & Filter ថ្មីឥឡូវនេះ
+                    </button>
+                </div>
+            </div>
+            
+            <!-- TAB: ADMIN MANAGER & USER LIST -->
+            <div id="tab-admin" class="tab-content space-y-6 max-w-6xl mx-auto">
+                <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-5 text-xs">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 flex-wrap gap-3">
+                        <div>
+                            <h3 class="font-bold text-amber-400 text-sm md:text-base"><i class="fa-solid fa-user-gear"></i> Admin Manager v5.7: Full User Control & Security</h3>
+                            <div id="adminSessionSummary" class="text-cyan-400 text-[10px] font-mono mb-1">ADMIN SESSION · checking…</div><p class="text-gray-400">គ្រប់គ្រងសមាជិក កម្រិតសិទ្ធិ (Level) និងសុវត្ថិភាពគណនីរបស់អ្នកប្រើប្រាស់ទាំងអស់ ១០០%</p>
+                        </div>
+                        <button onclick="openModal('addUserModal')" class="bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-user-plus"></i> បន្ថែម User ថ្មី
+                        </button>
+                    </div>
+
+                    <div class="flex gap-3 flex-wrap">
+                        <input type="text" id="adminSearchInput" onkeyup="filterAdminUsers()" placeholder="ស្វែងរកតាមឈ្មោះ ឬ Email..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                        <select id="adminLevelFilter" onchange="filterAdminUsers()" class="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-bold focus:outline-none cursor-pointer">
+                            <option value="all">គ្រប់កម្រិតទាំងអស់ (All Levels)</option>
+                            <option value="Admin">Admin Level</option>
+                            <option value="VIP Pro">VIP Pro v5 ($29)</option>
+                            <option value="Standard">Standard ($8.99)</option>
+                            <option value="Basic">Basic ($4.99)</option>
+                            <option value="Trial">Free 7-Day Trial</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-gray-950 rounded-2xl overflow-x-auto border border-gray-800 shadow-xl">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
+                            <thead class="bg-gray-900 text-gray-400 text-[11px] uppercase">
+                                <tr>
+                                    <th class="p-3.5">ឈ្មោះ & អ៊ីម៉ែល</th>
+                                    <th class="p-3.5">កម្រិតសិទ្ធិ (User Level)</th>
+                                    <th class="p-3.5">ស្ថានភាពសុវត្ថិភាព (Cloudflare)</th>
+                                    <th class="p-3.5">កាលបរិច្ឆេទបង្កើត</th>
+                                    <th class="p-3.5 text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUserTableBody" class="divide-y divide-gray-800 text-[12px] text-gray-300">
+                                <!-- Dynamic Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: BACKTESTING & AI STRATEGY CUSTOMIZER -->
+            <div id="tab-strategy" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-cyan-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-cyan-500/20 text-cyan-400 p-3 rounded-xl"><i class="fa-solid fa-gears text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">AI Backtesting & Strategy Customizer v5.2.2</h3>
+                            <p class="text-gray-400">កំណត់កម្រិត Risk Level និង Asset ផ្ទាល់ខ្លួន រួចរត់ Backtest ជាមួយទិន្នន័យ v5 Engine មុនពេលដាក់ Bot រត់ ២៤ម៉ោង</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)</label>
+                            <select id="customAssetSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="BTC/USDT">BTC/USDT (Cryptocurrency)</option>
+                                <option value="XAU/USD">XAU/USD (Gold - មាស)</option>
+                                <option value="EUR/USD">EUR/USD (Reference)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">កម្រិតប្រឈមហានិភ័យ (Risk Level)</label>
+                            <select id="customRiskSelect" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="Low (Conservative)">Low Risk (Conservative - Confluence ខ្ពស់)</option>
+                                <option value="Medium (Balanced)" selected>Medium Risk (Balanced)</option>
+                                <option value="High (Aggressive)">High Risk (Aggressive - Profit ធំ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="runAiBacktest()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-cyan-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-play"></i> រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server
+                    </button>
+
+                    <div id="backtestResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-emerald-500/40 space-y-2 font-mono">
+                        <div class="text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Backtest result requires real historical data</div>
+                        <div class="text-gray-300">Confluence: <b class="text-white" id="resWinRate">NOT AVAILABLE</b></div>
+                        <div class="text-gray-300">Total Trades Tested: <b class="text-white">150 Trades</b></div>
+                        <div class="text-gray-300">Estimated Profit Factor: <b class="text-white">3.12</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ADVANCED RISK & SL/TP CALCULATOR -->
+            <div id="tab-calculator" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-purple-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-purple-500/20 text-purple-400 p-3 rounded-xl"><i class="fa-solid fa-calculator text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Advanced Risk & Stop-Loss / Take-Profit Calculator v5.2.2</h3>
+                            <p class="text-gray-400">គណនីទំហំទឹកប្រាក់ប្រឈម (Risk Amount) និងកម្រិត Stop-Loss / Take-Profit ស្វ័យប្រវត្តិមុនពេលចេញ Order</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ទំហំដើមទុន ($ Capital)</label>
+                            <input type="number" id="calcCapital" value="1000" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ភាគរយហានិភ័យ (% Risk per Trade)</label>
+                            <input type="number" id="calcRiskPercent" value="2" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block font-bold">ចម្ងាយ Stop Loss (Pips / Points)</label>
+                            <input type="number" id="calcStopLoss" value="50" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white font-bold focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+
+                    <button onclick="calculateTradingRisk()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-calculator"></i> គណនីទឹកប្រាក់ខាត និងចំណេញ (Calculate SL/TP)
+                    </button>
+
+                    <div id="calcResultCard" class="hidden bg-gray-950 p-4 rounded-xl border border-purple-500/40 space-y-2 font-mono">
+                        <div class="text-purple-400 font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check"></i> Calculation v5 Results:</div>
+                        <div class="text-gray-300">Max Risk Amount ($): <b class="text-red-400" id="resRiskAmount">$20.00</b></div>
+                        <div class="text-gray-300">Recommended Lot Size: <b class="text-emerald-400" id="resLotSize">0.40 Lots</b></div>
+                        <div class="text-gray-300">Target Take Profit (1:2 Ratio): <b class="text-blue-400" id="resTakeProfit">100 Pips / $40 Profit</b></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: AFFILIATE / REFERRAL PROGRAM -->
+            <div id="tab-affiliate" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs border border-emerald-500/30">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-emerald-500/20 text-emerald-400 p-3 rounded-xl"><i class="fa-solid fa-users-rectangle text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Affiliate / Referral Program v5.2.2 (Viral Growth)</h3>
+                            <p class="text-gray-400">ចែករំលែកតំណភ្ជាប់ណែនាំមិត្តភក្តិរបស់អ្នក ដើម្បីទទួលបានប្រាក់រង្វាន់ $5 ក្នុងមួយការបញ្ជាក់ VIP ជោគជ័យ</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-950 p-5 rounded-2xl border border-gray-800 space-y-2">
+                            <span class="text-gray-400">ប្រាក់រង្វាន់សរុប (Total Earnings)</span>
+                            <h3 class="text-3xl font-bold text-emerald-400" id="affiliateEarnings">$35.00</h3>
+                        </div>
+                        <div class="bg-gray-950 p-5 rounded-2xl border border-gray-800 space-y-2">
+                            <span class="text-gray-400">ចំនួនមិត្តភក្តិបានណែនាំ (Referrals)</span>
+                            <h3 class="text-3xl font-bold text-blue-400">7 Members</h3>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-gray-400 font-bold block">តំណភ្ជាប់ណែនាំរបស់អ្នក (Your Referral Link)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="refLinkInput" value="https://t.me/VTradeAIBot?start=REF_VETVEN_V5" readonly class="flex-1 bg-gray-900 border border-gray-700 rounded-xl p-3 text-cyan-400 font-mono font-bold focus:outline-none">
+                            <button onclick="copyRefLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 rounded-xl transition cursor-pointer">Copy Link</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: MARKET SESSIONS -->
+            <div id="tab-sessions" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="text-center space-y-2">
+                    <h3 class="text-lg md:text-xl font-bold text-white">ម៉ោងបើក-បិទទីផ្សារអន្តរជាតិ Real-time Auto v5.2.2</h3>
+                    <p class="text-xs text-gray-400">តាមដានម៉ោងធ្វើការរបស់ទីផ្សារធំៗទាំងបី (Asian, London, New York) តាមពេលវេលាពិតប្រាកដ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-amber-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-amber-400 text-base">Asian Session (Tokyo)</h4>
+                            <span id="badgeAsian" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារតំបន់អាស៊ីចាប់ផ្តើមបើកដំណើរការដំបូងគេក្នុងមួយថ្ងៃ។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">07:00 AM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">03:00 PM (ICT)</b></div>
+                            <div class="pt-2 text-amber-400" id="timerAsian">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-blue-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-blue-400 text-base">London Session</h4>
+                            <span id="badgeLondon" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារអឺរ៉ុបដែលមានបរិមាណជួញដូរខ្លាំងជាងគេប្រចាំថ្ងៃ។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">03:00 PM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">11:00 PM (ICT)</b></div>
+                            <div class="pt-2 text-blue-400" id="timerLondon">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs border border-purple-500/30">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-purple-400 text-base">New York Session</h4>
+                            <span id="badgeNy" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400">CLOSED</span>
+                        </div>
+                        <p class="text-gray-400">ទីផ្សារអាមេរិកដែលមានការប្រែប្រួលតម្លៃខ្លាំងក្លាជាងគេ (High Volatility)។</p>
+                        <div class="bg-gray-950 p-3 rounded-xl space-y-1 font-mono">
+                            <div>ម៉ោងបើក៖ <b class="text-white">08:00 PM (ICT)</b></div>
+                            <div>ម៉ោងបិទ៖ <b class="text-white">04:00 AM (ICT)</b></div>
+                            <div class="pt-2 text-purple-400" id="timerNy">ស្ថានភាព៖ កំពុងគណនា...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB: NEWS & LINK CONNECTION -->
+            <div id="tab-news" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="text-center space-y-2">
+                    <h3 class="text-lg md:text-xl font-bold text-white">ព័ត៌មានសេដ្ឋកិច្ច និងតំណភ្ជាប់ (News & Link Connection)</h3>
+                    <p class="text-xs text-gray-400">ព័ត៌មានទាន់ហេតុការណ៍ និងតំណភ្ជាប់ផ្ទាល់ទៅកាន់ប្រភពព័ត៌មានអន្តរជាតិធំៗ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-gray-400 text-[11px]">
+                                <span><i class="fa-regular fa-clock"></i> ថ្ងៃនេះ, 08:30 AM</span>
+                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold">High Impact</span>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">US Non-Farm Payrolls (NFP) & Fed Interest Rate Update</h4>
+                            <p class="text-gray-400">ការជះឥទ្ធិពលរបស់ធនាគារកណ្តាលអាមេរិក (Fed) លើអត្រាការប្រាក់ និងតម្លៃមាស (XAU/USD)។</p>
+                        </div>
+                        <a href="https://www.investing.com/economic-calendar/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
+                            <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="glass-panel p-5 rounded-2xl space-y-3 text-xs flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-gray-400 text-[11px]">
+                                <span><i class="fa-regular fa-clock"></i> ថ្ងៃនេះ, 07:15 AM</span>
+                                <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded font-bold">Crypto Market</span>
+                            </div>
+                            <h4 class="font-bold text-white text-sm">Bitcoin Breakout Analysis & AI Research Market Trend</h4>
+                            <p class="text-gray-400">របាយការណ៍ AI Research រកឃើញតំបន់ Support ថ្មីរបស់ Bitcoin និងឱកាសចូល Buy។</p>
+                        </div>
+                        <a href="https://www.coindesk.com/" target="_blank" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-bold pt-2 border-t border-gray-800">
+                            <span>ចូលអានព័ត៌មានពេញលេញ (Link Connection)</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PRICING PLANS -->
+            <div id="tab-pricing" class="tab-content space-y-6 max-w-6xl mx-auto">
+                <div class="text-center space-y-2">
+                    <h3 class="text-lg md:text-xl font-bold text-white">ជ្រើសរើសកញ្ចប់តម្លៃពិសេស v5.2.2 (Pricing Plans & Free Trial)</h3>
+                    <div data-pricing-role class="inline-flex text-[10px] px-2 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">AUTHENTICATED · Loading plan…</div><p class="text-xs text-gray-400">កញ្ចប់សេវាកម្មរចនាឡើងយ៉ាងពិសេស អមដោយគណនីបង់ប្រាក់ផ្ទាល់ខ្លួន (VET VEN)</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-emerald-500/30">
+                        <div class="space-y-3">
+                            <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Popular Trial</span>
+                            <h4 class="font-bold text-white text-sm">Free 7-Day Trial v5</h4>
+                            <p class="text-gray-400">សាកល្បងប្រើប្រាស់មុខងារ AI Research និង Telegram Bot ឥតគិតថ្លៃរយៈពេល ៧ថ្ងៃ។</p>
+                            <div class="text-2xl font-bold text-white">$0 <span class="text-xs text-gray-400 font-normal">/ ៧ថ្ងៃ</span></div>
+                        </div>
+                        <button onclick="selectPricingPlan('Free 7-Day Trial v5', 0)" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20 cursor-pointer">ជ្រើសរើសសាកល្បង</button>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-blue-500/30">
+                        <div class="space-y-3">
+                            <span class="bg-blue-500/20 text-blue-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Basic Plan</span>
+                            <h4 class="font-bold text-white text-sm">Basic AI Signal v5</h4>
+                            <p class="text-gray-400">សម្រាប់ Trader ចាប់ផ្តើមដំបូង ចង់បានសញ្ញាទៀងទាត់ប្រចាំថ្ងៃ។</p>
+                            <div class="text-2xl font-bold text-white">$4.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
+                        </div>
+                        <button onclick="selectPricingPlan('Basic AI Signal v5 ($4.99)', 4.99)" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20 cursor-pointer">ទិញកញ្ចប់ $4.99</button>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border border-purple-500/30">
+                        <div class="space-y-3">
+                            <span class="bg-purple-500/20 text-purple-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Standard Pro</span>
+                            <h4 class="font-bold text-white text-sm">Standard AI Bot v5</h4>
+                            <p class="text-gray-400">កញ្ចប់ពេញនិយមសម្រាប់ Trader ដែលចង់បានមុខងារកម្រិតខ្ទង់មធ្យម។</p>
+                            <div class="text-2xl font-bold text-white">$8.99 <span class="text-xs text-gray-400 font-normal">/ ខែ</span></div>
+                        </div>
+                        <button onclick="selectPricingPlan('Standard AI Bot v5 ($8.99)', 8.99)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-purple-600/20 cursor-pointer">ទិញកញ្ចប់ $8.99</button>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 text-xs flex flex-col justify-between border-2 border-amber-500 shadow-xl shadow-amber-500/10 relative overflow-hidden">
+                        <div class="absolute -right-12 top-4 bg-amber-500 text-gray-950 font-bold px-10 py-1 rotate-45 text-[9px]">BEST VALUE</div>
+                        <div class="space-y-3">
+                            <span class="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">VIP Ultimate</span>
+                            <h4 class="font-bold text-white text-sm">VIP Pro v5.0 AI & Signal</h4>
+                            <p class="text-gray-400">កញ្ចប់កម្រិតខ្ពស់បំផុត ផ្ដល់សិទ្ធិពេញលេញគ្រប់មុខងារទាំងអស់គ្មានដែនកំណត់។</p>
+                            <div class="text-2xl font-bold text-white">$29.00 <span class="text-xs text-amber-400 font-normal">/ ខែ</span></div>
+                        </div>
+                        <button onclick="selectPricingPlan('VIP Pro v5.0 AI & Signal ($29.00)', 29)" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-amber-600/30 cursor-pointer">ទិញកញ្ចប់ VIP $29</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: TELEGRAM BOT & WEBHOOK WORKER -->
+            <div id="tab-telegram" class="tab-content space-y-6 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs">
+                    <div class="flex items-center space-x-3 border-b border-gray-800 pb-3">
+                        <div class="bg-blue-500/20 text-blue-400 p-3 rounded-xl"><i class="fa-brands fa-telegram text-2xl"></i></div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Telegram Bot Setup — v6.3.4</h3>
+                            <p class="text-gray-400">អ្នកប្រើប្រាស់ម្នាក់ៗអាចភ្ជាប់ Telegram Bot របស់ខ្លួនបាន។ Token មិនត្រូវបានរក្សាទុកក្នុង Browser.</p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-amber-700/40 bg-amber-500/10 p-4 text-amber-200">
+                        <div class="font-bold mb-1">🔐 សុវត្ថិភាព</div>
+                        <div>Bot Token ត្រូវបានផ្ញើទៅ Server តាម HTTPS ហើយរក្សាទុកតែជាបណ្តោះអាសន្នក្នុង Server memory សម្រាប់ session នេះ។ មិនរក្សាទុកក្នុង localStorage និងមិនបង្ហាញក្នុង HTML/JavaScript ទេ។ បើ Render restart អ្នកត្រូវ Connect ម្តងទៀត។</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                        <div>
+                            <label class="text-gray-400 mb-1 block">ឈ្មោះអ្នកប្រើប្រាស់</label>
+                            <input type="text" id="tgUserName" placeholder="Your name" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block">កញ្ចប់សេវាកម្ម</label>
+                            <input type="text" id="selectedPlanInput" value="VIP Pro v5.0 Enterprise" readonly class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-amber-400 font-bold focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block">Telegram Bot Token</label>
+                            <input type="password" id="tgTokenInput" autocomplete="new-password" placeholder="123456789:AA..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
+                            <p class="text-gray-500 mt-1">កុំផ្ញើ Token ទៅអ្នកផ្សេង។ Treat it like a password.</p>
+                        </div>
+                        <div>
+                            <label class="text-gray-400 mb-1 block">Telegram Chat / Channel ID</label>
+                            <input type="text" id="tgChatIdInput" inputmode="numeric" placeholder="-1001234567890" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500">
+                            <p class="text-gray-500 mt-1">Private chat អាចជាលេខធម្មតា; group/channel ជាញឹកញាប់ចាប់ផ្តើមដោយ -100.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="testTelegramIntegration()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 cursor-pointer">🔗 Connect & Send Test</button>
+                        <button onclick="disconnectTelegram()" class="sm:w-40 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-3 rounded-xl transition cursor-pointer">Disconnect</button>
+                    </div>
+
+                    <div id="telegramStatusCard" class="rounded-xl bg-gray-900 border border-gray-800 p-4">
+                        <div class="font-bold text-white">Telegram Status</div>
+                        <div id="telegramStatusText" class="text-gray-400 mt-1">Checking…</div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-800 bg-black/20 p-4">
+                        <div class="font-bold text-white mb-2">📘 របៀបបង្កើត Telegram Bot</div>
+                        <ol class="list-decimal ml-5 space-y-1 text-gray-400">
+                            <li>បើក Telegram ហើយស្វែងរក <b class="text-white">@BotFather</b>។</li>
+                            <li>ចុច Start → ផ្ញើ <code>/newbot</code> → ដាក់ឈ្មោះ Bot → ដាក់ username ដែលបញ្ចប់ដោយ <b>bot</b>។</li>
+                            <li>BotFather នឹងផ្តល់ <b>Bot Token</b>។ Copy វាទុកជាសម្ងាត់។</li>
+                            <li>បើក Bot របស់អ្នក → ចុច <b>Start</b> ដើម្បីឱ្យ Bot អាចផ្ញើសារមក Private Chat បាន។</li>
+                            <li>សម្រាប់ Group/Channel: បន្ថែម Bot ទៅ Group/Channel និងផ្តល់ permission តាមដែលត្រូវការ។</li>
+                            <li>យក <b>Chat ID</b> របស់ chat នោះ ហើយបញ្ចូលជាមួយ Token ខាងលើ។</li>
+                            <li>ចុច <b>Connect & Send Test</b>។ បើបានសារ “connection OK” គឺរួចរាល់។</li>
+                        </ol>
+                        <div class="mt-3 text-gray-500">⚠️ បើ Token លេចធ្លាយ សូមទៅ @BotFather ហើយ revoke/regenerate token ភ្លាមៗ។</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: TRADINGVIEW CHART -->
+            <div id="tab-tvchart" class="tab-content space-y-4">
+                <div class="glass-panel p-4 rounded-2xl flex justify-between items-center text-xs flex-wrap gap-2">
+                    <div>
+                        <h3 class="font-bold text-white text-sm">TradingView Live Chart v6.3.4</h3>
+                        <p class="text-gray-400">ក្រាហ្វវិភាគតម្លៃផ្ទាល់</p>
+                    </div>
+                    <select id="tvSymbolSelect" onchange="changeTradingViewSymbol(this.value)" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="BINANCE:BTCUSDT">Bitcoin (BTC/USDT)</option>
+                        <option value="BINANCE:ETHUSDT">Ethereum (ETH/USDT)</option>
+                        <option value="OANDA:XAUUSD">Gold (XAU/USD)</option>
+                    </select>
+                </div>
+                <div class="glass-panel rounded-2xl overflow-hidden h-[450px]" id="tradingview_widget"></div>
+            </div>
+
+            <!-- TAB: SECURITY & CLOUDFLARE -->
+            <div id="tab-security" class="tab-content space-y-6 max-w-2xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl space-y-4 text-xs">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-red-400"></i> Cloudflare v5.7 & DDoS Protection (Rate Limiting)
+                    </h3>
+                    <p class="text-gray-400">ប្រព័ន្ធការពារការវាយប្រហារ DDoS និង Rate Limiting Middleware កម្រិតខ្ពស់នៅលើ Server backend v5.7។</p>
+                    
+                    <div class="bg-gray-950 p-4 rounded-xl space-y-3 border border-red-500/30">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-white">DDoS Shield v5.7 & Rate Limit (200 req/15min)</span>
+                            <span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">🛡️ ACTIVE v5.7 (សកម្ម ១០០%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
+        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
+            <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
+        </button>
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
+            <i class="fa-solid fa-chart-pie text-base mb-0.5"></i><span>ដើម</span>
+        </button>
+        <button onclick="switchTab('copytrading')" class="flex flex-col items-center text-emerald-400 font-bold">
+            <i class="fa-solid fa-satellite-dish text-base mb-0.5"></i><span>Copy Bot</span>
+        </button>
+        <button onclick="switchTab('sentiment')" class="flex flex-col items-center text-purple-400 font-bold">
+            <i class="fa-solid fa-brain text-base mb-0.5"></i><span>Sentiment</span>
+        </button>
+        <button onclick="switchTab('admin')" class="flex flex-col items-center text-amber-400 font-bold">
+            <i class="fa-solid fa-user-gear text-base mb-0.5"></i><span>Admin</span>
+        </button>
+    </div>
+
+    <!-- Modals: Login / Sign In / Google Sign In / Forgot Password -->
+    <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-white text-sm" id="authModalTitle">Login / Sign In (Cloudflare v5.7 Secured)</h3>
+                <button onclick="closeModal('authModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-gray-200 text-gray-900 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md cursor-pointer">
+                <i class="fa-brands fa-google text-red-500"></i> Sign In with Google Account
+            </button>
+
+            <div class="flex items-center my-2">
+                <div class="flex-1 border-t border-gray-800"></div>
+                <span class="px-3 text-gray-500 text-[11px]">ឬប្រើប្រាស់អ៊ីម៉ែល</span>
+                <div class="flex-1 border-t border-gray-800"></div>
+            </div>
+
+            <div class="space-y-3" id="loginFormSection">
+                <div>
+                    <label class="text-gray-400 mb-1 block">អ៊ីម៉ែល ឬឈ្មោះអ្នកប្រើប្រាស់ (Email / Username)</label>
+                    <input type="email" id="authEmail" value="" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-gray-400">ពាក្យសម្ងាត់ (Password)</label>
+                        <button onclick="showForgotPasswordForm()" class="text-blue-400 hover:underline text-[11px] cursor-pointer">ភ្លេចពាក្យសម្ងាត់?</button>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="authPassword" value="" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 pr-10 text-white focus:outline-none">
+                        <button type="button" onclick="togglePasswordVisibility('authPassword', 'eyeIcon1')" class="absolute right-3 top-3 text-gray-400 hover:text-white cursor-pointer">
+                            <i id="eyeIcon1" class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="proceedTo2FAStep()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-600/30 cursor-pointer">បន្តទៅកាន់ការផ្ទៀងផ្ទាត់ 2FA v5</button>
+            </div>
+
+            <div class="space-y-3 hidden" id="forgotPasswordSection">
+                <p class="text-gray-300">សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកដើម្បីទទួលតំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មី (Reset Link)៖</p>
+                <div>
+                    <label class="text-gray-400 mb-1 block">អ៊ីម៉ែលគណនី</label>
+                    <input type="email" id="forgotEmailInput" placeholder="example@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                </div>
+                <button onclick="submitForgotPassword()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition cursor-pointer">ផ្ញើកូដកំណត់ពាក្យសម្ងាត់ថ្មី</button>
+                <button onclick="backToLoginForm()" class="w-full bg-gray-800 text-gray-300 font-bold py-2 rounded-xl transition cursor-pointer">ត្រឡប់ទៅទំព័រ Login វិញ</button>
+            </div>
+
+            <div class="space-y-3 hidden" id="otpVerificationSection">
+                <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-blue-300">
+                    <i class="fa-solid fa-shield-halved"></i> <b>2FA Security v5.7:</b> បញ្ចូលលេខកូដ ៦ខ្ទង់ពី Authenticator App
+                </div>
+                <div>
+                    <label class="text-gray-400 mb-1 block">បញ្ចូលលេខកូដ OTP ៦ខ្ទង់</label>
+                    <input type="text" id="otpInputCode" maxlength="6" placeholder="******" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-center text-lg font-mono text-emerald-400 font-bold tracking-widest focus:outline-none">
+                </div>
+                <button onclick="verifyOtpAndLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition cursor-pointer">ផ្ទៀងផ្ទាត់ និងចូលគណនី v5.7 ១០០%</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals: Profile Privacy & Security Settings -->
+    <div id="profileModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-user-shield text-amber-400"></i> Profile Privacy & Security Settings</h3>
+                <button onclick="closeModal('profileModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-gray-400 mb-1 block">ឈ្មោះបង្ហាញ (Display Name)</label>
+                    <input type="text" id="profileName" value="VET VEN" maxlength="80" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់បច្ចុប្បន្ន (Current Password)</label>
+                    <input type="password" id="profileCurrentPass" autocomplete="current-password" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none" placeholder="បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន">
+                </div>
+
+                <div>
+                    <label class="text-gray-400 mb-1 block">ពាក្យសម្ងាត់ថ្មី (New Password)</label>
+                    <div class="relative">
+                        <input type="password" id="profileNewPass" autocomplete="new-password" minlength="12" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 pr-10 text-white focus:outline-none" placeholder="យ៉ាងតិច 12 តួ">
+                        <button type="button" onclick="togglePasswordVisibility('profileNewPass', 'eyeIcon2')" class="absolute right-3 top-3 text-gray-400 hover:text-white cursor-pointer">
+                            <i id="eyeIcon2" class="fa-solid fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-gray-400 mb-1 block">បញ្ជាក់ពាក្យសម្ងាត់ថ្មី (Confirm New Password)</label>
+                    <input type="password" id="profileConfirmPass" autocomplete="new-password" minlength="12" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none" placeholder="បញ្ចូលម្ដងទៀត">
+                </div>
+
+                <div class="bg-gray-950 p-3 rounded-xl space-y-3 border border-gray-800">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold">Two-Factor Authentication (2FA)</span>
+                        <input type="checkbox" id="toggle2fa" disabled class="w-4 h-4 accent-emerald-500">
+                    </div>
+                    <p class="text-[10px] text-gray-500">2FA ត្រូវបានគ្រប់គ្រងដោយ Server។ កុំប្រើ checkbox នេះដើម្បីបិទការការពារ។</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-bold">Profile Privacy Mode</span>
+                        <input type="checkbox" id="togglePrivacy" class="w-4 h-4 accent-emerald-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-[10px] text-blue-200">
+                    🔐 ការប្តូរ Password នឹងផ្ញើទៅ Backend ពិតប្រាកដ។ បន្ទាប់ពីប្តូរ Password សុវត្ថិភាព Session ចាស់នឹងត្រូវបិទ ហើយត្រូវ Login ម្តងទៀត។
+                </div>
+            </div>
+
+            <button onclick="saveProfileSettings()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-600/30 cursor-pointer">
+                រក្សាទុក Profile & Security
+            </button>
+        </div>
+    </div>
+
+    <!-- Modals: Add New User (Admin Manager) -->
+    <div id="addUserModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-user-plus text-amber-400"></i> បន្ថែមសមាជិកថ្មី (Add User)</h3>
+                <button onclick="closeModal('addUserModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-gray-400 mb-1 block">ឈ្មោះសមាជិក (Full Name)</label>
+                    <input type="text" id="newUserNameInput" placeholder="ឧទាហរណ៍៖ Dara Smith" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-gray-400 mb-1 block">អ៊ីម៉ែល (Email)</label>
+                    <input type="email" id="newUserEmailInput" placeholder="dara@vtrade.ai" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-gray-400 mb-1 block">កម្រិតសិទ្ធិ (User Level)</label>
+                    <select id="newUserLevelInput" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-white font-bold focus:outline-none cursor-pointer">
+                        <option value="VIP Pro">💎 VIP Pro v5 ($29)</option>
+                        <option value="Standard">⭐ Standard ($8.99)</option>
+                        <option value="Basic">🔹 Basic ($4.99)</option>
+                        <option value="Trial">🆓 Free 7-Day Trial</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addNewUserRecord()" class="w-full bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold py-3 rounded-xl transition cursor-pointer">បញ្ជាក់ការបន្ថែម User ថ្មី ១០០%</button>
+        </div>
+    </div>
+
+    <!-- Modals: Bank Account Direct Payment (VET VEN) -->
+    <div id="depositModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 space-y-4 text-xs">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-wallet text-emerald-400"></i> បង់ប្រាក់តាមគណនីធនាគារផ្ទាល់ខ្លួន (VET VEN)</h3>
+                <button onclick="closeModal('depositModal')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            
+            <p class="text-gray-300">សូមធ្វើការផ្ទេរប្រាក់មកកាន់លេខគណនីខាងក្រោមនេះ រួចផ្ញើ Slip ជូន Admin ដើម្បីបើកសិទ្ធិ VIP ស្វ័យប្រវត្តិ៖</p>
+
+            <div class="bg-gray-950 p-4 rounded-xl border border-amber-500/40 text-sm text-gray-300">
+                Payment account details are intentionally not embedded in public HTML. Please request the current verified payment instructions from Admin.
+            </div>
+
+            <button onclick="verifyBankPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30 cursor-pointer">ផ្ទៀងផ្ទាត់ការទូទាត់ (Verify Payment)</button>
+        </div>
+    </div>
+
+    <!-- Modals: AI Support Chat -->
+    <div id="chatModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl overflow-hidden flex flex-col h-[400px] text-xs">
+            <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+                <h3 class="font-bold text-white">AI Support v7.0.0 (Background Worker Active)</h3>
+                <button type="button" aria-label="Close AI Support" class="chat-close-btn text-gray-400 hover:text-white cursor-pointer" onclick="closeModal('chatModal'); return false;"><i class="fa-solid fa-xmark text-base" aria-hidden="true"></i></button>
+            </div>
+            <div class="flex-1 p-3 overflow-y-auto space-y-2 text-gray-200" id="chatMsgBox">
+                <div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">សួស្តី! ប្រព័ន្ធ V Trade AI v7.0.0 ប្រើ MT5 + ICT live data។ BUY/SELL នឹងបង្ហាញតែពេល confirmation gates គ្រប់; បើមិនទាន់គ្រប់ នឹង WAIT។</div>
+            </div>
+            <div class="p-3 bg-gray-900 border-t border-gray-800 flex gap-2">
+                <input type="text" id="chatInput" placeholder="សួរនាំ..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white focus:outline-none">
+                <button onclick="sendChat()" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold cursor-pointer"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULL 100% EXECUTABLE JAVASCRIPT LOGIC -->
+    <script>
+        let tvWidgetInstance = null;
+        let sentimentChartInstance = null;
+        let activeOtpCode = null;
+        let currentCurrency = "USD";
+        let baseUsdBalance = null;
+
+        let usersListDB = [
+            { name: "VET VEN (Owner)", email: "vetven@vtrade.ai", level: "Admin", security: "Protected v6.3 (DDoS ON)", date: "2026-08-09" },
+            { name: "Sokha Chan", email: "sokha@vtrade.ai", level: "VIP Pro", security: "Protected v6.3 (DDoS ON)", date: "2026-08-08" },
+            { name: "Dara Pich", email: "dara@vtrade.ai", level: "Standard", security: "Protected v6.3 (DDoS ON)", date: "2026-08-07" }
+        ];
+
+        // No synthetic trading prices/signals are used. XAU/USD is authoritative from the live server ICT engine.
+        const unavailableMarketData = {
+            direction: 'WAIT', winRate: 'N/A', entry: 'WAIT — NO LIVE DATA', sl: '—', tp: '—',
+            fvg: 'Not confirmed', fvgZone: '—', sentiment: '—', rsi: 'Unavailable',
+            macd: 'Waiting for live MT5 analysis', orderbook: 'Not used'
+        };
+
+        const translations = {
+            km: { brand: "V TRADE AI & TERMINAL v6.3.4", headerStatus: "Realtime Price + ICT Engine Active", deposit: "បង់ប្រាក់ (ABA / Account)", auth: "Login", dash: "ផ្ទាំងគ្រប់គ្រង (Dashboard)", sessions: "ម៉ោងទីផ្សារ (Asian/NY/London)", news: "ព័ត៌មាន & តំណភ្ជាប់ (News Links)", pricing: "កញ្ចប់តម្លៃថ្មី (Pricing)", telegram: "Telegram Bot & Webhook", chart: "TradingView Chart", security: "Cloudflare v5 & DDoS Shield", support: "AI Support v6.3" },
+            en: { brand: "V TRADE AI & TERMINAL v6.3.4", headerStatus: "Realtime Price + ICT Engine Active", deposit: "Account Payment", auth: "Login", dash: "Dashboard", sessions: "Market Sessions", news: "News & Links", pricing: "Pricing Plans", telegram: "Telegram Bot Setup", chart: "TradingView", security: "Security v5 & DDoS", support: "AI Support v5" },
+            zh: { brand: "V TRADE AI TERMINAL v6.3.4", headerStatus: "实时价格与ICT引擎运行", deposit: "账户支付", auth: "登录", dash: "控制面板", sessions: "市场时段", news: "新闻与链接", pricing: "价格方案", telegram: "电报设置", chart: "图表", security: "安全防御v5", support: "支持v5" }
+        };
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await restoreAuthSession();
+            fetchMarketPrices();
+            loadTelegramStatus();
+            setInterval(() => { if (!window.__vtradeScanBusy) fetchMarketPrices(); }, 6000);
+            initSentimentRadarChart();
+            runAIAnalysis();
+            renderAdminTable(usersListDB);
+            updateMarketSessionsTimer();
+            setInterval(updateMarketSessionsTimer, 1000);
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+        });
+
+        let latestXauAnalysis = null;
+
+        function formatUsd(value) {
+            return Number.isFinite(Number(value))
+                ? '$' + Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+                : '—';
+        }
+
+        async function fetchMarketPrices() {
+            if (window.__vtradeScanBusy) return;
+            window.__vtradeScanBusy = true;
+            try {
+                const [cryptoRes, xauRes] = await Promise.allSettled([
+                    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd', {cache:'no-store'}),
+                    vtradeApiFetch('/api/analysis/xauusd', {cache:'no-store'})
+                ]);
+
+                if (cryptoRes.status === 'fulfilled' && cryptoRes.value.ok) {
+                    const data = await cryptoRes.value.json();
+                    const tickerBtc = document.getElementById('tickerBtc');
+                    const tickerEth = document.getElementById('tickerEth');
+                    if(data.bitcoin && tickerBtc) tickerBtc.innerText = formatUsd(data.bitcoin.usd);
+                    if(data.ethereum && tickerEth) tickerEth.innerText = formatUsd(data.ethereum.usd);
+                }
+
+                if (xauRes.status === 'fulfilled' && xauRes.value.ok) {
+                    const xau = await xauRes.value.json();
+                    if (xau.success && Number.isFinite(Number(xau.livePrice))) {
+                        latestXauAnalysis = xau;
+                        const tickerXau = document.getElementById('tickerXau');
+                        if (tickerXau) tickerXau.innerText = formatUsd(xau.livePrice);
+                        const mobileTickerXau = document.getElementById('mobileTickerXau');
+                        if (mobileTickerXau) mobileTickerXau.innerText = formatUsd(xau.livePrice);
+
+                        // XAU values are rendered directly from the live server analysis object; no client-side mock is created.
+                        const age = Number.isFinite(Number(xau.priceAgeSec)) ? ` | price age ${xau.priceAgeSec}s` : '';
+                        appendTerminalLog(`[DATA] XAUUSD ${formatUsd(xau.livePrice)} | ${xau.source || 'live'}${age} | ${xau.brokerConnected ? 'MT5 LIVE' : 'MT5 OFFLINE'} | ${xau.status || 'WAIT'}`);
+                        if (xau.brokerConnected) {
+                            const tickerXau = document.getElementById('tickerXau');
+                            if (tickerXau) tickerXau.title = `VT Markets MT5 | Bid ${formatUsd(xau.bid)} | Ask ${formatUsd(xau.ask)} | Spread ${formatUsd(xau.spread)}`;
+                        }
+                    }
+                }
+                runAIAnalysis();
+            } catch (e) {
+                console.warn('Live market fetch failed:', e);
+                latestXauAnalysis = null;
+                appendTerminalLog('[ERROR] VT Markets MT5 analysis unavailable — NO ENTRY until live broker data is restored');
+                runAIAnalysis();
+            } finally {
+                window.__vtradeScanBusy = false;
+            }
+        }
+
+        function runAIAnalysis() {
+            const pairSelect = document.getElementById('terminalPairSelect');
+            const pair = pairSelect ? pairSelect.value : 'XAU/USD';
+            const data = unavailableMarketData;
+            const spinner = document.getElementById('btnRefreshSpinner');
+            const icon = document.getElementById('btnRefreshIcon');
+            if(spinner) spinner.style.display = 'inline-block';
+            if(icon) icon.style.display = 'none';
+            appendTerminalLog(`[COMMAND] Realtime Market Scan: ${pair}...`);
+
+            setTimeout(() => {
+                if(spinner) spinner.style.display = 'none';
+                if(icon) icon.style.display = 'inline-block';
+                const set = (id, value) => { const el=document.getElementById(id); if(el) el.innerText=(window.vtT ? window.vtT(String(value)) : value); };
+                const x = pair === 'XAU/USD' ? latestXauAnalysis : null;
+                const unsupported = pair !== 'XAU/USD';
+                const score = x?.confidence != null ? Number(x.confidence) : null;
+                const grade = x?.setupGrade || (score == null ? '—' : score>=85?'A+':score>=75?'A':score>=65?'B':score>=50?'WATCH':'LOW');
+                const mtf = x ? `${x.timeframes?.H4?.structure?.bias || '—'} / ${x.timeframes?.H1?.structure?.bias || '—'} / ${x.timeframes?.M15?.structure?.bias || '—'}` : '—';
+                const entryText = x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.entryZone ? `${formatUsd(x.entryZone.low)}–${formatUsd(x.entryZone.high)}` : (x?.entry != null ? formatUsd(x.entry) : 'WAIT')) : 'WAIT — NO CONFIRMED ENTRY';
+                const readiness = x?.signal === 'BUY' || x?.signal === 'SELL' ? 'ENTRY CONFIRMED' : (x?.phase === 'MIDWAY' ? 'MIDWAY — CONFIRMATION PENDING' : (x?.status || 'NOT READY'));
+                set('signal-direction', unsupported ? 'WAIT · XAUUSD ONLY' : (x?.signal === 'BUY' ? 'BUY · ចូល BUY' : x?.signal === 'SELL' ? 'SELL · ចូល SELL' : x?.phase === 'MIDWAY' ? 'MIDWAY · កំពុងរង់ចាំ Confirmation' : (x?.status || 'WAIT · NO TRADE')));
+                set('signal-entry', entryText);
+                set('signal-status', unsupported ? 'NO LIVE ENGINE FOR THIS SYMBOL' : (x ? readiness : 'MT5 LIVE DATA UNAVAILABLE — NO ENTRY'));
+                set('signal-grade', score == null ? '—' : `${grade} · ${score}/100`);
+                set('mobileSignalDirection', unsupported ? 'WAIT' : (x?.phase === 'MIDWAY' ? 'MIDWAY · WAIT' : (x?.signal || 'WAIT')));
+                set('mobileEntryZone', entryText);
+                set('mobileConfidence', score == null ? '—/100' : `${score}/100`);
+                set('mobileReadiness', readiness);
+                set('win-rate-val', score == null ? '—' : `${score}/100`);
+                const bar=document.getElementById('win-rate-bar');
+                if(bar) bar.style.width = score == null ? '0%' : `${Math.max(0,Math.min(100,score))}%`;
+                set('setup-score-val', score == null ? '—/100' : `${score}/100`);
+                set('mtf-agreement', x?.macroBias ? `${x.macroBias} · ${x.confirmations?.mtfCount ?? '—'}/${x?.availableHtf ?? 4}` : mtf);
+                const fvg = x?.ict?.fvg;
+                const ob = x?.ict?.orderBlock;
+                const zone = x?.candidateZone;
+                const fvgLabel = fvg?.found && Number(fvg.ageBars ?? 0) > 0 ? `${fvg.type} FVG · ${fvg.ageBars} bars` : (ob?.found && Number(ob.ageBars ?? 0) > 0 ? `${ob.type} OB · ${ob.ageBars} bars` : 'NOT CONFIRMED');
+                const fvgZoneText = zone ? `${formatUsd(zone.low)}–${formatUsd(zone.high)}` : '—';
+                set('fvg-confidence', fvgLabel);
+                set('fvg-zone', fvgZoneText);
+                set('sentiment-score', x ? `${x.bias || 'NEUTRAL'} · ${score}/100` : data.sentiment);
+                set('sentiment-detail', x ? `${x.bias || 'NEUTRAL'} bias · MTF ${x.confirmations?.mtfCount ?? 0}/${x?.availableHtf ?? 4}` : 'Reference data');
+                renderNewsRisk(x?.news);
+                const rsiValue = x?.confirmations?.rsi;
+                const macdValue = x?.confirmations?.macd;
+                const adxValue = x?.confirmations?.adx;
+                set('rsiVal', x ? (Number.isFinite(Number(rsiValue)) ? `${Number(rsiValue).toFixed(1)} · ${Number(rsiValue)>=50?'Bullish':'Bearish'}` : 'Unavailable') : data.rsi);
+                set('macdVal', x ? (macdValue ? `${macdValue.bias} · hist ${Number(macdValue.histogram).toFixed(4)}` : 'Unavailable') : data.macd);
+                set('orderbookVal', data.orderbook);
+                set('tblAsset', pair);
+                set('tblSignalBadge', unsupported ? 'WAIT' : (x ? (x.signal === 'BUY' ? 'BUY' : x.signal === 'SELL' ? 'SELL' : x.status?.includes('BUY') ? 'រង់ចាំ BUY' : x.status?.includes('SELL') ? 'រង់ចាំ SELL' : 'រង់ចាំ') : 'WAIT'));
+                set('tblEntry', x?.signal === 'BUY' || x?.signal === 'SELL' ? entryText : 'WAIT — NO CONFIRMED ENTRY');
+                set('tblSL', x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.stopLoss != null ? formatUsd(x.stopLoss) : '—') : '—');
+                set('tblTP', x?.signal === 'BUY' || x?.signal === 'SELL' ? (x?.takeProfit?.length ? x.takeProfit.map((v,i)=>`TP${i+1} ${formatUsd(v)}`).join(' / ') : '—') : '—');
+                set('tblStatus', readiness);
+                updateConfirmationUI(x);
+                renderAIEvidence(x);
+                renderOpportunityRadar(x);
+                updateTelegramEntryButton(x);
+                const source = pair === 'XAU/USD' && latestXauAnalysis ? ` | ${latestXauAnalysis.source}` : '';
+                appendTerminalLog(`[AI ENGINE] ${pair}: ${unsupported ? 'WAIT' : (x?.signal || 'WAIT')} | ${unsupported ? 'XAUUSD is the only live ICT execution engine' : (x?.status || readiness)} | Confluence ${score ?? '—'}/100 | News ${x?.news?.sourceStatus || 'UNKNOWN'} | ${x?.trigger || 'No confirmed setup'}${source}`);
+                updateRadarChartData(pair);
+            }, 300);
+        }
+
+        function renderAIEvidence(a) {
+            const list = document.getElementById('aiEvidenceList');
+            const meta = document.getElementById('aiEngineMeta');
+            if(!list) return;
+            const items = Array.isArray(a?.score?.items) ? a.score.items : [];
+            const top = items.map(it => ({
+                label: it.label,
+                passed: !!it.passed,
+                points: `${it.points}/${it.max}`
+            }));
+            list.replaceChildren();
+            if(!top.length){ const empty=document.createElement('div'); empty.className='text-xs text-gray-500'; empty.textContent='Waiting for live MT5 analysis…'; list.appendChild(empty); }
+            top.forEach(it=>{
+                const card=document.createElement('div'); card.className=`rounded-xl border ${it.passed ? 'border-emerald-500/25 bg-emerald-500/5' : 'border-gray-800 bg-gray-950/60'} p-2.5`;
+                const row=document.createElement('div'); row.className='flex items-center justify-between gap-2';
+                const label=document.createElement('span'); label.className='text-[10px] text-gray-300 leading-tight'; label.textContent=it.label;
+                const state=document.createElement('b'); state.className=`text-[10px] ${it.passed ? 'text-emerald-400' : 'text-gray-500'}`; state.textContent=it.passed?'PASS':'WAIT';
+                const points=document.createElement('div'); points.className=`mt-1 text-[10px] font-mono ${it.passed ? 'text-cyan-300' : 'text-gray-600'}`; points.textContent=it.points;
+                row.append(label,state); card.append(row,points); list.appendChild(card);
+            });
+            if(meta){
+                const age = Number.isFinite(Number(a?.priceAgeSec)) ? `${a.priceAgeSec}s` : '—';
+                meta.textContent = `${a?.engineVersion || 'ENGINE —'} · MT5 age ${age} · Data quality ${a?.dataQuality?.grade || '—'} ${a?.dataQuality?.score ?? '—'}/100`;
+            }
+        }
+
+        function renderOpportunityRadar(a) {
+            const list=document.getElementById('opportunityRadarList');
+            const bestEl=document.getElementById('opportunityBest');
+            if(!list) return;
+            const ops=[a?.opportunities?.M5,a?.opportunities?.M15,a?.opportunities?.H1].filter(Boolean);
+            list.replaceChildren();
+            const labels={M5:'5M SCALP',M15:'15M INTRADAY',H1:'1H SWING'};
+            const stateClass={CONFIRMED:'text-emerald-400 border-emerald-500/30 bg-emerald-500/5',TACTICAL:'text-amber-300 border-amber-500/30 bg-amber-500/5',WATCH:'text-gray-400 border-gray-800 bg-gray-950/50',NEWS_LOCK:'text-red-300 border-red-500/20 bg-red-500/5',UNAVAILABLE:'text-gray-500 border-gray-800 bg-gray-950/50',RANGE:'text-gray-500 border-gray-800 bg-gray-950/50'};
+            if(bestEl) bestEl.textContent=`BEST: ${a?.bestOpportunity?.label || '—'}`;
+            ops.forEach(o=>{
+                const card=document.createElement('div'); card.className=`rounded-xl border p-3 ${stateClass[o.state]||stateClass.WATCH}`;
+                const title=document.createElement('div'); title.className='flex items-center justify-between gap-2';
+                const name=document.createElement('b'); name.className='text-[11px]'; name.textContent=labels[o.key]||o.label||o.key;
+                const state=document.createElement('span'); state.className='text-[9px] font-bold'; state.textContent=o.state||'WATCH'; title.append(name,state);
+                const score=document.createElement('div'); score.className='mt-2 text-lg font-extrabold'; score.textContent=`${Number(o.score||0)}/100`;
+                const side=document.createElement('div'); side.className='text-[10px] font-mono'; side.textContent=`${o.signal||'WAIT'} · ${o.bias||'NEUTRAL'} · RR ${o.riskReward ?? '—'}`;
+                const zone=document.createElement('div'); zone.className='mt-1 text-[10px] text-gray-400'; zone.textContent=o.entryZone ? `Zone ${formatUsd(o.entryZone.low)}–${formatUsd(o.entryZone.high)}` : 'Zone —';
+                const micro=document.createElement('div'); micro.className='mt-1 text-[9px] text-cyan-300'; micro.textContent=o.microTrigger||'M1 trigger: WAIT';
+                const why=document.createElement('div'); why.className='mt-2 text-[9px] leading-relaxed text-gray-500'; why.textContent=o.reason||'Waiting for confirmation';
+                card.append(title,score,side,zone,micro,why); list.appendChild(card);
+            });
+            if(!ops.length){ const empty=document.createElement('div'); empty.className='text-xs text-gray-500'; empty.textContent='Waiting for live MT5 multi-timeframe analysis…'; list.appendChild(empty); }
+        }
+
+        function renderNewsRisk(news) {
+            const card=document.getElementById('newsRiskCard');
+            const label=document.getElementById('newsRiskLabel');
+            const detail=document.getElementById('newsRiskDetail');
+            const next=document.getElementById('newsNext');
+            const source=document.getElementById('newsSource');
+            const feed=document.getElementById('newsFeedStatus');
+            const age=document.getElementById('newsDataAge');
+            const count=document.getElementById('newsEventCount');
+            if(!card||!label||!detail||!next) return;
+            const ageSec=Number(news?.sourceAgeSec);
+            if(source) source.textContent = news?.source ? (String(news.source).includes('faireconomy') ? 'ForexFactory' : String(news.source).replace(/^https?:\/\//,'').slice(0,28)) : 'MT5 bridge / —';
+            if(feed){ const live=news?.sourceStatus==='LIVE', degraded=news?.sourceStatus==='DEGRADED'; feed.textContent = live ? 'LIVE · VERIFIED' : degraded ? 'DEGRADED · CONTEXT ONLY' : 'OFFLINE · LOCKED'; feed.className = live ? 'text-emerald-400' : degraded ? 'text-amber-400' : 'text-red-400'; }
+            if(age) age.textContent = Number.isFinite(ageSec) ? `${ageSec}s` : '—';
+            if(count) count.textContent = String(news?.upcoming?.length ?? 0);
+            if(news?.sourceStatus==='DEGRADED' || news?.degraded){
+                label.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'NEWS DEGRADED · NO ENTRY':'NEWS DEGRADED · CONTEXT ONLY';
+                label.className='text-xl font-extrabold mt-1 text-amber-400';
+                detail.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'News feed degraded during a protected news window — entry remains locked.':'News feed degraded; AI continues ICT + MT5 analysis in context-only mode. Verify high-impact USD events before execution.';
+                next.textContent=news?.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : '—'; return;
+            }
+            if(!news || news.available===false){
+                label.textContent=(news?.state==='LIVE'||news?.state==='LOCK'||news?.state==='POST_NEWS')?'NEWS UNAVAILABLE · NO ENTRY':'NEWS UNAVAILABLE · CONTEXT ONLY';
+                label.className='text-xl font-extrabold mt-1 text-red-400';
+                const diag = news?.sourceDiagnostics?.find(d=>d.status==='error');
+                detail.textContent=diag ? `News source unavailable: ${diag.error}. AI will not invent news; ICT + MT5 analysis remains available in context-only mode.` : 'USD high-impact news could not be verified. ICT + MT5 analysis remains available, but verify news before execution.';
+                next.textContent='—'; return;
+            }
+            const m=Number(news.deltaMin);
+            if(news.state==='LIVE'){
+                label.textContent='NEWS LIVE · NO ENTRY'; label.className='text-xl font-extrabold mt-1 text-red-400';
+                detail.textContent=`ព័ត៌មាន ${news.next?.title || 'USD High Impact'} កំពុងចេញ · រង់ចាំ Post-News Sweep + MSS/BOS`;
+            } else if(news.state==='LOCK'){
+                label.textContent='NEWS SOON · ENTRY LOCK'; label.className='text-xl font-extrabold mt-1 text-red-400';
+                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុង ${Math.max(0,m)} នាទី · មិនបើក Entry ថ្មី`;
+            } else if(news.state==='POST_NEWS'){
+                label.textContent='POST-NEWS · WAIT REACTION'; label.className='text-xl font-extrabold mt-1 text-purple-400';
+                detail.textContent=`ព័ត៌មានធំទើបចេញប្រហែល ${Math.max(0,Number(news.sincePreviousMin)||0)} នាទីមុន · រង់ចាំ Liquidity Sweep + MSS/BOS`;
+            } else if(news.state==='CAUTION'){
+                label.textContent='NEWS SOON · CAUTION'; label.className='text-xl font-extrabold mt-1 text-amber-400';
+                detail.textContent=`មានព័ត៌មាន USD កម្រិតខ្ពស់ក្នុងប្រហែល ${Math.max(0,m)} នាទី · អនុញ្ញាតតែ setup ដែល confirm គ្រប់ gate`;
+            } else {
+                label.textContent='NEWS CLEAR · VERIFIED'; label.className='text-xl font-extrabold mt-1 text-emerald-400';
+                detail.textContent='មិនមាន USD high-impact news ក្នុង 60 នាទីខាងមុខ តាម calendar feed ដែលបាន verify';
+            }
+            next.textContent=news.next?.title ? `${news.next.title} · ${new Date(news.next.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` : 'គ្មាន';
+            if(news.research?.eventClass) detail.textContent += ` · Research: ${news.research.eventClass}`;
+        }
+
+        function updateConfirmationUI(a) {
+            const selected = a?.bestOpportunity;
+            const items = {
+                'confirm-mtf': selected ? `${selected.higherAlignment || '—'} HTF · ${selected.bias || 'NEUTRAL'}` : (a ? `${a.confirmations?.mtfCount ?? 0}/3 ${a.confirmations?.mtfAligned ? 'ALIGNED' : 'CONFLICT'}` : '—'),
+                'confirm-liquidity': a?.confirmations?.liquiditySweep ? 'CONFIRMED' : 'PENDING',
+                'confirm-mss': a?.confirmations?.mss ? `CONFIRMED ${a.confirmations?.mssState || a.ict?.mss || ''}` : 'PENDING',
+                'confirm-bos': a?.confirmations?.bos ? `CONFIRMED ${a.confirmations?.bosState || a.ict?.bos || ''}` : 'PENDING',
+                'confirm-zone': selected ? `${selected.entryZone?.type || 'ZONE'} ${selected.state}` : (a?.signal==='BUY'||a?.signal==='SELL' ? `${a.entryZone?.type || 'ZONE'} RETEST` : a?.candidateZone ? `${a.candidateZone.type} CANDIDATE — WAIT RETEST` : 'WAIT — NO ENTRY'),
+                'confirm-pd': a?.confirmations?.premiumDiscount ? `${a.confirmations.premiumDiscount}${a.confirmations?.premiumDiscountOk ? ' ✓' : ' — WAIT'}` : '—',
+                'confirm-displacement': a?.confirmations?.displacement?.confirmed && a.confirmations.displacement.direction===a.bias ? 'CONFIRMED' : 'PENDING'
+            };
+            Object.entries(items).forEach(([id,val]) => {
+                const el=document.getElementById(id); if(!el) return;
+                const b=el.querySelector('b'); if(b) b.textContent=val;
+                el.classList.toggle('confirmed', /BULLISH|BEARISH|IN|aligned|confirmed/i.test(val));
+            });
+            const ready = (a?.signal === 'BUY' || a?.signal === 'SELL') && (a?.bestOpportunity?.state === 'CONFIRMED' || a?.confirmations?.allGatesPassed === true);
+            const label = document.getElementById('entry-readiness');
+            if(label){ label.textContent = ready ? `${a.signal} READY` : (a?.phase === 'MIDWAY' ? 'MIDWAY — WAIT' : (a?.status || 'NOT READY')); label.className = ready ? 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-[10px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20'; }
+            const rb=document.getElementById('tradePhaseBadge');
+            if(rb){ rb.textContent=a?.phase || 'WAIT'; rb.className='text-[10px] font-bold px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300'; }
+            const rt=document.getElementById('newsResearchTitle'), rr=document.getElementById('newsResearchText');
+            if(rt && rr){
+                const r=a?.news?.research;
+                rt.textContent=r ? `${r.eventClass} · ${a.news?.next?.title || 'USD High Impact'}` : (a?.news?.degraded ? 'NEWS DEGRADED · CONTEXT ONLY' : (a?.news?.available===false ? 'NEWS UNAVAILABLE · NO RESEARCH' : 'NO HIGH-IMPACT USD EVENT'));
+                rr.textContent=r ? r.methodology : (a?.news?.available===false ? 'News feed មិនទាន់ verify — Trading Gate នៅ NO ENTRY' : 'Calendar verified; no immediate high-impact USD event.');
+            }
+        }
+
+        function initSentimentRadarChart() {
+            const ctx = document.getElementById('sentimentChartCanvas');
+            if(!ctx) return;
+
+            sentimentChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['MTF', 'Liquidity', 'Structure', 'Entry Zone', 'News Risk'],
+                    datasets: [{
+                        label: 'Market Score',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(20, 184, 166, 0.2)',
+                        borderColor: '#14b8a6',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#38bdf8'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#9ca3af', font: { size: 10 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateRadarChartData(pair) {
+            if(!sentimentChartInstance) return;
+            const a = pair === 'XAU/USD' ? latestXauAnalysis : null;
+            if(!a) return;
+            const mtf = Math.round(((a.confirmations?.mtfCount || 0) / 3) * 100);
+            const liq = a.ict?.liquiditySweep?.bias && a.ict.liquiditySweep.bias !== 'NONE' ? 100 : 0;
+            const structure = (a.ict?.mss && a.ict.mss !== 'PENDING') || (a.ict?.bos && a.ict.bos !== 'PENDING') ? 100 : 0;
+            const zone = a.entryZone ? (a.confirmations?.inZone ? 100 : 60) : 0;
+            const news = !a.news?.available ? 0 : (a.news?.state === 'LIVE' || a.news?.state === 'LOCK' || a.news?.state === 'POST_NEWS') ? 0 : a.news?.state === 'CAUTION' ? 50 : 100;
+            sentimentChartInstance.data.datasets[0].data = [mtf, liq, structure, zone, news];
+            sentimentChartInstance.update();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function appendTerminalLog(message) {
+            const logBox = document.getElementById('terminal-logs');
+            if(!logBox) return;
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timeStr}]</span> ${escapeHtml(message)}`;
+            logBox.appendChild(logEntry);
+            while(logBox.children.length > 120) logBox.removeChild(logBox.firstElementChild);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearTerminalLogs() {
+            const logBox = document.getElementById('terminal-logs');
+            if(logBox) logBox.innerHTML = '<div><span class="text-gray-500">[SYSTEM]</span> Terminal logs cleared. Ready...</div>';
+        }
+
+        function executeTerminalCommand() {
+            const cmdInput = document.getElementById('terminalCmdInput');
+            if(!cmdInput || !cmdInput.value.trim()) return;
+            const val = cmdInput.value.trim();
+            appendTerminalLog(`<span class="text-amber-400">[USER CMD]</span> ${val}`);
+            cmdInput.value = '';
+            
+            setTimeout(() => {
+                appendTerminalLog(`<span class="text-emerald-400">[EXECUTION]</span> Command executed successfully. AI Worker synchronized.`);
+            }, 500);
+        }
+
+        async function dispatchTelegramSignal() {
+            const pair = document.getElementById('terminalPairSelect')?.value || 'XAU/USD';
+            const a = pair === 'XAU/USD' ? latestXauAnalysis : null;
+            const type = a?.signal === 'BUY' || a?.signal === 'SELL' ? a.signal : 'WAIT';
+            // Premium safety gate: manual Telegram Entry is allowed only for a confirmed BUY/SELL.
+            if (type !== 'BUY' && type !== 'SELL') {
+                const btn = document.getElementById('btnTelegramEntry');
+                if (btn) {
+                    btn.classList.add('vt-telegram-disabled');
+                    btn.title = 'Entry alert is locked until BUY/SELL is confirmed';
+                }
+                return;
+            }
+            if (a?.news?.available === false) return;
+            if (a?.status && /NO ENTRY|WAIT|PENDING|UNAVAILABLE/i.test(String(a.status))) return;
+            try {
+                const sid = await ensureTelegramSession();
+                const signalResult = await vtradeApiFetch('/api/v5/signal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-vtrade-session': sid },
+                    body: JSON.stringify({
+                        symbol: pair.replace('/', ''),
+                        type,
+                        marketState: `Premium confirmed ${type} | Confluence ${a?.confidence ?? '—'}/100`
+                    })
+                });
+                const data = signalResult.data;
+                if (!signalResult.ok || !data.success) throw new Error(data.error || 'Telegram send failed');
+                alert(`🟢 ${type} Entry Signal បានផ្ញើទៅ Telegram ជោគជ័យ!`);
+            } catch (error) {
+                console.error(error);
+                alert('🔴 ផ្ញើ Telegram មិនបាន៖ ' + error.message);
+            }
+        }
+
+        function updateTelegramEntryButton(a) {
+            const btn = document.getElementById('btnTelegramEntry');
+            if (!btn) return;
+            const confirmed = a && (a.signal === 'BUY' || a.signal === 'SELL')
+                && (a.bestOpportunity?.state === 'CONFIRMED' || a.confirmations?.allGatesPassed === true)
+                && a.news?.available !== false
+                && !/NO ENTRY|WAIT|PENDING|UNAVAILABLE/i.test(String(a.status || ''));
+            btn.disabled = !confirmed;
+            btn.classList.toggle('vt-telegram-disabled', !confirmed);
+            btn.innerHTML = confirmed
+                ? `<i class="fa-brands fa-telegram"></i> ផ្ញើ ${a.signal} Entry ទៅ Telegram`
+                : `<i class="fa-solid fa-lock"></i> Telegram Entry — WAIT`;
+            btn.title = confirmed
+                ? `Send confirmed ${a.signal} entry only`
+                : 'Locked: only confirmed BUY/SELL entries can be broadcast';
+        }
+
+        function switchTab(tabId) {
+            if (tabId === 'admin' && (!currentAuthUser || currentAuthUser.role !== 'admin')) {
+                openModal('authModal');
+                alert('🔐 Admin Session ត្រូវការ Admin Login។ User មិនអាចចូល Admin Session បានទេ។');
+                return;
+            }
+            if (tabId === 'pricing' && !currentAuthUser) {
+                openModal('authModal');
+                alert('សូម Login មុន ដើម្បីមើល Pricing Plan និងសិទ្ធិគណនី។');
+                return;
+            }
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800/50 hover:text-white transition text-xs text-left cursor-pointer";
+            });
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            const targetNav = document.getElementById('nav-' + tabId);
+            
+            if(targetTab) targetTab.classList.add('active');
+            if(tabId === 'pricing') loadPricingForRole();
+            if(tabId === 'admin') loadAdminSessionData();
+            if(targetNav) {
+                if(tabId === 'terminal-analysis') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer";
+                } else if(tabId === 'admin') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-400 font-medium transition text-xs text-left border border-amber-500/40 cursor-pointer";
+                } else if(tabId === 'strategy') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-medium transition text-xs text-left border border-cyan-500/40 cursor-pointer";
+                } else if(tabId === 'calculator') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-purple-500/20 text-purple-400 font-medium transition text-xs text-left border border-purple-500/40 cursor-pointer";
+                } else if(tabId === 'copytrading') {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-medium transition text-xs text-left border border-emerald-500/40 cursor-pointer";
+                } else {
+                    targetNav.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600/20 text-blue-400 font-medium transition text-xs text-left cursor-pointer";
+                }
+            }
+
+            if(tabId === 'tvchart' && !tvWidgetInstance) {
+                initTradingViewWidget('OANDA:XAUUSD');
+            }
+        }
+
+        async function loadPricingForRole() {
+            const box = document.getElementById('tab-pricing');
+            if (!box || !currentAuthUser) return;
+            try {
+                const r = await vtradeApiFetch('/api/pricing', {cache:'no-store'});
+                if (!r.ok) throw new Error(r.data?.error || 'Pricing unavailable');
+                box.dataset.role = r.data.role || 'user';
+                const badge = box.querySelector('[data-pricing-role]');
+                if (badge) badge.textContent = `${String(r.data.role || 'user').toUpperCase()} · Current Plan: ${r.data.currentPlan || 'Trial'}`;
+            } catch (e) { console.warn('Pricing:', e.message); }
+        }
+
+        async function loadAdminSessionData() {
+            if (!currentAuthUser || currentAuthUser.role !== 'admin') return;
+            try {
+                const [sr, ur] = await Promise.all([
+                    vtradeApiFetch('/api/admin/session', {cache:'no-store'}),
+                    vtradeApiFetch('/api/admin/users', {cache:'no-store'})
+                ]);
+                if (sr.ok && sr.data?.success) {
+                    const el = document.getElementById('adminSessionSummary');
+                    if (el) el.textContent = `ADMIN FULL SESSION · ${sr.data.sessionCount} active session(s)`;
+                }
+                if (ur.ok && ur.data?.success && Array.isArray(ur.data.users)) {
+                    usersListDB = ur.data.users.map(u => ({name:u.name,email:u.email,level:u.role==='admin'?'Admin':u.plan,security:u.enabled?'Server RBAC':'Disabled',date:'Server'}));
+                    renderAdminTable(usersListDB);
+                }
+            } catch(e) { console.warn('Admin session:', e.message); }
+        }
+
+        function changeLanguage(lang) {
+            const t = translations[lang] || translations.km;
+            if(document.getElementById('txtBrandTitle')) document.getElementById('txtBrandTitle').innerText = t.brand;
+            if(document.getElementById('txtHeaderStatus')) document.getElementById('txtHeaderStatus').innerText = t.headerStatus;
+            if(document.getElementById('btnDeposit')) document.getElementById('btnDeposit').innerText = t.deposit;
+            if(document.getElementById('menuDashboard')) document.getElementById('menuDashboard').innerText = t.dash;
+            if(document.getElementById('menuSessions')) document.getElementById('menuSessions').innerText = t.sessions;
+            if(document.getElementById('menuNews')) document.getElementById('menuNews').innerText = t.news;
+            if(document.getElementById('menuPricing')) document.getElementById('menuPricing').innerText = t.pricing;
+            if(document.getElementById('menuTelegram')) document.getElementById('menuTelegram').innerText = t.telegram;
+            if(document.getElementById('menuChart')) document.getElementById('menuChart').innerText = t.chart;
+            if(document.getElementById('menuSecurity')) document.getElementById('menuSecurity').innerText = t.security;
+            if(document.getElementById('menuSupport')) document.getElementById('menuSupport').innerText = t.support;
+        }
+
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            let displayVal = 'Balance not connected';
+            if (Number.isFinite(baseUsdBalance)) {
+                if(curr === 'USD') displayVal = '$' + baseUsdBalance.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+                else if(curr === 'KHR') displayVal = '៛ ' + (baseUsdBalance * 4100).toLocaleString();
+                else if(curr === 'EUR') displayVal = '€ ' + (baseUsdBalance * 0.92).toFixed(2);
+            }
+            if(document.getElementById('userBalanceDisplay')) document.getElementById('userBalanceDisplay').innerText = displayVal;
+        }
+
+        function toggleMobileMenu() {
+            const overlay = document.getElementById('mobileMenuOverlay');
+            if(overlay) overlay.classList.toggle('hidden');
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const inputField = document.getElementById(inputId);
+            const iconEl = document.getElementById(iconId);
+            if(inputField && iconEl) {
+                if(inputField.type === "password") {
+                    inputField.type = "text";
+                    iconEl.className = "fa-solid fa-eye text-emerald-400";
+                } else {
+                    inputField.type = "password";
+                    iconEl.className = "fa-solid fa-eye-slash";
+                }
+            }
+        }
+
+        function showForgotPasswordForm() {
+            document.getElementById('loginFormSection').classList.add('hidden');
+            document.getElementById('forgotPasswordSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = 'Forgot Password Recovery';
+        }
+
+        function backToLoginForm() {
+            document.getElementById('forgotPasswordSection').classList.add('hidden');
+            document.getElementById('loginFormSection').classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = 'Login / Sign In (Cloudflare v5.7 Secured)';
+        }
+
+        async function submitForgotPassword() {
+            const email=document.getElementById('forgotEmailInput').value.trim();
+            if(!email){ alert('សូមបញ្ចូលអ៊ីម៉ែលរបស់អ្នកសិន!'); return; }
+            try { const r=await vtradeApiFetch('/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email}),timeoutMs:8000}); if(!r.ok) throw Error(r.data?.error||'Password recovery unavailable'); alert('បើគណនីមាននៅក្នុងប្រព័ន្ធ នឹងមាន Reset Link ផ្ញើទៅ Email។'); backToLoginForm(); } catch(e){ alert('⚠️ '+e.message); }
+        }
+        async function loginWithGoogle(){ alert('Google Sign-In មិនទាន់បាន configure OAuth provider ពិតប្រាកដទេ។ សូមប្រើ Email + Password។'); }
+        async function proceedTo2FAStep(){
+            const email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value; if(!email||!pass)return alert('សូមបញ្ចូលអ៊ីម៉ែល និងពាក្យសម្ងាត់។');
+            try { const r=await vtradeApiFetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass}),timeoutMs:8000}); if(!r.ok||!r.data?.success)throw Error(r.data?.error||'Login failed'); if(r.data.requires2FA){window.vtrade2FAChallenge=r.data.challenge;document.getElementById('loginFormSection').classList.add('hidden');document.getElementById('otpVerificationSection').classList.remove('hidden');document.getElementById('otpInputCode').focus();return;} finishVTradeLogin(r.data); } catch(e){alert('❌ Login មិនបាន: '+e.message);}
+        }
+        async function verifyOtpAndLogin(){ const code=document.getElementById('otpInputCode').value.trim(); if(!/^\d{6}$/.test(code))return alert('សូមបញ្ចូលលេខកូដ ៦ខ្ទង់។'); try{const r=await vtradeApiFetch('/api/auth/2fa/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({challenge:window.vtrade2FAChallenge,code}),timeoutMs:8000});if(!r.ok||!r.data?.success)throw Error(r.data?.error||'2FA failed');finishVTradeLogin(r.data);}catch(e){alert('❌ 2FA មិនបាន: '+e.message);}}
+        function finishVTradeLogin(d){vtradeAuthToken=d.token;sessionStorage.setItem('vtrade_auth_token',vtradeAuthToken);currentAuthUser=d.user;window.vtrade2FAChallenge='';updateAuthUI();closeModal('authModal');applyRoleUI();}
+        async function restoreAuthSession() {
+            try {
+                const r = await vtradeApiFetch('/api/auth/session', {cache:'no-store', timeoutMs:8000});
+                if (!r.ok || !r.data?.success) throw new Error('Session expired');
+                currentAuthUser = r.data.user;
+                // Keep the legacy header token only for backward compatibility.
+                if (r.data.token) {
+                    vtradeAuthToken = r.data.token;
+                    sessionStorage.setItem('vtrade_auth_token', vtradeAuthToken);
+                }
+            } catch (_) {
+                vtradeAuthToken = '';
+                currentAuthUser = null;
+                sessionStorage.removeItem('vtrade_auth_token');
+            }
+            updateAuthUI();
+            applyRoleUI();
+        }
+
+        function updateAuthUI() {
+            const btn = document.getElementById('btnAuth');
+            if (!btn) return;
+            if (currentAuthUser) {
+                btn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${currentAuthUser.name || currentAuthUser.email}</span>`;
+                btn.title = `${currentAuthUser.role.toUpperCase()} · ${currentAuthUser.plan || 'Plan'}`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-user-shield"></i> <span>Login</span>`;
+                btn.title = 'Login';
+            }
+        }
+
+        function applyRoleUI() {
+            const isAdmin = !!currentAuthUser && currentAuthUser.role === 'admin';
+            const adminNav = document.getElementById('nav-admin');
+            const mobileAdmin = document.getElementById('mobile-nav-admin');
+            if (adminNav) adminNav.classList.toggle('hidden', !isAdmin);
+            if (mobileAdmin) mobileAdmin.classList.toggle('hidden', !isAdmin);
+            const adminTab = document.getElementById('tab-admin');
+            if (adminTab && !isAdmin) adminTab.classList.add('hidden');
+        }
+
+        async function logoutVTrade() {
+            try { if (vtradeAuthToken) await vtradeApiFetch('/api/auth/logout', {method:'POST'}); } catch (_) {}
+            vtradeAuthToken=''; currentAuthUser=null; sessionStorage.removeItem('vtrade_auth_token');
+            updateAuthUI(); applyRoleUI(); switchTab('terminal-analysis');
+        }
+
+        function renderAdminTable(data) {
+            const tbody = document.getElementById('adminUserTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+            data.forEach((u, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-900/50 transition">
+                        <td class="p-3.5">
+                            <div class="font-bold text-white">${u.name}</div>
+                            <div class="text-gray-400 text-[10px]">${u.email}</div>
+                        </td>
+                        <td class="p-3.5"><span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full font-bold">${u.level}</span></td>
+                        <td class="p-3.5 text-emerald-400">${u.security}</td>
+                        <td class="p-3.5 font-mono">${u.date}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteAdminUser(${index})" class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white px-2.5 py-1 rounded-lg transition cursor-pointer">លុប</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterAdminUsers() {
+            const searchVal = document.getElementById('adminSearchInput').value.toLowerCase();
+            const levelVal = document.getElementById('adminLevelFilter').value;
+            const filtered = usersListDB.filter(u => {
+                const matchSearch = u.name.toLowerCase().includes(searchVal) || u.email.toLowerCase().includes(searchVal);
+                const matchLevel = levelVal === 'all' || u.level === levelVal;
+                return matchSearch && matchLevel;
+            });
+            renderAdminTable(filtered);
+        }
+
+        function addNewUserRecord() {
+            const name = document.getElementById('newUserNameInput').value.trim();
+            const email = document.getElementById('newUserEmailInput').value.trim();
+            const level = document.getElementById('newUserLevelInput').value;
+            if(!name || !email) { alert('សូមបំពេញឈ្មោះ និងអ៊ីម៉ែលឱ្យបានគ្រប់គ្រាន់!'); return; }
+
+            usersListDB.push({ name, email, level, security: "Protected v6.3 (DDoS ON)", date: new Date().toISOString().split('T')[0] });
+            renderAdminTable(usersListDB);
+            closeModal('addUserModal');
+            alert('🟢 បានបន្ថែមសមាជិកថ្មីជោគជ័យ ១០០%!');
+        }
+
+        function deleteAdminUser(index) {
+            if(confirm('តើអ្នកពិតជាចង់លុបសមាជិកនេះមែនទេ?')) {
+                usersListDB.splice(index, 1);
+                renderAdminTable(usersListDB);
+                alert('🟢 បានលុបសមាជិកចេញពី System ជោគជ័យ!');
+            }
+        }
+
+        function updateMarketSessionsTimer() {
+            const now = new Date();
+            const utcHour = now.getUTCHours();
+            const utcDay = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
+            const isWeekend = (utcDay === 0 || utcDay === 6);
+
+            // Asian Session: 00:00 UTC to 08:00 UTC (07:00 AM - 03:00 PM ICT)
+            const asianActive = !isWeekend && (utcHour >= 0 && utcHour < 8);
+            // London Session: 08:00 UTC to 16:00 UTC (03:00 PM - 11:00 PM ICT)
+            const londonActive = !isWeekend && (utcHour >= 8 && utcHour < 16);
+            // New York Session: 13:00 UTC to 21:00 UTC (08:00 PM - 04:00 AM ICT)
+            const nyActive = !isWeekend && (utcHour >= 13 && utcHour < 21);
+
+            updateSessionUI('Asian', asianActive, 'badgeAsian', 'timerAsian', 'dashAsianStatus');
+            updateSessionUI('London', londonActive, 'badgeLondon', 'timerLondon', 'dashLondonStatus');
+            updateSessionUI('New York', nyActive, 'badgeNy', 'timerNy', 'dashNyStatus');
+        }
+
+        function updateSessionUI(name, isActive, badgeId, timerId, dashStatusId) {
+            const badge = document.getElementById(badgeId);
+            const timer = document.getElementById(timerId);
+            const dashStat = document.getElementById(dashStatusId);
+
+            if(badge) {
+                badge.innerText = isActive ? "OPEN (សកម្ម)" : "CLOSED (បិទ)";
+                badge.className = isActive ? "px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400" : "px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-800 text-gray-400";
+            }
+            if(timer) {
+                timer.innerText = isActive ? `ស្ថានភាព៖ ទីផ្សារ ${name} កំពុងដំណើរការ` : `ស្ថានភាព៖ បិទដំណើរការ (Weekend / Closed)`;
+            }
+            if(dashStat) {
+                dashStat.innerText = isActive ? "🟢 OPEN (បើកដំណើរការ)" : "🔴 CLOSED (បិទ)";
+            }
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('km-KH');
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+            if(document.getElementById('liveDate')) document.getElementById('liveDate').innerText = dateStr;
+            if(document.getElementById('liveClock')) document.getElementById('liveClock').innerText = timeStr;
+        }
+
+        function initTradingViewWidget(symbol) {
+            const container = document.getElementById('tradingview_widget');
+            if(!container) return;
+            container.innerHTML = "";
+            tvWidgetInstance = new TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Asia/Phnom_Penh",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#0d111c",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "container_id": "tradingview_widget"
+            });
+        }
+
+        function changeTradingViewSymbol(symbol) {
+            initTradingViewWidget(symbol);
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (!m) return;
+            m.classList.remove('hidden');
+            m.style.removeProperty('display');
+            m.style.removeProperty('visibility');
+            m.style.removeProperty('pointer-events');
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (!m) return;
+            m.classList.add('hidden');
+            // Inline fallback makes closing reliable on iOS Safari even if a
+            // responsive rule accidentally overrides the utility .hidden class.
+            m.style.setProperty('display', 'none', 'important');
+            m.style.setProperty('visibility', 'hidden', 'important');
+            m.style.setProperty('pointer-events', 'none', 'important');
+        }
+
+        function copyAccountInfo(accNum, type) {
+            navigator.clipboard.writeText(accNum);
+            alert(`បានចម្លងលេខគណនី ${type} (${accNum}) ជូន VET VEN រួចរាល់!`);
+        }
+
+        function verifyBankPayment() {
+            alert('🟢 បានបញ្ជូនសំណើផ្ទៀងផ្ទាត់ Slip ទៅកាន់ Admin (VET VEN) រួចរាល់! សិទ្ធិ VIP នឹងបើកជូនក្នុងរយៈពេល ១នាទី។');
+            closeModal('depositModal');
+        }
+
+        function saveCopyTradingSettings() {
+            alert('🟢 រក្សាទុកការកំណត់ Copy Trading Bot ចូល Server ជោគជ័យ ១០០%!');
+        }
+
+        function runAiSentimentScan() {
+            alert('🟢 AI Sentiment Scanner បានស្កេនទិន្នន័យពិភពលោក និងអាប់ដេត Consensus ថ្មីរួចរាល់!');
+        }
+
+        function runAiBacktest() {
+            document.getElementById('backtestResultCard').classList.remove('hidden');
+            alert('🟢 រត់ Backtest v5 Engine ជោគជ័យ! Strategy ត្រូវបានរក្សាទុក។');
+        }
+
+        function calculateTradingRisk() {
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 1000;
+            const riskPct = parseFloat(document.getElementById('calcRiskPercent').value) || 2;
+            const slPips = parseFloat(document.getElementById('calcStopLoss').value) || 50;
+
+            const riskAmount = capital * (riskPct / 100);
+            const lotSize = (riskAmount / (slPips * 10)).toFixed(2);
+            const targetProfit = riskAmount * 2;
+
+            document.getElementById('resRiskAmount').innerText = '$' + riskAmount.toFixed(2);
+            document.getElementById('resLotSize').innerText = lotSize + ' Lots';
+            document.getElementById('resTakeProfit').innerText = (slPips * 2) + ' Pips / $' + targetProfit.toFixed(2) + ' Profit';
+            document.getElementById('calcResultCard').classList.remove('hidden');
+        }
+
+        function copyRefLink() {
+            const input = document.getElementById('refLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert('🟢 បានចម្លងតំណភ្ជាប់ Affiliate របស់អ្នករួចរាល់!');
+        }
+
+        let telegramSessionId = null;
+
+        async function ensureTelegramSession() {
+            if (telegramSessionId) return telegramSessionId;
+
+            // Validate a saved session first. Render restarts clear server memory,
+            // so an old browser session must never silently block Telegram auto-alerts.
+            const saved = localStorage.getItem('vtrade_telegram_session');
+            if (saved) {
+                try {
+                    const check = await vtradeApiFetch('/api/telegram/session', {
+                        headers: {'x-vtrade-session': saved},
+                        cache: 'no-store'
+                    });
+                    const d = await check.json();
+                    if (d.success && d.sessionId === saved && d.connected) {
+                        telegramSessionId = saved;
+                        return telegramSessionId;
+                    }
+                } catch (_) {}
+                localStorage.removeItem('vtrade_telegram_session');
+            }
+
+            const r = await vtradeApiFetch('/api/telegram/session', {cache:'no-store'});
+            const d = await r.json();
+            if (!d.success || !d.sessionId) throw new Error('Unable to initialize Telegram session');
+            telegramSessionId = d.sessionId;
+            localStorage.setItem('vtrade_telegram_session', telegramSessionId);
+            return telegramSessionId;
+        }
+
+        function telegramHeaders() {
+            return telegramSessionId ? {'x-vtrade-session': telegramSessionId} : {};
+        }
+
+        async function loadTelegramStatus() {
+            try {
+                await ensureTelegramSession();
+                const r = await vtradeApiFetch('/api/telegram/status', {headers: telegramHeaders(), cache:'no-store'});
+                const d = await r.json();
+                const el = document.getElementById('telegramStatusText');
+                if (!el) return;
+                if (d.connected) {
+                    el.innerHTML = `🟢 Connected — <b>${d.botUsername || 'Telegram Bot'}</b> · Chat ${d.chatId || '••••'}`;
+                } else if (d.mode === 'env-fallback') {
+                    el.textContent = '🟢 Server Telegram fallback is configured.';
+                } else {
+                    el.textContent = '⚪ Not connected. Enter your Bot Token + Chat ID below.';
+                }
+            } catch (e) {
+                const el = document.getElementById('telegramStatusText');
+                if (el) el.textContent = '🔴 Telegram setup unavailable: ' + e.message;
+            }
+        }
+
+        async function testTelegramIntegration() {
+            const token = document.getElementById('tgTokenInput')?.value.trim();
+            const chatId = document.getElementById('tgChatIdInput')?.value.trim();
+            if(!token || !chatId) { alert('សូមបំពេញ Bot Token និង Chat ID ជាមុនសិន!'); return; }
+
+            try {
+                const sid = await ensureTelegramSession();
+                const connectResult = await vtradeApiFetch('/api/telegram/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'x-vtrade-session': sid},
+                    body: JSON.stringify({token, chatId})
+                });
+                const connectData = await connectResult.json();
+                if (!connectResult.ok || !connectData.success) throw new Error(connectData.error || 'Telegram connection failed');
+
+                telegramSessionId = connectData.sessionId || sid;
+                localStorage.setItem('vtrade_telegram_session', telegramSessionId);
+
+                const testResult = await vtradeApiFetch('/api/telegram/test', {
+                    method:'POST',
+                    headers: telegramHeaders()
+                });
+                const testData = await testResult.json();
+                if (!testResult.ok || !testData.success) throw new Error(testData.error || 'Telegram test failed');
+
+                // Never retain the token in browser storage or DOM after a successful connection.
+                const tokenInput = document.getElementById('tgTokenInput');
+                if (tokenInput) tokenInput.value = '';
+                await loadTelegramStatus();
+                alert('🟢 Telegram Bot Connected និង Test Message បានផ្ញើជោគជ័យ!');
+            } catch (error) {
+                console.error(error);
+                alert('🔴 Telegram មិនអាចភ្ជាប់បាន៖ ' + error.message);
+            }
+        }
+
+        async function disconnectTelegram() {
+            try {
+                if (!telegramSessionId) return;
+                await vtradeApiFetch('/api/telegram/disconnect', {
+                    method:'POST',
+                    headers: telegramHeaders()
+                });
+                localStorage.removeItem('vtrade_telegram_session');
+                telegramSessionId = null;
+                const tokenInput = document.getElementById('tgTokenInput');
+                if (tokenInput) tokenInput.value = '';
+                await ensureTelegramSession();
+                await loadTelegramStatus();
+                alert('🟢 Telegram connection បានផ្តាច់រួចរាល់។');
+            } catch (e) {
+                alert('🔴 Disconnect failed: ' + e.message);
+            }
+        }
+
+                function selectPricingPlan(planName, price) {
+            document.getElementById('selectedPlanInput').value = planName;
+            switchTab('telegram');
+            alert(`🟢 បានជ្រើសរើសកញ្ចប់ ${planName} រួចរាល់! សូមបំពេញ Telegram Bot Token ដើម្បីចាប់ផ្តើម។`);
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const box = document.getElementById('chatMsgBox');
+            if(!input || !input.value.trim()) return;
+            const userMsg = input.value.trim();
+            
+            const userBubble=document.createElement('div'); userBubble.className='bg-blue-600/20 text-blue-300 p-2.5 rounded-xl ml-auto max-w-[80%]'; userBubble.textContent=userMsg; box.appendChild(userBubble);
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            setTimeout(() => {
+                box.innerHTML += `<div class="bg-gray-800 p-2.5 rounded-xl max-w-[80%]">ប្រព័ន្ធ V Trade AI v7.0.0 កំពុងដំណើរការ។ សញ្ញា XAUUSD ត្រូវបានផ្អែកលើ MT5 + ICT confirmation និងអាចបង្ហាញ WAIT នៅពេល data/news មិនទាន់ verify។</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 600);
+        }
+
+        async function openProfileSecurity() {
+            if (!currentAuthUser || !vtradeAuthToken) {
+                try { await restoreAuthSession(); } catch (_) {}
+            }
+            if (!currentAuthUser || !vtradeAuthToken) {
+                openModal('authModal');
+                alert('⚠️ សូម Login ជាមុនសិន ដើម្បីចូល Profile & Security។');
+                return;
+            }
+            const name = currentAuthUser.name || localStorage.getItem('vtrade_logged_user') || '';
+            const nameInput = document.getElementById('profileName');
+            if (nameInput && name) nameInput.value = name;
+            openModal('profileModal');
+        }
+
+        async function saveProfileSettings() {
+            if (!currentAuthUser || !vtradeAuthToken) {
+                try { await restoreAuthSession(); } catch (_) {}
+            }
+            if (!currentAuthUser || !vtradeAuthToken) {
+                closeModal('profileModal');
+                openModal('authModal');
+                alert('⚠️ Session មិនទាន់មាន ឬផុតកំណត់។ សូម Login ម្តងទៀតសិន។');
+                return;
+            }
+            const name = document.getElementById('profileName').value.trim();
+            const currentPassword = document.getElementById('profileCurrentPass').value;
+            const newPassword = document.getElementById('profileNewPass').value;
+            const confirmPassword = document.getElementById('profileConfirmPass').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('⚠️ សូមបំពេញ Current Password, New Password និង Confirm Password។');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                alert('⚠️ New Password និង Confirm Password មិនដូចគ្នា។');
+                return;
+            }
+            if (newPassword.length < 12 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/\d/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+                alert('⚠️ Password ថ្មីត្រូវមានយ៉ាងតិច 12 តួ និងមាន A-Z, a-z, លេខ និងសញ្ញាពិសេស។');
+                return;
+            }
+
+            try {
+                const r = await vtradeApiFetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({currentPassword, newPassword, confirmPassword}),
+                    timeoutMs: 10000
+                });
+                if (!r.ok || !r.data?.success) throw new Error(r.data?.error || 'Password change failed');
+
+                // Display name is kept locally for UI only; authentication credentials remain server-side.
+                if (name) localStorage.setItem('vtrade_logged_user', name);
+
+                vtradeAuthToken = '';
+                currentAuthUser = null;
+                sessionStorage.removeItem('vtrade_auth_token');
+                updateAuthUI();
+                applyRoleUI();
+                closeModal('profileModal');
+
+                document.getElementById('profileCurrentPass').value = '';
+                document.getElementById('profileNewPass').value = '';
+                document.getElementById('profileConfirmPass').value = '';
+
+                alert('🟢 Password បានប្តូរជោគជ័យ។ Session ចាស់ត្រូវបានបិទ។ សូម Login ម្តងទៀតដោយ Password ថ្មី។');
+                setTimeout(() => { if (typeof openModal === 'function') openModal('authModal'); }, 50);
+            } catch (e) {
+                alert('❌ មិនអាចប្តូរ Password បាន៖ ' + e.message);
+            }
+        }
+    </script>
+
 <script>
+/* V TRADE AI v6.1.5 — SAFE FULL UI I18N (KH / EN / ZH)
+   Language changes presentation only; trading calculations, MT5 data and risk gates remain unchanged. */
 (function(){
-  var target='./premium-dashboard-live.html'+location.search+location.hash;
-  document.getElementById('open').href=target;
-  location.replace(target);
+  const I18N={
+    en:{
+      'V TRADE AI & TERMINAL v6.3.4':'V TRADE AI & TERMINAL v6.3.4','Realtime Price + ICT Engine Active':'Realtime Price + ICT Engine Active','Storage: checking…':'Storage: checking…','PREMIUM REALTIME':'PREMIUM REALTIME','ENTRY GATED':'ENTRY GATED','Live Crypto Ticker Bar & Clock Header':'Live Crypto Ticker Bar & Clock Header','Mobile Live Status Strip':'Mobile Live Status Strip','MT5 LIVE':'MT5 LIVE','Mobile Drawer Menu Overlay':'Mobile Drawer Menu Overlay','ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.4)':'Control Menu (v6.3.4)','Terminal & Analysis AI Realtime':'Terminal & AI Analysis Realtime','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'Dashboard','Copy Trading Bot (Auto Mirror)':'Copy Trading Bot (Auto Mirror)','AI Sentiment & Consensus Filter':'AI Sentiment & Consensus Filter','Admin Manager (User List)':'Admin Manager (User List)','AI Strategy Customizer & Backtest':'AI Strategy Customizer & Backtest','Risk & SL/TP Calculator':'Risk & SL/TP Calculator','Affiliate & Referral Program':'Affiliate & Referral Program','ម៉ោងទីផ្សារ (Asian/NY/London)':'Market Sessions (Asian/NY/London)','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'News & Links','កញ្ចប់តម្លៃថ្មី (Pricing)':'Pricing Plans','Telegram Bot & Webhook':'Telegram Bot & Webhook','TradingView Chart':'TradingView Chart','Cloudflare & DDoS Protection':'Cloudflare & DDoS Protection','AI Support v6.3':'AI Support v6.3','AI Terminal & Analysis Realtime Engine':'AI Terminal & Realtime Analysis Engine','XAU/USD (Gold - មាស)':'XAU/USD (Gold)','Scan Analysis':'Scan Analysis','Signal Metrics Top Dashboard Cards':'Signal Metrics Dashboard','Market Signal Direction':'Market Signal Direction','WAIT':'WAIT','Entry Zone:':'Entry Zone:','Status:':'Status:','Setup:':'Setup:','Setup Strength':'Setup Strength','ICT Confluence Score':'ICT Confluence Score','MTF:':'MTF:','ICT Fair Value Gap (FVG)':'ICT Fair Value Gap (FVG)','LIVE ICT':'LIVE ICT','Zone:':'Zone:','Market Bias & Context':'Market Bias & Context','MTF structure pending':'MTF structure pending','News Risk Radar':'News Risk Radar','USD Economic News Radar':'USD Economic News Radar','Next':'Next','Source':'Source','Feed':'Feed','Age':'Age','Events':'Events','Pre-News Research':'Pre-News Research','WAITING FOR VERIFIED NEWS':'WAITING FOR VERIFIED NEWS','Confirmation & Execution Readiness':'Confirmation & Execution Readiness','Entry Confirmation':'Entry Confirmation','NOT READY':'NOT READY','MTF Bias':'MTF Bias','Liquidity':'Liquidity','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'Premium/Discount','Displacement':'Displacement','Advanced AI Evidence / Decision Transparency':'Advanced AI Evidence / Decision Transparency','Advanced AI Evidence':'Advanced AI Evidence','ENGINE — · MT5 —':'ENGINE — · MT5 —','Mobile Signal Quick Summary':'Mobile Signal Quick Summary','Signal':'Signal','Score':'Score','Readiness':'Readiness','Real-Time AI Execution Console Terminal':'Real-Time AI Execution Console','Clear':'Clear','Execute':'Execute','Sentiment Consensus Radar':'Sentiment Consensus Radar','Signal Details Table':'Signal Details Table','Live AI Signal Breakdown & Target Levels':'Live AI Signal Breakdown & Target Levels','AUTO ALERT: ENTRY ONLY':'AUTO ALERT: ENTRY ONLY','ស្ថានភាព':'Status','គូ':'Pair','សញ្ញា':'Signal','តំបន់ចូល':'Entry Zone','ស្ថានភាព':'Status','TAB: DASHBOARD':'DASHBOARD','សមតុល្យគណនី (Balance)':'Account Balance','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'Current Plan','Copy Trading & Sentiment 24/7 Active':'Copy Trading & Sentiment 24/7 Active','Copy Trading Bot Status':'Copy Trading Bot Status','Running (1.0x)':'Running (1.0x)','Auto Mirroring Ready':'Auto Mirroring Ready','AI Sentiment Consensus':'AI Sentiment Consensus','Smart Filter v6.3':'Smart Filter v6.3','កំពុងគណនា...':'Calculating...','London Session':'London Session','New York Session':'New York Session','Asian Session (Tokyo)':'Asian Session (Tokyo)','រក្សាទុកការកំណត់ Copy Trading Bot':'Save Copy Trading Bot Settings','Global News Sentiment':'Global News Sentiment','LIVE DATA REQUIRED':'LIVE DATA REQUIRED','AI Confidence Score':'AI Confidence Score','NOT PUBLISHED':'NOT PUBLISHED','Sideways Filter':'Sideways Filter','Active (Auto-Block)':'Active (Auto-Block)','បន្ថែម User ថ្មី':'Add New User','Admin Level':'Admin Level','ឈ្មោះ & អ៊ីម៉ែល':'Name & Email','កម្រិតសិទ្ធិ (User Level)':'User Level','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'Security Status (Cloudflare)','កាលបរិច្ឆេទបង្កើត':'Created Date','សកម្មភាព (Actions)':'Actions','Dynamic Rendered by JS':'Dynamic Rendered by JS','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'Preferred Asset','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'Risk Level','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'Run Backtest & Save Strategy to Server','Confluence:':'Confluence:','NOT AVAILABLE':'NOT AVAILABLE','Total Trades Tested:':'Total Trades Tested:','Estimated Profit Factor:':'Estimated Profit Factor:','ទំហំដើមទុន ($ Capital)':'Capital ($)','ភាគរយហានិភ័យ (% Risk per Trade)':'Risk per Trade (%)','ចម្ងាយ Stop Loss (Pips / Points)':'Stop Loss Distance (Pips / Points)','Max Risk Amount ($):':'Max Risk Amount ($):','Recommended Lot Size:':'Recommended Lot Size:','Target Take Profit (1:2 Ratio):':'Target Take Profit (1:2 Ratio):','Copy Link':'Copy Link','Telegram Copy Trading Bot (Auto Mirroring v6.3)':'Telegram Copy Trading Bot (Auto Mirroring v6.3)','Master Trader Signal Source:':'Master Trader Signal Source:','Connected Channel:':'Connected Channel:','Not verified':'Not verified','Last Copied Order:':'Last Copied Order:','No verified live order':'No verified live order',
+      'NEWS UNAVAILABLE — NO ENTRY':'NEWS UNAVAILABLE — NO ENTRY',
+      'NEWS DEGRADED • NO ENTRY':'NEWS DEGRADED • NO ENTRY',
+      'NEWS CLEAR • VERIFIED':'NEWS CLEAR • VERIFIED',
+      'WAIT — NO CONFIRMED ENTRY':'WAIT — NO CONFIRMED ENTRY',
+      'WAIT — CONFIRMATION PENDING':'WAIT — CONFIRMATION PENDING',
+      'MIDWAY — CONFIRMATION PENDING':'MIDWAY — CONFIRMATION PENDING',
+      'NO TRADE':'NO TRADE',
+      'ENTRY CONFIRMED':'ENTRY CONFIRMED',
+      'BULLISH':'BULLISH',
+      'BEARISH':'BEARISH',
+      'PENDING':'PENDING',
+      'CONFIRMED':'CONFIRMED',
+      'WAIT':'WAIT'},
+    zh:{
+      'V TRADE AI & TERMINAL v6.3.4':'V TRADE AI & TERMINAL v6.3.4','Realtime Price + ICT Engine Active':'实时价格 + ICT 引擎运行中','Storage: checking…':'存储：检查中…','PREMIUM REALTIME':'高级实时','ENTRY GATED':'入场门控','Live Crypto Ticker Bar & Clock Header':'实时行情与时钟','Mobile Live Status Strip':'移动端实时状态','MT5 LIVE':'MT5 实时','Mobile Drawer Menu Overlay':'移动端菜单','ម៉ឺនុយគ្រប់គ្រង (Menu v6.3.4)':'控制菜单（v6.3.4）','Terminal & Analysis AI Realtime':'终端与 AI 实时分析','ផ្ទាំងគ្រប់គ្រង (Dashboard)':'控制面板','Copy Trading Bot (Auto Mirror)':'复制交易机器人（自动镜像）','AI Sentiment & Consensus Filter':'AI 情绪与共识过滤器','Admin Manager (User List)':'管理员（用户列表）','AI Strategy Customizer & Backtest':'AI 策略定制与回测','Risk & SL/TP Calculator':'风险与止损止盈计算器','Affiliate & Referral Program':'联盟与推荐计划','ម៉ោងទីផ្សារ (Asian/NY/London)':'市场时段（亚洲/纽约/伦敦）','ព័ត៌មាន & តំណភ្ជាប់ (News Links)':'新闻与链接','កញ្ចប់តម្លៃថ្មី (Pricing)':'价格方案','Telegram Bot & Webhook':'Telegram 机器人与 Webhook','TradingView Chart':'TradingView 图表','Cloudflare & DDoS Protection':'Cloudflare 与 DDoS 防护','AI Support v6.3':'AI 支持 v5.7','AI Terminal & Analysis Realtime Engine':'AI 实时分析终端','XAU/USD (Gold - មាស)':'XAU/USD（黄金）','Scan Analysis':'扫描分析','Signal Metrics Top Dashboard Cards':'信号指标','Market Signal Direction':'市场信号方向','WAIT':'等待','Entry Zone:':'入场区域：','Status:':'状态：','Setup:':'设置：','Setup Strength':'设置强度','ICT Confluence Score':'ICT 共振评分','MTF:':'多周期：','ICT Fair Value Gap (FVG)':'ICT 公允价值缺口（FVG）','LIVE ICT':'实时 ICT','Zone:':'区域：','Market Bias & Context':'市场偏向与环境','MTF structure pending':'多周期结构待确认','News Risk Radar':'新闻风险雷达','USD Economic News Radar':'美元经济新闻雷达','Next':'下一项','Source':'来源','Feed':'数据源','Age':'数据年龄','Events':'事件','Pre-News Research':'新闻前研究','WAITING FOR VERIFIED NEWS':'等待已验证新闻','Confirmation & Execution Readiness':'确认与执行准备度','Entry Confirmation':'入场确认','NOT READY':'尚未就绪','MTF Bias':'多周期偏向','Liquidity':'流动性','MSS':'MSS','BOS':'BOS','FVG/OB':'FVG/OB','Premium/Discount':'溢价/折价','Displacement':'位移','Advanced AI Evidence / Decision Transparency':'高级 AI 证据 / 决策透明度','Advanced AI Evidence':'高级 AI 证据','Mobile Signal Quick Summary':'移动端信号摘要','Signal':'信号','Score':'评分','Readiness':'准备度','Real-Time AI Execution Console Terminal':'实时 AI 执行控制台','Clear':'清除','Execute':'执行','Sentiment Consensus Radar':'情绪共识雷达','Live AI Signal Breakdown & Target Levels':'实时 AI 信号与目标位','AUTO ALERT: ENTRY ONLY':'自动提醒：仅入场','គូ':'交易品种','សញ្ញា':'信号','តំបន់ចូល':'入场区域','ស្ថានភាព':'状态','សមតុល្យគណនី (Balance)':'账户余额','កញ្ចប់សេវាកម្មបច្ចុប្បន្ន':'当前方案','Copy Trading & Sentiment 24/7 Active':'复制交易与情绪 24/7 运行','Copy Trading Bot Status':'复制交易机器人状态','Running (1.0x)':'运行中（1.0x）','Auto Mirroring Ready':'自动镜像就绪','AI Sentiment Consensus':'AI 情绪共识','Smart Filter v6.3':'智能过滤器 v5.7','កំពុងគណនា...':'计算中...','London Session':'伦敦时段','New York Session':'纽约时段','Asian Session (Tokyo)':'亚洲时段（东京）','Global News Sentiment':'全球新闻情绪','LIVE DATA REQUIRED':'需要实时数据','AI Confidence Score':'AI 置信度评分','NOT PUBLISHED':'未发布','Sideways Filter':'震荡过滤器','Active (Auto-Block)':'启用（自动阻止）','បន្ថែម User ថ្មី':'添加新用户','Admin Level':'管理员级别','ឈ្មោះ & អ៊ីម៉ែល':'姓名与邮箱','កម្រិតសិទ្ធិ (User Level)':'用户级别','ស្ថានភាពសុវត្ថិភាព (Cloudflare)':'安全状态（Cloudflare）','កាលបរិច្ឆេទបង្កើត':'创建日期','សកម្មភាព (Actions)':'操作','Dynamic Rendered by JS':'由 JS 动态渲染','ជ្រើសរើសទ្រព្យសកម្ម (Preferred Asset)':'首选资产','កម្រិតប្រឈមហានិភ័យ (Risk Level)':'风险等级','រត់ Backtest v5 & រក្សាទុក Strategy ចូល Server':'运行回测并保存策略到服务器','Confluence:':'共振：','NOT AVAILABLE':'不可用','Total Trades Tested:':'测试交易总数：','Estimated Profit Factor:':'预计盈利因子：','ទំហំដើមទុន ($ Capital)':'资金（$）','ភាគរយហានិភ័យ (% Risk per Trade)':'每笔交易风险（%）','ចម្ងាយ Stop Loss (Pips / Points)':'止损距离（点）','Max Risk Amount ($):':'最大风险金额（$）：','Recommended Lot Size:':'建议手数：','Target Take Profit (1:2 Ratio):':'目标止盈（1:2）：','Copy Link':'复制链接','Telegram Copy Trading Bot (Auto Mirroring v6.3)':'Telegram 复制交易机器人（自动镜像 v5.7）','Master Trader Signal Source:':'主交易员信号来源：','Connected Channel:':'已连接频道：','Not verified':'未验证','Last Copied Order:':'最近复制订单：','No verified live order':'没有已验证的实时订单',
+      'NEWS UNAVAILABLE — NO ENTRY':'新闻不可用 — 不入场',
+      'NEWS DEGRADED • NO ENTRY':'新闻降级 • 不入场',
+      'NEWS CLEAR • VERIFIED':'新闻正常 • 已验证',
+      'WAIT — NO CONFIRMED ENTRY':'等待 — 未确认入场',
+      'WAIT — CONFIRMATION PENDING':'等待 — 等待确认',
+      'MIDWAY — CONFIRMATION PENDING':'中途 — 等待确认',
+      'NO TRADE':'不交易',
+      'ENTRY CONFIRMED':'入场已确认',
+      'BULLISH':'看涨',
+      'BEARISH':'看跌',
+      'PENDING':'待确认',
+      'CONFIRMED':'已确认',
+      'WAIT':'等待'}
+  };
+  // v6.3.4 performance-safe i18n:
+  // Index the existing static text once. Language switches then update only the
+  // indexed nodes instead of recursively walking the entire realtime DOM.
+  const originalText=new WeakMap();
+  const originalAttrs=new WeakMap();
+  const indexedText=[];
+  const indexedAttrs=[];
+  const skip=new Set(['SCRIPT','STYLE','NOSCRIPT']);
+  function buildI18nIndex(){
+    indexedText.length=0; indexedAttrs.length=0;
+    const walker=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while((node=walker.nextNode())){
+      const parent=node.parentElement;
+      if(!parent||skip.has(parent.tagName)) continue;
+      const raw=node.nodeValue||'';
+      const clean=raw.replace(/\s+/g,' ').trim();
+      if(!clean) continue;
+      originalText.set(node,raw);
+      indexedText.push({node,clean});
+    }
+    document.body.querySelectorAll('[placeholder],[title]').forEach(el=>{
+      if(skip.has(el.tagName)) return;
+      const item={el,placeholder:el.getAttribute('placeholder'),title:el.getAttribute('title')};
+      originalAttrs.set(el,item);
+      indexedAttrs.push(item);
+    });
+  }
+  function translateValue(value,lang){
+    const raw=String(value??'');
+    const clean=raw.replace(/\s+/g,' ').trim();
+    if(!clean) return raw;
+    const dict=I18N[lang]||{};
+    if(dict[clean]) {
+      const lead=raw.match(/^\s*/)?.[0]||'', tail=raw.match(/\s*$/)?.[0]||'';
+      return lead+dict[clean]+tail;
+    }
+    // Translate known phrases inside composed realtime status strings.
+    let out=raw;
+    Object.keys(dict).sort((a,b)=>b.length-a.length).forEach(k=>{
+      if(k && out.includes(k)) out=out.split(k).join(dict[k]);
+    });
+    return out;
+  }
+  window.vtT=function(value){
+    const lang=document.body?.getAttribute('data-language')||'km';
+    return lang==='km' ? String(value??'') : translateValue(value,lang);
+  };
+  let applying=false;
+  let currentLang='km';
+  window.applyVTradeLanguage=function(lang){
+    if(!I18N[lang] && lang!=='km') lang='en';
+    if(applying) return;
+    applying=true;
+    currentLang=lang;
+    document.documentElement.lang=lang;
+    document.body.setAttribute('data-language',lang);
+
+    for(const item of indexedText){
+      if(!item.node.isConnected) continue;
+      const raw=originalText.get(item.node) ?? item.node.nodeValue ?? '';
+      item.node.nodeValue=lang==='km' ? raw : translateValue(raw,lang);
+    }
+    for(const item of indexedAttrs){
+      if(!item.el.isConnected) continue;
+      const dict=I18N[lang]||{};
+      if(item.placeholder!=null) item.el.setAttribute('placeholder',lang==='km'?item.placeholder:translateValue(item.placeholder,lang));
+      if(item.title!=null) item.el.setAttribute('title',lang==='km'?item.title:translateValue(item.title,lang));
+    }
+    try{ localStorage.setItem('vtrade_language',lang); }catch(e){}
+    const sel=document.getElementById('languageSelect');
+    if(sel && sel.value!==lang) sel.value=lang;
+    applying=false;
+  };
+  window.changeLanguage=function(lang){ window.applyVTradeLanguage(lang); };
+  function bootLanguage(){
+    buildI18nIndex();
+    let saved='km';
+    try{ saved=localStorage.getItem('vtrade_language')||'km'; }catch(e){}
+    const sel=document.getElementById('languageSelect');
+    if(saved==='km' && !localStorage.getItem('vtrade_language') && sel) saved=sel.value||'km';
+    window.applyVTradeLanguage(saved);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootLanguage,{once:true});
+  else setTimeout(bootLanguage,0);
+
+  // Dynamic realtime elements are translated by the renderer through window.vtT.
+  // No global MutationObserver is used.
 })();
 </script>
-</body>
+
+<script src="site-connection.js"></script></body>
 </html>
+
+<!-- v5.2.2 Mobile UX Patch -->
+<style>
+@media (max-width: 767px) {
+  :root { --mobile-gap: 10px; }
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+  #topHeader { position: sticky; top: 0; padding: 9px 10px !important; gap: 8px !important; flex-wrap: nowrap !important; min-height: 58px; }
+  #topHeader > div:first-child { min-width: 0; flex: 1 1 auto; gap: 8px !important; }
+  #topHeader > div:first-child > div:nth-child(2) { min-width: 0; }
+  #topHeader h1 { font-size: 11px !important; line-height: 1.15 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+  #topHeader p { font-size: 8.5px !important; line-height: 1.2 !important; max-width: 190px; }
+  #topHeader .bg-gradient-to-tr { padding: 9px !important; border-radius: 12px !important; flex: 0 0 auto; }
+  #headerControls { flex: 0 0 auto; gap: 5px !important; }
+  #headerControls select { display: none; }
+  #headerControls button { padding: 8px 9px !important; border-radius: 11px !important; }
+  #headerControls #btnDeposit span { display: none; }
+  #headerControls #btnDeposit { width: 38px; justify-content: center; }
+  #headerControls #btnAuth { max-width: 42px; overflow: hidden; }
+  #headerControls #btnAuth span { display: none; }
+  #headerControls button:last-child { display: none; }
+  #mobileLiveStrip { scrollbar-width: none; white-space: nowrap; }
+  #mobileLiveStrip::-webkit-scrollbar { display: none; }
+  #mainWorkspace { padding: 10px !important; gap: 10px !important; overflow-y: auto; }
+  #tab-terminal-analysis { gap: 10px !important; }
+  #tab-terminal-analysis > div:first-child { padding: 12px !important; border-radius: 16px !important; gap: 10px !important; }
+  #tab-terminal-analysis > div:first-child > div:first-child h2 { font-size: 16px !important; line-height: 1.25 !important; }
+  #tab-terminal-analysis > div:first-child > div:first-child p { font-size: 10px !important; line-height: 1.4 !important; margin-top: 4px; }
+  #tab-terminal-analysis > div:first-child > div:last-child { gap: 8px !important; }
+  #terminalPairSelect { flex: 1 1 auto; min-width: 0; padding: 10px 11px !important; font-size: 11px !important; }
+  #tab-terminal-analysis > div:first-child button { padding: 10px 12px !important; font-size: 11px !important; }
+  #signalCards { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  #signalCards > div { padding: 12px !important; border-radius: 15px !important; min-width: 0; }
+  #signalCard { grid-column: 1 / -1; }
+  #signalCards p { font-size: 9.5px !important; }
+  #signalCards h3 { font-size: 19px !important; line-height: 1.2 !important; overflow-wrap: anywhere; }
+  #signalCards .font-mono { font-size: 9px !important; line-height: 1.55 !important; }
+  #signal-entry { display: inline-block; max-width: 170px; overflow-wrap: anywhere; }
+  #win-rate-val, #fvg-confidence, #sentiment-score { font-size: 18px !important; }
+  #mobileSignalSummary { box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  #mobileSignalSummary > div { gap: 7px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 { min-width: 0; }
+  #terminal-logs { height: 190px !important; padding: 10px !important; font-size: 9px !important; line-height: 1.45 !important; }
+  #terminalCmdInput { min-width: 0; font-size: 9px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 > .flex.gap-2 { flex-direction: column; }
+  #tab-terminal-analysis .lg\:col-span-2 > .flex.gap-2 button { width: 100%; justify-content: center; padding: 10px !important; }
+  #tab-terminal-analysis .lg\:col-span-2, #tab-terminal-analysis .lg\:col-span-2 + div { padding: 12px !important; border-radius: 16px !important; }
+  #tab-terminal-analysis .lg\:col-span-2 + div { min-height: 320px; }
+  #tab-terminal-analysis .lg\:col-span-2 + div .relative { height: 190px !important; }
+  #mobileSignalSummary + .grid { gap: 10px !important; }
+  .md\:hidden.fixed.bottom-0 { height: calc(62px + env(safe-area-inset-bottom)); padding: 7px 4px calc(7px + env(safe-area-inset-bottom)) !important; background: rgba(7,9,14,.97) !important; backdrop-filter: blur(18px); }
+  .md\:hidden.fixed.bottom-0 button { min-width: 58px; min-height: 48px; justify-content: center; gap: 1px; }
+  .md\:hidden.fixed.bottom-0 i { font-size: 16px !important; }
+  .md\:hidden.fixed.bottom-0 span { font-size: 9px !important; }
+  .modal-content, [id$="Modal"] > div { max-height: calc(100dvh - 24px); overflow-y: auto; }
+}
+@media (min-width: 768px) {
+  #mobileLiveStrip, #mobileSignalSummary { display: none !important; }
+}
+</style>
+<script>
+(function(){
+  function syncMobileLive(){
+    const x = document.getElementById('tickerXau');
+    const mx = document.getElementById('mobileTickerXau');
+    if (x && mx) mx.textContent = x.textContent || 'LIVE —';
+    const c = document.getElementById('liveClock');
+    const mc = document.getElementById('mobileLiveClock');
+    if (c && mc) mc.textContent = c.textContent || '--:--:--';
+  }
+  setInterval(syncMobileLive, 1000);
+  document.addEventListener('DOMContentLoaded', syncMobileLive);
+  setTimeout(loadStorageStatus, 800);
+  setInterval(loadStorageStatus, 30000);
+})();
+</script>

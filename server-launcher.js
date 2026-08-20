@@ -3,92 +3,109 @@
 const fs = require('fs');
 const Module = require('module');
 const path = require('path');
-const crypto = require('crypto');
 
-// IMPORTANT: Render may use `node server-launcher.js` directly instead of npm start.
-try {
-  require('./ai-confirmation-runtime-v2.js');
-  console.log('[V-TRADE LAUNCHER] AI Confirmation Runtime V3 loaded before server.js');
-} catch (e) {
-  console.error('[V-TRADE LAUNCHER] AI Confirmation Runtime V3 load failed:', e.stack || e.message);
-  throw e;
-}
-
-// V4 MUST be installed before server.js is compiled. This is the authoritative
-// runtime bootstrap so Render cannot bypass the historical-candle engine.
-try {
-  require('./logic-v4-bridge').install();
-  console.log('[V-TRADE LAUNCHER] Logic V4 bootstrap verified before server.js');
-} catch (e) {
-  console.error('[V-TRADE LAUNCHER] Logic V4 bootstrap failed:', e.stack || e.message);
-  throw e;
-}
-
-const PREMARKET_AI_ROUTE = require('./pre-market-ai-route-hotfix.js');
-const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
-const MOBILE_FIRST_WORKFLOW = require('./mobile-first-workflow-v1.js');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
-const ADMIN_FRONTEND_HOTFIX = path.resolve(__dirname, 'frontend-admin-hotfix.js');
 const originalLoader = Module._extensions['.js'];
 
 function patchExecutionLogic(source) {
+  if (!/\bconst\s+executionLocationOk\s*=/.test(source) && /\bexecutionLocationOk\b/.test(source)) {
+    const firstUse = source.search(/\bexecutionLocationOk\b/);
+    if (firstUse >= 0) {
+      const declaration = `const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;\n  `;
+      source = source.slice(0, firstUse) + declaration + source.slice(firstUse);
+    }
+  }
   const gatePattern = /(const\s+biasOk=[\s\S]*?structureAgreement=mssOk\|\|bosOk;)/;
   if (gatePattern.test(source) && !/\bconst\s+executionLocationOk\s*=/.test(source)) {
     source = source.replace(gatePattern, `$1\n  const zoneMid=Number.isFinite(Number(candidateZone?.low))&&Number.isFinite(Number(candidateZone?.high))?(Number(candidateZone.low)+Number(candidateZone.high))/2:NaN;\n  const zonePremiumDiscount=Number.isFinite(zoneMid)?(zoneMid>mid?'PREMIUM':'DISCOUNT'):'UNKNOWN';\n  const zonePdOk=side==='BULLISH'?zonePremiumDiscount==='DISCOUNT':side==='BEARISH'?zonePremiumDiscount==='PREMIUM':false;\n  const limitZoneReady=!!candidateZone&&!retestOk&&zonePdOk&&((side==='BULLISH'&&Number(candidateZone.high)<live.price)||(side==='BEARISH'&&Number(candidateZone.low)>live.price))&&zoneDistance(live.price,candidateZone)<=Math.max(a*6,20);\n  const executionLocationOk=pdOk||limitZoneReady;`);
   }
   source = source.replace("{key:'location',label:'Premium / Discount location',points:pdOk?5:0,max:5,passed:pdOk}", "{key:'location',label:'Premium / Discount location',points:executionLocationOk?5:0,max:5,passed:executionLocationOk}");
-  source = source.replace("const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);", "const setupReady=candlesFresh&&biasOk&&structureAgreement&&sweepOk&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&displacementOk&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);");
+  source = source.replace("const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&pdOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk);", "const setupReady=candlesFresh&&biasOk&&structureAgreement&&(sweepOk||bosOk)&&(alignedFvg||alignedOb)&&executionLocationOk&&spreadOk&&(displacementOk||technicalMomentumOk)&&trendStrengthOk&&provisionalRR>=1.5&&confluenceScore>=MIN_ENTRY_SCORE&&(retestOk||zoneNearOk||limitZoneReady);");
   source = source.replace("if(!retestOk && !zoneNearOk) reasons.push('Price is outside the execution zone');", "if(!retestOk && !zoneNearOk && !limitZoneReady) reasons.push('Price is outside the execution zone');");
   source = source.replace("if(!pdOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);", "if(!executionLocationOk) reasons.push(`Price is in ${premiumDiscount} — wait for ${side==='BULLISH'?'discount':'premium'} execution`);");
   source = source.replace(/(const confirmations=\{[\s\S]*?premiumDiscountOk:)pdOk/, '$1executionLocationOk');
-  source = source.replace("const selectedOpportunity = safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null;", "const selectedOpportunity = setupReady ? (safeConfirmed.sort((x,y)=>(y.score-x.score)||((y.riskReward||0)-(x.riskReward||0)))[0] || null) : null;");
-  if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true;`);
+  if (!/const\s+tradeAuthorized\s*=/.test(source) && /const\s+setupReady\s*=/.test(source)) {
+    source = source.replace(/(const\s+setupReady\s*=.*?;)/, `$1\n  const tradeAuthorized=setupReady===true;`);
+  }
   source = source.replace(/(setupReady\s*:\s*setupReady\s*,?)/, `$1\n    tradeAuthorized,`);
   return source;
 }
 
-function patchMtfBias(source) {
-  const needle = "return {\n    structure:s,trend";
-  if (source.includes(needle)) {
-    const replacement = "const structureBias=(s?.bias==='BULLISH'||s?.bias==='BEARISH')?s.bias:null;\n  const trendBias=(trend==='BULLISH'||trend==='BEARISH')?trend:null;\n  const momentumBias=(m?.histogram>0)?'BULLISH':(m?.histogram<0)?'BEARISH':null;\n  const resolvedBias=structureBias||trendBias||momentumBias||'NEUTRAL';\n  const directionScore=Math.max(0,Math.min(100,Math.round(50 + (resolvedBias==='BULLISH'?12:resolvedBias==='BEARISH'?-12:0) + (trendBias===resolvedBias?(resolvedBias==='BULLISH'?10:-10):0) + (momentumBias===resolvedBias?(resolvedBias==='BULLISH'?8:-8):0) + (r!=null ? (resolvedBias==='BULLISH'?(r>=50?6:-3):resolvedBias==='BEARISH'?(r<=50?-6:3):0) : 0) + (dx?.value>=18 ? (resolvedBias==='BULLISH'?4:resolvedBias==='BEARISH'?-4:0) : 0))));\n  return {\n    structure:{...s,bias:resolvedBias,rawBias:s?.bias||null,score:directionScore},trend,resolvedBias,directionScore";
-    source = source.replace(needle, replacement);
-  }
-  return source;
-}
-
-function patchTruthGuard(source) {
-  if (!source.includes("require('./analysis-truth')")) source = "const { applyTruthGuard } = require('./analysis-truth');\n" + source;
-  const marker = 'async function buildXauAnalysis() {';
-  if (source.includes(marker) && !source.includes('async function buildXauAnalysisCore() {')) {
-    source = source.replace(marker, `async function buildXauAnalysisCore() {`);
-    source = source.replace(`async function buildXauAnalysisCore() {`, `async function buildXauAnalysis() {\n  const base = await buildXauAnalysisCore();\n  return applyTruthGuard(base);\n}\n\nasync function buildXauAnalysisCore() {`);
-  }
-  source = source.replace(/const APP_VERSION\s*=\s*'[^']+';/, "const APP_VERSION = '7.5.0-MEMBER-MTF';");
-  return source;
-}
-
 function patchWaitCard(source) {
-  const marker = 'function telegramWaitText(a) {';
-  if (!source.includes(marker)) return source;
-  const start = source.indexOf(marker);
-  const end = source.indexOf('\nfunction ', start + marker.length);
-  if (end < 0) return source;
-  const fn = `function telegramWaitText(a) {\n  const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';\n  const price=Number(a?.price ?? a?.livePrice ?? a?.bid ?? a?.ask);\n  const bias=String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();\n  const side=bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':'';\n  const zone=a?.entryZone || a?.candidateZone || a?.referenceZone || null;\n  const low=zone?.low, high=zone?.high;\n  const zoneText=Number.isFinite(Number(low))&&Number.isFinite(Number(high)) ? n(low)+' – '+n(high) : 'WAIT';\n  const tp=Array.isArray(a?.takeProfit)?a.takeProfit:[];\n  const action=a?.tradeAuthorized===true && (side==='BUY'||side==='SELL');\n  const title=action ? (side==='BUY'?'🟢 BUY':'🔴 SELL') : (side==='BUY'?'🟡 WAIT — BUY':'🟡 WAIT — SELL');\n  const entry=action ? n(a?.entry) : 'WAIT';\n  const sl=action ? n(a?.stopLoss) : 'WAIT';\n  const tp1=action ? n(tp[0]) : 'WAIT';\n  const tp2=action ? n(tp[1]) : 'WAIT';\n  const tp3=action ? n(tp[2]) : 'WAIT';\n  return ['🤖 *V TRADE AI — XAUUSD*','',\n    '*'+title+'*',\n    '💰 Price: *'+n(price)+'*',\n    '📍 Zone: *'+zoneText+'*',\n    '🎯 Entry: *'+entry+'*',\n    '🛑 SL: *'+sl+'*',\n    '🎯 TP1: *'+tp1+'*',\n    '🎯 TP2: *'+tp2+'*',\n    '🎯 TP3: *'+tp3+'*',\n    '',\n    action ? '🔔 *AUTO ALERT — READY*' : '⏳ *WAIT — confirmation pending*'\n  ].join('\\n');\n}\n`;
-  return source.slice(0,start)+fn+source.slice(end);
-}
-
-function patchRegistration(source) {
-  if (source.includes("app.post('/api/auth/register'")) return source;
-  const marker = "app.use((err,req,res,next)=>{";
-  if (!source.includes(marker)) return source;
-  const route = `\n// NEW MEMBER REGISTRATION — server-side only, never return password/hash.\napp.post('/api/auth/register', async (req,res)=>{\n  try {\n    const body=req.body||{};\n    const name=String(body.name||'').trim().replace(/[<>]/g,'').slice(0,80);\n    const email=String(body.email||'').trim().toLowerCase();\n    const password=String(body.password||'');\n    const plan=['FREE','PRO','PREMIUM'].includes(String(body.plan||'').toUpperCase())?String(body.plan).toUpperCase():'FREE';\n    if(name.length<2) return res.status(400).json({success:false,error:'Name is required'});\n    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({success:false,error:'Valid email is required'});\n    if(password.length<8) return res.status(400).json({success:false,error:'Password must be at least 8 characters'});\n    const file=path.resolve(__dirname,'data','vtrade-members.json');\n    fs.mkdirSync(path.dirname(file),{recursive:true});\n    let members=[]; try { members=JSON.parse(fs.readFileSync(file,'utf8')); if(!Array.isArray(members))members=[]; } catch(_) {}\n    if(members.some(x=>String(x.email).toLowerCase()===email)) return res.status(409).json({success:false,error:'Email is already registered'});\n    const salt=crypto.randomBytes(16).toString('hex');\n    const passwordHash=crypto.scryptSync(password,salt,64).toString('hex')+':'+salt;\n    const user={id:crypto.randomUUID(),name,email,plan,status:'ACTIVE',createdAt:new Date().toISOString(),passwordHash};\n    members.push(user); fs.writeFileSync(file,JSON.stringify(members,null,2),'utf8');\n    const safe={id:user.id,name:user.name,email:user.email,plan:user.plan,status:user.status,createdAt:user.createdAt};\n    console.log('[AUTH] NEW MEMBER REGISTERED',safe.email,'plan='+safe.plan);\n    if(typeof bot!=='undefined' && bot && typeof TELEGRAM_CHAT_ID!=='undefined' && TELEGRAM_CHAT_ID){\n      bot.sendMessage(TELEGRAM_CHAT_ID,['🆕 *V TRADE AI — NEW MEMBER*','',\n        '👤 Name: *'+safe.name+'*','📧 Email: *'+safe.email+'*','📦 Plan: *'+safe.plan+'*','🟢 Status: *ACTIVE*','🕒 Created: *'+safe.createdAt+'*'].join('\\n'),{parse_mode:'Markdown'}).catch(e=>console.error('[TELEGRAM NEW MEMBER]',e.message));\n    }\n    res.status(201).json({success:true,user:safe});\n  } catch(e) { console.error('[AUTH] registration failed:',e.message); res.status(500).json({success:false,error:'Registration temporarily unavailable'}); }\n});\n\n`;
-  return source.replace(marker,route+marker);
+  const waitSource = [
+    'function telegramWaitText(a) {',
+    "  const price = Number(a?.price ?? a?.livePrice ?? a?.bid);",
+    "  const bias = String(a?.bias || a?.directionBand || 'NEUTRAL').toUpperCase();",
+    "  const directionScore = Number(a?.directionScore ?? a?.aiScore ?? 0);",
+    "  const confidence = Number(a?.confidence ?? a?.score?.confidence ?? 0);",
+    "  const blocked = Array.isArray(a?.score?.blockedReasons) ? a.score.blockedReasons.slice(0, 8).map(String) : [];",
+    "  const ai = a?.aiConfirmation || a?.ai || null;",
+    "  const aiDecision = String(ai?.decision || a?.aiDecision || 'WAIT').toUpperCase();",
+    "  const aiConfidence = Number(ai?.confidence ?? a?.aiConfidence ?? 0);",
+    "  const agreement = String(ai?.agreement || a?.aiAgreement || 'NEUTRAL').toUpperCase();",
+    "  const broker = String(a?.broker || 'VT Markets MT5');",
+    "  const quoteAgeValue = a?.quoteAge ?? a?.quote_age ?? a?.feedAgeSec ?? a?.priceAgeSec;",
+    "  const quoteAge = Number.isFinite(Number(quoteAgeValue)) ? Number(quoteAgeValue) : 0;",
+    "  const zone = a?.entryZone || a?.executionZone || null;",
+    "  const low = Number(zone?.low);",
+    "  const high = Number(zone?.high);",
+    "  const entryZone = Number.isFinite(low) && Number.isFinite(high) ? `${low.toFixed(2)} — ${high.toFixed(2)}` : 'WAITING FOR CONFIRMATION';",
+    "  const authorized = a?.tradeAuthorized === true || (a?.setupReady === true && blocked.length === 0);",
+    "  const side = bias === 'BULLISH' ? 'BUY' : bias === 'BEARISH' ? 'SELL' : '';",
+    "  if (authorized && side) {",
+    "    const entry = Number(a?.entry ?? a?.entryPrice ?? a?.livePrice);",
+    "    const sl = Number(a?.sl ?? a?.stopLoss);",
+    "    const tp1 = Number(a?.tp1 ?? a?.takeProfit1);",
+    "    const tp2 = Number(a?.tp2 ?? a?.takeProfit2);",
+    "    const tp3 = Number(a?.tp3 ?? a?.takeProfit3);",
+    "    const n = x => Number.isFinite(x) ? x.toFixed(2) : '—';",
+    "    return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','',",
+    "      '📊 Asset: *XAU/USD (Gold)*',",
+    "      '💰 Price: *' + (Number.isFinite(price) ? price.toFixed(2) : '—') + '*',",
+    "      '🚨 Action: *' + (side === 'BUY' ? '🟢 BUY — TRADE AUTHORIZED' : '🔴 SELL — TRADE AUTHORIZED') + '*',",
+    "      '📈 Bias: *' + bias + '*',",
+    "      '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
+    "      '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*','',",
+    "      '🎯 Entry: *' + n(entry) + '*',",
+    "      '🛑 Stop Loss: *' + n(sl) + '*',",
+    "      '🎯 TP1: *' + n(tp1) + '*',",
+    "      '🎯 TP2: *' + n(tp2) + '*',",
+    "      '🎯 TP3: *' + n(tp3) + '*','',",
+    "      '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
+    "      '🔐 *ORDER AUTHORIZED — ICT EXECUTION GATES PASSED*',",
+    "      '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'].join('\\n');",
+    "  }",
+    "  const action = bias === 'BULLISH' ? '🟡 WAIT — BUY BIAS' : bias === 'BEARISH' ? '🟡 WAIT — SELL BIAS' : '🟡 WAIT — NO ENTRY';",
+    "  const gateLine = blocked.length ? blocked.map(x => '• ' + x).join('\\n') : '• No confirmed entry gate';",
+    "  return ['🤖 *V TRADE AI — ADVANCED ICT SIGNAL*','',",
+    "    '📊 Asset: *XAU/USD (Gold)*',",
+    "    '💰 Price: *' + (Number.isFinite(price) ? price.toFixed(2) : '—') + '*',",
+    "    '⚡ Action: *' + action + '*',",
+    "    '📈 Bias: *' + bias + '*',",
+    "    '📊 Direction Score: *' + (Number.isFinite(directionScore) ? directionScore : 0) + '/100*',",
+    "    '🧠 Confidence: *' + (Number.isFinite(confidence) ? confidence : 0) + '/100*','',",
+    "    '🔎 *ICT ENTRY GATES*', gateLine,'',",
+    "    '🎯 Execution Zone: *' + entryZone + '*',",
+    "    '🟢 Entry: *WAIT — gate confirmation required*',",
+    "    '🛑 Stop Loss (SL): *WAIT*','🎯 TP1: *WAIT*','🎯 TP2: *WAIT*','🎯 TP3: *WAIT*','',",
+    "    '🤖 AI Confirm: *' + aiDecision + '* | Confidence: *' + (Number.isFinite(aiConfidence) ? aiConfidence : 0) + '/100* | Agreement: *' + agreement + '*',",
+    "    '⚡ Status: *WAIT — NO ORDER AUTHORIZED*','',",
+    "    '🔒 No order until all required ICT execution gates pass.',",
+    "    '🏦 Broker: *' + broker + '* | Quote age: *' + quoteAge + 's*'].join('\\n');",
+    '}', ''
+  ].join('\n');
+  const pattern = /function\s+telegramWaitText\s*\(a\)\s*\{[\s\S]*?\n\}\s*(?=\n\s*function\s+)/;
+  if (pattern.test(source)) source = source.replace(pattern, waitSource);
+  return source;
 }
 
 function patchFrontend(source) {
   source = source.replace("const fmt=n=>Number.isFinite(Number(n))?Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const pct=n=>Number.isFinite(Number(n))?Math.max(0,Math.min(100,Math.round(Number(n)))):'—';", "const fmt=n=>n!==null&&n!==undefined&&n!==''&&Number.isFinite(Number(n))?Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const pct=n=>n!==null&&n!==undefined&&n!==''&&Number.isFinite(Number(n))?Math.max(0,Math.min(100,Math.round(Number(n)))):'—';");
   source = source.replace("font:14px Segoe UI,Arial,sans-serif", "font:14px 'Kantumruy Pro','Noto Sans Khmer','Segoe UI',Arial,sans-serif");
+  const oldGate="function gate(label,v,detail=''){return `<div class=\"gate\"><span class=\"dot ${v===true?'pass':'wait'}\"></span><div><b>${label}</b><small>${v===true?'PASS':'WAIT'}${detail?' · '+detail:''}</small></div></div>`}";
+  const newGate="function gate(label,v,detail=''){const km=lang==='km';return `<div class=\"gate\"><span class=\"dot ${v===true?'pass':'wait'}\"></span><div><b>${label}</b><small>${v===true?(km?'ជាប់':'PASS'):(km?'រង់ចាំ':'WAIT')}${detail?' · '+detail:''}</small></div></div>`}";
+  source = source.replace(oldGate,newGate);
   return source;
 }
 
@@ -96,31 +113,23 @@ Module._extensions['.js'] = function vtradeServerLoader(mod, filename) {
   if (path.resolve(filename) !== SERVER_FILE) return originalLoader(mod, filename);
   let source = fs.readFileSync(filename, 'utf8');
   source = patchExecutionLogic(source);
-  source = patchMtfBias(source);
-  source = patchTruthGuard(source);
   source = patchWaitCard(source);
-  source = patchRegistration(source);
-  source = PREMARKET_AI_ROUTE.inject(source);
-  source = PREMARKET_DIRECT_ROUTE.inject(source);
-  source = MOBILE_FIRST_WORKFLOW.patchServer(source);
-  console.log('[V-TRADE LAUNCHER] execution/MTF/truth-guard + simple-telegram + pre-market + mobile-first patches active');
+  console.log('[V-TRADE LAUNCHER] production ICT execution policy active');
+  console.log('[V-TRADE LAUNCHER] production WAIT/AUTHORIZED-card logic active');
   mod._compile(source, filename);
 };
 
 try {
   if (fs.existsSync(FRONTEND_FILE)) {
     const before = fs.readFileSync(FRONTEND_FILE, 'utf8');
-    let after = patchFrontend(before);
-    if (MOBILE_FIRST_WORKFLOW.patchFrontendFile(FRONTEND_FILE)) after = fs.readFileSync(FRONTEND_FILE, 'utf8');
+    const after = patchFrontend(before);
     if (after !== before) {
       fs.writeFileSync(FRONTEND_FILE, after, 'utf8');
-      console.log('[V-TRADE LAUNCHER] Khmer + mobile-first frontend compatibility applied');
+      console.log('[V-TRADE LAUNCHER] critical frontend data/i18n fixes applied');
     }
   }
-} catch (e) { console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message); }
-
-if (fs.existsSync(ADMIN_FRONTEND_HOTFIX)) {
-  try { require(ADMIN_FRONTEND_HOTFIX); } catch (e) { console.warn('[V-TRADE LAUNCHER] admin frontend hotfix skipped:', e.message); }
+} catch (e) {
+  console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message);
 }
 
 require('./server.js');
