@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V2 */
+/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V3 */
 (() => {
   if (window.__VTRADE_RBAC_GUARD__) return;
   window.__VTRADE_RBAC_GUARD__ = true;
@@ -12,10 +12,11 @@
   const token = () => window.VTRADE_CONNECTION?.token?.() ||
     localStorage.getItem('vtrade_auth_token') || localStorage.getItem('vtrade_auth') ||
     sessionStorage.getItem('vtrade_auth_token') || sessionStorage.getItem('vtrade_auth') || '';
-  const cachedUser = () => { try { return JSON.parse(localStorage.getItem('vtrade_user') || sessionStorage.getItem('vtrade_user') || 'null'); } catch { return null; } };
   const login = (reason='login') => location.replace(`connection.html?required=login&reason=${encodeURIComponent(reason)}`);
-  const user = () => location.replace('premium-dashboard-live.html?v=20260820-rbac-v2');
+  const admin = () => location.replace('admin-dashboard.html?v=20260820-rbac-v3');
+  const user = () => location.replace('premium-dashboard-live.html?v=20260820-rbac-v3');
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const isAdminRole = role => ['admin','administrator'].includes(String(role || '').trim().toLowerCase());
 
   async function verifySession() {
     const t = token();
@@ -81,7 +82,7 @@
   async function verify() {
     const result = await verifySession();
     if (!result.ok) {
-      console.warn('[V-TRADE RBAC] session verification failed after retry:', result.reason);
+      console.warn('[V-TRADE RBAC V3] session verification failed after retry:', result.reason);
       return login(result.reason);
     }
     const u=result.user;
@@ -89,7 +90,12 @@
     persistUser(u);
     const language=localStorage.getItem('vtrade_lang')==='km'?'km':'en';
     document.documentElement.lang=language;document.documentElement.dataset.role=role;
-    if(isAdminPage && !['admin','administrator'].includes(role)) return user();
+
+    // Canonical role routing: Admin is never allowed to remain on the User Terminal.
+    // User is never allowed to remain on the Admin Dashboard.
+    if (isUserPage && isAdminRole(role)) return admin();
+    if (isAdminPage && !isAdminRole(role)) return user();
+
     if(isAdminPage) installAdminMobileUI();
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,language}}));
   }
