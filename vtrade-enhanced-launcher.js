@@ -19,6 +19,18 @@ function installDashboardUI(){
 }
 installDashboardUI();
 
+// Pre-Market route boot hotfix MUST run before server.js is required.
+// It installs the Candle-Open MTF endpoint and compatibility aliases so the
+// dashboard never falls back to HTTP 404 when requesting Pre-Market data.
+try {
+  require('./pre-market-route-boot-hotfix.js');
+  console.log('[V-TRADE START] Pre-Market route boot hotfix loaded');
+} catch (e) {
+  console.error('[V-TRADE PRE-MARKET] FATAL boot hotfix:', e.stack || e.message);
+  process.exitCode=1;
+  throw e;
+}
+
 // AI Confirmation Runtime V3 MUST load before server.js. Do not swallow a
 // startup error: running with the old AI path would hide the provider failure
 // and make the dashboard show the legacy WAIT/0/100/NEUTRAL fallback.
