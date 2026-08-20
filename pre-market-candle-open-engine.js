@@ -104,7 +104,10 @@ module.exports = function installPreMarketCandleOpenEngine(app){
     const sell=100-buy;
     const bias=buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL';
     const active=rows.H4;
-    const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price);
+    // Prefer live analysis price, then fall back to the latest ready MTF close.
+// This guarantees both pre-market zones receive real prices when /analysis/xauusd
+// exposes price through timeframe candles instead of a top-level quote field.
+const currentPrice=n(a.price??a.livePrice??a.quote?.price??a.mt5?.price??rows.M5?.currentPrice??rows.M15?.currentPrice??rows.H1?.currentPrice??rows.H4?.currentPrice??rows.D1?.currentPrice);
     const refAtr=active?.atr||5;
     const zoneWidth=Math.max(refAtr*.35,.5);
     // Zone map is intentionally two-sided: pre-market identifies BOTH possible entry areas.
