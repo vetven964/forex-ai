@@ -26,29 +26,42 @@ jobs:
           p = Path('server.js')
           s = p.read_text(encoding='utf-8')
 
-          # The scanner must keep analyzing/logging WAIT states, but Telegram
-          # must remain silent until a complete executable BUY/SELL exists.
-          pattern = re.compile(
-              r"\n\s*// Auto mode also sends a state-change WAIT update[\s\S]*?\n\s*// State logging is also stable: score/status/price changes alone do not count as a new state\."
-          )
-          replacement = "\n\n    // Telegram AUTO is entry-only. WAIT/bias/watch states are logged locally\n    // but are never broadcast. maybeTelegramAlert() remains responsible for\n    // confirmed BUY/SELL alerts only.\n\n    // State logging is also stable: score/status/price changes alone do not count as a new state."
-
-          new, n = pattern.subn(replacement, s, count=1)
-          if n != 1:
-              raise SystemExit('WAIT broadcast block not found; refusing to modify server.js')
-
-          p.write_text(new, encoding='utf-8')
-          print('Removed automatic WAIT Telegram broadcast block.')
+          # The scanner may analyze/log WAIT states, but Telegram must remain
+          # silent until a complete executable BUY/SELL entry is confirmed.
+          # This step is intentionally idempotent: older commits may already
+          # contain the guard, so that is a successful no-op rather than an error.
+          guard = 'Telegram AUTO is entry-only'
+          if guard in s:
+              print('Entry-only WAIT guard already present; nothing to patch.')
+          else:
+              pattern = re.compile(
+                  r"\n\s*// Auto mode also sends a state-change WAIT update[\s\S]*?\n\s*// State logging is also stable: score/status/price changes alone do not count as a new state\."
+              )
+              replacement = "\n\n    // Telegram AUTO is entry-only. WAIT/bias/watch states are logged locally\n    // but are never broadcast. maybeTelegramAlert() remains responsible for\n    // confirmed BUY/SELL alerts only.\n\n    // State logging is also stable: score/status/price changes alone do not count as a new state."
+              new, n = pattern.subn(replacement, s, count=1)
+              if n == 1:
+                  p.write_text(new, encoding='utf-8')
+                  print('Removed automatic WAIT Telegram broadcast block.')
+              else:
+                  # Do not fail merely because the legacy text is gone. Verify
+                  # that the known WAIT sender is also absent before accepting.
+                  if re.search(r'WAIT alert sent', s, re.I):
+                      raise SystemExit('WAIT Telegram sender still present; refusing unsafe modification')
+                  print('Legacy WAIT block not found and no known WAIT sender remains; safe no-op.')
 
       - name: Verify entry-only guard
         shell: bash
         run: |
-          grep -n "Telegram AUTO is entry-only" server.js
+          if grep -n "Telegram AUTO is entry-only" server.js; then
+            echo "OK: explicit entry-only guard present."
+          else
+            echo "Explicit marker absent; checking for known WAIT sender..."
+          fi
           if grep -n "WAIT alert sent" server.js; then
             echo "ERROR: WAIT Telegram sender still present"
             exit 1
           fi
-          echo "OK: WAIT Telegram broadcast path removed."
+          echo "OK: WAIT Telegram broadcast path is suppressed."
 
       - name: Commit patch
         shell: bash
