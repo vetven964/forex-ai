@@ -9,7 +9,10 @@ const MARKER='VTRADE_LOGIC_V4_HISTORICAL_RANGE_ENGINE';
 function install(){
   if(!fs.existsSync(SERVER_FILE)) throw new Error('server.js not found');
   let source=fs.readFileSync(SERVER_FILE,'utf8');
-  if(source.includes(MARKER)) return;
+  if(source.includes(MARKER)) {
+    console.log('[V-TRADE LOGIC V4] startup bridge already present — REAL MT5 candle hook active');
+    return false;
+  }
   const marker='const app = express();';
   if(!source.includes(marker)) throw new Error('server app marker not found');
   const injected=`
@@ -70,5 +73,7 @@ function install(){
 `;
   source=source.replace(marker,marker+injected);
   fs.writeFileSync(SERVER_FILE,source,'utf8');
+  console.log('[V-TRADE LOGIC V4] startup bridge injected into server.js');
+  return true;
 }
 module.exports={install};
