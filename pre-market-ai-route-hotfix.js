@@ -1,11 +1,11 @@
-/* V-TRADE AI — Selected Timeframe AI Route Hotfix V2
+/* V-TRADE AI — Selected Timeframe AI Route Hotfix V3
  * M5/M15/H1/H4/D1: validate selected candle OHLC first, then confirmation.
- * The route is deterministic/local-safe when external AI is disabled.
+ * Direction strength is preserved from the selected timeframe.
  * AI is confirmation-only; deterministic engine remains authoritative.
  */
 'use strict';
 
-const MARK='VTRADE_SELECTED_TF_AI_ROUTE_V2';
+const MARK='VTRADE_SELECTED_TF_AI_ROUTE_V3';
 
 function inject(source){
   if(!source || source.includes(MARK)) return source;
@@ -15,8 +15,8 @@ function inject(source){
   const code=String.raw`
 /* ${MARK} */
 (function installSelectedTimeframeAIRoute(app){
-  if(!app || app.__VTRADE_SELECTED_TF_AI_ROUTE_V2__) return;
-  app.__VTRADE_SELECTED_TF_AI_ROUTE_V2__=true;
+  if(!app || app.__VTRADE_SELECTED_TF_AI_ROUTE_V3__) return;
+  app.__VTRADE_SELECTED_TF_AI_ROUTE_V3__=true;
 
   const TFS=['M5','M15','H1','H4','D1'];
   const n=v=>Number.isFinite(Number(v))?Number(v):null;
@@ -55,12 +55,18 @@ function inject(source){
 
   function localConfirm(raw,tf,candle){
     const a=unwrap(raw);
-    const confirmations=a?.confirmations||raw?.confirmations||{};
-    const signal=String(a?.signal||a?.finalSignal||a?.action||'WAIT').toUpperCase();
-    const bias=side(a?.bias||a?.directionBand||a?.resolvedBias);
+    const tfNode=node(a,tf);
+    const confirmations=tfNode?.confirmations||a?.confirmations||raw?.confirmations||{};
+    const signal=String(tfNode?.signal||tfNode?.finalSignal||tfNode?.action||a?.signal||a?.finalSignal||a?.action||'WAIT').toUpperCase();
+    const buyStrength=n(tfNode?.buyPct??tfNode?.buyStrengthPct??tfNode?.buyScore??tfNode?.buyerPower??a?.buyPct??a?.buyStrengthPct??a?.buyScore??a?.buyerPower);
+    const sellStrength=n(tfNode?.sellPct??tfNode?.sellStrengthPct??tfNode?.sellScore??tfNode?.sellerPower??a?.sellPct??a?.sellStrengthPct??a?.sellScore??a?.sellerPower);
+    const strength=Math.max(buyStrength??0,sellStrength??0);
+    const strengthBias=buyStrength!=null&&sellStrength!=null?(buyStrength>sellStrength?'BULLISH':sellStrength>buyStrength?'BEARISH':'NEUTRAL'):'NEUTRAL';
+    const bias=strengthBias!=='NEUTRAL'?strengthBias:side(tfNode?.bias||tfNode?.direction||tfNode?.resolvedBias||a?.bias||a?.directionBand||a?.resolvedBias);
     const authorized=a?.tradeAuthorized===true||a?.setupReady===true;
     const decision=authorized&&['BUY','SELL'].includes(signal)?signal:'WAIT';
-    const confidence=n(a?.confidence??a?.score?.confidence??a?.setupScore);
+    const rawConfidence=n(tfNode?.confidence??tfNode?.preAiConfidence??a?.confidence??a?.score?.confidence??a?.setupScore);
+    const confidence=rawConfidence!=null?rawConfidence:(buyStrength!=null||sellStrength!=null?strength:null);
     const evidence=[
       ['MTF alignment',confirmations.mtfAligned===true],
       ['Liquidity sweep',confirmations.liquiditySweep===true],
@@ -79,6 +85,8 @@ function inject(source){
       status:'local',configured:true,enabled:true,provider:'LOCAL_DETERMINISTIC',model:'local-ict-v1',
       decision,confidence:confidence==null?null:Math.max(0,Math.min(100,Math.round(confidence))),
       agreement:decision!=='WAIT'?'AGREE':'NEUTRAL',
+      bias,directionStrength:confidence==null?null:Math.max(0,Math.min(100,Math.round(confidence))),
+      buyStrengthPct:buyStrength,sellStrengthPct:sellStrength,
       reasons:decision!=='WAIT'?['Local ICT confirmation agrees with the server execution gate.',...passed.slice(0,5)]:['Local confirmation is waiting for mandatory execution gates.',...missing.slice(0,5)],
       missingConfirmations:missing,
       selectedTF:tf,
@@ -115,12 +123,19 @@ function inject(source){
 
       const deterministicSignal=String(a?.signal||a?.finalSignal||a?.action||'WAIT').toUpperCase();
       const deterministicBias=side(a?.bias||a?.directionBand||a?.resolvedBias);
+      const tfNode=node(a,tf);
+      const buyStrength=n(tfNode?.buyPct??tfNode?.buyStrengthPct??tfNode?.buyScore??tfNode?.buyerPower);
+      const sellStrength=n(tfNode?.sellPct??tfNode?.sellStrengthPct??tfNode?.sellScore??tfNode?.sellerPower);
+      const strength=Math.max(buyStrength??0,sellStrength??0);
+      const strengthBias=buyStrength!=null&&sellStrength!=null?(buyStrength>sellStrength?'BULLISH':sellStrength>buyStrength?'BEARISH':'NEUTRAL'):deterministicBias;
+      const aiConfidence=ai?.confidence!=null?n(ai.confidence):null;
+      const effectiveConfidence=aiConfidence!=null?aiConfidence:strength;
       return res.status(200).json({success:true,tf,selectedTF:tf,
         candle:{...candle,direction:candle.close>candle.open?'BULLISH':candle.close<candle.open?'BEARISH':'NEUTRAL',changeOpenClose:candle.close-candle.open},
         preMarket:a,
-        engine:{signal:deterministicSignal,bias:deterministicBias,confidence:n(a?.confidence??a?.score?.confidence),entryAuthorization:false},
-        ai:{...ai,status:ai?.status||'local',decision:String(ai?.decision||'WAIT').toUpperCase(),confidence:ai?.confidence==null?null:Math.max(0,Math.min(100,Number(ai.confidence))),agreement:String(ai?.agreement||'NEUTRAL').toUpperCase()},
-        workflow:{stage:'SELECTED_TF_OHLC_THEN_AI',sequence:[tf,'OHLC_VALIDATED','AI_CONFIRMATION'],aiRole:'CONFIRMATION_ONLY',entryAuthorization:false,telegramIndependent:true}
+        engine:{signal:deterministicSignal,bias:strengthBias,confidence:n(a?.confidence??a?.score?.confidence??effectiveConfidence),directionStrength:strength,buyStrengthPct:buyStrength,sellStrengthPct:sellStrength,entryAuthorization:false},
+        ai:{...ai,status:ai?.status||'local',decision:String(ai?.decision||'WAIT').toUpperCase(),confidence:effectiveConfidence==null?null:Math.max(0,Math.min(100,Number(effectiveConfidence))),agreement:String(ai?.agreement||'NEUTRAL').toUpperCase(),bias:ai?.bias||strengthBias,directionStrength:ai?.directionStrength??effectiveConfidence,buyStrengthPct:ai?.buyStrengthPct??buyStrength,sellStrengthPct:ai?.sellStrengthPct??sellStrength},
+        workflow:{stage:'SELECTED_TF_OHLC_THEN_AI',sequence:[tf,'OHLC_VALIDATED','DIRECTION_STRENGTH','AI_CONFIRMATION'],aiRole:'CONFIRMATION_ONLY',entryAuthorization:false,telegramIndependent:true}
       });
     }catch(e){
       console.error('[PRE-MARKET AI] route error:',e?.stack||e?.message||e);
@@ -130,7 +145,7 @@ function inject(source){
 
   app.options('/api/pre-market/ai',handler);
   app.get('/api/pre-market/ai',handler);
-  console.log('[V-TRADE PRE-MARKET] SELECTED TF AI ROUTE V2 ACTIVE | M5/M15/H1/H4/D1 | OHLC -> LOCAL/AI');
+  console.log('[V-TRADE PRE-MARKET] SELECTED TF AI ROUTE V3 ACTIVE | M5/M15/H1/H4/D1 | OHLC -> STRENGTH -> LOCAL/AI');
 })(app);
 `;
   return source.replace(marker,marker+'\n'+code);
