@@ -132,4 +132,16 @@ try {
   console.warn('[V-TRADE LAUNCHER] frontend patch skipped:', e.message);
 }
 
+
+// VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V1
+// Render uses node server-launcher.js, so the Pre-Market Candle-Open
+// route must be loaded here before server.js is required.
+try {
+  require('./pre-market-route-boot-hotfix.js');
+  console.log('[V-TRADE LAUNCHER] Pre-Market route boot hook loaded');
+} catch (e) {
+  console.error('[V-TRADE LAUNCHER] Pre-Market route boot hook failed:', e.stack || e.message);
+  throw e;
+}
+
 require('./server.js');
