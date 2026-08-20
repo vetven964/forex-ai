@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V-TRADE V14 — startup-safe global delivery guard + literal-safe patching
+// V-TRADE V15 — confirmed-entry delivery guard + directional execution validation
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V14_SAFE';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V15_SAFE';
 const READINESS = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
 try {
@@ -49,7 +49,6 @@ function patchServer() {
       source = source.replace(decl, '');
       changed = true;
     }
-    // Only replace bare references; never touch the globalName we just created.
     const ref = new RegExp('(?<![A-Za-z0-9_.$])' + name + '\\b', 'g');
     source = source.replace(ref, globalName);
   }
@@ -70,7 +69,7 @@ try {
     changed = true;
   }
 
-  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V4';
+  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V5';
   if (source.indexOf(deliveryMarker) < 0) {
     const deliveryFn = `
 // ${deliveryMarker}
@@ -82,16 +81,31 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     a && a.confirmations && a.confirmations.allGatesPassed === true &&
     Number.isFinite(Number(a.entry));
   if (!confirmed) return false;
-  if (!tg || !tg.bot || !tg.chatId) {
-    console.warn('[TELEGRAM AUTO] confirmed entry ready but delivery is not configured');
+
+  // FINAL EXECUTION SAFETY GATE: never send a trade whose geometry is invalid.
+  const tf = String(a.executionTimeframe || a.timeframe || '').trim().toUpperCase();
+  const entry = Number(a.entry);
+  const sl = Number(a.stopLoss != null ? a.stopLoss : (a.sl != null ? a.sl : a.stop_loss));
+  const tps = Array.isArray(a.takeProfit) ? a.takeProfit : [];
+  const tp1 = Number(a.tp1 != null ? a.tp1 : tps[0]);
+  const tp2 = a.tp2 != null ? Number(a.tp2) : (Number.isFinite(Number(tps[1])) ? Number(tps[1]) : NaN);
+  const tp3 = a.tp3 != null ? Number(a.tp3) : (Number.isFinite(Number(tps[2])) ? Number(tps[2]) : NaN);
+  const geometryValid = tf !== '' && tf !== '—' && tf !== '-' &&
+    Number.isFinite(entry) && Number.isFinite(sl) && Number.isFinite(tp1) &&
+    (signal === 'BUY' ? (sl < entry && tp1 > entry) : (sl > entry && tp1 < entry)) &&
+    (!Number.isFinite(tp2) || (signal === 'BUY' ? tp2 > tp1 : tp2 < tp1)) &&
+    (!Number.isFinite(tp3) || (signal === 'BUY' ? tp3 > (Number.isFinite(tp2) ? tp2 : tp1) : tp3 < (Number.isFinite(tp2) ? tp2 : tp1)));
+  if (!geometryValid) {
+    console.warn('[TELEGRAM AUTO] BLOCKED invalid execution geometry | signal=' + signal +
+      ' | tf=' + (tf || 'MISSING') + ' | entry=' + entry + ' | sl=' + sl + ' | tp1=' + tp1 +
+      ' | tp2=' + tp2 + ' | tp3=' + tp3);
     return false;
   }
-  const tf = String(a.executionTimeframe || a.timeframe || 'M5').toUpperCase();
-  const sl = a.stopLoss != null ? a.stopLoss : (a.sl != null ? a.sl : a.stop_loss);
-  const tps = Array.isArray(a.takeProfit) ? a.takeProfit : [];
-  const tp1 = a.tp1 != null ? a.tp1 : tps[0];
-  const tp2 = a.tp2 != null ? a.tp2 : tps[1];
-  const tp3 = a.tp3 != null ? a.tp3 : tps[2];
+
+  if (!tg || !tg.bot || !tg.chatId) {
+    console.warn('[TELEGRAM AUTO] confirmed valid entry ready but delivery is not configured');
+    return false;
+  }
   const confidence = Number(a.confidence);
   const fmt = function(v) { return Number.isFinite(Number(v)) ? Number(v).toFixed(2) : 'WAIT'; };
   const lines = [
@@ -99,15 +113,15 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     '',
     signal === 'BUY' ? '🟢 *BUY*' : '🔴 *SELL*',
     '⏱️ TF: *' + tf + '*',
-    '🎯 Entry: *' + fmt(a.entry) + '*',
+    '🎯 Entry: *' + fmt(entry) + '*',
     '🛑 SL: *' + fmt(sl) + '*',
     '🎯 TP1: *' + fmt(tp1) + '*'
   ];
-  if (['M15','M30','H1','H4','D1'].indexOf(tf) >= 0) lines.push('🎯 TP2: *' + fmt(tp2) + '*');
-  if (['H1','H4','D1'].indexOf(tf) >= 0) lines.push('🎯 TP3: *' + fmt(tp3) + '*');
+  if (Number.isFinite(tp2)) lines.push('🎯 TP2: *' + fmt(tp2) + '*');
+  if (Number.isFinite(tp3)) lines.push('🎯 TP3: *' + fmt(tp3) + '*');
   if (Number.isFinite(confidence)) lines.push('🧠 Confidence: *' + Math.max(0, Math.min(100, confidence)).toFixed(0) + '/100*');
   await tg.bot.sendMessage(tg.chatId, lines.join('\\n'), { parse_mode: 'Markdown' });
-  console.log('[TELEGRAM AUTO] ENTRY sent | signal=' + signal + ' | tf=' + tf + ' | chat=' + String(tg.chatId).slice(-4));
+  console.log('[TELEGRAM AUTO] VALID ENTRY sent | signal=' + signal + ' | tf=' + tf + ' | chat=' + String(tg.chatId).slice(-4));
   return true;
 };
 `;
@@ -127,7 +141,6 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
   }
 
   const analysisCall = 'globalThis.maybeTelegramAlert(a, tg).catch(e=>console.error(\'Telegram alert:\',e.message));';
-  // Only remove the call inside /api/analysis/xauusd, not the scanner call.
   const analysisNeedle = "storage.saveAnalysis(a).catch(()=>{});\n    " + analysisCall;
   if (source.indexOf(analysisNeedle) >= 0) {
     source = source.split(analysisNeedle).join("storage.saveAnalysis(a).catch(()=>{});\n    console.log('[V-TRADE TELEGRAM] analysis route is delivery-independent | no alert sent');");
