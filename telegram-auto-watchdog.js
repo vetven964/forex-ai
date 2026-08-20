@@ -1,10 +1,10 @@
 // V-TRADE AI — Telegram Auto Scanner watchdog / startup hotfix
-// V-TRADE V15 — confirmed-entry delivery guard + directional execution validation
+// V-TRADE V16 — confirmed-entry delivery guard + directional execution + target-spacing validation
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const serverFile = path.join(__dirname, 'server.js');
-const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V15_SAFE';
+const marker = 'VTRADE_TELEGRAM_AUTO_WATCHDOG_V16_SAFE';
 const READINESS = 'globalThis.__vtradeTelegramAutoReadinessLog';
 
 try {
@@ -26,7 +26,7 @@ function patchServer() {
     console.log('[V-TRADE SAFETY] Telegram readiness state normalized to global runtime slot');
   }
   if (source.indexOf("globalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '')") < 0) {
-    source = "// " + marker + "\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n" + source;
+    source = "// VTRADE_TELEGRAM_AUTO_WATCHDOG_V16_SAFE\nglobalThis.__vtradeTelegramAutoReadinessLog = String(globalThis.__vtradeTelegramAutoReadinessLog || '');\n" + source;
     changed = true;
   }
 
@@ -69,7 +69,7 @@ try {
     changed = true;
   }
 
-  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V5';
+  const deliveryMarker = 'VTRADE_TELEGRAM_CONFIRMED_ENTRY_DELIVERY_V6';
   if (source.indexOf(deliveryMarker) < 0) {
     const deliveryFn = `
 // ${deliveryMarker}
@@ -82,7 +82,7 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     Number.isFinite(Number(a.entry));
   if (!confirmed) return false;
 
-  // FINAL EXECUTION SAFETY GATE: never send a trade whose geometry is invalid.
+  // FINAL EXECUTION SAFETY GATE: never send a trade whose geometry or target spacing is invalid.
   const tf = String(a.executionTimeframe || a.timeframe || '').trim().toUpperCase();
   const entry = Number(a.entry);
   const sl = Number(a.stopLoss != null ? a.stopLoss : (a.sl != null ? a.sl : a.stop_loss));
@@ -90,15 +90,22 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
   const tp1 = Number(a.tp1 != null ? a.tp1 : tps[0]);
   const tp2 = a.tp2 != null ? Number(a.tp2) : (Number.isFinite(Number(tps[1])) ? Number(tps[1]) : NaN);
   const tp3 = a.tp3 != null ? Number(a.tp3) : (Number.isFinite(Number(tps[2])) ? Number(tps[2]) : NaN);
-  const geometryValid = tf !== '' && tf !== '—' && tf !== '-' &&
-    Number.isFinite(entry) && Number.isFinite(sl) && Number.isFinite(tp1) &&
-    (signal === 'BUY' ? (sl < entry && tp1 > entry) : (sl > entry && tp1 < entry)) &&
-    (!Number.isFinite(tp2) || (signal === 'BUY' ? tp2 > tp1 : tp2 < tp1)) &&
-    (!Number.isFinite(tp3) || (signal === 'BUY' ? tp3 > (Number.isFinite(tp2) ? tp2 : tp1) : tp3 < (Number.isFinite(tp2) ? tp2 : tp1)));
-  if (!geometryValid) {
-    console.warn('[TELEGRAM AUTO] BLOCKED invalid execution geometry | signal=' + signal +
-      ' | tf=' + (tf || 'MISSING') + ' | entry=' + entry + ' | sl=' + sl + ' | tp1=' + tp1 +
-      ' | tp2=' + tp2 + ' | tp3=' + tp3);
+  const risk = Math.abs(entry - sl);
+  const finiteTargets = Number.isFinite(entry) && Number.isFinite(sl) && Number.isFinite(tp1) && Number.isFinite(tp2) && Number.isFinite(tp3) && risk > 0;
+  const geometryValid = tf !== '' && tf !== '—' && tf !== '-' && finiteTargets &&
+    (signal === 'BUY'
+      ? (sl < entry && entry < tp1 && tp1 < tp2 && tp2 < tp3)
+      : (sl > entry && entry > tp1 && tp1 > tp2 && tp2 > tp3));
+  const targetSpacingValid = finiteTargets &&
+    (signal === 'BUY'
+      ? (tp1 >= entry + risk && tp2 >= entry + risk * 1.5 && tp3 >= entry + risk * 2)
+      : (tp1 <= entry - risk && tp2 <= entry - risk * 1.5 && tp3 <= entry - risk * 2));
+  const rr = risk > 0 ? Math.abs(tp1 - entry) / risk : 0;
+  if (!geometryValid || !targetSpacingValid || !Number.isFinite(rr) || rr < 1.3) {
+    console.warn('[TELEGRAM AUTO] BLOCKED invalid execution geometry/spacing | signal=' + signal +
+      ' | tf=' + (tf || 'MISSING') + ' | entry=' + entry + ' | sl=' + sl +
+      ' | tp1=' + tp1 + ' | tp2=' + tp2 + ' | tp3=' + tp3 +
+      ' | rr=' + rr.toFixed(2));
     return false;
   }
 
@@ -115,13 +122,13 @@ globalThis.maybeTelegramAlert = async function(a, tg) {
     '⏱️ TF: *' + tf + '*',
     '🎯 Entry: *' + fmt(entry) + '*',
     '🛑 SL: *' + fmt(sl) + '*',
-    '🎯 TP1: *' + fmt(tp1) + '*'
+    '🎯 TP1: *' + fmt(tp1) + '*',
+    '🎯 TP2: *' + fmt(tp2) + '*',
+    '🎯 TP3: *' + fmt(tp3) + '*'
   ];
-  if (Number.isFinite(tp2)) lines.push('🎯 TP2: *' + fmt(tp2) + '*');
-  if (Number.isFinite(tp3)) lines.push('🎯 TP3: *' + fmt(tp3) + '*');
   if (Number.isFinite(confidence)) lines.push('🧠 Confidence: *' + Math.max(0, Math.min(100, confidence)).toFixed(0) + '/100*');
   await tg.bot.sendMessage(tg.chatId, lines.join('\\n'), { parse_mode: 'Markdown' });
-  console.log('[TELEGRAM AUTO] VALID ENTRY sent | signal=' + signal + ' | tf=' + tf + ' | chat=' + String(tg.chatId).slice(-4));
+  console.log('[TELEGRAM AUTO] VALID ENTRY sent | signal=' + signal + ' | tf=' + tf + ' | rr=' + rr.toFixed(2) + ' | chat=' + String(tg.chatId).slice(-4));
   return true;
 };
 `;
