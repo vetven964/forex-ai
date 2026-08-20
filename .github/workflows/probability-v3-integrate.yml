@@ -1,0 +1,65 @@
+name: V-TRADE AI Probability V3 Integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/probability-v3-integrate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Integrate Probability V3 into production launcher
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('server-launcher.js')
+          s = p.read_text(encoding='utf-8')
+          if 'function patchProbabilityV3(source)' not in s:
+              marker = 'function patchFrontend(source) {'
+              patch = r'''function patchProbabilityV3(source) {
+  if (!source.includes("require('./core/probabilityEngine')")) {
+    source = "const { analyzeProbability } = require('./core/probabilityEngine');\n" + source;
+  }
+  if (!source.includes('const probabilityV3 = analyzeProbability(')) {
+    const marker = /const directionBand=[^\n]+;\n/;
+    const inject = `$&  const probabilityV3 = analyzeProbability({\n    candlesByTf:{M5:m5,M15:m15,H1:h1,H4:h4},\n    current:{\n      up:directionScore,\n      down:100-directionScore,\n      range:side==='NEUTRAL'?100:0\n    }\n  });\n`;
+    source = source.replace(marker, inject);
+  }
+  if (!source.includes('probabilityV3,setupGrade')) {
+    source = source.replace('directionBand,setupGrade,status', 'directionBand,probabilityV3,setupGrade,status');
+  }
+  return source;
+}
+
+'''
+              if marker not in s:
+                  raise SystemExit('launcher marker not found')
+              s = s.replace(marker, patch + marker, 1)
+          call = '  source = patchProbabilityV3(source);\n'
+          if call not in s:
+              needle = '  source = patchTruthGuard(source);\n'
+              if needle not in s:
+                  raise SystemExit('launcher truth-guard call not found')
+              s = s.replace(needle, needle + call, 1)
+          p.write_text(s, encoding='utf-8')
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check server-launcher.js
+          node --check core/historicalProbabilityEngine.js
+          node --check core/probabilityEngine.js
+
+      - name: Commit integration
+        run: |
+          git config user.name "vtrade-ai-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add server-launcher.js .github/workflows/probability-v3-integrate.yml
+          git diff --cached --quiet && echo "No integration changes needed" && exit 0
+          git commit -m "feat: integrate Probability V3 into live analysis"
+          git push
