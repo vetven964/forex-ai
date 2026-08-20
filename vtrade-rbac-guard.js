@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V3 */
+/* V TRADE AI — Server-authoritative RBAC + mobile-first session guard V4 */
 (() => {
   if (window.__VTRADE_RBAC_GUARD__) return;
   window.__VTRADE_RBAC_GUARD__ = true;
@@ -13,10 +13,14 @@
     localStorage.getItem('vtrade_auth_token') || localStorage.getItem('vtrade_auth') ||
     sessionStorage.getItem('vtrade_auth_token') || sessionStorage.getItem('vtrade_auth') || '';
   const login = (reason='login') => location.replace(`connection.html?required=login&reason=${encodeURIComponent(reason)}`);
-  const admin = () => location.replace('admin-dashboard.html?v=20260820-rbac-v3');
-  const user = () => location.replace('premium-dashboard-live.html?v=20260820-rbac-v3');
+  const admin = () => location.replace('admin-dashboard.html?v=20260820-mobile-rbac-v4');
+  const user = () => location.replace('premium-dashboard-live.html?v=20260820-mobile-rbac-v4');
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const isAdminRole = role => ['admin','administrator'].includes(String(role || '').trim().toLowerCase());
+  const isMobileDevice = () => {
+    try { return window.matchMedia('(max-width: 900px)').matches || /iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent); }
+    catch { return /iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent); }
+  };
 
   async function verifySession() {
     const t = token();
@@ -82,7 +86,7 @@
   async function verify() {
     const result = await verifySession();
     if (!result.ok) {
-      console.warn('[V-TRADE RBAC V3] session verification failed after retry:', result.reason);
+      console.warn('[V-TRADE RBAC V4] session verification failed after retry:', result.reason);
       return login(result.reason);
     }
     const u=result.user;
@@ -91,13 +95,15 @@
     const language=localStorage.getItem('vtrade_lang')==='km'?'km':'en';
     document.documentElement.lang=language;document.documentElement.dataset.role=role;
 
-    // Canonical role routing: Admin is never allowed to remain on the User Terminal.
-    // User is never allowed to remain on the Admin Dashboard.
-    if (isUserPage && isAdminRole(role)) return admin();
-    if (isAdminPage && !isAdminRole(role)) return user();
+    // MOBILE ONLY: keep the requested Phone routing fix isolated from PC.
+    // On PC, preserve the existing page flow exactly as it is.
+    if (isMobileDevice()) {
+      if (isUserPage && isAdminRole(role)) return admin();
+      if (isAdminPage && !isAdminRole(role)) return user();
+    }
 
     if(isAdminPage) installAdminMobileUI();
-    window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,language}}));
+    window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,language,mobile:isMobileDevice()}}));
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',verify,{once:true}); else verify();
