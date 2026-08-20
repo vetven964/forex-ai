@@ -167,13 +167,29 @@ try {
 }
 
 // VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V1
-// Render uses node server-launcher.js, so the Pre-Market Candle-Open
-// route must be loaded here before server.js is required.
+// Render may invoke node server-launcher.js directly, so all mandatory
+// pre-market + AI safety/runtime layers must be loaded from this launcher.
 try {
   require('./pre-market-route-boot-hotfix.js');
   console.log('[V-TRADE LAUNCHER] Pre-Market route boot hook loaded');
 } catch (e) {
   console.error('[V-TRADE LAUNCHER] Pre-Market route boot hook failed:', e.stack || e.message);
+  throw e;
+}
+
+try {
+  require('./pre-market-ai-safe-hotfix.js');
+  console.log('[V-TRADE LAUNCHER] AI safe/truth hotfix loaded');
+} catch (e) {
+  console.error('[V-TRADE AI] AI safe/truth hotfix failed:', e.stack || e.message);
+  throw e;
+}
+
+try {
+  require('./ai-confirmation-runtime-v2.js');
+  console.log('[V-TRADE START] AI Confirmation Runtime V3 bootstrapped');
+} catch (e) {
+  console.error('[V-TRADE AI] FATAL: AI Confirmation Runtime V3 failed:', e.stack || e.message);
   throw e;
 }
 
