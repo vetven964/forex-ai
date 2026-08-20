@@ -14,6 +14,16 @@ try {
   throw e;
 }
 
+// V4 MUST be installed before server.js is compiled. This is the authoritative
+// runtime bootstrap so Render cannot bypass the historical-candle engine.
+try {
+  require('./logic-v4-bridge').install();
+  console.log('[V-TRADE LAUNCHER] Logic V4 bootstrap verified before server.js');
+} catch (e) {
+  console.error('[V-TRADE LAUNCHER] Logic V4 bootstrap failed:', e.stack || e.message);
+  throw e;
+}
+
 const PREMARKET_DIRECT_ROUTE = require('./pre-market-direct-route-hotfix.js');
 const SERVER_FILE = path.resolve(__dirname, 'server.js');
 const FRONTEND_FILE = path.resolve(__dirname, 'premium-dashboard-live.html');
@@ -56,9 +66,6 @@ function patchTruthGuard(source) {
   return source;
 }
 
-// Telegram is intentionally presentation-only here. All scoring, ICT gates,
-// AI confirmation and authorization stay inside the analysis engine.
-// The user-facing alert is kept short: BUY/SELL + Zone + Entry + SL + TP1-TP3.
 function patchWaitCard(source) {
   const marker = 'function telegramWaitText(a) {';
   if (!source.includes(marker)) return source;
