@@ -1,9 +1,12 @@
-# V TRADE AI Server Boundary
+# V TRADE AI UI
 
-The Render runtime currently depends on the root launcher and root-relative modules. Do not physically move runtime files until every `require()`/static path and the Render start command are migrated together.
+Canonical UI boundary for the public/auth/dashboard experience.
 
-Target boundary:
-- `server/` — Express runtime, auth/package access, MT5 bridge, ICT engine, Telegram and server-side integrations.
-- root `server-launcher.js` remains a compatibility bootstrap until Render is switched to `node server/server-launcher.js`.
+Flow:
+1. `../index.html` — GitHub + Login + Register + Main Dashboard only.
+2. `../login.html` — authentication only; no pre-market/terminal modules.
+3. `../register.html` — new member registration; Demo until paid package confirmation.
+4. `../dashboard.html` — single Main Dashboard entry; redirects into the live dashboard and package gate.
+5. `../premium-dashboard-live.html` — the single live terminal workspace with MTF, ICT, execution, AI, news, Telegram, risk and history modules.
 
-This marker is intentional: it prevents a partial move that would break Render startup.
+Legacy UI pages must not be linked from the public navigation.
