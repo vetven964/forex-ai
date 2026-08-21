@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.1 */
+/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.2 — GitHub Pages login route fix */
 (() => {
   'use strict';
   if (window.__VTRADE_RBAC_GUARD__) return;
@@ -10,7 +10,7 @@
   const token=()=>window.VTRADE_CONNECTION?.token?.()||localStorage.getItem('vtrade_auth_token')||localStorage.getItem('vtrade_auth')||sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||'';
   const isAdminRole=r=>['admin','administrator'].includes(String(r||'').trim().toLowerCase());
   const isMobile=()=>{try{return matchMedia('(max-width:900px)').matches||/iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent)}catch{return/iphone|ipad|ipod|android|mobile/i.test(navigator.userAgent)}};
-  const login=r=>location.replace(`connection.html?required=login&reason=${encodeURIComponent(r||'login')}`);
+  const login=r=>location.replace(`login.html?required=login&reason=${encodeURIComponent(r||'login')}`);
   const goAdmin=()=>location.replace('admin-dashboard.html?v=20260820-phone-v91');
   const goTerminal=()=>location.replace('premium-dashboard-live.html?v=20260820-phone-v91');
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -38,7 +38,7 @@
     bar.querySelector('#v91Menu').onclick=()=>menu.classList.toggle('open');
     document.addEventListener('click',e=>{if(!bar.contains(e.target)&&!menu.contains(e.target))menu.classList.remove('open')});
     menu.querySelector('#v91Refresh').onclick=()=>location.reload();
-    menu.querySelector('#v91Logout').onclick=async()=>{try{await fetch(BACKEND+'/api/auth/logout',{method:'POST',mode:'cors',credentials:'omit',headers:{Accept:'application/json','x-vtrade-auth':token()}})}catch{}try{localStorage.removeItem('vtrade_auth_token');localStorage.removeItem('vtrade_auth');localStorage.removeItem('vtrade_user');sessionStorage.clear()}catch{}location.replace('connection.html?logged_out=1')};
+    menu.querySelector('#v91Logout').onclick=async()=>{try{await fetch(BACKEND+'/api/auth/logout',{method:'POST',mode:'cors',credentials:'omit',headers:{Accept:'application/json','x-vtrade-auth':token()}})}catch{}try{localStorage.removeItem('vtrade_auth_token');localStorage.removeItem('vtrade_auth');localStorage.removeItem('vtrade_user');sessionStorage.clear()}catch{}location.replace('login.html?logged_out=1')};
     const lang=bar.querySelector('#v91Lang');lang.value=km?'km':'en';lang.onchange=()=>{localStorage.setItem('vtrade_lang',lang.value);location.reload()};
     bar.querySelector('#v91Tf').onchange=e=>location.href=`premium-dashboard-live.html?from=admin-terminal&tf=${encodeURIComponent(e.target.value)}&v=20260820-phone-v91`;
   }
