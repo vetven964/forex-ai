@@ -50,8 +50,23 @@
 
   function nodeFrom(raw,tf){
     const root=raw?.analysis||raw?.data||raw||{};
-    const mtf=root.mtf||root.multiTimeframe||root.timeframes||{};
-    return mtf[tf]||mtf[tf.toLowerCase()]||root[tf]||root[tf.toLowerCase()]||{};
+    const mtf=root.mtf||root.multiTimeframe||root.timeframes||root.mtfAnalysis||root.timeframeData||{};
+    const key=String(tf||'').toUpperCase();
+    const lower=key.toLowerCase();
+    const direct=mtf[key]||mtf[lower]||root[key]||root[lower];
+    if(direct && typeof direct==='object') return direct;
+    if(Array.isArray(mtf)){
+      const hit=mtf.find(x=>String(x?.timeframe||x?.tf||x?.period||'').toUpperCase()===key);
+      if(hit) return hit;
+    }
+    for(const k of ['frames','series','candlesByTimeframe','barsByTimeframe']){
+      const bucket=root[k];
+      if(bucket && typeof bucket==='object'){
+        const hit=bucket[key]||bucket[lower];
+        if(hit) return hit;
+      }
+    }
+    return {};
   }
 
   function normalize(tf,d,raw){
@@ -103,8 +118,8 @@
 
   function render(){
     const body=$('v7Body');if(!body)return; const rows=state.rows||{}, r=rows[state.tf]||{}; const s=stats(r); const gates=r.gates||{};
-    const ready=Object.values(rows).some(x=>x?.price!=null); const buy=state.buy,sell=state.sell,bias=state.bias||'NEUTRAL';
-    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${TFS.filter(tf=>rows[tf]?.price!=null).length}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
+    const readyCount=TFS.filter(tf=>rows[tf]?.price!=null).length; const ready=readyCount>0; const buy=state.buy,sell=state.sell,bias=state.bias||'NEUTRAL';
+    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${readyCount}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
     const mtf=TFS.map(tf=>{const x=rows[tf]||{},bp=x.buyScore,sp=x.sellScore,d=x.bias||'NEUTRAL';return `<div class="v7-mtf-row"><b>${tf}</b><div><div class="v7-bar"><i style="width:${bp==null?0:bp}%"></i></div><div class="v7-mini">${x.price!=null?`Price ${fmt(x.price)} · Score ${x.directionScore==null?'—':x.directionScore}`:'DATA NOT READY'}</div></div><span class="v7-dir ${d==='BULLISH'?'v7-buy':d==='BEARISH'?'v7-sell':'v7-neutral'}">${d}</span><span class="v7-weight">BUY ${bp==null?'—':bp}%<br>SELL ${sp==null?'—':sp}%</span></div>`}).join('');
     const cs=s?`<div class="v7-candle"><div class="v7-metric"><span>Open</span><b>${fmt(r.open)}</b></div><div class="v7-metric"><span>High</span><b>${fmt(r.high)}</b></div><div class="v7-metric"><span>Low</span><b>${fmt(r.low)}</b></div><div class="v7-metric"><span>Close</span><b>${fmt(r.close)}</b></div><div class="v7-metric"><span>Body</span><b>${csafe(s.bp)}%</b></div><div class="v7-metric"><span>Upper Wick</span><b>${csafe(s.upP)}%</b></div><div class="v7-metric"><span>Lower Wick</span><b>${csafe(s.loP)}%</b></div><div class="v7-metric"><span>Pattern</span><b>${esc(s.pattern)}</b></div></div>`:`<div class="v7-note">${tr('Candle OHLC is not available for the selected timeframe yet.','Candle OHLC មិនទាន់មានសម្រាប់ timeframe នេះទេ។')}</div>`;
     const bzone=val(r,['buyZone'])||r.zones?.buyZone,szone=val(r,['sellZone'])||r.zones?.sellZone;
