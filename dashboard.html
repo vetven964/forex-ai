@@ -1,1 +1,51 @@
-<!doctype html><html lang="km"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>V TRADE AI — Main Dashboard</title><script src="site-connection.js?v=20260821-gate"></script><script src="vtrade-connection.js"></script></head><body style="margin:0;background:#04070d;color:#f5f8ff;font:14px Segoe UI,Arial,sans-serif;display:grid;place-items:center;min-height:100vh"><main style="width:min(520px,90%);padding:28px;border:1px solid #233552;border-radius:20px;background:#07101c;text-align:center"><b>V TRADE AI</b><h1>Main Dashboard</h1><p id="msg" style="color:#8d9bb0">Checking account access…</p></main><script>(async()=>{const token=sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||localStorage.getItem('vtrade_auth_token');if(!token){location.replace('login.html?required=login');return}try{const r=await fetch('https://forexai-6xw6.onrender.com/api/auth/session',{headers:{'x-vtrade-auth':token},credentials:'include',cache:'no-store'}),d=await r.json().catch(()=>({}));if(!r.ok||!d.user){location.replace('login.html?required=login');return}location.replace('premium-dashboard-live.html?v=20260821-main-dashboard')}catch{document.getElementById('msg').textContent='Backend unavailable. Please try again.'}})()</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050912"><title>V TRADE AI — User Home</title>
+<link rel="stylesheet" href="vtrade-responsive.css?v=20260821-fluid">
+<script defer src="vtrade-responsive.js?v=20260821-fluid"></script>
+<style>
+:root{--bg:#04070d;--panel:#09111e;--line:#233552;--text:#f5f8ff;--muted:#8d9bb0;--v:#7136e8;--g:#22e58a;--c:#35d8ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% 0,#281450,transparent 32%),radial-gradient(circle at 90% 5%,#073c43,transparent 30%),var(--bg);color:var(--text);font:14px Segoe UI,Arial,sans-serif}
+a{color:inherit}.shell{width:min(1180px,calc(100% - 2*var(--v-gutter)));margin:auto;padding:18px 0 36px}.top{display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid var(--line)}.brand{display:flex;gap:10px;align-items:center;text-decoration:none;margin-right:auto}.logo{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:22px;font-weight:950;background:linear-gradient(135deg,#5120ff,#aa72ff)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:42px;padding:10px 13px;border:1px solid var(--line);border-radius:11px;background:#09111e;text-decoration:none;font-weight:800}.primary{background:#5421cf;border-color:#8050ff}.hero{padding:38px 0 24px}.hero h1{font-size:clamp(28px,5vw,48px);margin:8px 0}.muted{color:var(--muted);line-height:1.65}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:var(--v-gap)}.card{min-width:0;padding:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#0b1423,#070c15);box-shadow:0 18px 55px #0007}.icon{font-size:24px}.card h3{margin:10px 0 6px}.card p{color:var(--muted);line-height:1.55;margin:0 0 15px}.status{display:inline-flex;align-items:center;gap:7px;color:#9deee3;border:1px solid #31566c;background:#0a1824;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:900}.dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 10px #22e58a}
+</style>
+</head>
+<body>
+<div class="shell v-safe">
+<header class="top"><a class="brand" href="dashboard.html"><span class="logo">V</span><span><b>V TRADE AI</b><small style="display:block;color:var(--muted)">User Home · XAUUSD ICT Terminal</small></span></a><div class="actions"><a class="btn" href="profile.html">♙ Profile</a><button class="btn" id="logout">↪ Logout</button></div></header>
+<main>
+<section class="hero"><span class="status"><span class="dot"></span> ACCOUNT CONNECTED</span><h1 id="welcome">Main User Dashboard</h1><p class="muted">Your home is separate from the Live Terminal. Choose a module below. Paid features remain protected by the server-side package gate.</p></section>
+<section class="grid">
+<article class="card"><div class="icon">▣</div><h3>Live Terminal</h3><p>MT5 XAUUSD live feed, MTF ICT analysis, execution gates and market state.</p><a class="btn primary" href="premium-dashboard-live.html">Open Terminal</a></article>
+<article class="card"><div class="icon">◈</div><h3>Signals</h3><p>Confirmed BUY/SELL entries, WAIT state, MTF alignment and risk levels.</p><a class="btn" href="premium-dashboard-live.html#signals">Open Signals</a></article>
+<article class="card"><div class="icon">✦</div><h3>AI Intelligence</h3><p>Local ICT confirmation and AI-assisted analysis when enabled.</p><a class="btn" href="premium-dashboard-live.html#ai">Open AI</a></article>
+<article class="card"><div class="icon">◉</div><h3>News Intelligence</h3><p>Macro/news context and pre-market information.</p><a class="btn" href="premium-dashboard-live.html#news">Open News</a></article>
+<article class="card"><div class="icon">➤</div><h3>Telegram</h3><p>View your configured alert status and confirmed-entry notifications.</p><a class="btn" href="premium-dashboard-live.html#telegram">Open Telegram</a></article>
+<article class="card"><div class="icon">◎</div><h3>Risk Calculator</h3><p>Plan position size, stop loss and take profit before execution.</p><a class="btn" href="premium-dashboard-live.html#risk">Open Risk</a></article>
+<article class="card"><div class="icon">▤</div><h3>Trade History</h3><p>Review recent analysis and execution history.</p><a class="btn" href="premium-dashboard-live.html#history">Open History</a></article>
+<article class="card"><div class="icon">⚙</div><h3>Account & Security</h3><p>Profile, password and account settings.</p><a class="btn" href="profile.html">Open Profile</a></article>
+</section>
+</main>
+</div>
+<script>
+(async()=>{
+ const token=sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||localStorage.getItem('vtrade_auth_token')||localStorage.getItem('vtrade_auth');
+ if(!token){location.replace('login.html?required=login');return}
+ try{
+  const r=await fetch('https://forexai-6xw6.onrender.com/api/auth/session',{headers:{'x-vtrade-auth':token,Accept:'application/json'},credentials:'omit',cache:'no-store'});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.user){location.replace('login.html?required=login');return}
+  const role=String(d.user.role||'user').toLowerCase();
+  if(['admin','administrator'].includes(role)){location.replace('admin-dashboard.html?v=20260821-admin-home');return}
+  document.getElementById('welcome').textContent='Welcome, '+(d.user.name||d.user.email||'Trader');
+ }catch(e){document.getElementById('welcome').textContent='Main User Dashboard';}
+})();
+document.getElementById('logout').onclick=async()=>{
+ const t=sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||localStorage.getItem('vtrade_auth_token')||localStorage.getItem('vtrade_auth')||'';
+ try{await fetch('https://forexai-6xw6.onrender.com/api/auth/logout',{method:'POST',headers:{'x-vtrade-auth':t},credentials:'omit',cache:'no-store'})}catch{}
+ ['vtrade_auth_token','vtrade_auth','vtrade_user'].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)});
+ location.replace('login.html?logged_out=1');
+};
+</script>
+</body></html>

@@ -9,7 +9,7 @@ Public:
 - `reset-password.html`
 
 Authenticated:
-- `premium-dashboard-v5.html`
+- `premium-dashboard-live.html`
 - `premium-dashboard-live.html`
 - `profile.html`
 

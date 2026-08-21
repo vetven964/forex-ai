@@ -68,7 +68,7 @@
 
   function fixAdminRoutes() {
     if (!isAdmin()) return;
-    document.querySelectorAll('a[href*="premium-dashboard-v5.html"]').forEach(a => a.setAttribute('href', TERMINAL));
+    document.querySelectorAll('a[href*="premium-dashboard-live.html"]').forEach(a => a.setAttribute('href', TERMINAL));
     const menu = document.getElementById('profileMenu');
     if (menu && !menu.querySelector('[data-live-terminal]')) {
       const a = document.createElement('a');
