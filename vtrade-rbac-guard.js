@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.2 — GitHub Pages login route fix */
+/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.3 — header truth sync */
 (() => {
   'use strict';
   if (window.__VTRADE_RBAC_GUARD__) return;
@@ -46,7 +46,7 @@
     if(isMobile()){if(isTerminalPage&&isAdminRole(role)){const q=new URLSearchParams(location.search);const fromAdmin=q.get('from')==='admin-terminal'||q.get('from')==='admin'||/admin-dashboard\.html/i.test(document.referrer||'');if(!fromAdmin)return goAdmin()}if(isAdminPage&&!isAdminRole(role))return goTerminal();if(isAdminPage)installAdminPhoneBar()}
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:isMobile()}}));
   }
-  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;if(document.getElementById('vtradeDashboardUiFixScript'))return;const s=document.createElement('script');s.id='vtradeDashboardUiFixScript';s.src='dashboard-ui-fix.js?v=20260821-ui';s.async=false;(document.head||document.documentElement).appendChild(s)}
+  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;if(document.getElementById('vtradeDashboardUiFixScript'))return;const s=document.createElement('script');s.id='vtradeDashboardUiFixScript';s.src='dashboard-ui-fix.js?v=20260821-ui';s.async=false;(document.head||document.documentElement).appendChild(s);if(isTerminalPage&&!document.getElementById('vtradeHeaderAuthoritySyncScript')){const h=document.createElement('script');h.id='vtradeHeaderAuthoritySyncScript';h.src='vtrade-header-authority-sync.js?v=20260821-authority';h.async=false;(document.head||document.documentElement).appendChild(h)}}
   loadDashboardUiFix();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
 })();
