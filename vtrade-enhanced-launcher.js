@@ -16,13 +16,18 @@ function installDashboardUI(){
   let s=fs.readFileSync(DASHBOARD,'utf8');
   const anchor='  <script src="terminal-pre-market.js"></script>';
   if(!s.includes(anchor)) return;
+
+  // V8 MUST load before the legacy terminal-pre-market.js. The legacy script
+  // has a #vtradePreMarket renderer and a 30s refresh loop; loading it first
+  // would allow the old UI to overwrite the authoritative V8 panel.
+  const v8Tag=`  <script src="pre-market-v8.js?v=20260821-v8"></script><!-- ${V8_MARK} -->\n`;
+  if(!s.includes(V8_MARK)) s=s.replace(anchor,v8Tag+anchor);
+
   if(fs.existsSync(AUTH_UI)&&!s.includes(AUTH_UI_MARK)) s=s.replace(anchor,`  <script src="pre-market-authority-ui-hotfix.js?v=20260821-v1"></script><!-- ${AUTH_UI_MARK} -->\n`+anchor);
   if(!s.includes(UI_MARK)) s=s.replace(anchor,anchor+`\n  <script src="pre-market-intelligence-ui.js?v=20260819-v2"></script><!-- ${UI_MARK} -->`);
   if(!s.includes('pre-market-post-open-ai.js')) s=s.replace('</body>',`  <script src="pre-market-post-open-ai.js?v=20260819-post-open"></script>\n</body>`);
-  const v8Tag=`  <script src="pre-market-v8.js?v=20260821-v8"></script><!-- ${V8_MARK} -->`;
-  if(!s.includes(V8_MARK)) s=s.replace(anchor,anchor+`\n`+v8Tag);
   fs.writeFileSync(DASHBOARD,s,'utf8');
-  console.log('[V-TRADE START] Pre-Market Authority UI + Intelligence V2 + Post-Open AI + V8 truth UI installed');
+  console.log('[V-TRADE START] Pre-Market V8 loaded before legacy renderer; authoritative UI locked');
 }
 installDashboardUI();
 
