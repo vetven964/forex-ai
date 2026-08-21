@@ -1,4 +1,4 @@
-/* V TRADE AI — role-specific Home / Dashboard navigation */
+/* V TRADE AI — role-specific Home / Dashboard navigation + live price mapping */
 (() => {
   'use strict';
   if (window.__VTRADE_DASHBOARD_UI_FIX__) return;
@@ -82,9 +82,50 @@
     });
   }
 
+  // IMPORTANT: the candle rows show closed-candle data, but their "Price" field
+  // must use the same authoritative LIVE XAUUSD price as the header/current-price.
+  // The candle panel CLOSE remains the last closed candle and is intentionally different.
+  async function syncLiveMtfPrices() {
+    if (!isTerminal()) return;
+    try {
+      const c = window.VTRADE_CONNECTION;
+      if (!c?.fetch || !c?.api) return;
+      const r = await c.fetch(c.api('/api/pre-market/mt5-authoritative'), {credentials:'omit', cache:'no-store'});
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d?.success === false) return;
+      const root = d?.analysis || d?.data || d?.result || d || {};
+      const live = Number(d?.price ?? d?.currentPrice ?? d?.livePrice ?? root?.price ?? root?.currentPrice ?? root?.livePrice ?? d?.quote?.price ?? d?.mt5?.price);
+      if (!Number.isFinite(live)) return;
+      const formatted = live.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+      const section = [...document.querySelectorAll('.section')].find(el => /CANDLE-OPEN MTF PROCESSING/i.test(el.textContent || '')) || document.body;
+      const nodes = [...section.querySelectorAll('*')].filter(el => {
+        const t = (el.textContent || '').trim();
+        return /^Price\s+[\d,]+(?:\.\d+)?\s*[·•]\s*Score\s+\d+/i.test(t) && el.children.length === 0;
+      });
+      nodes.forEach(el => {
+        el.textContent = `Live Price ${formatted} · ${el.textContent.split('·').slice(1).join('·').trim()}`;
+      });
+    } catch (e) {
+      console.warn('[V-TRADE LIVE PRICE SYNC]', e?.message || e);
+    }
+  }
+
+  function startLivePriceSync() {
+    if (!isTerminal() || window.__VTRADE_LIVE_PRICE_SYNC__) return;
+    window.__VTRADE_LIVE_PRICE_SYNC__ = true;
+    const run = () => syncLiveMtfPrices();
+    run();
+    setTimeout(run, 400);
+    setTimeout(run, 1200);
+    setInterval(run, 10000);
+  }
+
   function init() {
-    fixAdminRoutes(); relabelSidebar(); addProfileToTerminal();
-    if (isTerminal()) { setTimeout(() => { relabelSidebar(); addProfileToTerminal(); }, 150); setTimeout(relabelSidebar, 700); }
+    fixAdminRoutes(); relabelSidebar(); addProfileToTerminal(); startLivePriceSync();
+    if (isTerminal()) {
+      setTimeout(() => { relabelSidebar(); addProfileToTerminal(); syncLiveMtfPrices(); }, 150);
+      setTimeout(() => { relabelSidebar(); syncLiveMtfPrices(); }, 700);
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true}); else init();
   window.addEventListener('vtrade:rbac-ready', init);
