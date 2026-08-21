@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="km" class="dark">
 <head>
+<!-- VTRADE TERMINAL LINK HOTFIX V1 -->
 <link rel="stylesheet" href="responsive-pro.css?v=6.3.5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -262,7 +263,7 @@ body{
             <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white text-lg cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-2 text-xs">
-            <button onclick="switchTab('terminal-analysis'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
+            <button onclick="window.location.href='premium-dashboard-live.html'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-teal-400 bg-teal-500/10 border border-teal-500/30 font-bold text-left">
                 <i class="fa-solid fa-terminal w-5 text-teal-400"></i><span>Terminal & Analysis AI Realtime</span>
             </button>
             <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-gray-800 text-left">
@@ -313,7 +314,7 @@ body{
         <!-- Sidebar Navigation (Desktop) -->
         <aside class="w-64 glass-panel border-r border-gray-800 p-4 hidden md:flex flex-col justify-between shrink-0 overflow-y-auto">
             <nav class="space-y-1.5">
-                <button onclick="switchTab('terminal-analysis')" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer">
+                <button onclick="window.location.href='premium-dashboard-live.html'" id="nav-terminal-analysis" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-teal-500/20 text-teal-400 font-medium transition text-xs text-left border border-teal-500/40 cursor-pointer">
                     <i class="fa-solid fa-terminal w-5 text-teal-400"></i>
                     <span>Terminal & Analysis AI Realtime</span>
                 </button>
@@ -1152,7 +1153,7 @@ body{
 
     <!-- Mobile Sticky Bottom Nav Bar for Quick Access -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-gray-800 z-40 px-2 py-2 flex justify-around items-center text-[10px]">
-        <button onclick="switchTab('terminal-analysis')" class="flex flex-col items-center text-teal-400 font-bold">
+        <button onclick="window.location.href='premium-dashboard-live.html'" class="flex flex-col items-center text-teal-400 font-bold">
             <i class="fa-solid fa-terminal text-base mb-0.5"></i><span>Terminal</span>
         </button>
         <button onclick="switchTab('dashboard')" class="flex flex-col items-center text-blue-400">
