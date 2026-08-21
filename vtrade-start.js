@@ -68,7 +68,7 @@ patchFile(DASHBOARD, source => {
   if (source.includes(AI_BUTTON)) return source;
   const anchor = '  <script src="terminal-pre-market.js"></script>';
   if (!source.includes(anchor)) return source;
-  return source.replace(anchor, anchor + `\n  <script src="${AI_BUTTON}?v=20260819-ai-fix"></script>`);
+  return source.replace(anchor, anchor + `\n  <script src="${AI_BUTTON}?v=20260821-ai-v10"></script>`);
 });
 
 patchFile(TELEGRAM, source => {
