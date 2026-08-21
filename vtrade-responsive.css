@@ -40,3 +40,47 @@ table{max-width:100%}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* V TRADE AI — PHONE-ONLY TERMINAL RESPONSIVE LAYER
+   Desktop/PC intentionally untouched. */
+@media (max-width:900px){
+  body{overflow-x:hidden}
+  .app{display:block!important;min-height:100vh}
+  .main{width:100%;min-width:0;overflow-x:hidden}
+  .top{min-height:76px!important;padding:9px 10px!important;display:grid!important;grid-template-columns:44px minmax(0,1fr) auto!important;grid-template-areas:"menu pair price" "menu bias backend";align-items:center!important;gap:2px 8px!important;position:relative!important;z-index:60!important}
+  .mobile{display:grid!important;grid-area:menu!important;width:44px!important;height:44px!important}
+  .pair{grid-area:pair!important;min-width:0!important}.pair b{font-size:14px!important}.pair .sub{font-size:9px!important;white-space:nowrap}
+  .price{grid-area:price!important;font-size:25px!important;line-height:1!important;margin:0!important}.live{grid-area:bias!important;font-size:10px!important;justify-self:start!important}.backend{grid-area:backend!important;justify-self:end!important;font-size:8px!important;padding:5px 8px!important}
+  .tfs{grid-column:1/-1!important;margin:2px 0 0!important;width:100%!important;overflow-x:auto!important;scrollbar-width:none}.tfs::-webkit-scrollbar{display:none}
+  .side{position:fixed!important;left:0!important;top:0!important;width:min(285px,84vw)!important;height:100dvh!important;z-index:100!important;transform:translateX(-110%)!important;overflow-y:auto!important;overscroll-behavior:contain!important}.side.open{transform:translateX(0)!important}.scrim{z-index:90!important}
+  .wrap{width:100%!important;max-width:none!important;padding:8px 9px 88px!important;margin:0!important}.toolbar{width:100%!important;min-width:0!important;overflow:hidden!important}.api{min-width:0!important;width:100%!important}
+  .tfs button,.lang-btn{flex:0 0 auto!important;min-height:40px!important;padding:8px 11px!important}
+  .cards,.radar,.gategrid,.mainrow,.news-top,.news-grid{grid-template-columns:1fr!important}.card{min-width:0!important;width:100%!important;padding:13px!important;overflow:hidden!important}
+  .chart{width:100%!important;max-width:100%!important;height:270px!important;overflow:hidden!important}.chart svg{max-width:100%!important}.signal{display:block!important}.signal-state{font-size:25px!important}.levels{width:100%!important}.level{min-width:0!important}
+  #vtradePreMarket{width:100%!important;max-width:100%!important;overflow:hidden!important}
+  #vtradePreMarket .v91{width:100%!important;max-width:100%!important;padding:11px!important;overflow:hidden!important}
+  #vtradePreMarket .v91h{display:block!important}
+  #vtradePreMarket .v91a{display:flex!important;width:100%!important;overflow-x:auto!important;flex-wrap:nowrap!important;scrollbar-width:none!important;padding-bottom:2px}
+  #vtradePreMarket .v91a::-webkit-scrollbar{display:none}
+  #vtradePreMarket .v91b{flex:0 0 auto!important}
+  #vtradePreMarket .v91g{grid-template-columns:1fr!important}
+  #vtradePreMarket .v91metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #vtradePreMarket .v91gates{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #vtradePreMarket .v91tf{grid-template-columns:38px minmax(0,1fr)!important}
+  #vtradePreMarket .v91tf>span,#vtradePreMarket .v91tf>strong{grid-column:2!important}
+  .footerline{flex-wrap:wrap}
+  body:after{content:'';display:block;height:72px}
+}
+@media (max-width:520px){
+  .top{min-height:74px!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:2px 7px!important}
+  .mobile{width:40px!important;height:40px!important}
+  .price{font-size:22px!important}
+  .pair b{font-size:13px!important}
+  .backend{max-width:92px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .wrap{padding:7px 7px 88px!important}
+  .card{padding:11px!important;border-radius:14px!important}
+  .huge{font-size:29px!important}
+  .chart{height:255px!important}
+  .v91t{font-size:16px!important}
+}
+/* Explicitly do nothing above 900px: desktop/PC remains unchanged. */
