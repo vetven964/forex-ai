@@ -50,33 +50,30 @@
 
   function nodeFrom(raw,tf){
     const root=raw?.analysis||raw?.data||raw||{};
-    const mtf=root.mtf||root.multiTimeframe||root.timeframes||root.mtfAnalysis||root.timeframeData||{};
-    const key=String(tf||'').toUpperCase();
-    const lower=key.toLowerCase();
-    const direct=mtf[key]||mtf[lower]||root[key]||root[lower];
-    if(direct && typeof direct==='object') return direct;
-    if(Array.isArray(mtf)){
-      const hit=mtf.find(x=>String(x?.timeframe||x?.tf||x?.period||'').toUpperCase()===key);
-      if(hit) return hit;
+    const pools=[
+      root?.mtf,root?.multiTimeframe,root?.timeframes,root?.timeframeData,
+      raw?.mtf,raw?.multiTimeframe,raw?.timeframes
+    ].filter(Boolean);
+    const keys=[tf,tf.toLowerCase(),tf.replace('M','m'),tf==='D1'?'1D':null,tf==='H1'?'1h':null,tf==='H4'?'4h':null,tf==='M15'?'15m':null,tf==='M5'?'5m':null].filter(Boolean);
+    for(const pool of pools){
+      for(const k of keys){ if(pool?.[k] && typeof pool[k]==='object') return pool[k]; }
     }
-    for(const k of ['frames','series','candlesByTimeframe','barsByTimeframe']){
-      const bucket=root[k];
-      if(bucket && typeof bucket==='object'){
-        const hit=bucket[key]||bucket[lower];
-        if(hit) return hit;
-      }
-    }
+    for(const k of keys){ if(root?.[k] && typeof root[k]==='object') return root[k]; }
     return {};
   }
 
   function normalize(tf,d,raw){
     const x=raw&&Object.keys(raw).length?raw:{};
-    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
-    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
-    const score=pct(val(x,['directionScore','setupScore','score','confidence']));
-    const bias=biasOf(val(x,['bias','direction','trend']));
+    const a=x.analysis||x.data||x.result||x;
+    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability'])) ?? pct(val(a,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
+    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability'])) ?? pct(val(a,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
+    const score=pct(val(x,['directionScore','setupScore','score','confidence'])) ?? pct(val(a,['directionScore','setupScore','score','confidence']));
+    const bias=biasOf(val(x,['bias','direction','trend']) ?? val(a,['bias','direction','trend']));
     const q=d?.quote||d?.mt5Quote||d?.mt5||{};
-    const c=x.lastCandle||x.candle||x.latestCandle||(Array.isArray(x.candles)?x.candles[x.candles.length-1]:null)||(Array.isArray(x.bars)?x.bars[x.bars.length-1]:null)||{};
+    const c=x.openCandle||x.currentCandle||x.lastCandle||x.candle||x.latestCandle||
+      (Array.isArray(x.candles)?x.candles[x.candles.length-1]:null)||
+      (Array.isArray(x.bars)?x.bars[x.bars.length-1]:null)||
+      (Array.isArray(x.ohlc)?x.ohlc[x.ohlc.length-1]:null)||{};
     const price=num(val(d,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(x,['price','currentPrice','close'])) ?? num(c.close??c.c);
     const open=num(c.open??c.o??x.open), high=num(c.high??c.h??x.high), low=num(c.low??c.l??x.low), close=num(c.close??c.c??x.close??price);
     const gates=x.gates||x.confirmations||d?.gates||{};
@@ -118,8 +115,8 @@
 
   function render(){
     const body=$('v7Body');if(!body)return; const rows=state.rows||{}, r=rows[state.tf]||{}; const s=stats(r); const gates=r.gates||{};
-    const readyCount=TFS.filter(tf=>rows[tf]?.price!=null).length; const ready=readyCount>0; const buy=state.buy,sell=state.sell,bias=state.bias||'NEUTRAL';
-    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${readyCount}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
+    const ready=Object.values(rows).some(x=>x?.price!=null); const buy=state.buy,sell=state.sell,bias=state.bias||'NEUTRAL';
+    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${TFS.filter(tf=>rows[tf]?.price!=null).length}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
     const mtf=TFS.map(tf=>{const x=rows[tf]||{},bp=x.buyScore,sp=x.sellScore,d=x.bias||'NEUTRAL';return `<div class="v7-mtf-row"><b>${tf}</b><div><div class="v7-bar"><i style="width:${bp==null?0:bp}%"></i></div><div class="v7-mini">${x.price!=null?`Price ${fmt(x.price)} · Score ${x.directionScore==null?'—':x.directionScore}`:'DATA NOT READY'}</div></div><span class="v7-dir ${d==='BULLISH'?'v7-buy':d==='BEARISH'?'v7-sell':'v7-neutral'}">${d}</span><span class="v7-weight">BUY ${bp==null?'—':bp}%<br>SELL ${sp==null?'—':sp}%</span></div>`}).join('');
     const cs=s?`<div class="v7-candle"><div class="v7-metric"><span>Open</span><b>${fmt(r.open)}</b></div><div class="v7-metric"><span>High</span><b>${fmt(r.high)}</b></div><div class="v7-metric"><span>Low</span><b>${fmt(r.low)}</b></div><div class="v7-metric"><span>Close</span><b>${fmt(r.close)}</b></div><div class="v7-metric"><span>Body</span><b>${csafe(s.bp)}%</b></div><div class="v7-metric"><span>Upper Wick</span><b>${csafe(s.upP)}%</b></div><div class="v7-metric"><span>Lower Wick</span><b>${csafe(s.loP)}%</b></div><div class="v7-metric"><span>Pattern</span><b>${esc(s.pattern)}</b></div></div>`:`<div class="v7-note">${tr('Candle OHLC is not available for the selected timeframe yet.','Candle OHLC មិនទាន់មានសម្រាប់ timeframe នេះទេ។')}</div>`;
     const bzone=val(r,['buyZone'])||r.zones?.buyZone,szone=val(r,['sellZone'])||r.zones?.sellZone;
