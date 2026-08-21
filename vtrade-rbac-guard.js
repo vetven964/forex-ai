@@ -47,7 +47,7 @@
     if(isMobile()){if(isTerminalPage&&isAdminRole(role)){const q=new URLSearchParams(location.search);const fromAdmin=q.get('from')==='admin-terminal'||q.get('from')==='admin'||/admin-dashboard\.html/i.test(document.referrer||'');if(!fromAdmin)return goAdmin()}if(isAdminPage&&!isAdminRole(role))return goTerminal();if(isAdminPage)installAdminPhoneBar()}
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:isMobile()}}));
   }
-  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260821-ui');if(isTerminalPage){loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth')}}
+  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260821-live-price');if(isTerminalPage){loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth')}}
   loadDashboardUiFix();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
 })();
