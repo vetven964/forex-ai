@@ -55,17 +55,23 @@
   }
 
   function normalize(tf,d,raw){
-    const x=raw&&Object.keys(raw).length?raw:{};
-    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
-    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
-    const score=pct(val(x,['directionScore','setupScore','score','confidence']));
-    const bias=biasOf(val(x,['bias','direction','trend']));
-    const q=d?.quote||d?.mt5Quote||d?.mt5||{};
+    // IMPORTANT: the authoritative endpoint returns the five live frames under
+    // `timeframes`. Normalize the SELECTED frame (`d`) first; never overwrite
+    // its MTF values with root-level aggregate values.
+    const x=d&&Object.keys(d).length?d:{};
+    const root=raw&&Object.keys(raw).length?raw:{};
+    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability'])) ?? pct(val(root,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
+    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability'])) ?? pct(val(root,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
+    const score=pct(val(x,['directionScore','setupScore','score','confidence'])) ?? pct(val(root,['directionScore','setupScore','score','confidence']));
+    const bias=biasOf(val(x,['bias','direction','trend'])) || biasOf(val(root,['bias','direction','trend']));
+    const q=x?.quote||x?.mt5Quote||x?.mt5||root?.quote||root?.mt5||{};
     const c=x.lastCandle||x.candle||x.latestCandle||(Array.isArray(x.candles)?x.candles[x.candles.length-1]:null)||(Array.isArray(x.bars)?x.bars[x.bars.length-1]:null)||{};
-    const price=num(val(d,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(x,['price','currentPrice','close'])) ?? num(c.close??c.c);
+    const price=num(val(x,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(root,['price','currentPrice','livePrice'])) ?? num(c.close??c.c);
     const open=num(c.open??c.o??x.open), high=num(c.high??c.h??x.high), low=num(c.low??c.l??x.low), close=num(c.close??c.c??x.close??price);
-    const gates=x.gates||x.confirmations||d?.gates||{};
-    return {...d,tf,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates};
+    const gates=x.gates||x.confirmations||x.ictGates||root.gates||root.confirmations||{};
+    const zoneData=x.zone||x.zones||{};
+    const execution=x.execution||{};
+    return {...d,tf,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates,zone:zoneData,zones:x.zones||zoneData,execution};
   }
 
   async function load(){
