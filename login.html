@@ -8,7 +8,7 @@
 <script>
 (function () {
   'use strict';
-  var target = new URL('frontend/login.html', window.location.href);
+  var target = new URL('./frontend/login.html', new URL('./', window.location.href));
   target.search = window.location.search;
   target.hash = window.location.hash;
   window.location.replace(target.href);
@@ -17,6 +17,6 @@
 </head>
 <body>
 <p>Opening V TRADE AI secure sign in…</p>
-<noscript><a href="frontend/login.html">Continue to V TRADE AI Sign In</a></noscript>
+<noscript><a href="./frontend/login.html">Continue to V TRADE AI Sign In</a></noscript>
 </body>
 </html>
