@@ -46,5 +46,7 @@
     if(isMobile()){if(isTerminalPage&&isAdminRole(role)){const q=new URLSearchParams(location.search);const fromAdmin=q.get('from')==='admin-terminal'||q.get('from')==='admin'||/admin-dashboard\.html/i.test(document.referrer||'');if(!fromAdmin)return goAdmin()}if(isAdminPage&&!isAdminRole(role))return goTerminal();if(isAdminPage)installAdminPhoneBar()}
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:isMobile()}}));
   }
+  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;if(document.getElementById('vtradeDashboardUiFixScript'))return;const s=document.createElement('script');s.id='vtradeDashboardUiFixScript';s.src='dashboard-ui-fix.js?v=20260821-ui';s.async=false;(document.head||document.documentElement).appendChild(s)}
+  loadDashboardUiFix();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
 })();
