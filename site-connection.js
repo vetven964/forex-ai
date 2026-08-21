@@ -49,7 +49,6 @@
     hasToken(){ return !!token(); }
   };
 
-  // Small, consistent connection indicator for pages without the dashboard shell.
   function mountStatus(){
     if(document.getElementById('vtrade-connection')) return;
     const el=document.createElement('div');
@@ -58,13 +57,25 @@
     el.textContent='● V TRADE connecting…';
     document.body.appendChild(el);
     nativeFetch(API+'/health',{cache:'no-store'}).then(r=>{
-      el.textContent='● V TRADE backend live';
-      el.style.color='#22e58a';
+      el.textContent=r.ok?'● V TRADE backend live':'● V TRADE backend offline';
+      el.style.color=r.ok?'#22e58a':'#ff5968';
     }).catch(()=>{
       el.textContent='● V TRADE backend offline';
       el.style.color='#ff5968';
     });
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mountStatus,{once:true});
-  else mountStatus();
+
+  function loadDashboardWatchdog(){
+    const file=String(location.pathname.split('/').pop()||'').toLowerCase();
+    if(file!=='premium-dashboard-live.html') return;
+    if(document.getElementById('vtrade-terminal-watchdog')) return;
+    const s=document.createElement('script');
+    s.id='vtrade-terminal-watchdog';
+    s.src='terminal-watchdog.js?v=20260821-live';
+    s.async=false;
+    (document.head||document.documentElement).appendChild(s);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{mountStatus();loadDashboardWatchdog();},{once:true});
+  else { mountStatus(); loadDashboardWatchdog(); }
 })();
