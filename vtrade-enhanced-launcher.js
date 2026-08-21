@@ -22,8 +22,18 @@ function installDashboardUI(){
 }
 installDashboardUI();
 
+// Package/RBAC gate: new users can open the Dashboard shell as Demo,
+// while terminal/signal/AI/news/Telegram/risk/history features require a paid plan.
+try {
+  require('./package-access-hotfix.js');
+  console.log('[V-TRADE START] Package/RBAC access gate loaded');
+} catch (e) {
+  console.error('[V-TRADE PACKAGE] FATAL:', e.stack || e.message);
+  process.exitCode=1;
+  throw e;
+}
+
 // Pre-Market route boot hotfix MUST run before server.js is required.
-// It installs the Candle-Open MTF endpoint, authoritative MT5 endpoint and compatibility aliases.
 try {
   require('./pre-market-route-boot-hotfix.js');
   console.log('[V-TRADE START] Pre-Market route boot hotfix loaded');
