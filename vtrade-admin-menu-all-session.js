@@ -9,7 +9,7 @@
   "use strict";
 
   const ROUTES = {
-    home: "index.html",
+    home: "admin-dashboard.html",
     userDashboard: "premium-dashboard.html",
     adminDashboard: "admin-dashboard.html",
     terminalLive: "premium-dashboard-live.html",
