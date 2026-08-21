@@ -49,35 +49,50 @@
   }
 
   function nodeFrom(raw,tf){
-    const root=raw?.analysis||raw?.data||raw||{};
+    const root=raw?.analysis||raw?.data||raw?.result||raw||{};
     const pools=[
-      root?.mtf,root?.multiTimeframe,root?.timeframes,root?.timeframeData,
-      raw?.mtf,raw?.multiTimeframe,raw?.timeframes
+      root?.timeframes,root?.frames,root?.mtf,root?.multiTimeframe,root?.timeframeData,
+      raw?.timeframes,raw?.frames,raw?.mtf,raw?.multiTimeframe
     ].filter(Boolean);
-    const keys=[tf,tf.toLowerCase(),tf.replace('M','m'),tf==='D1'?'1D':null,tf==='H1'?'1h':null,tf==='H4'?'4h':null,tf==='M15'?'15m':null,tf==='M5'?'5m':null].filter(Boolean);
+    const aliases={
+      M5:['M5','m5','5m','5M'],M15:['M15','m15','15m','15M'],H1:['H1','h1','1h','1H'],H4:['H4','h4','4h','4H'],D1:['D1','d1','1d','1D']
+    };
     for(const pool of pools){
-      for(const k of keys){ if(pool?.[k] && typeof pool[k]==='object') return pool[k]; }
+      for(const k of aliases[tf]||[tf]){
+        const v=pool?.[k];
+        if(v && typeof v==='object') return v;
+      }
     }
-    for(const k of keys){ if(root?.[k] && typeof root[k]==='object') return root[k]; }
-    return {};
+    // Some APIs return an array of {tf,timeframe,interval,...} nodes.
+    for(const pool of pools){
+      if(Array.isArray(pool)){
+        const v=pool.find(x=>String(x?.tf??x?.timeframe??x?.interval??'').toUpperCase()===tf);
+        if(v) return v;
+      }
+    }
+    return null;
   }
 
   function normalize(tf,d,raw){
-    const x=raw&&Object.keys(raw).length?raw:{};
+    // IMPORTANT: d is the selected timeframe node. Never use the root snapshot
+    // as the timeframe's score/candle source, otherwise every TF becomes 51/49.
+    const x=d && typeof d==='object' ? d : null;
+    if(!x) return {tf,ready:false,price:null,buyScore:null,sellScore:null,directionScore:null,bias:'NEUTRAL',gates:{}};
     const a=x.analysis||x.data||x.result||x;
     const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability'])) ?? pct(val(a,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
     const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability'])) ?? pct(val(a,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
     const score=pct(val(x,['directionScore','setupScore','score','confidence'])) ?? pct(val(a,['directionScore','setupScore','score','confidence']));
     const bias=biasOf(val(x,['bias','direction','trend']) ?? val(a,['bias','direction','trend']));
-    const q=d?.quote||d?.mt5Quote||d?.mt5||{};
+    const q=x.quote||x.mt5Quote||x.mt5||raw?.quote||raw?.mt5||{};
     const c=x.openCandle||x.currentCandle||x.lastCandle||x.candle||x.latestCandle||
       (Array.isArray(x.candles)?x.candles[x.candles.length-1]:null)||
       (Array.isArray(x.bars)?x.bars[x.bars.length-1]:null)||
       (Array.isArray(x.ohlc)?x.ohlc[x.ohlc.length-1]:null)||{};
-    const price=num(val(d,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(x,['price','currentPrice','close'])) ?? num(c.close??c.c);
-    const open=num(c.open??c.o??x.open), high=num(c.high??c.h??x.high), low=num(c.low??c.l??x.low), close=num(c.close??c.c??x.close??price);
-    const gates=x.gates||x.confirmations||d?.gates||{};
-    return {...d,tf,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates};
+    const price=num(val(x,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(c,['close','c'])) ?? num(val(raw,['price','currentPrice','livePrice'])) ?? null;
+    const open=num(c.open??c.o), high=num(c.high??c.h), low=num(c.low??c.l), close=num(c.close??c.c);
+    const gates=x.gates||x.confirmations||a.gates||a.confirmations||{};
+    const ready=price!=null || buy!=null || sell!=null || open!=null || high!=null || low!=null || close!=null;
+    return {...x,tf,ready,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates};
   }
 
   async function load(){
@@ -104,9 +119,28 @@
       const wb=TFS.reduce((a,tf)=>{const r=rows[tf],w=WEIGHTS[tf];if(r.buyScore!=null){a.b+=r.buyScore*w;a.bw+=w}if(r.sellScore!=null){a.s+=r.sellScore*w;a.sw+=w}return a},{b:0,s:0,bw:0,sw:0});
       state.buy=wb.bw?Math.round(wb.b/wb.bw):null; state.sell=wb.sw?Math.round(wb.s/wb.sw):null;
       state.bias=state.buy==null&&state.sell==null?'NEUTRAL':state.buy>state.sell?'BULLISH':state.sell>state.buy?'BEARISH':'NEUTRAL';
+      state.ai=buildAiVerdict(rows);
       render(); loadNews();
     }catch(e){state.error=String(e?.message||e);state.rows={};render();}
     finally{state.busy=false;}
+  }
+
+  function buildAiVerdict(rows){
+    const ready=TFS.filter(tf=>rows[tf]?.ready);
+    const scored=ready.filter(tf=>rows[tf]?.buyScore!=null&&rows[tf]?.sellScore!=null);
+    if(!scored.length) return {status:'WAIT',title:'AI WAIT — MTF data incomplete',reason:'Waiting for real per-timeframe broker-native analysis.'};
+    const avgBuy=Math.round(scored.reduce((s,tf)=>s+rows[tf].buyScore,0)/scored.length);
+    const avgSell=Math.round(scored.reduce((s,tf)=>s+rows[tf].sellScore,0)/scored.length);
+    const bias=avgBuy>avgSell?'BULLISH':avgSell>avgBuy?'BEARISH':'NEUTRAL';
+    const selected=rows[state.tf]||{};
+    const gates=selected.gates||{};
+    const pass=k=>bool(gates[k]);
+    const gateCount=['liquiditySweep','mss','bos','displacement','fvg','orderBlock','premiumDiscount','premiumDiscountOk','executionZone','momentum','technicalMomentumOk','spread','spreadOk'].filter(k=>pass(k)).length;
+    const key= bias==='BULLISH' ? ['liquiditySweep','mss','bos','displacement','fvg','orderBlock'] : bias==='BEARISH' ? ['liquiditySweep','mss','bos','displacement','fvg','orderBlock'] : [];
+    const missing=key.filter(k=>!pass(k));
+    if(bias==='NEUTRAL') return {status:'WAIT',title:'AI WAIT — NO MTF EDGE',reason:`BUY ${avgBuy}% vs SELL ${avgSell}% · insufficient directional advantage.`};
+    if(missing.length) return {status:'WAIT',title:`AI WAIT — ${bias} BIAS`,reason:`${missing.slice(0,3).map(x=>x.replace(/([A-Z])/g,' $1')).join(', ')} still not confirmed · ${gateCount} gate(s) passed.`};
+    return {status:'CONFIRM',title:`AI ${bias} SETUP`,reason:`MTF ${avgBuy}% BUY / ${avgSell}% SELL · selected ${state.tf} gates ${gateCount} passed.`};
   }
 
   function stats(r){if(r.open==null||r.high==null||r.low==null||r.close==null)return null;const range=Math.max(0,r.high-r.low),body=Math.abs(r.close-r.open),up=Math.max(0,r.high-Math.max(r.open,r.close)),lo=Math.max(0,Math.min(r.open,r.close)-r.low);const bp=range?body/range*100:0,upP=range?up/range*100:0,loP=range?lo/range*100:0;let pattern='NORMAL';if(bp<=30&&loP>=55&&upP<=25)pattern='HAMMER / REJECTION';else if(bp<=30&&upP>=55&&loP<=25)pattern='SHOOTING STAR / REJECTION';else if(bp<=12&&upP>=35&&loP>=35)pattern='DOJI / INDECISION';else if(bp>=65)pattern=r.close>=r.open?'STRONG BULLISH BODY':'STRONG BEARISH BODY';return{bp,upP,loP,pattern};}
@@ -116,11 +150,11 @@
   function render(){
     const body=$('v7Body');if(!body)return; const rows=state.rows||{}, r=rows[state.tf]||{}; const s=stats(r); const gates=r.gates||{};
     const ready=Object.values(rows).some(x=>x?.price!=null); const buy=state.buy,sell=state.sell,bias=state.bias||'NEUTRAL';
-    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${TFS.filter(tf=>rows[tf]?.price!=null).length}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
+    const status=state.error?`<div class="v7-status v7-errorbox"><b>LIVE DATA ERROR</b><br>${esc(state.error)}</div>`:ready?`<div class="v7-status"><b class="v7-pass">MT5 LIVE DATA CONNECTED</b> · ${TFS.filter(tf=>rows[tf]?.ready).length}/5 timeframes mapped. Source: broker-native backend.</div>`:`<div class="v7-status"><b class="v7-wait">WAIT — MT5 DATA NOT READY</b><br>UI will not fabricate 0% or 50/50 values.</div>`;
     const mtf=TFS.map(tf=>{const x=rows[tf]||{},bp=x.buyScore,sp=x.sellScore,d=x.bias||'NEUTRAL';return `<div class="v7-mtf-row"><b>${tf}</b><div><div class="v7-bar"><i style="width:${bp==null?0:bp}%"></i></div><div class="v7-mini">${x.price!=null?`Price ${fmt(x.price)} · Score ${x.directionScore==null?'—':x.directionScore}`:'DATA NOT READY'}</div></div><span class="v7-dir ${d==='BULLISH'?'v7-buy':d==='BEARISH'?'v7-sell':'v7-neutral'}">${d}</span><span class="v7-weight">BUY ${bp==null?'—':bp}%<br>SELL ${sp==null?'—':sp}%</span></div>`}).join('');
     const cs=s?`<div class="v7-candle"><div class="v7-metric"><span>Open</span><b>${fmt(r.open)}</b></div><div class="v7-metric"><span>High</span><b>${fmt(r.high)}</b></div><div class="v7-metric"><span>Low</span><b>${fmt(r.low)}</b></div><div class="v7-metric"><span>Close</span><b>${fmt(r.close)}</b></div><div class="v7-metric"><span>Body</span><b>${csafe(s.bp)}%</b></div><div class="v7-metric"><span>Upper Wick</span><b>${csafe(s.upP)}%</b></div><div class="v7-metric"><span>Lower Wick</span><b>${csafe(s.loP)}%</b></div><div class="v7-metric"><span>Pattern</span><b>${esc(s.pattern)}</b></div></div>`:`<div class="v7-note">${tr('Candle OHLC is not available for the selected timeframe yet.','Candle OHLC មិនទាន់មានសម្រាប់ timeframe នេះទេ។')}</div>`;
     const bzone=val(r,['buyZone'])||r.zones?.buyZone,szone=val(r,['sellZone'])||r.zones?.sellZone;
-    body.innerHTML=`<div class="v7-grid"><div class="v7-box"><div class="v7-label">Pre-Market MTF Direction Strength</div><div class="v7-score v7-buy">${buy==null?'—':buy}%</div><div class="v7-bar"><i style="width:${buy??0}%"></i></div><div class="v7-row"><span>BUY Strength</span><b class="v7-buy">${buy==null?'—':buy}%</b></div><div class="v7-row"><span>SELL Strength</span><b class="v7-sell">${sell==null?'—':sell}%</b></div><div class="v7-row"><span>MTF Bias</span><b class="${bias==='BULLISH'?'v7-buy':bias==='BEARISH'?'v7-sell':'v7-neutral'}">${bias}</b></div>${status}</div><div class="v7-box"><div class="v7-label">BUY ZONE / SELL ZONE · ${state.tf}</div><div class="v7-row"><span>BUY ZONE</span><b class="v7-buy">${zone(bzone)}</b></div><div class="v7-row"><span>SELL ZONE</span><b class="v7-sell">${zone(szone)}</b></div><div class="v7-row"><span>Current Price</span><b>${fmt(r.price)}</b></div><div class="v7-row"><span>Entry area</span><b>${r.price==null?'—':bias==='BULLISH'?'BELOW PRICE':bias==='BEARISH'?'ABOVE PRICE':'BALANCED'}</b></div></div></div><div class="v7-box" style="margin-top:10px"><div class="v7-label">CANDLE-OPEN MTF PROCESSING · LIVE</div><div class="v7-mtf">${mtf}</div></div><div class="v7-grid" style="margin-top:10px"><div class="v7-box"><div class="v7-label">CANDLE / WICK / PATTERN · ${state.tf}</div>${cs}</div><div class="v7-box"><div class="v7-label">ICT EXECUTION GATES</div><div class="v7-gates">${gate('Liquidity Sweep',gates.liquiditySweep)}${gate('MSS',gates.mss)}${gate('BOS',gates.bos)}${gate('Displacement',gates.displacement)}${gate('FVG',gates.fvg)}${gate('Order Block',gates.orderBlock)}${gate('Premium / Discount',gates.premiumDiscount)}${gate('Execution Zone',gates.executionZone)}${gate('Momentum',gates.momentum)}${gate('Spread',gates.spread)}</div></div></div>`;
+    body.innerHTML=`<div class="v7-grid"><div class="v7-box"><div class="v7-label">Pre-Market MTF Direction Strength</div><div class="v7-score v7-buy">${buy==null?'—':buy}%</div><div class="v7-bar"><i style="width:${buy??0}%"></i></div><div class="v7-row"><span>BUY Strength</span><b class="v7-buy">${buy==null?'—':buy}%</b></div><div class="v7-row"><span>SELL Strength</span><b class="v7-sell">${sell==null?'—':sell}%</b></div><div class="v7-row"><span>MTF Bias</span><b class="${bias==='BULLISH'?'v7-buy':bias==='BEARISH'?'v7-sell':'v7-neutral'}">${bias}</b></div>${status}${state.ai?`<div class="v7-status"><b class="${state.ai.status==='CONFIRM'?'v7-pass':'v7-wait'}">${esc(state.ai.title)}</b><br>${esc(state.ai.reason)}</div>`:''}</div><div class="v7-box"><div class="v7-label">BUY ZONE / SELL ZONE · ${state.tf}</div><div class="v7-row"><span>BUY ZONE</span><b class="v7-buy">${zone(bzone)}</b></div><div class="v7-row"><span>SELL ZONE</span><b class="v7-sell">${zone(szone)}</b></div><div class="v7-row"><span>Current Price</span><b>${fmt(r.price)}</b></div><div class="v7-row"><span>Entry area</span><b>${r.price==null?'—':bias==='BULLISH'?'BELOW PRICE':bias==='BEARISH'?'ABOVE PRICE':'BALANCED'}</b></div></div></div><div class="v7-box" style="margin-top:10px"><div class="v7-label">CANDLE-OPEN MTF PROCESSING · LIVE</div><div class="v7-mtf">${mtf}</div></div><div class="v7-grid" style="margin-top:10px"><div class="v7-box"><div class="v7-label">CANDLE / WICK / PATTERN · ${state.tf}</div>${cs}</div><div class="v7-box"><div class="v7-label">ICT EXECUTION GATES</div><div class="v7-gates">${gate('Liquidity Sweep',gates.liquiditySweep)}${gate('MSS',gates.mss)}${gate('BOS',gates.bos)}${gate('Displacement',gates.displacement)}${gate('FVG',gates.fvg)}${gate('Order Block',gates.orderBlock)}${gate('Premium / Discount',gates.premiumDiscount)}${gate('Execution Zone',gates.executionZone)}${gate('Momentum',gates.momentum)}${gate('Spread',gates.spread)}</div></div></div>`;
   }
   function csafe(v){return num(v)==null?'—':Math.round(v)}
 
