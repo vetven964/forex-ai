@@ -71,13 +71,19 @@
   async function load(){
     if(state.busy)return; state.busy=true; state.error=null; render();
     try{
-      const [raw, ...pm] = await Promise.all([
-        api('/api/analysis/xauusd'),
-        ...TFS.map(tf=>api(`/api/pre-market/xauusd?tf=${tf}`))
-      ]);
+      // Use the authoritative MT5-backed pre-market snapshot as the single source
+      // for all five timeframes. The legacy per-TF route could return an incomplete
+      // analysis object (often producing 0%/NEUTRAL even while MT5 was READY).
+      // Keep the legacy analysis as a safe fallback only.
+      let raw;
+      try {
+        raw = await api('/api/pre-market/mt5-authoritative');
+      } catch (authoritativeError) {
+        raw = await api('/api/analysis/xauusd');
+      }
       state.raw=raw;
       const rows={};
-      for(let i=0;i<TFS.length;i++) rows[TFS[i]]=normalize(TFS[i],pm[i],nodeFrom(raw,TFS[i]));
+      for(const tf of TFS) rows[tf]=normalize(tf, raw, nodeFrom(raw,tf));
       // The quote from /api/analysis/xauusd is authoritative if a TF route omits price.
       const root=raw?.analysis||raw?.data||raw||{};
       const rootPrice=num(val(raw,['price','currentPrice','livePrice'])) ?? num(val(root,['price','currentPrice','livePrice'])) ?? num(val(raw?.quote||raw?.mt5||{},['price','bid','ask']));
