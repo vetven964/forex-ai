@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.3 — header truth sync */
+/* V TRADE AI — Server-authoritative RBAC + phone navigation guard V9.4 — backend truth sync */
 (() => {
   'use strict';
   if (window.__VTRADE_RBAC_GUARD__) return;
@@ -42,11 +42,12 @@
     const lang=bar.querySelector('#v91Lang');lang.value=km?'km':'en';lang.onchange=()=>{localStorage.setItem('vtrade_lang',lang.value);location.reload()};
     bar.querySelector('#v91Tf').onchange=e=>location.href=`premium-dashboard-live.html?from=admin-terminal&tf=${encodeURIComponent(e.target.value)}&v=20260820-phone-v91`;
   }
+  function loadScript(id,src){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.async=false;(document.head||document.documentElement).appendChild(s)}
   async function verify(){const result=await verifySession();if(!result.ok)return login(result.reason);const u=result.user,role=String(u?.role||'user').trim().toLowerCase();persistUser(u);document.documentElement.lang=localStorage.getItem('vtrade_lang')==='km'?'km':'en';document.documentElement.dataset.role=role;
     if(isMobile()){if(isTerminalPage&&isAdminRole(role)){const q=new URLSearchParams(location.search);const fromAdmin=q.get('from')==='admin-terminal'||q.get('from')==='admin'||/admin-dashboard\.html/i.test(document.referrer||'');if(!fromAdmin)return goAdmin()}if(isAdminPage&&!isAdminRole(role))return goTerminal();if(isAdminPage)installAdminPhoneBar()}
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:isMobile()}}));
   }
-  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;if(document.getElementById('vtradeDashboardUiFixScript'))return;const s=document.createElement('script');s.id='vtradeDashboardUiFixScript';s.src='dashboard-ui-fix.js?v=20260821-ui';s.async=false;(document.head||document.documentElement).appendChild(s);if(isTerminalPage&&!document.getElementById('vtradeHeaderAuthoritySyncScript')){const h=document.createElement('script');h.id='vtradeHeaderAuthoritySyncScript';h.src='vtrade-header-authority-sync.js?v=20260821-authority';h.async=false;(document.head||document.documentElement).appendChild(h)}}
+  function loadDashboardUiFix(){if(!isAdminPage&&!isTerminalPage)return;loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260821-ui');if(isTerminalPage){loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth')}}
   loadDashboardUiFix();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
 })();
