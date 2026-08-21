@@ -105,8 +105,6 @@
     if (status) status.innerHTML = `<b style="color:#35d8ff">ANALYZING ${esc(tf)}…</b><div style="margin-top:5px">Validating the selected ${esc(tf)} candle OHLC, then running confirmation…</div>`;
 
     try {
-      // One authoritative request: selected TF OHLC validation happens inside the route
-      // before any AI/local confirmation is executed.
       const result = await request(`/api/pre-market/ai?tf=${encodeURIComponent(tf)}&_=${Date.now()}`);
       renderAI(result, tf);
       if (status) status.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -142,4 +140,36 @@
   observer.observe(document.documentElement, {childList:true,subtree:true});
   install();
   window.addEventListener('load', install);
+
+  // LIVE TERMINAL WATCHDOG V1: keep the dashboard connection state truthful.
+  // It never fabricates market data; it only checks the backend health endpoint.
+  async function watchdog() {
+    const c = conn();
+    const badge = document.getElementById('backend');
+    const status = document.getElementById('status');
+    if (!c?.status || !badge) return;
+    try {
+      const h = await c.status();
+      if (h.ok) {
+        badge.textContent = 'BACKEND LIVE';
+        badge.className = 'backend';
+        if (status && /connection failed|backend offline|connecting/i.test(status.textContent || '')) {
+          status.className = 'notice success';
+          status.textContent = 'Live Backend connected. Waiting for the latest MT5/ICT analysis.';
+        }
+      } else {
+        badge.textContent = 'BACKEND OFFLINE';
+        badge.className = 'backend';
+        if (status) {
+          status.className = 'notice';
+          status.textContent = 'Backend is offline or waking up. No market data is fabricated.';
+        }
+      }
+    } catch (e) {
+      badge.textContent = 'BACKEND OFFLINE';
+      if (status) status.textContent = 'Backend connection unavailable. No market data is fabricated.';
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchdog, {once:true}); else watchdog();
+  setInterval(watchdog, 15000);
 })();
