@@ -55,23 +55,17 @@
   }
 
   function normalize(tf,d,raw){
-    // IMPORTANT: the authoritative endpoint returns the five live frames under
-    // `timeframes`. Normalize the SELECTED frame (`d`) first; never overwrite
-    // its MTF values with root-level aggregate values.
-    const x=d&&Object.keys(d).length?d:{};
-    const root=raw&&Object.keys(raw).length?raw:{};
-    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability'])) ?? pct(val(root,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
-    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability'])) ?? pct(val(root,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
-    const score=pct(val(x,['directionScore','setupScore','score','confidence'])) ?? pct(val(root,['directionScore','setupScore','score','confidence']));
-    const bias=biasOf(val(x,['bias','direction','trend'])) || biasOf(val(root,['bias','direction','trend']));
-    const q=x?.quote||x?.mt5Quote||x?.mt5||root?.quote||root?.mt5||{};
+    const x=raw&&Object.keys(raw).length?raw:{};
+    const buy=pct(val(x,['buyScore','buyPct','buyStrengthPct','buyerPower','longScore','buyProbability']));
+    const sell=pct(val(x,['sellScore','sellPct','sellStrengthPct','sellerPower','shortScore','sellProbability']));
+    const score=pct(val(x,['directionScore','setupScore','score','confidence']));
+    const bias=biasOf(val(x,['bias','direction','trend']));
+    const q=d?.quote||d?.mt5Quote||d?.mt5||{};
     const c=x.lastCandle||x.candle||x.latestCandle||(Array.isArray(x.candles)?x.candles[x.candles.length-1]:null)||(Array.isArray(x.bars)?x.bars[x.bars.length-1]:null)||{};
-    const price=num(val(x,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(root,['price','currentPrice','livePrice'])) ?? num(c.close??c.c);
+    const price=num(val(d,['price','currentPrice','livePrice'])) ?? num(val(q,['price','bid','ask'])) ?? num(val(x,['price','currentPrice','close'])) ?? num(c.close??c.c);
     const open=num(c.open??c.o??x.open), high=num(c.high??c.h??x.high), low=num(c.low??c.l??x.low), close=num(c.close??c.c??x.close??price);
-    const gates=x.gates||x.confirmations||x.ictGates||root.gates||root.confirmations||{};
-    const zoneData=x.zone||x.zones||{};
-    const execution=x.execution||{};
-    return {...d,tf,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates,zone:zoneData,zones:x.zones||zoneData,execution};
+    const gates=x.gates||x.confirmations||d?.gates||{};
+    return {...d,tf,price,currentPrice:price,buyScore:buy,sellScore:sell,directionScore:score,bias,open,high,low,close,gates};
   }
 
   async function load(){
@@ -89,7 +83,7 @@
       }
       state.raw=raw;
       const rows={};
-      for(const tf of TFS) rows[tf]=normalize(tf, raw, nodeFrom(raw,tf));
+      for(const tf of TFS) rows[tf]=normalize(tf, nodeFrom(raw,tf), raw);
       // The quote from /api/analysis/xauusd is authoritative if a TF route omits price.
       const root=raw?.analysis||raw?.data||raw||{};
       const rootPrice=num(val(raw,['price','currentPrice','livePrice'])) ?? num(val(root,['price','currentPrice','livePrice'])) ?? num(val(raw?.quote||raw?.mt5||{},['price','bid','ask']));
@@ -114,7 +108,7 @@
     const mtf=TFS.map(tf=>{const x=rows[tf]||{},bp=x.buyScore,sp=x.sellScore,d=x.bias||'NEUTRAL';return `<div class="v7-mtf-row"><b>${tf}</b><div><div class="v7-bar"><i style="width:${bp==null?0:bp}%"></i></div><div class="v7-mini">${x.price!=null?`Price ${fmt(x.price)} · Score ${x.directionScore==null?'—':x.directionScore}`:'DATA NOT READY'}</div></div><span class="v7-dir ${d==='BULLISH'?'v7-buy':d==='BEARISH'?'v7-sell':'v7-neutral'}">${d}</span><span class="v7-weight">BUY ${bp==null?'—':bp}%<br>SELL ${sp==null?'—':sp}%</span></div>`}).join('');
     const cs=s?`<div class="v7-candle"><div class="v7-metric"><span>Open</span><b>${fmt(r.open)}</b></div><div class="v7-metric"><span>High</span><b>${fmt(r.high)}</b></div><div class="v7-metric"><span>Low</span><b>${fmt(r.low)}</b></div><div class="v7-metric"><span>Close</span><b>${fmt(r.close)}</b></div><div class="v7-metric"><span>Body</span><b>${csafe(s.bp)}%</b></div><div class="v7-metric"><span>Upper Wick</span><b>${csafe(s.upP)}%</b></div><div class="v7-metric"><span>Lower Wick</span><b>${csafe(s.loP)}%</b></div><div class="v7-metric"><span>Pattern</span><b>${esc(s.pattern)}</b></div></div>`:`<div class="v7-note">${tr('Candle OHLC is not available for the selected timeframe yet.','Candle OHLC មិនទាន់មានសម្រាប់ timeframe នេះទេ។')}</div>`;
     const bzone=val(r,['buyZone'])||r.zones?.buyZone,szone=val(r,['sellZone'])||r.zones?.sellZone;
-    body.innerHTML=`<div class="v7-grid"><div class="v7-box"><div class="v7-label">Pre-Market MTF Direction Strength</div><div class="v7-score v7-buy">${buy==null?'—':buy}%</div><div class="v7-bar"><i style="width:${buy??0}%"></i></div><div class="v7-row"><span>BUY Strength</span><b class="v7-buy">${buy==null?'—':buy}%</b></div><div class="v7-row"><span>SELL Strength</span><b class="v7-sell">${sell==null?'—':sell}%</b></div><div class="v7-row"><span>MTF Bias</span><b class="${bias==='BULLISH'?'v7-buy':bias==='BEARISH'?'v7-sell':'v7-neutral'}">${bias}</b></div>${status}</div><div class="v7-box"><div class="v7-label">BUY ZONE / SELL ZONE · ${state.tf}</div><div class="v7-row"><span>BUY ZONE</span><b class="v7-buy">${zone(bzone)}</b></div><div class="v7-row"><span>SELL ZONE</span><b class="v7-sell">${zone(szone)}</b></div><div class="v7-row"><span>Current Price</span><b>${fmt(r.price)}</b></div><div class="v7-row"><span>Entry area</span><b class="${r.execution?.status==='ENTRY_READY'?'v7-pass':'v7-wait'}">${r.execution?.status||'WAIT'}${r.execution?.source?` · ${esc(r.execution.source)}`:''}</b></div><div class="v7-row"><span>Entry reason</span><b>${esc(r.execution?.reason||'Waiting for execution confirmation')}</b></div></div></div><div class="v7-box" style="margin-top:10px"><div class="v7-label">CANDLE-OPEN MTF PROCESSING · LIVE</div><div class="v7-mtf">${mtf}</div></div><div class="v7-grid" style="margin-top:10px"><div class="v7-box"><div class="v7-label">CANDLE / WICK / PATTERN · ${state.tf}</div>${cs}</div><div class="v7-box"><div class="v7-label">ICT EXECUTION GATES</div><div class="v7-gates">${gate('Liquidity Sweep',gates.liquiditySweep)}${gate('MSS',gates.mss)}${gate('BOS',gates.bos)}${gate('Displacement',gates.displacement)}${gate('FVG',gates.fvg)}${gate('Order Block',gates.orderBlock)}${gate('Premium / Discount',gates.premiumDiscount)}${gate('Execution Zone',gates.executionZone)}${gate('Momentum',gates.momentum)}${gate('Spread',gates.spread)}</div></div></div>`;
+    body.innerHTML=`<div class="v7-grid"><div class="v7-box"><div class="v7-label">Pre-Market MTF Direction Strength</div><div class="v7-score v7-buy">${buy==null?'—':buy}%</div><div class="v7-bar"><i style="width:${buy??0}%"></i></div><div class="v7-row"><span>BUY Strength</span><b class="v7-buy">${buy==null?'—':buy}%</b></div><div class="v7-row"><span>SELL Strength</span><b class="v7-sell">${sell==null?'—':sell}%</b></div><div class="v7-row"><span>MTF Bias</span><b class="${bias==='BULLISH'?'v7-buy':bias==='BEARISH'?'v7-sell':'v7-neutral'}">${bias}</b></div>${status}</div><div class="v7-box"><div class="v7-label">BUY ZONE / SELL ZONE · ${state.tf}</div><div class="v7-row"><span>BUY ZONE</span><b class="v7-buy">${zone(bzone)}</b></div><div class="v7-row"><span>SELL ZONE</span><b class="v7-sell">${zone(szone)}</b></div><div class="v7-row"><span>Current Price</span><b>${fmt(r.price)}</b></div><div class="v7-row"><span>Entry area</span><b>${r.price==null?'—':bias==='BULLISH'?'BELOW PRICE':bias==='BEARISH'?'ABOVE PRICE':'BALANCED'}</b></div></div></div><div class="v7-box" style="margin-top:10px"><div class="v7-label">CANDLE-OPEN MTF PROCESSING · LIVE</div><div class="v7-mtf">${mtf}</div></div><div class="v7-grid" style="margin-top:10px"><div class="v7-box"><div class="v7-label">CANDLE / WICK / PATTERN · ${state.tf}</div>${cs}</div><div class="v7-box"><div class="v7-label">ICT EXECUTION GATES</div><div class="v7-gates">${gate('Liquidity Sweep',gates.liquiditySweep)}${gate('MSS',gates.mss)}${gate('BOS',gates.bos)}${gate('Displacement',gates.displacement)}${gate('FVG',gates.fvg)}${gate('Order Block',gates.orderBlock)}${gate('Premium / Discount',gates.premiumDiscount)}${gate('Execution Zone',gates.executionZone)}${gate('Momentum',gates.momentum)}${gate('Spread',gates.spread)}</div></div></div>`;
   }
   function csafe(v){return num(v)==null?'—':Math.round(v)}
 
