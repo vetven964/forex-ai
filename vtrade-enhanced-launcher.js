@@ -12,22 +12,25 @@ const UI_MARK='VTRADE_PREMARKET_INTELLIGENCE_UI_V2';
 const AUTH_UI_MARK='VTRADE_PREMARKET_AUTHORITY_UI_V1';
 const V9_MARK='VTRADE_PREMARKET_V9_UI';
 function installDashboardUI(){
-  if(!fs.existsSync(DASHBOARD)||!fs.existsSync(UI)||!fs.existsSync(POST)||!fs.existsSync(V9)) return;
+  if(!fs.existsSync(DASHBOARD)||!fs.existsSync(POST)||!fs.existsSync(V9)) return;
   let s=fs.readFileSync(DASHBOARD,'utf8');
   const anchor='  <script src="terminal-pre-market.js"></script>';
   if(!s.includes(anchor)) return;
 
-  // V9 MUST load before the legacy terminal-pre-market.js. The legacy renderer
-  // must see the V9 global and exit, preventing its 30s loop from overwriting
-  // the authoritative MT5 truth panel.
+  // Remove older duplicate pre-market renderers. V9 owns #vtradePreMarket.
+  s=s.replace(/\s*<script src="pre-market-intelligence-ui\.js[^>]*><\/script>(?:<!--[^>]*-->)?/g,'');
+  s=s.replace(/\s*<script src="pre-market-v8\.js[^>]*><\/script>(?:<!--[^>]*-->)?/g,'');
+
+  // V9 MUST load before terminal-pre-market.js. The legacy renderer sees the
+  // V9 global and exits, so its old 30s refresh loop cannot overwrite V9.
   const v9Tag=`  <script src="pre-market-v9.js?v=20260821-v9"></script><!-- ${V9_MARK} -->\n`;
   if(!s.includes(V9_MARK)) s=s.replace(anchor,v9Tag+anchor);
 
   if(fs.existsSync(AUTH_UI)&&!s.includes(AUTH_UI_MARK)) s=s.replace(anchor,`  <script src="pre-market-authority-ui-hotfix.js?v=20260821-v1"></script><!-- ${AUTH_UI_MARK} -->\n`+anchor);
-  if(!s.includes(UI_MARK)) s=s.replace(anchor,anchor+`\n  <script src="pre-market-intelligence-ui.js?v=20260819-v2"></script><!-- ${UI_MARK} -->`);
+  // Keep the post-open monitor; it is a separate confirmation status panel.
   if(!s.includes('pre-market-post-open-ai.js')) s=s.replace('</body>',`  <script src="pre-market-post-open-ai.js?v=20260819-post-open"></script>\n</body>`);
   fs.writeFileSync(DASHBOARD,s,'utf8');
-  console.log('[V-TRADE START] Pre-Market V9 loaded before legacy renderer; authoritative UI locked');
+  console.log('[V-TRADE START] Pre-Market V9 active; duplicate V2/V8 renderers removed');
 }
 installDashboardUI();
 
