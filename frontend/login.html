@@ -48,7 +48,7 @@ body{display:grid;place-items:center;padding:12px}
 </main>
 <script>
 const API='https://forexai-6xw6.onrender.com';
-const ROUTE_VERSION='20260821-route-v3';
+const ROUTE_VERSION='20260821-route-v4';
 const $=id=>document.getElementById(id);
 let role='user',challenge='';
 function setRole(r){role=r;$('userMode').classList.toggle('active',r==='user');$('adminMode').classList.toggle('active',r==='admin');$('submit').textContent=r==='admin'?'👑 Sign in as Admin':'🔐 Sign in as User';}
@@ -71,8 +71,8 @@ async function api(path,options={}){
 }
 function routeByRole(user){
   const r=String(user?.role||'user').trim().toLowerCase();
-  if(r==='admin'||r==='administrator') return 'admin-dashboard.html?v='+ROUTE_VERSION;
-  return 'premium-dashboard-live.html?v='+ROUTE_VERSION;
+  if(r==='admin'||r==='administrator') return '../admin-dashboard.html?v='+ROUTE_VERSION;
+  return '../premium-dashboard-live.html?v='+ROUTE_VERSION;
 }
 function save(data){
   if(!data?.token)throw new Error('Authentication token was not returned.');
