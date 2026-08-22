@@ -1,4 +1,4 @@
-/* V TRADE AI — Server-authoritative RBAC guard V12 — phone navigation continuity */
+/* V TRADE AI — Server-authoritative RBAC guard V12 — phone identity hard-hide */
 (() => {
   'use strict';
   if (window.__VTRADE_RBAC_GUARD_V12__) return;
@@ -30,6 +30,16 @@
   }
   function persistUser(u){const raw=JSON.stringify(u||{});try{localStorage.setItem('vtrade_user',raw)}catch{}try{sessionStorage.setItem('vtrade_user',raw)}catch{}}
   function loadScript(id,src){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.async=false;(document.head||document.documentElement).appendChild(s)}
+  function loadDashboardUiFix(){
+    if(!isAdminPage&&!isTerminalPage)return;
+    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260822-mobile-card-v6');
+    if(isTerminalPage){
+      loadScript('vtradePhoneIdentityRootFixScript','vtrade-phone-identity-root-fix.js?v=20260822-root2');
+      loadScript('vtradePhoneIdentityHardHideScript','vtrade-phone-identity-hard-hide.js?v=20260822-hard1');
+      loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');
+      loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth');
+    }
+  }
   async function verify(){
     const result=await verifySession();
     if(!result.ok)return login(result.reason);
@@ -39,15 +49,6 @@
     document.documentElement.dataset.role=role;
     if(isAdminPage&&!isAdminRole(role))return goTerminal();
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:matchMedia('(max-width:900px)').matches}}));
-  }
-  function loadDashboardUiFix(){
-    if(!isAdminPage&&!isTerminalPage)return;
-    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260822-mobile-card-v6');
-    if(isTerminalPage){
-      loadScript('vtradePhoneIdentityRootFixScript','vtrade-phone-identity-root-fix.js?v=20260822-root2');
-      loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');
-      loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth');
-    }
   }
   loadDashboardUiFix();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',verify,{once:true});else verify();
