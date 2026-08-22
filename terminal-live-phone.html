@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v14&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v15&header-fix=20260822-final" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
@@ -18,18 +18,10 @@ const frame=document.getElementById('phoneFrame');
 function install(){
  const d=frame.contentDocument;
  if(!d||!d.head||!d.body)return;
- if(!d.getElementById('vtrade-phone-fix-v7-script')){
-   const s=d.createElement('script');
-   s.id='vtrade-phone-fix-v7-script';
-   s.src='vtrade-mobile-fix-v4.js?v=14';
-   d.head.appendChild(s);
- }
- if(!d.getElementById('vtrade-phone-nav-auth-fix-script')){
-   const s2=d.createElement('script');
-   s2.id='vtrade-phone-nav-auth-fix-script';
-   s2.src='vtrade-phone-nav-auth-fix.js?v=1';
-   d.head.appendChild(s2);
- }
+ const add=(id,src)=>{if(!d.getElementById(id)){const s=d.createElement('script');s.id=id;s.src=src;d.head.appendChild(s)}};
+ add('vtrade-phone-fix-v9-script','vtrade-mobile-fix-v4.js?v=15');
+ add('vtrade-phone-nav-auth-fix-script','vtrade-phone-nav-auth-fix.js?v=2');
+ add('vtrade-phone-final-v9-script','vtrade-mobile-final-fix.js?v=1');
 }
 frame.addEventListener('load',()=>setTimeout(install,100));
 })();
