@@ -1,18 +1,55 @@
-/* V-TRADE AI — Pre-Market route boot hotfix V8 */
+/* V-TRADE AI — Pre-Market route boot hotfix V9 */
 'use strict';
-const fs=require('fs');const path=require('path');const SERVER=path.join(__dirname,'server.js');const MARKER='VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V8';
+const fs=require('fs');
+const path=require('path');
+const SERVER=path.join(__dirname,'server.js');
+const MARKER='VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V9';
+
 if(fs.existsSync(SERVER)){
- let source=fs.readFileSync(SERVER,'utf8');
- try{const direct=require('./pre-market-direct-route-hotfix.js');source=direct.inject(source);console.log('[V-TRADE PRE-MARKET] DIRECT MT5-FEED V8 injected before legacy routes');}catch(e){console.error('[V-TRADE PRE-MARKET] DIRECT V8 injection failed:',e.stack||e.message);throw e;}
- try{const authority=require('./pre-market-authority-route-hotfix.js');source=authority.inject(source);console.log('[V-TRADE PRE-MARKET AUTH] authoritative MT5 route injected');}catch(e){console.error('[V-TRADE PRE-MARKET AUTH] injection failed:',e.stack||e.message);throw e;}
- if(!source.includes(MARKER)){
-  const anchor='const app = express();';if(!source.includes(anchor))throw new Error('server app marker not found');
-  const patch=`
+  let source=fs.readFileSync(SERVER,'utf8');
+
+  // Remove legacy V8 boot block if it was previously injected.
+  const legacy='/* VTRADE_PREMARKET_ROUTE_BOOT_HOTFIX_V8 */';
+  let start=source.indexOf(legacy);
+  while(start>=0){
+    const next=source.indexOf('/* VTRADE_PREMARKET_AUTHORITY_ROUTE_V4 */',start);
+    if(next>=0) source=source.slice(0,start)+source.slice(next);
+    else break;
+    start=source.indexOf(legacy);
+  }
+
+  // Keep the direct MT5-feed transport layer; it is not an analysis engine.
+  try{
+    const direct=require('./pre-market-direct-route-hotfix.js');
+    source=direct.inject(source);
+    console.log('[V-TRADE PRE-MARKET] DIRECT MT5-FEED transport loaded');
+  }catch(e){
+    console.error('[V-TRADE PRE-MARKET] DIRECT MT5-FEED injection failed:',e.stack||e.message);
+    throw e;
+  }
+
+  // The V4 authority route is the only canonical pre-market processing engine.
+  try{
+    const authority=require('./pre-market-authority-route-hotfix.js');
+    source=authority.inject(source);
+    console.log('[V-TRADE PRE-MARKET AUTH] SINGLE authoritative processing route loaded');
+  }catch(e){
+    console.error('[V-TRADE PRE-MARKET AUTH] authority injection failed:',e.stack||e.message);
+    throw e;
+  }
+
+  if(!source.includes(MARKER)){
+    const anchor='const app = express();';
+    if(!source.includes(anchor))throw new Error('server app marker not found');
+    const patch=`
 /* ${MARKER} */
-try{require('./pre-market-candle-open-engine')(app);console.log('[V-TRADE PRE-MARKET] LEGACY CANDLE-OPEN COMPAT ENGINE LOADED');}catch(e){console.error('[V-TRADE PRE-MARKET] LEGACY CANDLE-OPEN COMPAT ERROR:',e.stack||e.message);}
-for(const alias of ['/api/pre-market/xauusd','/api/pre-market/intelligence']){app.get(alias,async(req,res)=>{try{if(typeof buildXauAnalysis!=='function')throw new Error('Canonical XAUUSD analysis function unavailable');res.set('Cache-Control','no-store');res.json(await buildXauAnalysis());}catch(e){res.status(502).json({success:false,error:String(e?.message||e)});}});}
+// Legacy Candle-Open compatibility engine intentionally disabled.
+// /api/pre-market/mt5-authoritative, /api/pre-market/xauusd and
+// /api/pre-market/intelligence are all served by Authority V4.
+console.log('[V-TRADE PRE-MARKET] ROUTE BOOT V9: legacy processor disabled; authority is canonical');
 `;
-  source=source.replace(anchor,anchor+patch);console.log('[V-TRADE PRE-MARKET] ROUTE BOOT HOTFIX V8 APPLIED');
- }
- fs.writeFileSync(SERVER,source,'utf8');
+    source=source.replace(anchor,anchor+patch);
+  }
+
+  fs.writeFileSync(SERVER,source,'utf8');
 }
