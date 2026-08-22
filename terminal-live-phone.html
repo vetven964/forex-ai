@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v9&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v10&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
@@ -19,10 +19,8 @@ function hidePhoneHeaderAccount(d){
   if(!d||!d.body)return;
   const top=d.querySelector('.top');
   if(!top)return;
-  // Known account control.
   const known=d.getElementById('profileAdminLink');
   if(known) known.style.setProperty('display','none','important');
-  // Remove any account/profile control that RBAC/auth injects into the PHONE header.
   const candidates=top.querySelectorAll('button,a,[role="button"],div,section');
   for(const el of candidates){
     const text=(el.textContent||'').replace(/\s+/g,' ').trim();
@@ -37,28 +35,27 @@ function hidePhoneHeaderAccount(d){
 function install(){
  const d=frame.contentDocument;
  if(!d||!d.head||!d.body)return;
- // Phone-only patch: PC source remains untouched.
- if(!d.getElementById('vtrade-phone-fix-v3-script')){
+ if(!d.getElementById('vtrade-phone-fix-v4-script')){
    const s=d.createElement('script');
-   s.id='vtrade-phone-fix-v3-script';
-   s.src='vtrade-mobile-fix-v3.js?v=9';
+   s.id='vtrade-phone-fix-v4-script';
+   s.src='vtrade-mobile-fix-v4.js?v=10';
    d.head.appendChild(s);
  }
- if(!d.getElementById('vtrade-phone-v9')){
+ if(!d.getElementById('vtrade-phone-v10')){
    const s=d.createElement('style');
-   s.id='vtrade-phone-v9';
+   s.id='vtrade-phone-v10';
    s.textContent=`
 @media(max-width:900px){
  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
  .top #profileAdminLink,.top .vtrade-phone-profile,.top .profile,.top [id*="profile" i],.top [class*="profile" i]{display:none!important;visibility:hidden!important;pointer-events:none!important}
- .side{z-index:2000!important}.scrim{z-index:1900!important}#vtradeMobileBar{z-index:2100!important}
+ .side{top:183px!important;z-index:1200!important;transform:none!important}
+ #vtradeMobileBar{z-index:5000!important;display:grid!important}
 }
 `;
    d.head.appendChild(s);
  }
  const run=()=>hidePhoneHeaderAccount(d);
  run();
- // Auth/RBAC can recreate the header account after page load, so keep the phone header clean.
  new MutationObserver(run).observe(d.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','id']});
  [300,800,1500,3000,6000].forEach(ms=>setTimeout(run,ms));
 }
