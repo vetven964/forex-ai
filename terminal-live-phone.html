@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v13&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v14&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
@@ -21,8 +21,14 @@ function install(){
  if(!d.getElementById('vtrade-phone-fix-v7-script')){
    const s=d.createElement('script');
    s.id='vtrade-phone-fix-v7-script';
-   s.src='vtrade-mobile-fix-v4.js?v=13';
+   s.src='vtrade-mobile-fix-v4.js?v=14';
    d.head.appendChild(s);
+ }
+ if(!d.getElementById('vtrade-phone-nav-auth-fix-script')){
+   const s2=d.createElement('script');
+   s2.id='vtrade-phone-nav-auth-fix-script';
+   s2.src='vtrade-phone-nav-auth-fix.js?v=1';
+   d.head.appendChild(s2);
  }
 }
 frame.addEventListener('load',()=>setTimeout(install,100));
