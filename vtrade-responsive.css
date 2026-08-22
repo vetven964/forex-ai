@@ -92,4 +92,83 @@ table{max-width:100%}
   body:not(.vtrade-admin-mobile) #vtradeMobileBar{z-index:5000!important}
 }
 
+/* MOBILE BOTTOM NAV — fixes browser-default blue links shown on iPhone. */
+@media (max-width:900px){
+  body.vtrade-mobile{padding-bottom:calc(96px + env(safe-area-inset-bottom))!important}
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar{
+    position:fixed!important;
+    left:10px!important;
+    right:10px!important;
+    bottom:max(8px,env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    height:64px!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:4px!important;
+    padding:6px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    border:1px solid #263957!important;
+    border-radius:20px!important;
+    background:rgba(5,10,18,.96)!important;
+    backdrop-filter:blur(18px)!important;
+    -webkit-backdrop-filter:blur(18px)!important;
+    box-shadow:0 14px 45px rgba(0,0,0,.48),0 0 0 1px rgba(72,105,160,.08) inset!important;
+    overflow:hidden!important;
+  }
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a{
+    min-width:0!important;
+    max-width:none!important;
+    height:50px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    padding:4px 2px!important;
+    margin:0!important;
+    border:1px solid transparent!important;
+    border-radius:14px!important;
+    background:transparent!important;
+    color:#8ea0b8!important;
+    font:600 10px/1.1 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif!important;
+    text-decoration:none!important;
+    -webkit-tap-highlight-color:transparent!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a:hover,
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a:focus-visible,
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a.active,
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a[aria-current="page"]{
+    color:#f5f8ff!important;
+    background:rgba(91,45,214,.28)!important;
+    border-color:rgba(128,80,255,.7)!important;
+    outline:none!important;
+  }
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar .mi{
+    display:grid!important;
+    place-items:center!important;
+    width:28px!important;
+    height:25px!important;
+    font-size:20px!important;
+    line-height:1!important;
+    color:inherit!important;
+    text-decoration:none!important;
+  }
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a span:last-child{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+}
+
+@media (max-width:380px){
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar{left:7px!important;right:7px!important;height:60px!important;border-radius:18px!important}
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar a{height:48px!important;font-size:9px!important}
+  body:not(.vtrade-admin-mobile) #vtradeMobileBar .mi{font-size:18px!important}
+}
+
 /* Desktop/PC intentionally unchanged. */
