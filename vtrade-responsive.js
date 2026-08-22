@@ -1,13 +1,13 @@
-/* V TRADE AI — Mobile App shell / navigation V11 */
+/* V TRADE AI — Mobile App shell / navigation V12 */
 (() => {
   'use strict';
-  if (window.__VTRADE_RESPONSIVE_V11__) return;
-  window.__VTRADE_RESPONSIVE_V11__ = true;
+  if (window.__VTRADE_RESPONSIVE_V12__) return;
+  window.__VTRADE_RESPONSIVE_V12__ = true;
   const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
   const path=location.pathname.split('/').pop().toLowerCase();
   function injectStyle(){
-    if(document.getElementById('vtradeResponsiveRuntimeStyleV11'))return;
-    const s=document.createElement('style');s.id='vtradeResponsiveRuntimeStyleV11';
+    if(document.getElementById('vtradeResponsiveRuntimeStyleV12'))return;
+    const s=document.createElement('style');s.id='vtradeResponsiveRuntimeStyleV12';
     s.textContent=`
       @media(max-width:900px){
         html,body{width:100%;max-width:100%;overflow-x:hidden!important}
@@ -58,9 +58,18 @@
     `;
     document.head.appendChild(s);
   }
+  function loadScript(id,src){
+    if(document.getElementById(id))return;
+    const s=document.createElement('script');s.id=id;s.src=src;s.async=false;
+    (document.head||document.documentElement).appendChild(s);
+  }
   function loadDirectPhoneShell(){
     if(!isMobile()||window.__VTRADE_DIRECT_PHONE_SHELL_V1__||document.getElementById('vtradeDirectPhoneShellScript'))return;
     const s=document.createElement('script');s.id='vtradeDirectPhoneShellScript';s.src='vtrade-phone-shell-direct-v1.js?v=20260822-direct5';document.head.appendChild(s);
+  }
+  function loadPhoneControls(){
+    if(!isMobile()||!['premium-dashboard-live.html','dashboard.html'].includes(path))return;
+    loadScript('vtradePhoneControlsScript','vtrade-phone-controls-v1.js?v=20260822-tf-dropdown');
   }
   function setActive(bar){
     const current=(location.hash||'#dashboard').toLowerCase();
@@ -92,6 +101,7 @@
     if(path==='admin-dashboard.html')addAdminShell();
     else if(['premium-dashboard-live.html','dashboard.html','profile.html','pricing.html'].includes(path)){
       loadDirectPhoneShell();
+      loadPhoneControls();
       addMobileNav();
     }
   }
