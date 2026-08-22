@@ -36,6 +36,27 @@ html,body{width:100%!important;min-width:0!important;max-width:100%!important;ov
 @media(max-width:520px){.top>.price{font-size:25px!important;max-width:140px!important}.wrap{padding-left:8px!important;padding-right:8px!important}}
 `;
 document.head.appendChild(css);
+
+/* PHONE ONLY: the authoritative backend badge belongs in the header (.backend).
+   Older connection/UI layers may also inject a fixed "V TRADE backend live"
+   pill above the bottom navigation. Remove only that duplicate status overlay;
+   never remove the header badge or any terminal/pre-market card. */
+const removeDuplicateBackendPill=()=>{
+  if(!matchMedia('(max-width:900px)').matches)return;
+  document.querySelectorAll('body *').forEach(el=>{
+    if(el.id==='vtradeMobileBar'||el.classList?.contains('backend')||el.closest?.('.top'))return;
+    const text=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+    if(!text||text.length>80||!text.includes('v trade')||!text.includes('backend')||!text.includes('live'))return;
+    const cs=getComputedStyle(el);
+    if(cs.position==='fixed' || cs.position==='sticky'){
+      el.style.setProperty('display','none','important');
+      el.setAttribute('data-vtrade-duplicate-backend','1');
+    }
+  });
+};
+removeDuplicateBackendPill();
+new MutationObserver(removeDuplicateBackendPill).observe(document.body,{childList:true,subtree:true});
+
 const side=document.getElementById('side'),menu=document.querySelector('.top>.mobile'),scrim=document.getElementById('scrim');
 const close=()=>{side?.classList.remove('open','vtrade-open');scrim?.classList.remove('show')};
 const open=()=>{side?.classList.add('open');scrim?.classList.add('show')};
