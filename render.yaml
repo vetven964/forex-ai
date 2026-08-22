@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node server-launcher.js
+    startCommand: node --require ./vtrade-runtime-env-lock.js server-launcher.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -62,7 +62,7 @@ services:
       - key: TELEGRAM_AUTO_ALERT_ENABLED
         value: "false"
       - key: TELEGRAM_AUTO_ALERT_INTERVAL_MS
-        value: "15000"
+        value: "0"
       - key: TELEGRAM_WAIT_ALERT_COOLDOWN_MS
         value: "900000"
       - key: NEWS_FAIL_CLOSED
