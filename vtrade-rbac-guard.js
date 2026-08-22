@@ -37,14 +37,12 @@
     persistUser(u);
     document.documentElement.lang=localStorage.getItem('vtrade_lang')==='km'?'km':'en';
     document.documentElement.dataset.role=role;
-    /* IMPORTANT: an authenticated admin may enter Terminal directly on phone.
-       Do not redirect Terminal -> Admin. This prevents navigation loops/re-login. */
     if(isAdminPage&&!isAdminRole(role))return goTerminal();
     window.dispatchEvent(new CustomEvent('vtrade:rbac-ready',{detail:{user:u,role,mobile:matchMedia('(max-width:900px)').matches}}));
   }
   function loadDashboardUiFix(){
     if(!isAdminPage&&!isTerminalPage)return;
-    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260821-live-price-v2');
+    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260822-mobile-card-v4');
     if(isTerminalPage){
       loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');
       loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth');
