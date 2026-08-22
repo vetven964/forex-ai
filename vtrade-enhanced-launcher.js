@@ -57,6 +57,7 @@ function startIndependentTelegram(){
   const childEnv={...process.env,
     TELEGRAM_TOKEN:token,TELEGRAM_CHAT_ID:chat,
     TELEGRAM_AUTO_TOKEN:'',TELEGRAM_AUTO_CHAT_ID:'',
+    TELEGRAM_AUTO_ALERT_ENABLED:'false',
     VTRADE_CORE_URL:process.env.VTRADE_CORE_URL||`http://127.0.0.1:${process.env.PORT||10000}`,
     VTRADE_TELEGRAM_SEPARATE:'true'
   };
@@ -65,6 +66,9 @@ function startIndependentTelegram(){
   process.env.TELEGRAM_CHAT_ID='';
   process.env.TELEGRAM_AUTO_TOKEN='';
   process.env.TELEGRAM_AUTO_CHAT_ID='';
+  process.env.TELEGRAM_AUTO_ALERT_ENABLED='false';
+  process.env.VTRADE_TELEGRAM_SEPARATE='true';
+  console.log('[V-TRADE TELEGRAM SEPARATION] Legacy CORE Telegram Auto Scanner = DISABLED');
   const child=spawn(process.execPath,[path.join(ROOT,'telegram-bot-ai-service.js')],{env:childEnv,stdio:'inherit'});
   child.on('exit',(code,signal)=>console.warn('[V-TRADE TELEGRAM AI] child exited | code='+(code??'')+' signal='+(signal||'')));
   child.on('error',e=>console.error('[V-TRADE TELEGRAM AI] child error:',e.message));
