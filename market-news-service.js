@@ -1,7 +1,8 @@
-/* V-TRADE AI — Market News / Macro Radar V2
+/* V-TRADE AI — Market News / Macro Radar V3
  * Read-only macro/news intelligence for Telegram.
  * HIGH impact can create BUY/SELL BIAS only.
  * MEDIUM = WAIT. LOW = IGNORE.
+ * Telegram presentation is Khmer-first.
  * Does NOT authorize trades or alter CORE ICT execution gates.
  */
 'use strict';
@@ -60,9 +61,9 @@ function scoreNews(item){
   const confidence=Math.min(95,35+Math.abs(score)*12+(relevant?10:0));
   const impact=EVENT_HIGH.test(text)||Math.abs(score)>=3?'HIGH':relevant?'MEDIUM':'LOW';
 
-  let reason='Mixed/unclear macro signal';
-  if(score>0)reason='Dovish/risk-off tone can support gold';
-  if(score<0)reason='Hawkish/rising-yield tone can pressure gold';
+  let reason='សញ្ញាព័ត៌មានមិនទាន់ច្បាស់លាស់';
+  if(score>0)reason='ព័ត៌មានបែប Dovish / Risk-off អាចជួយគាំទ្រតម្លៃមាស';
+  if(score<0)reason='ព័ត៌មានបែប Hawkish / អត្រាការប្រាក់ឬ Yield ខ្ពស់ អាចដាក់សម្ពាធលើមាស';
 
   // News is a pre-market bias layer, never an order authorization layer.
   let decision='IGNORE';
@@ -80,21 +81,11 @@ function scoreNews(item){
     decision='WAIT_NO_ENTRY';
   }
 
-  return {
-    ...item,
-    relevant,
-    bias,
-    tradeBias,
-    confidence,
-    impact,
-    decision,
-    entryBlocked,
-    reason
-  };
+  return {...item,relevant,bias,tradeBias,confidence,impact,decision,entryBlocked,reason};
 }
 
 async function fetchFeed(feed){
-  const r=await fetch(feed.url,{headers:{'user-agent':'V-TRADE-AI-Macro-Radar/2.0'},cache:'no-store'});
+  const r=await fetch(feed.url,{headers:{'user-agent':'V-TRADE-AI-Macro-Radar/3.0'},cache:'no-store'});
   if(!r.ok)throw new Error(feed.name+' HTTP '+r.status);
   const xml=await r.text();
   return parseFeed(xml,feed.name).map(x=>({...x,official:feed.official}));
@@ -113,32 +104,42 @@ async function getNews(limit=8){
     return true;
   });
   fresh.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
-  // Keep all impact levels so Telegram can explicitly show HIGH/MEDIUM/LOW behavior.
   return fresh.map(scoreNews).slice(0,limit);
 }
 
-function impactIcon(impact){return impact==='HIGH'?'🔴':impact==='MEDIUM'?'🟠':'🟢';}
+function impactLabel(impact){
+  if(impact==='HIGH')return '🔴 *ខ្ពស់ (HIGH)*';
+  if(impact==='MEDIUM')return '🟠 *មធ្យម (MEDIUM)*';
+  return '🟢 *ទាប (LOW)*';
+}
 function decisionText(n){
-  if(n.decision==='BUY_BIAS_WAIT_ICT')return 'BUY BIAS — WAIT ICT CONFIRMATION';
-  if(n.decision==='SELL_BIAS_WAIT_ICT')return 'SELL BIAS — WAIT ICT CONFIRMATION';
-  if(n.decision==='WAIT_NO_TRADE')return 'WAIT — NO TRADE';
-  if(n.decision==='WAIT_NO_ENTRY')return 'WAIT — NO ENTRY';
-  return 'IGNORE — NO TRADE SIGNAL';
+  if(n.decision==='BUY_BIAS_WAIT_ICT')return '🟢 ទិស BUY — រង់ចាំ ICT បញ្ជាក់';
+  if(n.decision==='SELL_BIAS_WAIT_ICT')return '🔴 ទិស SELL — រង់ចាំ ICT បញ្ជាក់';
+  if(n.decision==='WAIT_NO_TRADE')return '🟡 រង់ចាំ — មិនចូលផ្សារ';
+  if(n.decision==='WAIT_NO_ENTRY')return '🟡 រង់ចាំ — មិនទាន់ចូល Entry';
+  return '⚪ មិនយកជាសញ្ញា — មិនចូលផ្សារ';
+}
+function biasText(bias){
+  if(bias==='BULLISH')return 'BULLISH — ទិសឡើង';
+  if(bias==='BEARISH')return 'BEARISH — ទិសចុះ';
+  return 'NEUTRAL — មិនទាន់មានទិស';
 }
 
 function formatNews(items){
-  if(!items.length)return '📰 *V TRADE AI — MACRO RADAR*\\n\\nNo macro news found.';
-  const lines=['📰 *V TRADE AI — PRE-MARKET MACRO RADAR*',''];
+  if(!items.length)return '📰 *V TRADE AI — ព័ត៌មានសេដ្ឋកិច្ច\\n\\nមិនមានព័ត៌មានសំខាន់ថ្មីទេ។';
+  const lines=['📰 *V TRADE AI — ព័ត៌មានសេដ្ឋកិច្ចមុនផ្សារ*',''];
   for(const n of items.slice(0,5)){
-    lines.push(impactIcon(n.impact)+' *'+n.impact+'* '+n.title);
-    lines.push('📊 Gold Bias: *'+n.bias+'* | Confidence: *'+n.confidence+'/100*');
-    lines.push('🎯 AI Decision: *'+decisionText(n)+'*');
-    lines.push('🔒 Entry Authorization: *BLOCKED*');
+    lines.push(impactLabel(n.impact));
+    lines.push('📰 '+n.title);
+    lines.push('📊 ទិសមាស: *'+biasText(n.bias)+'*');
+    lines.push('🧠 កម្រិតជឿជាក់: *'+n.confidence+'/100*');
+    lines.push('🎯 ការសម្រេចរបស់ AI: *'+decisionText(n)+'*');
+    lines.push('🔒 អនុញ្ញាតចូលផ្សារ: *មិនទាន់អនុញ្ញាត*');
     lines.push('💡 '+n.reason);
     lines.push('');
   }
-  lines.push('⚠️ News only sets pre-market bias. ICT/CORE gates control entries.');
+  lines.push('⚠️ ព័ត៌មានប្រើសម្រាប់កំណត់ទិសមុនផ្សារ។ ICT/CORE gates ជាអ្នកសម្រេច Entry ចុងក្រោយ។');
   return lines.join('\\n');
 }
 
-module.exports={FEEDS,getNews,formatNews,scoreNews,decisionText};
+module.exports={FEEDS,getNews,formatNews,scoreNews,decisionText,impactLabel,biasText};
