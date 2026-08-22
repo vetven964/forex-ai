@@ -1,14 +1,13 @@
-/* V TRADE AI — PHONE CONTROLS V9
+/* V TRADE AI — PHONE CONTROLS V10
  * PHONE ONLY: one timeframe selector + Analyze AI.
- * Requested: M5, M15, H1, D1. Desktop/trading logic untouched.
- * V9: robustly removes the floating VET VEN / Administrator profile card on phone.
+ * Desktop/trading logic untouched.
+ * V10: deterministic removal of the floating VET VEN / Administrator identity card.
  */
 (()=>{
 'use strict';
-if(!window.matchMedia||!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V9__)return;
-window.__VTRADE_PHONE_CONTROLS_V9__=true;
-
-const style=document.createElement('style');style.id='vtrade-phone-controls-v9-style';style.textContent=`
+if(!window.matchMedia||!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V10__)return;
+window.__VTRADE_PHONE_CONTROLS_V10__=true;
+const style=document.createElement('style');style.id='vtrade-phone-controls-v10-style';style.textContent=`
 @media(max-width:900px){
  .top>.tfs,#vtradePreMarket .v91a{display:none!important}
  .vtrade-phone-tf-controls{display:flex!important;gap:8px!important;width:100%!important;max-width:100%!important;align-items:stretch!important;margin:8px 0 0!important;box-sizing:border-box!important}
@@ -19,52 +18,48 @@ const style=document.createElement('style');style.id='vtrade-phone-controls-v9-s
 @media(min-width:901px){#vtradePhoneTfHost{display:none!important}}
 `;
 document.head.appendChild(style);
-
 const isPhone=()=>matchMedia('(max-width:900px)').matches;
 const isTerminal=()=>{const p=(location.pathname.split('/').pop()||'').toLowerCase();return /(?:premium-dashboard-live|premium-dashboard-v4|premium-dashboard|dashboard)\\.html$/i.test(p)||!!document.getElementById('vtradePreMarket')};
-
+function hide(el){if(!el||el===document.body||el.id==='side'||el.id==='vtradeMobileBar'||el.closest('.side'))return false;el.classList.add('vtrade-phone-hide-admin');el.setAttribute('data-vtrade-phone-admin-hidden','1');el.style.setProperty('display','none','important');el.style.setProperty('visibility','hidden','important');el.style.setProperty('pointer-events','none','important');return true}
 function hideAdminCard(){
  if(!isPhone())return;
  const vw=window.innerWidth,vh=window.innerHeight;
- const candidates=[];
+ const textOf=el=>(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim();
+ const isIdentity=t=>/\\bVET\\s+VEN\\b/i.test(t)&&/\\bAdministrator\\b/i.test(t);
+ // First pass: exact card-sized containers containing BOTH identity strings.
+ const cards=[];
  for(const el of document.querySelectorAll('body *')){
-  if(el===document.body||el.id==='vtradeMobileBar'||el.id==='side'||el.closest('.side'))continue;
-  if(el.classList?.contains('vtrade-phone-hide-admin'))continue;
-  const text=(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim();
-  if(!/VET\\s+VEN/i.test(text)||!/(Administrator|Admin)/i.test(text))continue;
+  if(el===document.body||el.id==='side'||el.id==='vtradeMobileBar'||el.closest('.side'))continue;
+  if(el.hasAttribute('data-vtrade-phone-admin-hidden'))continue;
+  const t=textOf(el);if(!isIdentity(t))continue;
   const r=el.getBoundingClientRect();
-  if(r.width<220||r.height<60||r.width>vw*0.95||r.height>vh*0.5)continue;
+  if(r.width<220||r.width>vw*0.96||r.height<55||r.height>240)continue;
   const cs=getComputedStyle(el);
-  const floating=(cs.position==='fixed'||cs.position==='absolute'||cs.position==='sticky');
-  const lowerRight=(r.left>vw*0.45&&r.top>vh*0.45);
-  const largeEnough=(r.width>=260&&r.height>=75);
-  const score=(floating?100:0)+(lowerRight?50:0)+(largeEnough?25:0)+(r.width<vw*0.9?10:0);
-  candidates.push({el,r,score,textLen:text.length});
+  const floating=['fixed','absolute','sticky'].includes(cs.position);
+  const right=r.left>vw*0.30;
+  const visible=r.bottom>0&&r.right>0&&r.left<vw&&r.top<vh;
+  if(!visible)continue;
+  cards.push({el,r,score:(floating?100:0)+(right?50:0)+(r.width>=250?20:0)+(r.height<=140?15:0)});
  }
- if(!candidates.length)return;
- candidates.sort((a,b)=>b.score-a.score||a.textLen-b.textLen);
- const best=candidates[0];
- if(best.score>=100 || (best.r.left>vw*0.4&&best.r.top>vh*0.4&&best.r.width>=260)){
-  best.el.classList.add('vtrade-phone-hide-admin');
-  return;
- }
- // Fallback: walk upward from the text match and hide the first card-sized container.
- const direct=[...document.querySelectorAll('body *')].filter(el=>{
-  const t=(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim();
-  return /VET\\s+VEN/i.test(t)&&/(Administrator|Admin)/i.test(t);
- });
- for(const el of direct){
-  let p=el;
-  for(let i=0;i<5&&p&&p!==document.body;i++,p=p.parentElement){
+ if(cards.length){cards.sort((a,b)=>b.score-a.score);hide(cards[0].el);return}
+ // Second pass: find either text fragment and climb until the nearest card-sized ancestor contains both strings.
+ const starts=[...document.querySelectorAll('body *')].filter(el=>{const t=textOf(el);return /\\bVET\\s+VEN\\b/i.test(t)||/\\bAdministrator\\b/i.test(t)});
+ for(const start of starts){
+  let p=start;
+  for(let i=0;i<10&&p&&p!==document.body;i++,p=p.parentElement){
+   if(p.id==='side'||p.closest('.side'))break;
+   const t=textOf(p);if(!isIdentity(t))continue;
    const r=p.getBoundingClientRect();
-   if(r.width>=260&&r.height>=75&&r.left>vw*0.4&&r.top>vh*0.4&&r.width<=vw*0.95){
-    p.classList.add('vtrade-phone-hide-admin');
-    return;
-   }
+   if(r.width>=220&&r.width<=vw*0.96&&r.height>=55&&r.height<=240&&r.left>vw*0.25){hide(p);return}
   }
  }
+ // Third pass: if the identity is rendered by a shadow/custom element, hide the nearest visible host by text.
+ for(const el of document.querySelectorAll('body *')){
+  const t=textOf(el);if(!isIdentity(t))continue;
+  const r=el.getBoundingClientRect();
+  if(r.width>=180&&r.height>=45&&r.left>vw*0.25){hide(el);return}
+ }
 }
-
 function wireTimeframe(){
  if(!isPhone()||!isTerminal())return false;
  const pre=document.getElementById('vtradePreMarket');if(!pre)return false;
@@ -83,9 +78,7 @@ function wireTimeframe(){
  const active=row.querySelector('.v91b.on')?.getAttribute('data-v91tf');const select=host.querySelector('select');if(active&&['M5','M15','H1','D1'].includes(active))select.value=active;
  return true;
 }
-
-let tries=0;
-const run=()=>{if(!isPhone())return;hideAdminCard();wireTimeframe();if(tries++<120)setTimeout(run,300)};
+let tries=0;const run=()=>{if(!isPhone())return;hideAdminCard();wireTimeframe();if(tries++<160)setTimeout(run,300)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 new MutationObserver(()=>{if(isPhone()){hideAdminCard();wireTimeframe()}}).observe(document.body,{childList:true,subtree:true});
 window.addEventListener('hashchange',()=>setTimeout(run,50));
