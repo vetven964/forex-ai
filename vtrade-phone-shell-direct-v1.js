@@ -1,29 +1,30 @@
-/* V TRADE AI — DIRECT PHONE SHELL V3
-   PHONE ONLY: compact single-row header.
+/* V TRADE AI — DIRECT PHONE SHELL V4
+   PHONE ONLY: compact, polished single-row market header.
    Desktop, trading logic, MT5 and data flow untouched.
 */
 (()=>{
 'use strict';
-if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_DIRECT_PHONE_SHELL_V3__)return;
-window.__VTRADE_DIRECT_PHONE_SHELL_V3__=true;
+if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_DIRECT_PHONE_SHELL_V4__)return;
+window.__VTRADE_DIRECT_PHONE_SHELL_V4__=true;
 
 const css=document.createElement('style');
-css.id='vtrade-direct-phone-shell-v3';
+css.id='vtrade-direct-phone-shell-v4';
 css.textContent=`
 @media(max-width:900px){
   html,body{width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:hidden!important;margin:0!important;background:#04070d!important}
   .app,.main{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;padding:0!important}
 
-  /* HEADER — one row only */
+  /* PHONE HEADER — exactly one horizontal row */
   .top{
     display:flex!important;
+    flex-flow:row nowrap!important;
     align-items:center!important;
     width:100%!important;
     min-width:0!important;
     max-width:100%!important;
-    height:70px!important;
-    min-height:70px!important;
-    padding:9px 10px!important;
+    height:68px!important;
+    min-height:68px!important;
+    padding:8px 10px!important;
     gap:7px!important;
     overflow:hidden!important;
     box-sizing:border-box!important;
@@ -36,10 +37,11 @@ css.textContent=`
     height:44px!important;
     margin:0!important;
     border-radius:12px!important;
+    box-sizing:border-box!important;
   }
   .top>.pair{
     flex:1 1 auto!important;
-    min-width:72px!important;
+    min-width:0!important;
     max-width:none!important;
     overflow:hidden!important;
     display:flex!important;
@@ -47,9 +49,19 @@ css.textContent=`
     gap:7px!important;
     white-space:nowrap!important;
   }
-  .top>.pair>*{min-width:0!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
-  .top>.pair small,.top>.pair .subtitle,.top>.pair .sub,.top>.pair [class*="subtitle"]{display:none!important}
+  .top>.pair>*{
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .top>.pair small,.top>.pair .subtitle,.top>.pair .sub,.top>.pair [class*="subtitle"]{
+    display:none!important;
+  }
   .top>.pair .star{flex:0 0 auto!important;font-size:20px!important}
+  .top>.pair b,.top>.pair strong{font-size:17px!important;line-height:1!important}
+
   .top>.price{
     flex:0 0 auto!important;
     width:auto!important;
@@ -66,21 +78,22 @@ css.textContent=`
   .top>.backend{
     flex:0 0 auto!important;
     width:auto!important;
+    max-width:98px!important;
     min-width:0!important;
-    max-width:94px!important;
     margin:0!important;
     padding:7px 9px!important;
     box-sizing:border-box!important;
     border-radius:999px!important;
     font-size:9px!important;
     line-height:1!important;
+    font-weight:900!important;
     white-space:nowrap!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
   }
   .top>.tfs,.top>.lang-row{display:none!important}
 
-  /* Keep the rest of the phone layout fluid and below the header. */
+  /* Everything below the header stays fluid. */
   .side{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:min(290px,82vw)!important;height:100dvh!important;max-height:100dvh!important;z-index:6000!important;transform:translateX(-110%)!important;transition:transform .22s ease!important;overflow-y:auto!important;overflow-x:hidden!important}
   .side.open,.side.vtrade-open{transform:translateX(0)!important}
   .scrim{position:fixed!important;inset:0!important;z-index:5990!important;display:block!important;opacity:0!important;pointer-events:none!important;background:rgba(0,0,0,.58)!important}
@@ -95,17 +108,18 @@ css.textContent=`
   #vtradeMobileBar{position:fixed!important;left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important;z-index:5000!important}
 }
 @media(max-width:390px){
-  .top{height:66px!important;min-height:66px!important;padding:8px!important;gap:5px!important}
+  .top{height:64px!important;min-height:64px!important;padding:7px 8px!important;gap:5px!important}
   .top>.mobile{flex-basis:42px!important;width:42px!important;height:42px!important}
-  .top>.pair{min-width:64px!important;gap:5px!important}
+  .top>.pair{gap:5px!important}
   .top>.pair .star{font-size:18px!important}
-  .top>.price{font-size:21px!important;max-width:94px!important}
-  .top>.backend{max-width:82px!important;padding:6px 7px!important;font-size:8px!important}
+  .top>.pair b,.top>.pair strong{font-size:16px!important}
+  .top>.price{font-size:21px!important;max-width:96px!important}
+  .top>.backend{max-width:88px!important;padding:6px 7px!important;font-size:8px!important}
 }
 `;
 document.head.appendChild(css);
 
-/* PHONE ONLY: keep one authoritative header backend badge; remove duplicate fixed live pills. */
+/* PHONE ONLY: one authoritative backend badge; remove duplicate fixed live pills. */
 const removeDuplicateBackendPill=()=>{
   if(!matchMedia('(max-width:900px)').matches)return;
   document.querySelectorAll('body *').forEach(el=>{
@@ -119,8 +133,26 @@ const removeDuplicateBackendPill=()=>{
     }
   });
 };
+
+/* PHONE ONLY: hide a stray standalone BEARISH/ BULLISH label if it is floating
+   outside the actual signal/analysis cards. The real signal value is untouched. */
+const removeStrayBiasLabel=()=>{
+  if(!matchMedia('(max-width:900px)').matches)return;
+  document.querySelectorAll('body *').forEach(el=>{
+    if(el.closest?.('.top,.card,.signal,.setup,.tf,.pill,.section,.section-title'))return;
+    const text=(el.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();
+    if(!/^[•·\-]?\s*(BEARISH|BULLISH)$/.test(text))return;
+    const cs=getComputedStyle(el);
+    const r=el.getBoundingClientRect();
+    if((cs.position==='fixed'||cs.position==='sticky'||cs.position==='absolute')&&(r.right>innerWidth*.65||r.bottom>innerHeight*.65)){
+      el.style.setProperty('display','none','important');
+      el.setAttribute('data-vtrade-stray-bias','1');
+    }
+  });
+};
 removeDuplicateBackendPill();
-new MutationObserver(removeDuplicateBackendPill).observe(document.body,{childList:true,subtree:true});
+removeStrayBiasLabel();
+new MutationObserver(()=>{removeDuplicateBackendPill();removeStrayBiasLabel()}).observe(document.body,{childList:true,subtree:true});
 
 const side=document.getElementById('side'),menu=document.querySelector('.top>.mobile'),scrim=document.getElementById('scrim');
 const close=()=>{side?.classList.remove('open','vtrade-open');scrim?.classList.remove('show')};
