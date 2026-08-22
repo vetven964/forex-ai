@@ -21,6 +21,16 @@ process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS = String(
   Math.max(30000, Number(process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS || 60000))
 );
 
+// Compatibility alias for older scanner code that still reads the old
+// readiness variable. This prevents a first-scan ReferenceError while the
+// canonical global readiness state remains available to newer code.
+if (typeof globalThis.telegramAutoLastReadinessLog === 'undefined') {
+  globalThis.telegramAutoLastReadinessLog = '';
+}
+if (typeof globalThis.__vtradeTelegramAutoReadinessLog === 'undefined') {
+  globalThis.__vtradeTelegramAutoReadinessLog = '';
+}
+
 console.log(
   '[V-TRADE TELEGRAM SEPARATION] Auto runtime preserved | enabled=' +
   (process.env.TELEGRAM_AUTO_ALERT_ENABLED === 'true') +
