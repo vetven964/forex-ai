@@ -5,6 +5,16 @@ const path=require('path');
 const originalReadFileSync=fs.readFileSync.bind(fs);
 const SERVER_FILE=path.resolve(__dirname,'server.js');
 let installed=false;
+
+// Canonical architecture: CORE owns MT5/Pre-Market/ICT analysis only.
+// Legacy Telegram Auto must never start inside CORE, even if Render dashboard
+// environment variables still contain TELEGRAM_AUTO_ALERT_ENABLED=true.
+process.env.TELEGRAM_AUTO_ALERT_ENABLED='false';
+process.env.TELEGRAM_AUTO_ALERT_INTERVAL_MS='0';
+process.env.TELEGRAM_AUTO_TOKEN='';
+process.env.TELEGRAM_AUTO_CHAT_ID='';
+console.log('[V-TRADE TELEGRAM SEPARATION] LEGACY CORE TELEGRAM AUTO = HARD DISABLED');
+
 function patchServerSource(source){
   let out=String(source);
   out=out.replace("const frames=['M5','M15','H1','H4'];","const frames=['M5','M15','H1','H4','D1'];");
