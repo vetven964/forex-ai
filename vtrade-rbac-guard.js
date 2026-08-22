@@ -1,8 +1,8 @@
-/* V TRADE AI — Server-authoritative RBAC guard V11 — phone navigation continuity */
+/* V TRADE AI — Server-authoritative RBAC guard V12 — phone navigation continuity */
 (() => {
   'use strict';
-  if (window.__VTRADE_RBAC_GUARD_V11__) return;
-  window.__VTRADE_RBAC_GUARD_V11__ = true;
+  if (window.__VTRADE_RBAC_GUARD_V12__) return;
+  window.__VTRADE_RBAC_GUARD_V12__ = true;
   const BACKEND='https://forexai-6xw6.onrender.com';
   const file=String(location.pathname.split('/').pop()||'').toLowerCase();
   const isAdminPage=file==='admin-dashboard.html';
@@ -11,7 +11,7 @@
   const token=()=>window.VTRADE_CONNECTION?.token?.()||localStorage.getItem('vtrade_auth_token')||localStorage.getItem('vtrade_auth')||sessionStorage.getItem('vtrade_auth_token')||sessionStorage.getItem('vtrade_auth')||'';
   const isAdminRole=r=>['admin','administrator'].includes(String(r||'').trim().toLowerCase());
   const login=r=>location.replace(`login.html?required=login&reason=${encodeURIComponent(r||'login')}`);
-  const goTerminal=()=>location.replace('premium-dashboard-live.html?v=20260822-rbac-v11');
+  const goTerminal=()=>location.replace('premium-dashboard-live.html?v=20260822-rbac-v12');
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   async function verifySession(){
     const t=token();
@@ -42,9 +42,9 @@
   }
   function loadDashboardUiFix(){
     if(!isAdminPage&&!isTerminalPage)return;
-    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260822-mobile-card-v5');
+    loadScript('vtradeDashboardUiFixScript','dashboard-ui-fix.js?v=20260822-mobile-card-v6');
     if(isTerminalPage){
-      loadScript('vtradePhoneIdentityRootFixScript','vtrade-phone-identity-root-fix.js?v=20260822-root1');
+      loadScript('vtradePhoneIdentityRootFixScript','vtrade-phone-identity-root-fix.js?v=20260822-root2');
       loadScript('vtradeHeaderAuthoritySyncScript','vtrade-header-authority-sync.js?v=20260821-authority');
       loadScript('vtradeBackendStatusSyncScript','vtrade-backend-status-sync.js?v=20260821-backend-truth');
     }
