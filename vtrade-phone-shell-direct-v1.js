@@ -1,20 +1,20 @@
-/* V TRADE AI — DIRECT PHONE SHELL V4
+/* V TRADE AI — DIRECT PHONE SHELL V5
    PHONE ONLY: compact, polished single-row market header.
    Desktop, trading logic, MT5 and data flow untouched.
 */
 (()=>{
 'use strict';
-if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_DIRECT_PHONE_SHELL_V4__)return;
-window.__VTRADE_DIRECT_PHONE_SHELL_V4__=true;
+if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_DIRECT_PHONE_SHELL_V5__)return;
+window.__VTRADE_DIRECT_PHONE_SHELL_V5__=true;
 
 const css=document.createElement('style');
-css.id='vtrade-direct-phone-shell-v4';
+css.id='vtrade-direct-phone-shell-v5';
 css.textContent=`
 @media(max-width:900px){
   html,body{width:100%!important;min-width:0!important;max-width:100%!important;overflow-x:hidden!important;margin:0!important;background:#04070d!important}
   .app,.main{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;padding:0!important}
 
-  /* PHONE HEADER — exactly one horizontal row */
+  /* PHONE HEADER — one authoritative horizontal row */
   .top{
     display:flex!important;
     flex-flow:row nowrap!important;
@@ -22,31 +22,30 @@ css.textContent=`
     width:100%!important;
     min-width:0!important;
     max-width:100%!important;
-    height:68px!important;
-    min-height:68px!important;
-    padding:8px 10px!important;
-    gap:7px!important;
+    height:66px!important;
+    min-height:66px!important;
+    padding:7px 8px!important;
+    gap:6px!important;
     overflow:hidden!important;
-    box-sizing:border-box!important;
   }
   .top>.mobile{
     display:grid!important;
-    flex:0 0 44px!important;
+    flex:0 0 42px!important;
     place-items:center!important;
-    width:44px!important;
-    height:44px!important;
+    width:42px!important;
+    height:42px!important;
     margin:0!important;
     border-radius:12px!important;
     box-sizing:border-box!important;
   }
   .top>.pair{
-    flex:1 1 auto!important;
-    min-width:0!important;
-    max-width:none!important;
+    flex:0 1 106px!important;
+    min-width:78px!important;
+    max-width:106px!important;
     overflow:hidden!important;
     display:flex!important;
     align-items:center!important;
-    gap:7px!important;
+    gap:5px!important;
     white-space:nowrap!important;
   }
   .top>.pair>*{
@@ -60,15 +59,26 @@ css.textContent=`
     display:none!important;
   }
   .top>.pair .star{flex:0 0 auto!important;font-size:20px!important}
-  .top>.pair b,.top>.pair strong{font-size:17px!important;line-height:1!important}
+  .top>.pair b,.top>.pair strong{font-size:16px!important;line-height:1!important}
 
   .top>.price{
     flex:0 0 auto!important;
     width:auto!important;
-    max-width:112px!important;
+    max-width:100px!important;
     margin:0!important;
     padding:0!important;
-    font-size:24px!important;
+    font-size:23px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .top>.live{
+    flex:0 0 auto!important;
+    max-width:46px!important;
+    margin:0!important;
+    font-size:8px!important;
     line-height:1!important;
     font-weight:900!important;
     white-space:nowrap!important;
@@ -78,13 +88,13 @@ css.textContent=`
   .top>.backend{
     flex:0 0 auto!important;
     width:auto!important;
-    max-width:98px!important;
+    max-width:88px!important;
     min-width:0!important;
     margin:0!important;
-    padding:7px 9px!important;
+    padding:6px 7px!important;
     box-sizing:border-box!important;
     border-radius:999px!important;
-    font-size:9px!important;
+    font-size:8px!important;
     line-height:1!important;
     font-weight:900!important;
     white-space:nowrap!important;
@@ -108,13 +118,23 @@ css.textContent=`
   #vtradeMobileBar{position:fixed!important;left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important;z-index:5000!important}
 }
 @media(max-width:390px){
-  .top{height:64px!important;min-height:64px!important;padding:7px 8px!important;gap:5px!important}
-  .top>.mobile{flex-basis:42px!important;width:42px!important;height:42px!important}
-  .top>.pair{gap:5px!important}
+  .top{height:64px!important;min-height:64px!important;padding:7px 7px!important;gap:5px!important}
+  .top>.mobile{flex-basis:40px!important;width:40px!important;height:40px!important}
+  .top>.pair{flex-basis:94px!important;min-width:70px!important;max-width:94px!important;gap:4px!important}
   .top>.pair .star{font-size:18px!important}
-  .top>.pair b,.top>.pair strong{font-size:16px!important}
-  .top>.price{font-size:21px!important;max-width:96px!important}
-  .top>.backend{max-width:88px!important;padding:6px 7px!important;font-size:8px!important}
+  .top>.pair b,.top>.pair strong{font-size:15px!important}
+  .top>.price{font-size:21px!important;max-width:94px!important}
+  .top>.live{max-width:43px!important;font-size:8px!important}
+  .top>.backend{max-width:84px!important;padding:6px 6px!important;font-size:7px!important}
+}
+@media(max-width:360px){
+  .top{gap:4px!important;padding-left:6px!important;padding-right:6px!important}
+  .top>.mobile{flex-basis:38px!important;width:38px!important;height:38px!important}
+  .top>.pair{flex-basis:82px!important;min-width:62px!important;max-width:82px!important}
+  .top>.pair b,.top>.pair strong{font-size:14px!important}
+  .top>.price{font-size:19px!important;max-width:88px!important}
+  .top>.live{max-width:39px!important;font-size:7px!important}
+  .top>.backend{max-width:78px!important;padding:5px 5px!important;font-size:7px!important}
 }
 `;
 document.head.appendChild(css);
