@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v11&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v12&header-fix=20260822" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
@@ -18,10 +18,10 @@ const frame=document.getElementById('phoneFrame');
 function install(){
  const d=frame.contentDocument;
  if(!d||!d.head||!d.body)return;
- if(!d.getElementById('vtrade-phone-fix-v6-script')){
+ if(!d.getElementById('vtrade-phone-fix-v7-script')){
    const s=d.createElement('script');
-   s.id='vtrade-phone-fix-v6-script';
-   s.src='vtrade-mobile-fix-v4.js?v=11';
+   s.id='vtrade-phone-fix-v7-script';
+   s.src='vtrade-mobile-fix-v4.js?v=12';
    d.head.appendChild(s);
  }
 }
