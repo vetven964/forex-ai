@@ -4,7 +4,9 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node --require ./vtrade-runtime-env-lock.js server-launcher.js
+    # One production entrypoint: hard-disable legacy CORE Telegram, boot CORE,
+    # and run Telegram AI as an independent child process.
+    startCommand: node --require ./vtrade-runtime-env-lock.js vtrade-enhanced-launcher.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
