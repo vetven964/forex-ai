@@ -37,19 +37,30 @@
   .side .vtrade-phone-profile small{display:block!important;color:#9aa9bf!important;margin-top:2px!important}
   .side .vtrade-phone-profile i{display:block!important;color:#22e58a!important;font-size:10px!important;font-style:normal!important;margin-top:3px!important}
 
-  .wrap{width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px 12px 96px!important;overflow:hidden!important}
+  .wrap{width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px 12px 118px!important;overflow:hidden!important}
   .wrap>*{min-width:0!important;max-width:100%!important}
   .card,.chart,#vtradePreMarket{min-width:0!important;max-width:100%!important;overflow:hidden!important}
   #vtradePreMarket .v91a{display:flex!important;flex-wrap:nowrap!important;max-width:100%!important;overflow-x:auto!important;scrollbar-width:none!important}
   #vtradePreMarket .v91a::-webkit-scrollbar{display:none!important}
 
-  #vtradeMobileBar{position:fixed!important;left:10px!important;right:10px!important;bottom:8px!important;z-index:5000!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:3px!important;padding:6px!important;border:1px solid #303441!important;border-radius:22px!important;background:rgba(8,10,16,.97)!important;backdrop-filter:blur(14px)!important}
+  #vtradeMobileBar{position:fixed!important;left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;z-index:5000!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:3px!important;padding:6px!important;border:1px solid #303441!important;border-radius:22px!important;background:rgba(8,10,16,.97)!important;backdrop-filter:blur(14px)!important;box-shadow:0 10px 30px rgba(0,0,0,.35)!important}
   #vtradeMobileBar a,#vtradeMobileBar button{display:flex!important;align-items:center!important;justify-content:center!important;height:54px!important;min-width:0!important;margin:0!important;padding:4px!important;border:0!important;border-radius:15px!important;background:transparent!important;color:#d7deeb!important;text-decoration:none!important;font-size:10px!important;line-height:1.1!important;overflow:hidden!important}
   #vtradeMobileBar a.active,#vtradeMobileBar button.active{background:#5827d2!important;color:#fff!important}
   #vtradeMobileBar a *{pointer-events:none!important}
 
   #scrim,.scrim{display:block!important;position:fixed!important;inset:0!important;background:rgba(0,0,0,.58)!important;z-index:2990!important;opacity:0!important;pointer-events:none!important}
   #scrim.show,.scrim.show{opacity:1!important;pointer-events:auto!important}
+
+  /* Phone header polish: keep symbol/name and price in separate columns. */
+  .top{height:190px!important;min-height:190px!important;padding:18px 12px 8px!important;grid-template-columns:52px minmax(0,1fr)!important;grid-template-rows:58px 42px 58px!important;grid-template-areas:"menu pair" "menu price" "tfs tfs"!important;gap:4px 9px!important;align-items:center!important}
+  .top>.mobile{width:50px!important;height:50px!important}
+  .top>.pair{align-self:center!important;padding:0!important}
+  .top>.pair b{display:block!important;font-size:17px!important;line-height:1.1!important;max-width:150px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .top>.pair .sub{display:block!important;font-size:10px!important;max-width:150px!important}
+  .top>.price{grid-area:price!important;justify-self:start!important;align-self:start!important;margin-left:4px!important;font-size:29px!important;line-height:1!important;max-width:calc(100vw - 80px)!important;overflow:hidden!important}
+  .top>.live,.top>.backend{grid-area:price!important;justify-self:end!important;align-self:end!important;margin:0 4px 1px 0!important;max-width:118px!important}
+  .top>.tfs{margin:0!important;align-self:end!important}
+  .top>.tfs button{height:52px!important}
 }
 @media(min-width:901px){#vtradeMobileBar,.vtrade-phone-profile{display:none!important}}
 `;
