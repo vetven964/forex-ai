@@ -10,53 +10,46 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v7" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v8" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
 const frame=document.getElementById('phoneFrame');
-const BAD=/vet\s*ven/i;
-const ADMIN=/administrator/i;
-function hideNode(el){
- if(!el||el===frame.contentDocument.body||el===frame.contentDocument.documentElement)return;
- if(el.closest&&el.closest('.side'))return;
- el.style.setProperty('display','none','important');
- el.style.setProperty('visibility','hidden','important');
- el.style.setProperty('opacity','0','important');
- el.style.setProperty('pointer-events','none','important');
-}
-function scan(root){
- if(!root)return;
- const nodes=root.querySelectorAll?root.querySelectorAll('*'):[];
- for(const el of nodes){
-   if(el.closest&&el.closest('.side'))continue;
-   const text=(el.textContent||'').replace(/\s+/g,' ').trim();
-   if(text&&text.length<180&&BAD.test(text)&&ADMIN.test(text)){
-     let target=el;
-     for(let i=0;i<6&&target.parentElement;i++){
-       const p=target.parentElement;
-       const r=p.getBoundingClientRect();
-       if(r.width>=170&&r.height>=40&&r.width<=root.defaultView.innerWidth*0.98&&r.top<root.defaultView.innerHeight*0.92) target=p; else break;
-     }
-     hideNode(target);
-   }
-   if(el.shadowRoot)scan(el.shadowRoot);
- }
-}
 function install(){
  const d=frame.contentDocument;
  if(!d||!d.head||!d.body)return;
- if(!d.getElementById('vtrade-phone-v7')){
-   const s=d.createElement('style');s.id='vtrade-phone-v7';
-   s.textContent=`@media(max-width:900px){html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}.top{position:relative!important;z-index:80!important}.top>.mobile{z-index:5000!important;position:relative!important}.side{z-index:99999!important}.scrim{z-index:99990!important}body.vtrade-phone-menu-open #vtradeMobileBar,body:has(.side.open) #vtradeMobileBar,body:has(.side.vtrade-open) #vtradeMobileBar{display:none!important}}`;
+ // Load the phone-only patch INSIDE the PC document. This keeps the PC file unchanged
+ // while applying phone behavior to the embedded copy only.
+ if(!d.getElementById('vtrade-phone-fix-v3-script')){
+   const s=d.createElement('script');
+   s.id='vtrade-phone-fix-v3-script';
+   s.src='vtrade-mobile-fix-v3.js?v=8';
    d.head.appendChild(s);
  }
- const run=()=>scan(d);
- run();
- new MutationObserver(run).observe(d.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
- setInterval(run,250);
+ if(!d.getElementById('vtrade-phone-v8')){
+   const s=d.createElement('style');
+   s.id='vtrade-phone-v8';
+   s.textContent=`
+@media(max-width:900px){
+ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+ #profileAdminLink{display:none!important;visibility:hidden!important;pointer-events:none!important}
+ .top .vtrade-phone-profile,.top .profile,.top [id*="profile" i],.top [class*="profile" i]{display:none!important;visibility:hidden!important;pointer-events:none!important}
+ .side{z-index:2000!important}
+ .scrim{z-index:1900!important}
+ #vtradeMobileBar{z-index:2100!important}
 }
-frame.addEventListener('load',()=>setTimeout(install,250));
+`;
+   d.head.appendChild(s);
+ }
+ // Hard-hide the old account control by its known ID after auth/RBAC scripts run.
+ const hide=()=>{
+   const el=d.getElementById('profileAdminLink');
+   if(el){el.style.setProperty('display','none','important');el.style.setProperty('visibility','hidden','important');el.setAttribute('aria-hidden','true');}
+ };
+ hide();
+ setTimeout(hide,500);setTimeout(hide,1500);setTimeout(hide,3000);
+}
+frame.addEventListener('load',()=>setTimeout(install,100));
 })();
 </script>
 </body>
