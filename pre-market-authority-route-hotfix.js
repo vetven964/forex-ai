@@ -1,5 +1,5 @@
-/* V-TRADE AI — Pre-Market authoritative MT5 route V3
- * Directional ICT zone + real broker spread gate.
+/* V-TRADE AI — Pre-Market authoritative MT5 route V4
+ * Single authoritative processing source.
  * Uses CLOSED MT5 candles for structure and live broker quote for price.
  * NEVER authorizes an order and NEVER sends Telegram.
  */
@@ -7,7 +7,7 @@
 const fs=require('fs');
 const path=require('path');
 const SERVER=path.join(__dirname,'server.js');
-const MARKER='VTRADE_PREMARKET_AUTHORITY_ROUTE_V3';
+const MARKER='VTRADE_PREMARKET_AUTHORITY_ROUTE_V4';
 
 function inject(source){
   if(!source) return source;
@@ -17,9 +17,9 @@ function inject(source){
 
   const code=String.raw`
 /* ${MARKER} */
-(function installPreMarketAuthorityV3(app){
-  if(!app||app.__VTRADE_PREMARKET_AUTHORITY_V3__)return;
-  app.__VTRADE_PREMARKET_AUTHORITY_V3__=true;
+(function installPreMarketAuthorityV4(app){
+  if(!app||app.__VTRADE_PREMARKET_AUTHORITY_V4__)return;
+  app.__VTRADE_PREMARKET_AUTHORITY_V4__=true;
 
   const TFS=['M5','M15','H1','H4','D1'], CORE=['M5','M15','H1','H4'];
   const W={M5:1,M15:2,H1:3,H4:4,D1:5}, MIN=30;
@@ -41,7 +41,7 @@ function inject(source){
     let f=[];
     try{f=clean(typeof brokerFeed!=='undefined'?brokerFeed?.timeframes?.[tf]:null);}catch(_){}
     if(f.length>=MIN)return{bars:f,source:'brokerFeed.timeframes'};
-    try{if(typeof parseBrokerCandles==='function'){const p=clean(parseBrokerCandles(tf));if(p.length>=MIN)return{bars:p,source:'parseBrokerCandles'};}}catch(e){console.warn('[PRE-MARKET V3] parser',tf,e?.message||e);}
+    try{if(typeof parseBrokerCandles==='function'){const p=clean(parseBrokerCandles(tf));if(p.length>=MIN)return{bars:p,source:'parseBrokerCandles'};}}catch(e){console.warn('[PRE-MARKET V4] parser',tf,e?.message||e);}
     return{bars:f,source:f.length?'brokerFeed.timeframes':'none'};
   }
 
@@ -73,9 +73,7 @@ function inject(source){
     if(c.length<7)return{status:'WAIT',side:'NONE'};
     const x=c[c.length-1],p=c.slice(-7,-1),hi=Math.max(...p.map(z=>z.h)),lo=Math.min(...p.map(z=>z.l));
     const sellSide=x.l<lo&&x.c>lo,buySide=x.h>hi&&x.c<hi;
-    return{status:sellSide||buySide?'PASS':'WAIT',
-      side:sellSide?'SELL_SIDE_SWEPT':buySide?'BUY_SIDE_SWEPT':'NONE',
-      referenceHigh:hi,referenceLow:lo};
+    return{status:sellSide||buySide?'PASS':'WAIT',side:sellSide?'SELL_SIDE_SWEPT':buySide?'BUY_SIDE_SWEPT':'NONE',referenceHigh:hi,referenceLow:lo};
   }
 
   function structure(c){
@@ -126,151 +124,85 @@ function inject(source){
     if(cs.hammer||cs.bullishEngulfing)bull+=5; if(cs.shootingStar||cs.bearishEngulfing)bear+=5;
     const total=Math.max(1,bull+bear),buy=clamp(bull/total*100),sell=100-buy;
     const bias=buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL';
-    return{tf,ready:true,bars:c.length,open:last.o,high:last.h,low:last.l,close:last.c,
-      currentPrice:n(price),buyPct:Math.round(buy),sellPct:Math.round(sell),direction:bias,score:Math.round(Math.max(buy,sell)),
-      atr:a,candle:cs,liquidity:liq,structure:st,fvg:gaps,orderBlocks:obs,orderBlock:obs[0]||null};
+    return{tf,ready:true,bars:c.length,open:last.o,high:last.h,low:last.l,close:last.c,currentPrice:n(price),buyPct:Math.round(buy),sellPct:Math.round(sell),direction:bias,score:Math.round(Math.max(buy,sell)),atr:a,candle:cs,liquidity:liq,structure:st,fvg:gaps,orderBlocks:obs,orderBlock:obs[0]||null};
   }
 
-  // Only use zones that are directionally valid relative to live price:
-  // BUY = below/at price; SELL = above/at price.
-  // Never expose a bearish zone as BUY or a bullish zone as SELL.
   function pickZone(r,side,price){
     if(!r||!r.ready||price==null)return null;
-    const want=side==='BUY'?'BULLISH':'BEARISH';
-    const candidates=[];
+    const want=side==='BUY'?'BULLISH':'BEARISH',candidates=[];
     for(const z of (r.fvg||[]))if(z.type===want)candidates.push({...z,source:'FVG'});
     for(const z of (r.orderBlocks||[]))if(z.type===want)candidates.push({...z,source:'ORDER_BLOCK'});
     const valid=candidates.filter(z=>{
       if(!Number.isFinite(z.low)||!Number.isFinite(z.high))return false;
       const low=Math.min(z.low,z.high),high=Math.max(z.low,z.high);
-      return side==='BUY' ? low<=price : high>=price;
+      return side==='BUY'?low<=price:high>=price;
     });
     if(!valid.length)return null;
-    // Prefer the nearest valid zone to current price.
     valid.sort((a,b)=>{
       const da=price<a.low?a.low-price:price>a.high?price-a.high:0;
       const db=price<b.low?b.low-price:price>b.high?price-b.high:0;
       return da-db;
     });
     const z=valid[0];
-    return{low:Math.min(z.low,z.high),high:Math.max(z.low,z.high),source:z.source,type:z.type,
-      inZone:price>=Math.min(z.low,z.high)&&price<=Math.max(z.low,z.high)};
+    return{low:Math.min(z.low,z.high),high:Math.max(z.low,z.high),source:z.source,type:z.type,inZone:price>=Math.min(z.low,z.high)&&price<=Math.max(z.low,z.high)};
   }
 
   function analyze(){
     const liveQuote=live(),price=liveQuote?.price??null;
     const rows={};let wb=0,wt=0;
-    for(const tf of TFS){
-      const b=feed(tf); rows[tf]=row(b.bars,tf,price); rows[tf].source=b.source;
-      if(rows[tf].ready){wb+=rows[tf].buyPct*W[tf];wt+=100*W[tf];}
-    }
-
+    for(const tf of TFS){const b=feed(tf);rows[tf]=row(b.bars,tf,price);rows[tf].source=b.source;if(rows[tf].ready){wb+=rows[tf].buyPct*W[tf];wt+=100*W[tf];}}
     const ready=CORE.filter(tf=>rows[tf].ready).length;
     const buy=wt?wb/wt*100:50,sell=100-buy;
     const bias=buy>sell?'BULLISH':sell>buy?'BEARISH':'NEUTRAL';
     const m=rows.M15,h=rows.H1||rows.H4;
     const ref={high:h?.structure?.rangeHigh??h?.high,low:h?.structure?.rangeLow??h?.low};
-
-    const buyZ=pickZone(m,'BUY',price);
-    const sellZ=pickZone(m,'SELL',price);
-
-    const spread=n(liveQuote?.spread);
-    // Gold spread is broker-native; do not invent a value.
-    // Default maximum is 0.80 price units, configurable server-side.
-    const maxSpread=Math.max(0.01,n(process.env.VTRADE_PREMARKET_MAX_SPREAD)??0.80);
-    const spreadOk=spread!=null&&spread>=0&&spread<=maxSpread;
-
+    const buyZ=pickZone(m,'BUY',price),sellZ=pickZone(m,'SELL',price);
+    const spread=n(liveQuote?.spread),maxSpread=Math.max(0.01,n(process.env.VTRADE_PREMARKET_MAX_SPREAD)??0.80),spreadOk=spread!=null&&spread>=0&&spread<=maxSpread;
     const mid=Number.isFinite(ref.high)&&Number.isFinite(ref.low)?(ref.high+ref.low)/2:null;
     const premiumDiscount=price!=null&&mid!=null?(price>mid?'PREMIUM':price<mid?'DISCOUNT':'EQUILIBRIUM'):null;
     const pdOk=bias==='BULLISH'?premiumDiscount==='DISCOUNT':bias==='BEARISH'?premiumDiscount==='PREMIUM':false;
-
-    const liq=m?.liquidity?.status==='PASS';
-    const mss=m?.structure?.mss===bias;
-    const bos=m?.structure?.bos===bias;
-    const atrM=m?.atr;
-    const body=Math.abs((m?.close??0)-(m?.open??0));
-    const displacement=atrM!=null&&body/Math.max(atrM,1e-9)>=1;
+    const liq=m?.liquidity?.status==='PASS',mss=m?.structure?.mss===bias,bos=m?.structure?.bos===bias;
+    const atrM=m?.atr,body=Math.abs((m?.close??0)-(m?.open??0)),displacement=atrM!=null&&body/Math.max(atrM,1e-9)>=1;
     const fvg=!!(m?.fvg||[]).some(z=>z.type===(bias==='BULLISH'?'BULLISH':'BEARISH'));
     const ob=!!(m?.orderBlocks||[]).some(z=>z.type===(bias==='BULLISH'?'BULLISH':'BEARISH'));
-    const momentum=Math.abs(buy-sell)>=8;
-    const execZone=bias==='BULLISH'?buyZ:bias==='BEARISH'?sellZ:null;
+    const momentum=Math.abs(buy-sell)>=8,execZone=bias==='BULLISH'?buyZ:bias==='BEARISH'?sellZ:null;
     const all=ready===4&&bias!=='NEUTRAL'&&liq&&mss&&bos&&displacement&&fvg&&ob&&pdOk&&!!execZone&&momentum&&spreadOk;
-
-    const gates={
-      liquiditySweep:liq,mss,bos,displacement,fvg,orderBlock:ob,
-      premiumDiscountOk:pdOk,executionZone:!!execZone,
-      technicalMomentumOk:momentum,spreadOk,allGatesPassed:all
-    };
-    gates.premiumDiscount=gateValue(gates.premiumDiscountOk);
-    gates.momentum=gateValue(gates.technicalMomentumOk);
-    gates.spread=gateValue(gates.spreadOk);
-
+    const gates={liquiditySweep:liq,mss,bos,displacement,fvg,orderBlock:ob,premiumDiscountOk:pdOk,executionZone:!!execZone,technicalMomentumOk:momentum,spreadOk,allGatesPassed:all};
     const entryStatus=all?'ENTRY_READY':'WAIT';
-    const entryReason=all?'All mandatory ICT + MTF + spread gates passed':
-      ready<4?'Waiting for M5/M15/H1/H4 history':
-      !bias||bias==='NEUTRAL'?'No directional MTF bias':
-      !liq?'Waiting for liquidity sweep':
-      !mss?'Waiting for MSS aligned with MTF bias':
-      !bos?'Waiting for BOS aligned with MTF bias':
-      !displacement?'Waiting for displacement':
-      !fvg?'Waiting for aligned FVG':
-      !ob?'Waiting for aligned Order Block':
-      !pdOk?'Waiting for correct premium/discount location':
-      !execZone?'No directionally valid execution zone near/at current price':
-      !momentum?'Waiting for momentum confirmation':
-      !spreadOk?'Waiting for acceptable broker spread':
-      'Waiting for mandatory gates';
-
+    const entryReason=all?'All mandatory ICT + MTF + spread gates passed':ready<4?'Waiting for M5/M15/H1/H4 history':bias==='NEUTRAL'?'No directional MTF bias':!liq?'Waiting for liquidity sweep':!mss?'Waiting for MSS aligned with MTF bias':!bos?'Waiting for BOS aligned with MTF bias':!displacement?'Waiting for displacement':!fvg?'Waiting for aligned FVG':!ob?'Waiting for aligned Order Block':!pdOk?'Waiting for correct premium/discount location':!execZone?'No directionally valid execution zone near/at current price':!momentum?'Waiting for momentum confirmation':!spreadOk?'Waiting for acceptable broker spread':'Waiting for mandatory gates';
+    const stage=ready<4?'MT5_DATA_WAITING':!all?'ICT_GATES_PROCESSING':'MTF_ICT_READY';
+    const processing={
+      stage,
+      source:'MT5_AUTHORITATIVE_V4',
+      orderAuthorization:false,
+      aiRole:'CONFIRMATION_ONLY',
+      telegramIndependent:true,
+      sequence:['MT5_LIVE_QUOTE','CLOSED_CANDLES','M5','M15','H1','H4','D1','MTF_WEIGHT','CANDLE_WICK_PATTERN','LIQUIDITY_SWEEP','MSS','BOS','FVG','ORDER_BLOCK','DISPLACEMENT','PREMIUM_DISCOUNT','MOMENTUM','SPREAD','EXECUTION_ZONE','AUTHORIZATION','AI_CONFIRMATION','TELEGRAM'],
+      completed:{mt5Quote:price!=null,closedCandles:CORE.every(tf=>rows[tf].ready),mtf:ready===4,candleWickPattern:!!m?.candle?.ready,liquiditySweep:liq,mss,bos,fvg,orderBlock:ob,displacement,premiumDiscount:pdOk,momentum,spread:spreadOk,executionZone:!!execZone,authorization:all,aiConfirmation:false,telegram:false},
+      gatesPassed:Object.values(gates).filter(Boolean).length-1,
+      gatesRequired:10
+    };
     return{
-      success:true,symbol:'XAUUSD',source:'MT5 brokerFeed',price,livePrice:price,
-      bid:n(liveQuote?.bid),ask:n(liveQuote?.ask),spread,
-      available:ready,required:4,complete:ready===4,optionalD1:!!rows.D1.ready,
-      missingTimeframes:CORE.filter(tf=>!rows[tf].ready),
-      timeframes:rows,frames:rows,
-      buyStrengthPct:Math.round(buy),sellStrengthPct:Math.round(sell),
-      bias,directionScore:Math.round(Math.max(buy,sell)),
-      preAiConfidence:Math.round(50+Math.min(45,Math.abs(buy-sell)/2)),
-      confidence:Math.round(50+Math.min(45,Math.abs(buy-sell)/2)),
+      success:true,symbol:'XAUUSD',source:'MT5 brokerFeed',price,livePrice:price,bid:n(liveQuote?.bid),ask:n(liveQuote?.ask),spread,
+      available:ready,required:4,complete:ready===4,optionalD1:!!rows.D1.ready,missingTimeframes:CORE.filter(tf=>!rows[tf].ready),timeframes:rows,frames:rows,
+      buyStrengthPct:Math.round(buy),sellStrengthPct:Math.round(sell),bias,directionScore:Math.round(Math.max(buy,sell)),
+      preAiConfidence:Math.round(50+Math.min(45,Math.abs(buy-sell)/2)),confidence:Math.round(50+Math.min(45,Math.abs(buy-sell)/2)),
       gates,confirmations:gates,
-      ict:{
-        liquiditySweep:m.liquidity,mss:m.structure?.mss,bos:m.structure?.bos,
-        fvg:m.fvg,orderBlock:m.orderBlock,displacement:{confirmed:displacement,atr:atrM}
-      },
-      zone:{
-        buyZone:buyZ?[buyZ.low,buyZ.high]:null,
-        sellZone:sellZ?[sellZ.low,sellZ.high]:null,
-        buySource:buyZ?.source??null,sellSource:sellZ?.source??null,
-        premiumDiscount,executionZoneOk:!!execZone,authorization:false
-      },
+      ict:{liquiditySweep:m?.liquidity,mss:m?.structure?.mss,bos:m?.structure?.bos,fvg:m?.fvg,orderBlock:m?.orderBlock,displacement:{confirmed:displacement,atr:atrM},candle:m?.candle},
+      zone:{buyZone:buyZ?[buyZ.low,buyZ.high]:null,sellZone:sellZ?[sellZ.low,sellZ.high]:null,buySource:buyZ?.source??null,sellSource:sellZ?.source??null,premiumDiscount,executionZoneOk:!!execZone,authorization:false},
       zones:{buyZone:buyZ?[buyZ.low,buyZ.high]:null,sellZone:sellZ?[sellZ.low,sellZ.high]:null},
-      execution:{
-        status:entryStatus,reason:entryReason,side:bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':null,
-        zone:execZone?[execZone.low,execZone.high]:null,source:execZone?.source??null,
-        inZone:!!execZone?.inZone,spread,spreadOk,authorization:false
-      },
-      workflow:{
-        stage:ready===4?'PRE_MARKET_MTF_READY':'PRE_MARKET_MTF_WAITING',
-        source:'MT5_AUTHORITATIVE_V3',entryAuthorization:false,orderAuthorization:false,
-        aiRole:'CONFIRMATION_ONLY',telegramIndependent:true,executionBlocked:!all
-      },
+      execution:{status:entryStatus,reason:entryReason,side:bias==='BULLISH'?'BUY':bias==='BEARISH'?'SELL':null,zone:execZone?[execZone.low,execZone.high]:null,source:execZone?.source??null,inZone:!!execZone?.inZone,spread,spreadOk,authorization:false},
+      processing,
+      workflow:{stage:ready===4?'PRE_MARKET_MTF_READY':'PRE_MARKET_MTF_WAITING',source:'MT5_AUTHORITATIVE_V4',entryAuthorization:false,orderAuthorization:false,aiRole:'CONFIRMATION_ONLY',telegramIndependent:true,executionBlocked:!all},
       generatedAt:new Date().toISOString()
     };
   }
 
-  function gateValue(v){return !!v;}
-
-  function handler(req,res){
-    res.set('Cache-Control','no-store');
-    try{return res.json(analyze());}
-    catch(e){console.error('[PRE-MARKET V3] ERROR',e?.stack||e);
-      return res.status(502).json({success:false,error:String(e?.message||e),
-        workflow:{entryAuthorization:false,orderAuthorization:false}});
-    }
-  }
-
-  app.options('/api/pre-market/mt5-authoritative',handler);
-  app.get('/api/pre-market/mt5-authoritative',handler);
-  console.log('[V-TRADE PRE-MARKET AUTH V3] directional ICT + real spread route ACTIVE');
+  function handler(req,res){res.set('Cache-Control','no-store');res.set('X-V-TRADE-Processing','MT5_AUTHORITATIVE_V4');try{return res.json(analyze());}catch(e){console.error('[PRE-MARKET V4] ERROR',e?.stack||e);return res.status(502).json({success:false,error:String(e?.message||e),processing:{source:'MT5_AUTHORITATIVE_V4',orderAuthorization:false,aiRole:'CONFIRMATION_ONLY'}});}}
+  app.options('/api/pre-market/mt5-authoritative',handler);app.get('/api/pre-market/mt5-authoritative',handler);
+  app.options('/api/pre-market/xauusd',handler);app.get('/api/pre-market/xauusd',handler);
+  app.options('/api/pre-market/intelligence',handler);app.get('/api/pre-market/intelligence',handler);
+  console.log('[V-TRADE PRE-MARKET AUTH V4] SINGLE authoritative processing ACTIVE | M5>M15>H1>H4>D1 | ICT gates + processing trace');
 })(app);
 `;
 
@@ -279,10 +211,7 @@ function inject(source){
 
 if(fs.existsSync(SERVER)){
   let source=fs.readFileSync(SERVER,'utf8');
-  // Fresh deploys normally have no injected authority block. If a previous
-  // V2 block is already present in server.js, remove it so V3 becomes the
-  // single authoritative route.
-  for(const marker of ['VTRADE_PREMARKET_AUTHORITY_ROUTE_V2','VTRADE_PREMARKET_AUTHORITY_ROUTE_V1']){
+  for(const marker of ['VTRADE_PREMARKET_AUTHORITY_ROUTE_V3','VTRADE_PREMARKET_AUTHORITY_ROUTE_V2','VTRADE_PREMARKET_AUTHORITY_ROUTE_V1']){
     let start=source.indexOf('/* '+marker+' */');
     while(start>=0){
       const end=source.indexOf('})(app);',start);
