@@ -1,30 +1,25 @@
-/* V TRADE AI — PHONE CONTROLS V1
+/* V TRADE AI — PHONE CONTROLS V2
  * Phone-only UX: one timeframe dropdown + Analyze AI button.
  * Hides duplicated header timeframe buttons and removes the VET VEN admin profile card.
  * Desktop layout and trading logic are untouched.
  */
 (()=>{
 'use strict';
-if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V1__)return;
-window.__VTRADE_PHONE_CONTROLS_V1__=true;
+if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V2__)return;
+window.__VTRADE_PHONE_CONTROLS_V2__=true;
 
 const style=document.createElement('style');
-style.id='vtrade-phone-controls-v1-style';
+style.id='vtrade-phone-controls-v2-style';
 style.textContent=`
 @media(max-width:900px){
-  /* The header already has the same timeframe choices below in Pre-Market.
-     Keep only the compact selector there. */
   .top>.tfs{display:none!important}
+  .top{grid-template-rows:58px 42px!important;grid-template-areas:"menu pair price" "menu pair status"!important;min-height:112px!important;height:auto!important;padding-bottom:10px!important}
   .vtrade-phone-tf-controls{display:flex!important;gap:8px!important;width:100%!important;align-items:stretch!important;margin-top:8px!important}
   .vtrade-phone-tf-select{flex:1 1 auto!important;min-width:0!important;height:48px!important;padding:0 14px!important;border:1px solid #1d2c44!important;border-radius:12px!important;background:#09111e!important;color:#f5f8ff!important;font-weight:800!important;outline:none!important;appearance:auto!important}
   .vtrade-phone-tf-select:focus{border-color:#8050ff!important;box-shadow:0 0 0 2px #8050ff22!important}
   .vtrade-phone-tf-button{flex:0 0 132px!important;height:48px!important;border:1px solid #8050ff!important;border-radius:12px!important;background:linear-gradient(135deg,#5523c9,#7136e8)!important;color:#fff!important;font-weight:900!important}
   .vtrade-phone-tf-button:active{transform:scale(.98)!important}
-  /* Do not reserve header space for the removed duplicate controls. */
-  .top{grid-template-rows:58px 42px 58px!important;min-height:165px!important}
-  .top>.backend{grid-area:status!important}
   .top>.lang-row{display:none!important}
-  /* Remove duplicate Admin account/profile card from terminal header. */
   .vtrade-phone-hide-admin{display:none!important;visibility:hidden!important;pointer-events:none!important}
   #vtradePhoneTfHost{display:block!important}
 }
@@ -42,11 +37,9 @@ function hideAdminCard(){
     if(text.length<10||text.length>120)return;
     if(!/VET\s+VEN/i.test(text)||!/(Administrator|Admin)/i.test(text))return;
     const r=el.getBoundingClientRect();
-    const cs=getComputedStyle(el);
     if(r.width<80||r.height<35)return;
     if(el.closest('.side'))return;
     if(el.classList.contains('vtrade-phone-hide-admin'))return;
-    /* Prefer the smallest visible card containing both strings. */
     el.classList.add('vtrade-phone-hide-admin');
     el.setAttribute('data-vtrade-phone-admin-hidden','1');
   });
