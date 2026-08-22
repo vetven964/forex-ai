@@ -69,7 +69,7 @@
   }
   function loadPhoneControls(){
     if(!isMobile()||!['premium-dashboard-live.html','dashboard.html'].includes(path))return;
-    loadScript('vtradePhoneControlsScript','vtrade-phone-controls-v1.js?v=20260822-tf-dropdown');
+    loadScript('vtradePhoneControlsScript','vtrade-phone-controls-v1.js?v=20260822-tf-dropdown-v2');
   }
   function setActive(bar){
     const current=(location.hash||'#dashboard').toLowerCase();
