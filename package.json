@@ -4,7 +4,8 @@
   "description": "V Trade AI XAUUSD MTF ICT + MT5 feed + Telegram alerts + optional local auto-trade",
   "main": "server.js",
   "scripts": {
-    "start": "node vtrade-enhanced-launcher.js"
+    "start": "node vtrade-enhanced-launcher.js",
+    "telegram:ai": "node telegram-bot-ai-service.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
