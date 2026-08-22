@@ -1,15 +1,15 @@
-/* V TRADE AI — Mobile App shell / navigation V4 */
+/* V TRADE AI — Mobile App shell / navigation V5 */
 (() => {
   'use strict';
-  if (window.__VTRADE_RESPONSIVE_V4__) return;
-  window.__VTRADE_RESPONSIVE_V4__ = true;
+  if (window.__VTRADE_RESPONSIVE_V5__) return;
+  window.__VTRADE_RESPONSIVE_V5__ = true;
   const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
   const path=location.pathname.split('/').pop().toLowerCase();
 
   function injectStyle(){
-    if(document.getElementById('vtradeResponsiveRuntimeStyleV4'))return;
+    if(document.getElementById('vtradeResponsiveRuntimeStyleV5'))return;
     const s=document.createElement('style');
-    s.id='vtradeResponsiveRuntimeStyleV4';
+    s.id='vtradeResponsiveRuntimeStyleV5';
     s.textContent=`
 @media(max-width:900px){
   html,body{width:100%;max-width:100%;overflow-x:hidden!important}
@@ -29,15 +29,14 @@
     bar.id='vtradeMobileBar';
     bar.setAttribute('aria-label','V TRADE AI mobile navigation');
     const items=[
-      ['dashboard.html','⌂','Home'],
+      ['premium-dashboard-live.html#dashboard','⌂','Home'],
       ['premium-dashboard-live.html#ai','▣','Analyzer'],
       ['premium-dashboard-live.html#terminal','⌁','Chart'],
       ['premium-dashboard-live.html#signals','◈','Signals'],
       ['premium-dashboard-live.html#stats','▥','Stats']
     ];
     bar.innerHTML=items.map(([href,icon,label])=>{
-      const active=(path==='dashboard.html'&&label==='Home') ||
-        (path==='premium-dashboard-live.html' && ((location.hash==='#ai'&&label==='Analyzer')||(location.hash==='#terminal'&&label==='Chart')||(location.hash==='#signals'&&label==='Signals')||(location.hash==='#stats'&&label==='Stats')||(!location.hash&&label==='Chart')));
+      const active=(path==='premium-dashboard-live.html' && ((location.hash==='#ai'&&label==='Analyzer')||(location.hash==='#terminal'&&label==='Chart')||(location.hash==='#signals'&&label==='Signals')||(location.hash==='#stats'&&label==='Stats')||(!location.hash&&label==='Chart')));
       return `<a class="${active?'active':''}" href="${href}"><span class="mi">${icon}</span><span>${label}</span></a>`;
     }).join('');
     document.body.appendChild(bar);
@@ -72,11 +71,21 @@
     document.head.appendChild(s);
   }
 
+  function loadPhoneNavAuthFix(){
+    if(!isMobile()||window.__VTRADE_PHONE_NAV_AUTH_FIX_LOADED__)return;
+    window.__VTRADE_PHONE_NAV_AUTH_FIX_LOADED__=true;
+    const s=document.createElement('script');
+    s.src='vtrade-phone-nav-auth-fix.js?v=1';
+    s.async=false;
+    document.head.appendChild(s);
+  }
+
   function init(){
     injectStyle();
     if(path==='admin-dashboard.html')addAdminShell();
     else if(['premium-dashboard-live.html','dashboard.html','profile.html','pricing.html'].includes(path))addMobileNav();
     loadPhoneV8();
+    loadPhoneNavAuthFix();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
