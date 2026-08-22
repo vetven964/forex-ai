@@ -1,15 +1,15 @@
-/* V TRADE AI — PHONE CONTROLS V3
+/* V TRADE AI — PHONE CONTROLS V4
  * Phone-only UX: one timeframe dropdown + Analyze AI button.
  * Hides duplicated header timeframe buttons and removes the VET VEN admin profile card.
  * Desktop layout and trading logic are untouched.
  */
 (()=>{
 'use strict';
-if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V3__)return;
-window.__VTRADE_PHONE_CONTROLS_V3__=true;
+if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V4__)return;
+window.__VTRADE_PHONE_CONTROLS_V4__=true;
 
 const style=document.createElement('style');
-style.id='vtrade-phone-controls-v3-style';
+style.id='vtrade-phone-controls-v4-style';
 style.textContent=`
 @media(max-width:900px){
   .top>.tfs{display:none!important}
@@ -68,13 +68,15 @@ function wireTimeframe(){
     button.type='button';button.className='vtrade-phone-tf-button';button.textContent='Analyze AI';
     button.addEventListener('click',()=>{
       const tf=select.value;
-      const target=row.querySelector(`[data-v91tf="${tf}"]`);
+      const currentRow=document.querySelector('#vtradePreMarket .v91a');
+      const target=currentRow?.querySelector(`[data-v91tf="${tf}"]`);
       if(target)target.click();
-      setTimeout(()=>row.querySelector('#v91Analyze')?.click(),60);
+      setTimeout(()=>document.querySelector('#vtradePreMarket #v91Analyze')?.click(),100);
     });
     select.addEventListener('change',()=>{
       const tf=select.value;
-      const target=row.querySelector(`[data-v91tf="${tf}"]`);
+      const currentRow=document.querySelector('#vtradePreMarket .v91a');
+      const target=currentRow?.querySelector(`[data-v91tf="${tf}"]`);
       if(target)target.click();
     });
     host.append(select,button);
