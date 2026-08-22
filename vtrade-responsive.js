@@ -1,19 +1,19 @@
-/* V TRADE AI — Mobile App shell / navigation V14 */
+/* V TRADE AI — Mobile App shell / navigation V15 */
 (()=>{
 'use strict';
-if(window.__VTRADE_RESPONSIVE_V14__)return;
-window.__VTRADE_RESPONSIVE_V14__=true;
+if(window.__VTRADE_RESPONSIVE_V15__)return;
+window.__VTRADE_RESPONSIVE_V15__=true;
 const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
 const path=location.pathname.split('/').pop().toLowerCase();
 function injectStyle(){
- if(document.getElementById('vtradeResponsiveRuntimeStyleV14'))return;
- const s=document.createElement('style');s.id='vtradeResponsiveRuntimeStyleV14';
+ if(document.getElementById('vtradeResponsiveRuntimeStyleV15'))return;
+ const s=document.createElement('style');s.id='vtradeResponsiveRuntimeStyleV15';
  s.textContent=`@media(max-width:900px){html,body{width:100%;max-width:100%;overflow-x:hidden!important}body.vtrade-mobile{padding-bottom:calc(96px + env(safe-area-inset-bottom))!important}#vtradeMobileBar{z-index:5000!important}body:not(.vtrade-admin-mobile) #vtradeMobileBar{position:fixed!important;left:10px!important;right:10px!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important;height:64px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;border:1px solid #263957!important;border-radius:20px!important;background:rgba(5,10,18,.96)!important;backdrop-filter:blur(18px)!important;overflow:hidden!important}body:not(.vtrade-admin-mobile) #vtradeMobileBar a{min-width:0!important;height:50px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;padding:4px 2px!important;border:1px solid transparent!important;border-radius:14px!important;background:transparent!important;color:#8ea0b8!important;font:600 10px/1.1 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif!important;text-decoration:none!important;white-space:nowrap!important;overflow:hidden!important}body:not(.vtrade-admin-mobile) #vtradeMobileBar a.active,body:not(.vtrade-admin-mobile) #vtradeMobileBar a[aria-current="page"]{color:#f5f8ff!important;background:rgba(91,45,214,.28)!important;border-color:rgba(128,80,255,.7)!important}body:not(.vtrade-admin-mobile) #vtradeMobileBar .mi{display:grid!important;place-items:center!important;width:28px!important;height:25px!important;font-size:20px!important;line-height:1!important;color:inherit!important}}@media(max-width:380px){body:not(.vtrade-admin-mobile) #vtradeMobileBar{left:7px!important;right:7px!important;height:60px!important}}@media(min-width:901px){#vtradeMobileBar,#vtradeAdminMobileBar,#vtradeAdminScrim,#vtradePhoneTfHost,.vtrade-phone-profile{display:none!important}}`;
  document.head.appendChild(s);
 }
 function loadScript(id,src){if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.async=false;(document.head||document.documentElement).appendChild(s)}
-function loadDirectPhoneShell(){if(!isMobile()||window.__VTRADE_DIRECT_PHONE_SHELL_V1__||document.getElementById('vtradeDirectPhoneShellScript'))return;const s=document.createElement('script');s.id='vtradeDirectPhoneShellScript';s.src='vtrade-phone-shell-direct-v1.js?v=20260822-direct6';document.head.appendChild(s)}
-function loadPhoneControls(){if(!isMobile())return;loadScript('vtradePhoneControlsScript','vtrade-phone-controls-v1.js?v=20260822-tf-dropdown-v6')}
+function loadDirectPhoneShell(){if(!isMobile()||window.__VTRADE_DIRECT_PHONE_SHELL_V1__||document.getElementById('vtradeDirectPhoneShellScript'))return;const s=document.createElement('script');s.id='vtradeDirectPhoneShellScript';s.src='vtrade-phone-shell-direct-v1.js?v=20260822-direct7';document.head.appendChild(s)}
+function loadPhoneControls(){if(!isMobile())return;loadScript('vtradePhoneControlsScript','vtrade-phone-controls-v1.js?v=20260822-tf-dropdown-v7')}
 function setActive(bar){const current=(location.hash||'#dashboard').toLowerCase();bar.querySelectorAll('a').forEach(a=>{const active=a.getAttribute('href')?.toLowerCase()===current;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')})}
 function addMobileNav(){if(!isMobile()||document.getElementById('vtradeMobileBar'))return;const bar=document.createElement('nav');bar.id='vtradeMobileBar';bar.setAttribute('aria-label','V TRADE AI mobile navigation');const items=[['#dashboard','⌂','Home'],['#ai','▣','Analyzer'],['#terminal','⌁','Chart'],['#signals','◈','Signals'],['#news','◉','News']];bar.innerHTML=items.map(([href,icon,label])=>`<a href="${href}"><span class="mi" aria-hidden="true">${icon}</span><span>${label}</span></a>`).join('');document.body.appendChild(bar);document.body.classList.add('vtrade-mobile');setActive(bar);bar.addEventListener('click',()=>setTimeout(()=>setActive(bar),0));window.addEventListener('hashchange',()=>setActive(bar),{passive:true})}
 function init(){injectStyle();if(path==='admin-dashboard.html')return;if(['premium-dashboard-live.html','premium-dashboard-v4.html','premium-dashboard.html','dashboard.html','profile.html','pricing.html'].includes(path)){loadDirectPhoneShell();loadPhoneControls();addMobileNav()}}
