@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v5" title="V TRADE AI Phone Terminal"></iframe>
+<iframe id="phoneFrame" src="premium-dashboard-live.html?phone=1&mobile-shell=v6" title="V TRADE AI Phone Terminal"></iframe>
 <script>
 (function(){
 'use strict';
@@ -18,23 +18,21 @@ const frame=document.getElementById('phoneFrame');
 function install(){
   const d=frame.contentDocument;
   if(!d||!d.head||!d.body)return;
-  if(!d.getElementById('vtrade-phone-isolated-shell')){
-    const s=d.createElement('style');s.id='vtrade-phone-isolated-shell';
+  let s=d.getElementById('vtrade-phone-isolated-shell-v6');
+  if(!s){
+    s=d.createElement('style');s.id='vtrade-phone-isolated-shell-v6';
     s.textContent=`
 @media(max-width:900px){
  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
- body{padding-bottom:0!important}
  .app{display:block!important;width:100%!important;min-width:0!important}
  .main{width:100%!important;min-width:0!important;overflow:hidden!important}
- .top{position:relative!important;display:grid!important;grid-template-columns:48px minmax(0,1fr) auto!important;grid-template-areas:"menu pair price" "menu pair status" "tfs tfs tfs"!important;gap:6px!important;min-height:142px!important;height:auto!important;padding:14px 10px 10px!important;overflow:hidden!important;z-index:80!important}
- .top>.mobile{grid-area:menu!important;display:grid!important;place-items:center!important;width:48px!important;height:48px!important;z-index:5000!important;position:relative!important}
+ .top{position:relative!important;display:grid!important;grid-template-columns:52px minmax(0,1fr) auto!important;grid-template-areas:"menu pair price" "menu pair status" "tfs tfs tfs"!important;gap:7px!important;min-height:154px!important;height:auto!important;padding:18px 12px 10px!important;overflow:hidden!important;z-index:80!important}
+ .top>.mobile{grid-area:menu!important;display:grid!important;place-items:center!important;width:52px!important;height:52px!important;z-index:100001!important;position:relative!important}
  .top>.pair{grid-area:pair!important;min-width:0!important;overflow:hidden!important}
  .top>.price{grid-area:price!important;font-size:27px!important;line-height:1!important;white-space:nowrap!important}
  .top>.live,.top>.backend{grid-area:status!important;justify-self:end!important;white-space:nowrap!important}
- .top>.tfs{grid-area:tfs!important;margin:3px 0 0!important;display:flex!important;gap:8px!important;overflow-x:auto!important;scrollbar-width:none!important}
+ .top>.tfs{grid-area:tfs!important;margin:5px 0 0!important;display:flex!important;gap:8px!important;overflow-x:auto!important;scrollbar-width:none!important}
  .top>.tfs::-webkit-scrollbar{display:none}.top>.tfs button{flex:0 0 72px!important;min-width:72px!important;height:46px!important}
- /* PHONE ONLY: no account/profile card is allowed in the header. */
- #profileAdminLink,#vtradeAccountMenu,#vtradeProfileLink,#vtradeAdminLink,#vtradeUserLink,[id*="AccountMenu"],[id*="accountMenu"],[class*="account-menu"],[class*="accountMenu"],[class*="profile-menu"],[class*="profileMenu"]{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
  .side{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:min(300px,84vw)!important;height:100dvh!important;z-index:99999!important;transform:translateX(-110%)!important;overflow-y:auto!important;padding:18px 13px calc(24px + env(safe-area-inset-bottom))!important}
  .side.open,.side.vtrade-open{transform:translateX(0)!important}
  .scrim{z-index:99990!important}
@@ -47,45 +45,42 @@ function install(){
 `;
     d.head.appendChild(s);
   }
-  const isSide=el=>!!el.closest('.side');
-  const hideHeaderAccounts=()=>{
-    const all=Array.from(d.querySelectorAll('body *'));
-    all.forEach(el=>{
-      if(isSide(el))return;
-      const id=String(el.id||'').toLowerCase(),cls=String(el.className||'').toLowerCase();
-      if(/accountmenu|account-menu|profilemenu|profile-menu/.test(id+' '+cls)){
-        el.style.setProperty('display','none','important');
-        el.style.setProperty('visibility','hidden','important');
-        return;
+  const inSide=el=>!!el.closest('.side');
+  function hideHeaderAccountCards(){
+    const els=Array.from(d.querySelectorAll('body *'));
+    for(const el of els){
+      if(inSide(el))continue;
+      const id=(el.id||'').toString().toLowerCase();
+      const cls=(typeof el.className==='string'?el.className:'').toLowerCase();
+      if(/profile|account|user-menu|usermenu/.test(id+' '+cls)){
+        const r=el.getBoundingClientRect();
+        if(r.width>150 && r.height>35 && r.top<d.defaultView.innerHeight*.85){
+          el.style.setProperty('display','none','important');
+          el.style.setProperty('visibility','hidden','important');
+          el.style.setProperty('opacity','0','important');
+          el.style.setProperty('pointer-events','none','important');
+        }
+        continue;
       }
       const text=(el.textContent||'').replace(/\s+/g,' ').trim();
-      if(text.length>0&&text.length<160&&/vet ven/i.test(text)&&/administrator/i.test(text)){
-        const r=el.getBoundingClientRect();
-        if(r.width>120&&r.height>35&&r.top<Math.max(700,d.defaultView.innerHeight*.75)){
-          let target=el;
-          for(let i=0;i<5&&target.parentElement;i++){
-            const p=target.parentElement,pr=p.getBoundingClientRect();
-            if(pr.width>180&&pr.height>45&&pr.width<d.defaultView.innerWidth*.98&&pr.top<d.defaultView.innerHeight*.8){target=p;} else break;
-          }
-          if(!isSide(target)){
-            target.style.setProperty('display','none','important');
-            target.style.setProperty('visibility','hidden','important');
-            target.style.setProperty('pointer-events','none','important');
-          }
-        }
+      if(text.length>=10 && text.length<=120 && /VET VEN/i.test(text) && /Administrator/i.test(text)){
+        el.style.setProperty('display','none','important');
+        el.style.setProperty('visibility','hidden','important');
+        el.style.setProperty('opacity','0','important');
+        el.style.setProperty('pointer-events','none','important');
       }
-    });
-  };
-  const sync=()=>{
-    hideHeaderAccounts();
+    }
+  }
+  function sync(){
+    hideHeaderAccountCards();
     const open=!!d.querySelector('.side.open,.side.vtrade-open');
     d.body.classList.toggle('vtrade-phone-menu-open',open);
-  };
+  }
   sync();
   new MutationObserver(sync).observe(d.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
-  setInterval(hideHeaderAccounts,500);
+  setInterval(hideHeaderAccountCards,300);
 }
-frame.addEventListener('load',()=>setTimeout(install,120));
+frame.addEventListener('load',()=>setTimeout(install,150));
 })();
 </script>
 </body>
