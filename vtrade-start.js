@@ -3,7 +3,6 @@ const path = require('path');
 
 const ROOT = __dirname;
 const DASHBOARD = path.join(ROOT, 'premium-dashboard-live.html');
-const TELEGRAM = path.join(ROOT, 'ai-telegram-diagnostic-hotfix.js');
 const PREMARKET = path.join(ROOT, 'terminal-pre-market.js');
 const MARK = 'VTRADE_PHONE_AND_TELEGRAM_TRUTH_FIX_V2';
 const AI_BUTTON = 'vtrade-ai-button-hotfix.js';
@@ -15,6 +14,7 @@ function patchFile(file, transform) {
   if (next !== source) fs.writeFileSync(file, next, 'utf8');
 }
 
+// Pre-Market only: Telegram code is intentionally NOT loaded here.
 if (fs.existsSync(AI_SAFE)) require(AI_SAFE);
 
 patchFile(PREMARKET, source => {
@@ -67,30 +67,9 @@ patchFile(DASHBOARD, source => {
   return source.replace(anchor, anchor + `\n${tag}`);
 });
 
-patchFile(TELEGRAM, source => {
-  if (source.includes(MARK)) return source;
-  const old = "  const bias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();\n  const score = firstFinite(a?.directionScore, a?.score?.directionScore, a?.score, a?.aiScore) ?? 0;";
-  const neu = `  // ${MARK}: authoritative core-MTF direction for Telegram
-  const coreTfs = ['H4','H1','M15'];
-  const coreRows = coreTfs.map(tf => (a?.timeframes?.[tf] || a?.mtf?.timeframes?.[tf] || a?.mtf?.[tf] || a?.multiTimeFrame?.[tf] || a?.multiTimeFrame?.[tf.toLowerCase()] || a?.[tf] || a?.[tf.toLowerCase()] || null)).filter(Boolean);
-  const biasOf = x => String(x?.structure?.bias || x?.structureBias || x?.resolvedBias || x?.trend || x?.directionBand || x?.direction || x?.bias || '').toUpperCase();
-  const coreBiases = coreRows.map(biasOf);
-  const coreBull = coreBiases.filter(x => x.includes('BULL') || x === 'BUY').length;
-  const coreBear = coreBiases.filter(x => x.includes('BEAR') || x === 'SELL').length;
-  const coreBias = coreBull >= 2 ? 'BULLISH' : coreBear >= 2 ? 'BEARISH' : 'NEUTRAL';
-  const fallbackBias = String(a?.bias || a?.directionBand || (side === 'BUY' ? 'BULLISH' : side === 'SELL' ? 'BEARISH' : 'NEUTRAL')).toUpperCase();
-  const bias = coreBias !== 'NEUTRAL' ? coreBias : fallbackBias;
-  const evidence = coreRows.map(x => ({bp:firstFinite(x?.buyPct,x?.buyStrengthPct,x?.buyScore),sp:firstFinite(x?.sellPct,x?.sellStrengthPct,x?.sellScore)})).filter(x => x.bp !== null || x.sp !== null);
-  let score = 50;
-  if (evidence.length) { const vals=evidence.map(x=>bias==='BEARISH'?(x.sp ?? (100-(x.bp ?? 50))):(x.bp ?? (100-(x.sp ?? 50)))); score=Math.round(vals.reduce((s,x)=>s+Math.max(0,Math.min(100,x)),0)/vals.length); }
-  else score = firstFinite(a?.directionScore,a?.score?.directionScore,a?.score,a?.aiScore) ?? 50;
-  if (!isConfirmed) score=Math.min(85,score); else score=Math.min(95,score);`;
-  if (!source.includes(old)) throw new Error('Telegram bias anchor not found; refusing unsafe patch');
-  return source.replace(old, neu);
-});
-
 if (fs.existsSync(path.join(ROOT, 'premarket-ui-truth-hotfix.js'))) require('./premarket-ui-truth-hotfix.js');
 
-console.log('[VTRADE START] phone UI + Telegram truth sync + deterministic AI V10 ready');
+console.log('[VTRADE START] Pre-Market AI core ready | Telegram isolated');
 require('./vtrade-logic-ui-hotfix.js');
-require('./ai-telegram-diagnostic-hotfix.js');
+// IMPORTANT: ai-telegram-diagnostic-hotfix.js is no longer loaded by CORE.
+// Telegram delivery belongs exclusively to telegram-bot-ai-service.js.
