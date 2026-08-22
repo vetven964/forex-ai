@@ -1,15 +1,15 @@
-/* V TRADE AI — PHONE CONTROLS V2
+/* V TRADE AI — PHONE CONTROLS V3
  * Phone-only UX: one timeframe dropdown + Analyze AI button.
  * Hides duplicated header timeframe buttons and removes the VET VEN admin profile card.
  * Desktop layout and trading logic are untouched.
  */
 (()=>{
 'use strict';
-if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V2__)return;
-window.__VTRADE_PHONE_CONTROLS_V2__=true;
+if(!matchMedia('(max-width:900px)').matches||window.__VTRADE_PHONE_CONTROLS_V3__)return;
+window.__VTRADE_PHONE_CONTROLS_V3__=true;
 
 const style=document.createElement('style');
-style.id='vtrade-phone-controls-v2-style';
+style.id='vtrade-phone-controls-v3-style';
 style.textContent=`
 @media(max-width:900px){
   .top>.tfs{display:none!important}
@@ -31,8 +31,9 @@ const isTerminal=()=>/premium-dashboard-live\.html$/i.test(location.pathname.spl
 if(!isTerminal())return;
 
 function hideAdminCard(){
+  const top=document.querySelector('.top');
   document.querySelectorAll('body *').forEach(el=>{
-    if(el===document.body||el.id==='vtradeMobileBar'||el.id==='side')return;
+    if(el===document.body||el===top||el.id==='vtradeMobileBar'||el.id==='side')return;
     const text=(el.textContent||'').replace(/\s+/g,' ').trim();
     if(text.length<10||text.length>120)return;
     if(!/VET\s+VEN/i.test(text)||!/(Administrator|Admin)/i.test(text))return;
